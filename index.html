@@ -575,125 +575,23 @@ tailwind.config = {
     <div class="glass rounded-3xl p-8 md:p-12">
       <div class="text-center mb-10">
         <h2 class="text-2xl md:text-4xl font-bold tracking-tight mb-3">仅限 30 个名额</h2>
-        <p class="text-white/40 text-sm">参加过分享会的家长已优先定走部分名额。填下表，我们会在 24 小时内联系你。</p>
+        <p class="text-white/40 text-sm">填写下表，报名信息直接写入飞书，我们会尽快联系你。</p>
       </div>
 
-      <form id="signup-form" class="space-y-5" onsubmit="return false;">
-        <div class="grid md:grid-cols-2 gap-5">
-          <div>
-            <label class="block text-xs text-white/40 mb-2">家长姓名 <span class="text-amber">*</span></label>
-            <input type="text" name="parent_name" required class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors" placeholder="你的名字">
-          </div>
-          <div>
-            <label class="block text-xs text-white/40 mb-2">手机号 <span class="text-amber">*</span></label>
-            <input type="tel" name="phone" required class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors" placeholder="11位手机号">
-          </div>
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-5">
-          <div>
-            <label class="block text-xs text-white/40 mb-2">孩子姓名 / 昵称 <span class="text-amber">*</span></label>
-            <input type="text" name="child_name" required class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors" placeholder="孩子怎么称呼">
-          </div>
-          <div>
-            <label class="block text-xs text-white/40 mb-2">孩子年龄 <span class="text-amber">*</span></label>
-            <select name="child_age" required class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white/60 focus:outline-none focus:border-amber/40 transition-colors appearance-none">
-              <option value="" disabled selected class="text-white/20 bg-ink">选择年龄</option>
-              <option value="7" class="text-white bg-ink">7 岁</option><option value="8" class="text-white bg-ink">8 岁</option><option value="9" class="text-white bg-ink">9 岁</option><option value="10" class="text-white bg-ink">10 岁</option><option value="11" class="text-white bg-ink">11 岁</option><option value="12" class="text-white bg-ink">12 岁</option><option value="13" class="text-white bg-ink">13 岁</option><option value="14" class="text-white bg-ink">14 岁</option><option value="15" class="text-white bg-ink">15 岁</option><option value="16" class="text-white bg-ink">16 岁</option><option value="17" class="text-white bg-ink">17 岁</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs text-white/40 mb-2">微信号 / 邮箱（选填）</label>
-          <input type="text" name="contact" class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors" placeholder="方便我们联系你">
-        </div>
-
-        <div>
-          <label class="block text-xs text-white/40 mb-2">有什么想说的？（选填）</label>
-          <textarea name="notes" rows="3" class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors resize-none" placeholder="比如：孩子对什么感兴趣？什么时候方便联系？"></textarea>
-        </div>
-
-        <button type="submit" id="submit-btn" class="w-full bg-amber text-ink py-4 rounded-xl font-bold text-lg hover:bg-amber-light transition-colors active:scale-[0.98]">
-          提交报名
-        </button>
-        <p id="form-msg" class="text-center text-sm hidden"></p>
-      </form>
+      <!-- Feishu Form Embed -->
+      <div class="rounded-2xl overflow-hidden" style="min-height:600px;">
+        <iframe
+          src="https://aizhaopin.feishu.cn/share/base/form/MZrOb1XHgaJsaVsY44scudOBnGc"
+          width="100%"
+          height="700"
+          frameborder="0"
+          style="border:none;background:transparent;"
+          allow="clipboard-write">
+        </iframe>
+      </div>
     </div>
   </div>
 </section>
-
-<script>
-// ====== Feishu Webhook 配置 ======
-// 使用方法：
-// 1. 在飞书群聊中 → 设置 → 群机器人 → 添加自定义机器人
-// 2. 复制 Webhook 地址，替换下面的 URL
-// 3. 安全设置选择"自定义关键词"，添加关键词"报名"
-const FEISHU_WEBHOOK_URL = 'YOUR_FEISHU_WEBHOOK_URL_HERE';
-
-const form = document.getElementById('signup-form');
-const btn = document.getElementById('submit-btn');
-const msg = document.getElementById('form-msg');
-
-form.addEventListener('submit', async function(e) {
-  e.preventDefault();
-
-  if (FEISHU_WEBHOOK_URL === 'YOUR_FEISHU_WEBHOOK_URL_HERE') {
-    msg.className = 'text-center text-sm text-red-400 mt-3';
-    msg.style.display = 'block';
-    msg.textContent = 'Webhook 尚未配置，请联系管理员。';
-    return;
-  }
-
-  const formData = new FormData(form);
-  const data = Object.fromEntries(formData.entries());
-
-  btn.disabled = true;
-  btn.textContent = '提交中...';
-  msg.style.display = 'none';
-
-  const card = {
-    msg_type: 'interactive',
-    card: {
-      header: {
-        title: { tag: 'plain_text', content: '🎯 少年CEO AI 创业营 · 新报名' },
-        template: 'amber'
-      },
-      elements: [
-        { tag: 'div', text: { tag: 'lark_md', content: `**家长：** ${data.parent_name}\n**手机：** ${data.phone}\n**孩子：** ${data.child_name}（${data.child_age}岁）` } },
-        { tag: 'hr' },
-        { tag: 'div', text: { tag: 'lark_md', content: `**联系方式：** ${data.contact || '未填写'}\n**备注：** ${data.notes || '无'}` } },
-        { tag: 'hr' },
-        { tag: 'note', elements: [{ tag: 'plain_text', content: `提交时间：${new Date().toLocaleString('zh-CN')}` }] }
-      ]
-    }
-  };
-
-  try {
-    const resp = await fetch(FEISHU_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(card)
-    });
-    const result = await resp.json();
-    if (result.code === 0 || result.StatusCode === 0) {
-      msg.className = 'text-center text-sm text-green-400 mt-3';
-      msg.style.display = 'block';
-      msg.textContent = '报名成功！我们会在 24 小时内联系你。';
-      form.reset();
-    } else {
-      throw new Error(result.msg || '飞书返回错误');
-    }
-  } catch (err) {
-    msg.className = 'text-center text-sm text-red-400 mt-3';
-    msg.style.display = 'block';
-    msg.textContent = '提交失败，请稍后再试或直接微信联系我们。';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '提交报名';
-  }
-});
-</script>
 
 <!-- ====== FOOTER ====== -->
 <footer class="py-12 px-6 border-t border-white/5">
