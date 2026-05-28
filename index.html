@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>少年CEO AI 创业营 — 3天，从0到1模拟一次AI创业</title>
+<meta name="description" content="8-16岁孩子的AI创业PBL训练营。3天时间，组建团队、用AI做出产品、站在投资人面前路演。不是在学AI，是在当AI的老板。">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['"SF Pro Display"','-apple-system','BlinkMacSystemFont','"PingFang SC"','"Microsoft YaHei"','sans-serif'],
+      },
+      colors: {
+        ink: { DEFAULT: '#0a0a14', light: '#151525', card: '#1a1a30', border: '#2a2a44' },
+        cream: '#f5f0e8',
+        amber: { DEFAULT: '#f0b429', light: '#f7c95c', dark: '#d4951a' },
+      }
+    }
+  }
+}
+</script>
+<style>
+  /* Base */
+  body { background: #0a0a14; color: #e8e8ed; }
+  ::selection { background: rgba(240,180,41,0.2); color: #f0b429; }
+
+  /* Glass card */
+  .glass { background: rgba(21,21,37,0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, #f0b429 0%, #f7c95c 50%, #f0b429 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  /* Line decoration */
+  .line-left { position: relative; padding-left: 1rem; }
+  .line-left::before { content: ''; position: absolute; left: 0; top: 0.35em; width: 3px; height: 1em; background: #f0b429; border-radius: 2px; }
+
+  /* Timeline dot */
+  .timeline-dot { width: 12px; height: 12px; border-radius: 50%; background: #f0b429; flex-shrink: 0; margin-top: 0.4em; }
+
+  /* Card hover */
+  .card-hover { transition: transform 0.3s ease, border-color 0.3s ease; }
+  .card-hover:hover { transform: translateY(-4px); border-color: rgba(240,180,41,0.3); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0a0a14; } ::-webkit-scrollbar-thumb { background: #2a2a44; border-radius: 3px; }
+</style>
+</head>
+<body class="font-sans antialiased">
+
+<!-- ====== NAV ====== -->
+<nav class="fixed top-0 inset-x-0 z-50 border-b border-white/5 glass">
+  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="#" class="text-lg font-bold tracking-tight"><span class="text-amber">少年CEO</span> AI创业营</a>
+    <div class="hidden md:flex gap-8 text-sm text-white/60">
+      <a href="#what" class="hover:text-amber transition-colors">课程介绍</a>
+      <a href="#process" class="hover:text-amber transition-colors">3天流程</a>
+      <a href="#showcase" class="hover:text-amber transition-colors">作品展示</a>
+      <a href="#awards" class="hover:text-amber transition-colors">荣誉殿堂</a>
+      <a href="#highlights" class="hover:text-amber transition-colors">高光时刻</a>
+      <a href="#faq" class="hover:text-amber transition-colors">常见问题</a>
+    </div>
+    <a href="#cta" class="bg-amber text-ink px-5 py-2 rounded-full text-sm font-semibold hover:bg-amber-light transition-colors">立即报名</a>
+  </div>
+</nav>
+
+<!-- ====== HERO ====== -->
+<section class="relative min-h-[100dvh] flex items-center justify-center px-6 pt-20">
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-amber/[0.03] rounded-full blur-3xl"></div>
+    <div class="absolute bottom-1/3 right-1/4 w-80 h-80 bg-amber/[0.02] rounded-full blur-3xl"></div>
+  </div>
+  <div class="max-w-4xl mx-auto text-center relative">
+    <div class="inline-block px-4 py-1.5 border border-white/10 rounded-full text-xs tracking-widest text-white/50 mb-8">全国巡回 · 北京顺义站</div>
+    <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter leading-[1.1] mb-6">
+      <span class="text-white">你的孩子离</span><br>
+      <span class="gradient-text">CEO</span>
+      <span class="text-white">只差 3 天</span>
+    </h1>
+    <p class="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-4 leading-relaxed">
+      不是学怎么用 AI。是学怎么当 AI 的老板。
+    </p>
+    <p class="text-sm text-white/30 max-w-xl mx-auto mb-10">
+      3天 PBL 项目制训练营，8-16 岁。组队、调研、造产品、路演——模拟一次完整的 AI 创业。
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="#cta" class="bg-amber text-ink px-8 py-3.5 rounded-full font-semibold text-lg hover:bg-amber-light transition-colors">预约名额</a>
+      <a href="#what" class="border border-white/20 text-white/70 px-8 py-3.5 rounded-full text-lg hover:border-amber/30 hover:text-amber transition-colors">了解更多</a>
+    </div>
+    <div class="mt-16 flex gap-8 justify-center text-sm text-white/30">
+      <span>📍 北京顺义</span><span>📅 2026年暑假</span><span>👥 仅限30人</span>
+    </div>
+  </div>
+</section>
+
+<!-- ====== WHAT ====== -->
+<section id="what" class="py-24 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-block px-3 py-1 border border-amber/20 rounded-full text-xs text-amber/70 mb-4">训练营介绍</div>
+      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">这不是 AI 课。<br class="md:hidden">这是一次创业。</h2>
+      <p class="text-white/40 max-w-xl mx-auto">我们不教孩子操作 AI 工具。我们让孩子组建公司、发现需求、做出产品、卖给用户。AI 只是他们的第一个员工。</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl p-8 card-hover">
+        <div class="w-10 h-10 rounded-xl bg-amber/10 flex items-center justify-center mb-5 text-amber text-lg font-bold">01</div>
+        <h3 class="text-lg font-bold mb-3">真实创业<br>不是模拟游戏</h3>
+        <p class="text-sm text-white/40 leading-relaxed">采访真实用户、分析真实竞品、给产品定真实价格。最后站在真正的投资人（家长）面前路演。</p>
+      </div>
+      <div class="glass rounded-2xl p-8 card-hover">
+        <div class="w-10 h-10 rounded-xl bg-amber/10 flex items-center justify-center mb-5 text-amber text-lg font-bold">02</div>
+        <h3 class="text-lg font-bold mb-3">AI 是员工<br>孩子是 CEO</h3>
+        <p class="text-sm text-white/40 leading-relaxed">全程使用 AI 辅助调研、设计、开发。但每个决定都是孩子做的。产品哪里不对、AI 哪里说谎——孩子来判断。</p>
+      </div>
+      <div class="glass rounded-2xl p-8 card-hover">
+        <div class="w-10 h-10 rounded-xl bg-amber/10 flex items-center justify-center mb-5 text-amber text-lg font-bold">03</div>
+        <h3 class="text-lg font-bold mb-3">能力带走<br>产品带走</h3>
+        <p class="text-sm text-white/40 leading-relaxed">3天结束，每个孩子手里是一个真跑起来的 AI 产品 + 一张五力证书 + 一次被投资人拷问的经历。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== PROCESS ====== -->
+<section id="process" class="py-24 px-6 bg-ink-light/30">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-block px-3 py-1 border border-amber/20 rounded-full text-xs text-amber/70 mb-4">3天流程</div>
+      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">从一张白纸到一场路演</h2>
+      <p class="text-white/40 max-w-xl mx-auto">每天上午输入知识，下午动手出活。孩子不是在听课——是在开公司。</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      <!-- Day 1 -->
+      <div class="relative">
+        <div class="absolute -top-3 -left-3 text-8xl font-black text-white/[0.03] select-none">1</div>
+        <div class="glass rounded-2xl p-8 relative h-full">
+          <div class="text-amber text-sm font-semibold mb-2">Day 1</div>
+          <h3 class="text-xl font-bold mb-4">找方向</h3>
+          <div class="space-y-3">
+            <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">发现一个真实的问题（不是假想题）</p></div>
+            <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">用 AI 做市场调研和竞品分析</p></div>
+            <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">采访真实用户，验证需求</p></div>
+            <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">组建创业团队，选 CEO</p></div>
+          </div>
+          <div class="mt-6 pt-4 border-t border-white/5">
+            <span class="text-xs text-white/30">学：创业认知 + AI基础 + 需求调研</span>
+          </div>
+        </div>
+      </div>
+      <!-- Day 2 -->
+      <div class="relative">
+        <div class="absolute -top-3 -left-3 text-8xl font-black text-white/[0.03] select-none">2</div>
+        <div class="glass rounded-2xl p-8 relative h-full">
+          <div class="text-amber text-sm font-semibold mb-2">Day 2</div>
+          <h3 class="text-xl font-bold mb-4">做产品</h3>
+          <div class="space-y-3">
+            <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">学怎么跟 AI 说话（提示词工程）</p></div>
+            <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">用 AI 把一个想法做成能跑的网页 / 聊天机器人</p></div>
+            <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">让别组试用，收集真实反馈</p></div>
+            <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">迭代修改——对 AI 说"不对"</p></div>
+          </div>
+          <div class="mt-6 pt-4 border-t border-white/5">
+            <span class="text-xs text-white/30">学：提示词 + 产品设计 + 判断力</span>
+          </div>
+        </div>
+      </div>
+      <!-- Day 3 -->
+      <div class="relative">
+        <div class="absolute -top-3 -left-3 text-8xl font-black text-white/[0.03] select-none">3</div>
+        <div class="glass rounded-2xl p-8 relative h-full">
+          <div class="text-amber text-sm font-semibold mb-2">Day 3</div>
+          <h3 class="text-xl font-bold mb-4">卖出去</h3>
+          <div class="space-y-3">
+            <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">定价——谁会买？付多少钱？为什么？</p></div>
+            <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">学讲故事——怎么让人听完想投资？</p></div>
+            <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">正式路演——每个孩子站在投资人面前</p></div>
+            <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">颁奖典礼——五力证书 + 创业奖金</p></div>
+          </div>
+          <div class="mt-6 pt-4 border-t border-white/5">
+            <span class="text-xs text-white/30">学：定价策略 + 路演 + 领导力</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== FIVE FORCES ====== -->
+<section class="py-24 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-block px-3 py-1 border border-amber/20 rounded-full text-xs text-amber/70 mb-4">五力体系</div>
+      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">AI 时代孩子真正需要的<br>不是操作技能，是这五种能力</h2>
+      <p class="text-white/40 max-w-xl mx-auto">3天的每个环节都在训练一种能力。不是口号，是每天自评、助教记录、结营颁奖。</p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div class="glass rounded-2xl p-6 text-center card-hover">
+        <div class="text-3xl mb-3">🔍</div>
+        <div class="text-amber font-bold mb-1">共情力</div>
+        <div class="text-xs text-white/30">先搞懂用户<br>在想什么</div>
+      </div>
+      <div class="glass rounded-2xl p-6 text-center card-hover">
+        <div class="text-3xl mb-3">❓</div>
+        <div class="text-amber font-bold mb-1">提问力</div>
+        <div class="text-xs text-white/30">先问自己卡在<br>哪，再问AI</div>
+      </div>
+      <div class="glass rounded-2xl p-6 text-center card-hover">
+        <div class="text-3xl mb-3">✨</div>
+        <div class="text-amber font-bold mb-1">创造力</div>
+        <div class="text-xs text-white/30">初稿AI出<br>修改自己来</div>
+      </div>
+      <div class="glass rounded-2xl p-6 text-center card-hover">
+        <div class="text-3xl mb-3">⚖️</div>
+        <div class="text-amber font-bold mb-1">判断力</div>
+        <div class="text-xs text-white/30">敢说AI给的<br>东西不对</div>
+      </div>
+      <div class="glass rounded-2xl p-6 text-center card-hover">
+        <div class="text-3xl mb-3">🚩</div>
+        <div class="text-amber font-bold mb-1">领导力</div>
+        <div class="text-xs text-white/30">带团队把一<br>件事做成</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== WORKFLOW ====== -->
+<section class="py-24 px-6 bg-ink-light/30">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-block px-3 py-1 border border-amber/20 rounded-full text-xs text-amber/70 mb-4">创业赛道</div>
+      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">孩子做什么？12个真实创业方向</h2>
+      <p class="text-white/40 max-w-2xl mx-auto">4条赛道，每组选1个方向。具体做什么——需求、产品、定价——全是孩子自己定的。</p>
+    </div>
+
+    <div class="grid md:grid-cols-4 gap-4 mb-8">
+      <div class="glass rounded-2xl p-6">
+        <div class="text-amber text-sm font-semibold mb-3">🛠️ 生活帮手</div>
+        <ul class="space-y-2 text-sm text-white/40">
+          <li class="line-left">宠物/家庭照护</li>
+          <li class="line-left">饮食/烹饪</li>
+          <li class="line-left">失物/寻物</li>
+        </ul>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <div class="text-amber text-sm font-semibold mb-3">📚 学习工具</div>
+        <ul class="space-y-2 text-sm text-white/40">
+          <li class="line-left">错题/作业辅导</li>
+          <li class="line-left">口语/语言练习</li>
+          <li class="line-left">考试/复习规划</li>
+        </ul>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <div class="text-amber text-sm font-semibold mb-3">🎨 创意工坊</div>
+        <ul class="space-y-2 text-sm text-white/40">
+          <li class="line-left">故事/阅读</li>
+          <li class="line-left">漫画创作</li>
+          <li class="line-left">歌词/音乐创作</li>
+        </ul>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <div class="text-amber text-sm font-semibold mb-3">🏫 校园社区</div>
+        <ul class="space-y-2 text-sm text-white/40">
+          <li class="line-left">校园夸夸墙</li>
+          <li class="line-left">趣事/排行</li>
+          <li class="line-left">校园新闻/资讯</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== SHOWCASE ====== -->
+<section id="showcase" class="py-24 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-block px-3 py-1 border border-amber/20 rounded-full text-xs text-amber/70 mb-4">作品展示</div>
+      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">每个孩子的作品<br>都在这里</h2>
+      <p class="text-white/40 max-w-xl mx-auto">结营后，每个团队的 AI 产品会部署上线。点击卡片就能体验孩子做的东西——是真能用的产品。</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <!-- Template card 1 -->
+      <div class="glass rounded-2xl overflow-hidden card-hover">
+        <div class="bg-amber/5 px-6 py-3 border-b border-white/5 flex justify-between items-center">
+          <span class="text-xs text-amber/60">A · 生活帮手</span>
+          <span class="text-xs text-white/10">第 1 组</span>
+        </div>
+        <div class="p-6">
+          <h3 class="text-lg font-bold mb-1">待揭晓</h3>
+          <p class="text-amber text-xs mb-3">产品名即将公布</p>
+          <p class="text-sm text-white/30 leading-relaxed mb-4">帮______解决______，因为______</p>
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-white/15">CEO · 待揭晓</span>
+            <span class="text-xs text-amber/30 bg-amber/5 px-3 py-1 rounded-full">结营后上线</span>
+          </div>
+        </div>
+      </div>
+      <!-- Template card 2 -->
+      <div class="glass rounded-2xl overflow-hidden card-hover">
+        <div class="bg-amber/5 px-6 py-3 border-b border-white/5 flex justify-between items-center">
+          <span class="text-xs text-amber/60">B · 学习工具</span>
+          <span class="text-xs text-white/10">第 2 组</span>
+        </div>
+        <div class="p-6">
+          <h3 class="text-lg font-bold mb-1">待揭晓</h3>
+          <p class="text-amber text-xs mb-3">产品名即将公布</p>
+          <p class="text-sm text-white/30 leading-relaxed mb-4">帮______解决______，因为______</p>
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-white/15">CEO · 待揭晓</span>
+            <span class="text-xs text-amber/30 bg-amber/5 px-3 py-1 rounded-full">结营后上线</span>
+          </div>
+        </div>
+      </div>
+      <!-- Template card 3 -->
+      <div class="glass rounded-2xl overflow-hidden card-hover">
+        <div class="bg-amber/5 px-6 py-3 border-b border-white/5 flex justify-between items-center">
+          <span class="text-xs text-amber/60">C · 创意工坊</span>
+          <span class="text-xs text-white/10">第 3 组</span>
+        </div>
+        <div class="p-6">
+          <h3 class="text-lg font-bold mb-1">待揭晓</h3>
+          <p class="text-amber text-xs mb-3">产品名即将公布</p>
+          <p class="text-sm text-white/30 leading-relaxed mb-4">帮______解决______，因为______</p>
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-white/15">CEO · 待揭晓</span>
+            <span class="text-xs text-amber/30 bg-amber/5 px-3 py-1 rounded-full">结营后上线</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-12 glass rounded-2xl p-8 text-center max-w-2xl mx-auto">
+      <p class="text-white/50 text-sm mb-2">结营当天，这里会替换为真实的项目卡片和访问链接。</p>
+      <p class="text-white/30 text-xs">点开任何一张卡片，就能看到孩子从 0 到 1 做出来的作品。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== AWARDS ====== -->
+<section id="awards" class="py-24 px-6 bg-ink-light/30">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-block px-3 py-1 border border-amber/20 rounded-full text-xs text-amber/70 mb-4">荣誉殿堂</div>
+      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">五力评奖</h2>
+      <p class="text-white/40 max-w-xl mx-auto">每个孩子一个奖。不是比谁最好——是承认每个人在某一种能力上发了光。</p>
+    </div>
+
+    <!-- Best team -->
+    <div class="glass rounded-2xl p-8 mb-8 text-center border border-amber/10">
+      <div class="text-amber text-xs tracking-widest mb-2">🏆 最佳创业团队</div>
+      <div class="text-2xl font-bold mb-1">待揭晓</div>
+      <div class="text-white/20 text-sm">路演总分第一 · 创业奖金获得者</div>
+    </div>
+
+    <!-- Five forces grid -->
+    <div class="grid md:grid-cols-5 gap-4">
+      <div class="glass rounded-2xl p-6 text-center">
+        <div class="text-xs text-amber/50 mb-2">最佳共情力</div>
+        <div class="text-lg font-bold mb-1">待揭晓</div>
+        <p class="text-xs text-white/20 leading-relaxed">他采访了最多的真实用户，发现了大家都忽略的痛点</p>
+      </div>
+      <div class="glass rounded-2xl p-6 text-center">
+        <div class="text-xs text-amber/50 mb-2">最佳提问力</div>
+        <div class="text-lg font-bold mb-1">待揭晓</div>
+        <p class="text-xs text-white/20 leading-relaxed">他的 prompt 让 AI 给出了全场最精准的回答</p>
+      </div>
+      <div class="glass rounded-2xl p-6 text-center">
+        <div class="text-xs text-amber/50 mb-2">最佳创造力</div>
+        <div class="text-lg font-bold mb-1">待揭晓</div>
+        <p class="text-xs text-white/20 leading-relaxed">他的产品想法，在座没人想到</p>
+      </div>
+      <div class="glass rounded-2xl p-6 text-center">
+        <div class="text-xs text-amber/50 mb-2">最佳判断力</div>
+        <div class="text-lg font-bold mb-1">待揭晓</div>
+        <p class="text-xs text-white/20 leading-relaxed">他对 AI 说了最多次"不对"，每次改完都更好</p>
+      </div>
+      <div class="glass rounded-2xl p-6 text-center">
+        <div class="text-xs text-amber/50 mb-2">最佳领导力</div>
+        <div class="text-lg font-bold mb-1">待揭晓</div>
+        <p class="text-xs text-white/20 leading-relaxed">团队卡住的时候，他站出来带大家走出来了</p>
+      </div>
+    </div>
+
+    <div class="mt-8 glass rounded-2xl p-8 text-center max-w-2xl mx-auto">
+      <p class="text-white/40 text-sm">结营后，每个奖项下方会填上孩子的名字和具体的获奖理由。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== HIGHLIGHTS ====== -->
+<section id="highlights" class="py-24 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-block px-3 py-1 border border-amber/20 rounded-full text-xs text-amber/70 mb-4">高光时刻</div>
+      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">3 天的真实瞬间</h2>
+      <p class="text-white/40 max-w-xl mx-auto">路演视频、颁奖瞬间、孩子说"不对"的那一刻——都会出现在这里。</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl overflow-hidden">
+        <div class="h-48 bg-white/[0.02] flex items-center justify-center text-white/10 text-sm">Day 1 · 照片待上传</div>
+        <div class="p-4">
+          <p class="text-xs text-white/30 italic">"你遇到过这个麻烦吗？"</p>
+          <p class="text-xs text-white/10 mt-1">破冰 · 烦人墙</p>
+        </div>
+      </div>
+      <div class="glass rounded-2xl overflow-hidden">
+        <div class="h-48 bg-white/[0.02] flex items-center justify-center text-white/10 text-sm">Day 2 · 照片待上传</div>
+        <div class="p-4">
+          <p class="text-xs text-white/30 italic">"AI给的这段，你觉得对吗？"</p>
+          <p class="text-xs text-white/10 mt-1">产品搭建 · 跟AI"吵架"</p>
+        </div>
+      </div>
+      <div class="glass rounded-2xl overflow-hidden">
+        <div class="h-48 bg-white/[0.02] flex items-center justify-center text-white/10 text-sm">Day 3 · 照片待上传</div>
+        <div class="p-4">
+          <p class="text-xs text-white/30 italic">"我学会了跟AI吵架"</p>
+          <p class="text-xs text-white/10 mt-1">路演 · 颁奖 · 大合影</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pitch video placeholder -->
+    <div class="mt-8 glass rounded-2xl p-10 text-center max-w-2xl mx-auto">
+      <div class="text-5xl text-white/5 mb-4">▶</div>
+      <p class="text-white/30 text-sm mb-1">路演视频 · 剪辑中</p>
+      <p class="text-white/10 text-xs">每个孩子在投资人面前的 5 分钟</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== LOCATIONS ====== -->
+<section class="py-24 px-6 bg-ink-light/30">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-block px-3 py-1 border border-amber/20 rounded-full text-xs text-amber/70 mb-4">营地巡礼</div>
+      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">北京顺义 · 第一站</h2>
+      <p class="text-white/40 max-w-xl mx-auto">从这里开始，未来会在更多城市落地。每个站点都会留下专属的作品展和荣誉墙。</p>
+    </div>
+
+    <div class="grid md:grid-cols-4 gap-4">
+      <div class="glass rounded-2xl p-6 text-center border border-amber/20">
+        <div class="w-3 h-3 rounded-full bg-amber mx-auto mb-3"></div>
+        <div class="text-amber font-bold mb-1">北京顺义</div>
+        <div class="text-xs text-white/20">2026 夏 · 即将开营</div>
+      </div>
+      <div class="glass rounded-2xl p-6 text-center opacity-40">
+        <div class="w-3 h-3 rounded-full bg-white/10 mx-auto mb-3"></div>
+        <div class="text-white/30 font-bold mb-1">下一站</div>
+        <div class="text-xs text-white/10">待公布</div>
+      </div>
+      <div class="glass rounded-2xl p-6 text-center opacity-30">
+        <div class="w-3 h-3 rounded-full bg-white/5 mx-auto mb-3"></div>
+        <div class="text-white/20 font-bold mb-1">敬请期待</div>
+        <div class="text-xs text-white/10">——</div>
+      </div>
+      <div class="glass rounded-2xl p-6 text-center opacity-20">
+        <div class="w-3 h-3 rounded-full bg-white/5 mx-auto mb-3"></div>
+        <div class="text-white/15 font-bold mb-1">敬请期待</div>
+        <div class="text-xs text-white/10">——</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== SOCIAL PROOF ====== -->
+<section class="py-24 px-6 bg-ink-light/30">
+  <div class="max-w-4xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">听过分享的家长说</h2>
+    </div>
+
+    <div class="glass rounded-2xl p-10 relative">
+      <div class="text-6xl text-amber/20 absolute top-6 left-6">"</div>
+      <blockquote class="relative z-10">
+        <p class="text-xl md:text-2xl leading-relaxed text-white/70 mb-6">
+          来的时候是好奇，听到一半感觉寒毛竖起——不是吓的，是发现 AI 时代孩子现在学的东西跟将来要用的东西，差距太大了。
+        </p>
+        <footer class="text-sm text-white/40">
+          —— 顺义国际学校家长社区 · AI分享会后
+        </footer>
+      </blockquote>
+    </div>
+
+    <div class="mt-6 glass rounded-2xl p-8">
+      <p class="text-sm text-white/50 leading-relaxed">
+        分享会结束后，家长群里有三件事被反复提：给孩子开 AI 训练营，尽快；家长能不能也开课，大人想跟着学；别教"怎么操作 AI"，教"AI 时代怎么思考"。这个训练营，就是对这三个诉求的回答。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== TUTOR ====== -->
+<section class="py-24 px-6">
+  <div class="max-w-4xl mx-auto">
+    <div class="glass rounded-2xl p-10 md:flex gap-10 items-center">
+      <div class="flex-shrink-0 mb-6 md:mb-0">
+        <div class="w-24 h-24 rounded-full bg-amber/10 flex items-center justify-center text-amber text-3xl font-bold">武</div>
+      </div>
+      <div>
+        <h3 class="text-xl font-bold mb-2">武宁</h3>
+        <p class="text-sm text-white/40 leading-relaxed">
+          25年教育科技行业从业者，清华软件学院毕业。也是一个在 AI 时代陪孩子成长的家长。帮你看懂 AI，陪孩子用好 AI。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== FAQ ====== -->
+<section id="faq" class="py-24 px-6 bg-ink-light/30">
+  <div class="max-w-3xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">常见问题</h2>
+    </div>
+
+    <div class="space-y-4">
+      <div class="glass rounded-2xl p-6">
+        <h4 class="font-semibold mb-2">孩子需要会编程吗？</h4>
+        <p class="text-sm text-white/40">不需要。所有产品用自然语言（打字或语音）跟 AI 对话就能做出来。关键是"想"而不是"写代码"。</p>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h4 class="font-semibold mb-2">8岁到16岁的孩子能在一起吗？</h4>
+        <p class="text-sm text-white/40">能。混龄分组，大孩子学领导力（怎么带人），小孩子学表达（怎么被听见）。每个人有不同角色。</p>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h4 class="font-semibold mb-2">3天能做出什么东西？</h4>
+        <p class="text-sm text-white/40">一个真正能跑的网页 / 聊天机器人 / 故事生成器。不是 PPT，是一个可以在浏览器打开的产品。结营后会部署到线上，永久可访问。</p>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h4 class="font-semibold mb-2">家长怎么参与？</h4>
+        <p class="text-sm text-white/40">第三天下午3点，请来当"投资人"。不是来围观——是真的要提问、打分、投票。每个孩子都会站在你面前路演。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== CTA / FORM ====== -->
+<section id="cta" class="py-24 px-6">
+  <div class="max-w-2xl mx-auto">
+    <div class="glass rounded-3xl p-8 md:p-12">
+      <div class="text-center mb-10">
+        <h2 class="text-2xl md:text-4xl font-bold tracking-tight mb-3">仅限 30 个名额</h2>
+        <p class="text-white/40 text-sm">参加过分享会的家长已优先定走部分名额。填下表，我们会在 24 小时内联系你。</p>
+      </div>
+
+      <form id="signup-form" class="space-y-5" onsubmit="return false;">
+        <div class="grid md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs text-white/40 mb-2">家长姓名 <span class="text-amber">*</span></label>
+            <input type="text" name="parent_name" required class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors" placeholder="你的名字">
+          </div>
+          <div>
+            <label class="block text-xs text-white/40 mb-2">手机号 <span class="text-amber">*</span></label>
+            <input type="tel" name="phone" required class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors" placeholder="11位手机号">
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs text-white/40 mb-2">孩子姓名 / 昵称 <span class="text-amber">*</span></label>
+            <input type="text" name="child_name" required class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors" placeholder="孩子怎么称呼">
+          </div>
+          <div>
+            <label class="block text-xs text-white/40 mb-2">孩子年龄 <span class="text-amber">*</span></label>
+            <select name="child_age" required class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white/60 focus:outline-none focus:border-amber/40 transition-colors appearance-none">
+              <option value="" disabled selected class="text-white/20 bg-ink">选择年龄</option>
+              <option value="7" class="text-white bg-ink">7 岁</option><option value="8" class="text-white bg-ink">8 岁</option><option value="9" class="text-white bg-ink">9 岁</option><option value="10" class="text-white bg-ink">10 岁</option><option value="11" class="text-white bg-ink">11 岁</option><option value="12" class="text-white bg-ink">12 岁</option><option value="13" class="text-white bg-ink">13 岁</option><option value="14" class="text-white bg-ink">14 岁</option><option value="15" class="text-white bg-ink">15 岁</option><option value="16" class="text-white bg-ink">16 岁</option><option value="17" class="text-white bg-ink">17 岁</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs text-white/40 mb-2">微信号 / 邮箱（选填）</label>
+          <input type="text" name="contact" class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors" placeholder="方便我们联系你">
+        </div>
+
+        <div>
+          <label class="block text-xs text-white/40 mb-2">有什么想说的？（选填）</label>
+          <textarea name="notes" rows="3" class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors resize-none" placeholder="比如：孩子对什么感兴趣？什么时候方便联系？"></textarea>
+        </div>
+
+        <button type="submit" id="submit-btn" class="w-full bg-amber text-ink py-4 rounded-xl font-bold text-lg hover:bg-amber-light transition-colors active:scale-[0.98]">
+          提交报名
+        </button>
+        <p id="form-msg" class="text-center text-sm hidden"></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+// ====== Feishu Webhook 配置 ======
+// 使用方法：
+// 1. 在飞书群聊中 → 设置 → 群机器人 → 添加自定义机器人
+// 2. 复制 Webhook 地址，替换下面的 URL
+// 3. 安全设置选择"自定义关键词"，添加关键词"报名"
+const FEISHU_WEBHOOK_URL = 'YOUR_FEISHU_WEBHOOK_URL_HERE';
+
+const form = document.getElementById('signup-form');
+const btn = document.getElementById('submit-btn');
+const msg = document.getElementById('form-msg');
+
+form.addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  if (FEISHU_WEBHOOK_URL === 'YOUR_FEISHU_WEBHOOK_URL_HERE') {
+    msg.className = 'text-center text-sm text-red-400 mt-3';
+    msg.style.display = 'block';
+    msg.textContent = 'Webhook 尚未配置，请联系管理员。';
+    return;
+  }
+
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData.entries());
+
+  btn.disabled = true;
+  btn.textContent = '提交中...';
+  msg.style.display = 'none';
+
+  const card = {
+    msg_type: 'interactive',
+    card: {
+      header: {
+        title: { tag: 'plain_text', content: '🎯 少年CEO AI 创业营 · 新报名' },
+        template: 'amber'
+      },
+      elements: [
+        { tag: 'div', text: { tag: 'lark_md', content: `**家长：** ${data.parent_name}\n**手机：** ${data.phone}\n**孩子：** ${data.child_name}（${data.child_age}岁）` } },
+        { tag: 'hr' },
+        { tag: 'div', text: { tag: 'lark_md', content: `**联系方式：** ${data.contact || '未填写'}\n**备注：** ${data.notes || '无'}` } },
+        { tag: 'hr' },
+        { tag: 'note', elements: [{ tag: 'plain_text', content: `提交时间：${new Date().toLocaleString('zh-CN')}` }] }
+      ]
+    }
+  };
+
+  try {
+    const resp = await fetch(FEISHU_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(card)
+    });
+    const result = await resp.json();
+    if (result.code === 0 || result.StatusCode === 0) {
+      msg.className = 'text-center text-sm text-green-400 mt-3';
+      msg.style.display = 'block';
+      msg.textContent = '报名成功！我们会在 24 小时内联系你。';
+      form.reset();
+    } else {
+      throw new Error(result.msg || '飞书返回错误');
+    }
+  } catch (err) {
+    msg.className = 'text-center text-sm text-red-400 mt-3';
+    msg.style.display = 'block';
+    msg.textContent = '提交失败，请稍后再试或直接微信联系我们。';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '提交报名';
+  }
+});
+</script>
+
+<!-- ====== FOOTER ====== -->
+<footer class="py-12 px-6 border-t border-white/5">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+    <p class="text-sm text-white/20">少年CEO AI 创业营 · 2026</p>
+    <p class="text-sm text-white/20">AI 是工具。判断力在孩子手里。</p>
+  </div>
+</footer>
+
+</body>
+</html>
