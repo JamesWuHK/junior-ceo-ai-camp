@@ -139,19 +139,50 @@ tailwind.config = {
 </div>
 
 <script>
-const PASSWORD = 'ceo2026';
+// 云函数地址 —— 部署后替换这里
+const AUTH_URL = 'YOUR_CLOUD_FUNCTION_URL';
 
-function login(){
+const btn = document.querySelector('#login-screen button');
+
+async function login(){
   const pwd = document.getElementById('pwd').value;
   const err = document.getElementById('err');
-  if(pwd === PASSWORD){
-    localStorage.setItem('ceo_teacher_auth','1');
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('dashboard').classList.remove('hidden');
-    err.classList.add('hidden');
-  }else{
-    err.textContent = '密码错误';
-    err.classList.remove('hidden');
+
+  if(!pwd){ err.textContent = '请输入密码'; err.classList.remove('hidden'); return; }
+
+  btn.disabled = true; btn.textContent = '验证中...';
+
+  try {
+    const resp = await fetch(AUTH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
+    });
+    const data = await resp.json();
+
+    if(data.ok){
+      localStorage.setItem('ceo_teacher_auth', data.token || '1');
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+      err.classList.add('hidden');
+    } else {
+      err.textContent = '密码错误';
+      err.classList.remove('hidden');
+    }
+  } catch(e) {
+    // 云函数不可用时，回退本地验证
+    if(pwd === 'ceo2026'){
+      localStorage.setItem('ceo_teacher_auth','1');
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+      err.classList.add('hidden');
+    } else {
+      err.textContent = '网络错误，请稍后重试';
+      err.classList.remove('hidden');
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = '进入';
+    document.getElementById('pwd').value = '';
   }
 }
 
@@ -159,11 +190,9 @@ function logout(){
   localStorage.removeItem('ceo_teacher_auth');
   document.getElementById('dashboard').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
-  document.getElementById('pwd').value = '';
 }
 
-// Auto-login
-if(localStorage.getItem('ceo_teacher_auth')==='1'){
+if(localStorage.getItem('ceo_teacher_auth')){
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('dashboard').classList.remove('hidden');
 }
