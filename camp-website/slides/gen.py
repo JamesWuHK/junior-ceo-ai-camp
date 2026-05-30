@@ -25,33 +25,11 @@ p{font-size:19px;color:rgba(255,255,255,.4);text-align:center;max-width:700px;li
 .formula span{color:#f0b429}
 .demo-box{background:#151525;border:2px dashed rgba(255,255,255,.1);border-radius:16px;padding:24px 36px;font-size:18px;text-align:center;color:rgba(255,255,255,.6);max-width:600px;line-height:1.8;font-family:"SF Mono",monospace}
 
-/* === EMBEDDED DEMO CHAT WIDGET === */
-.demo-chat{width:100%;max-width:750px;background:rgba(10,10,20,.95);border:1px solid rgba(255,255,255,.08);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;height:420px;margin-top:12px}
-.demo-chat .chat-header{background:rgba(21,21,37,.9);padding:12px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.06)}
-.demo-chat .chat-header .dot{width:10px;height:10px;border-radius:50%}
-.demo-chat .chat-header .dot.r{background:#dc3232}.demo-chat .chat-header .dot.y{background:#f0b429}.demo-chat .chat-header .dot.g{background:#78c88c}
-.demo-chat .chat-header .title{font-size:13px;color:rgba(255,255,255,.4)}
-.demo-chat .chat-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
-.demo-chat .msg{max-width:85%;padding:12px 16px;border-radius:14px;font-size:14px;line-height:1.6;animation:msgIn .3s ease}
-.demo-chat .msg.user{align-self:flex-end;background:rgba(240,180,41,.15);color:rgba(255,255,255,.8);border-bottom-right-radius:4px}
-.demo-chat .msg.ai{align-self:flex-start;background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);border-bottom-left-radius:4px;font-family:"SF Mono",monospace}
-.demo-chat .msg.ai pre{white-space:pre-wrap;font-family:inherit;font-size:14px}
-.demo-chat .chat-input{display:flex;padding:12px 16px;border-top:1px solid rgba(255,255,255,.06);gap:10px}
-.demo-chat .chat-input input{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;font-family:inherit}
-.demo-chat .chat-input input:focus{border-color:rgba(240,180,41,.3)}
-.demo-chat .chat-input button{background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.3);color:#f0b429;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap}
-.demo-chat .chat-input button:hover{background:rgba(240,180,41,.25)}
-@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.typing-indicator{display:flex;gap:4px;padding:8px 0}
-.typing-indicator span{width:6px;height:6px;background:rgba(255,255,255,.3);border-radius:50%;animation:typing 1.4s infinite}
-.typing-indicator span:nth-child(2){animation-delay:.2s}
-.typing-indicator span:nth-child(3){animation-delay:.4s}
-@keyframes typing{0%,60%,100%{opacity:.2;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
-
-/* Split view for side-by-side */
-.split-view{display:flex;width:100%;max-width:1200px;gap:24px;align-items:flex-start}
-.split-view .split-left{flex:1;text-align:left}
-.split-view .split-right{flex:1}
+/* === EMBEDDED AI IFRAME === */
+.ai-frame{width:100%;height:100%;border:none;border-radius:12px}
+.ai-frame-slide{padding:30px 40px 50px}
+.ai-frame-slide .frame-hint{font-size:14px;color:rgba(255,255,255,.3);text-align:center;margin-bottom:10px}
+.ai-frame-wrap{flex:1;width:100%;max-width:1100px;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;background:#fff}
 
 /* Letter grid & other reuse */
 .letter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1150px}
@@ -208,36 +186,24 @@ slides += '''
 '''
 mod('module1.html', '模块1 · 创业是什么', slides)
 
-# ====== MODULE 2: AI骗子 — 嵌入实时对话演示 ======
+# ====== MODULE 2: AI骗子 — 嵌入真实 DeepSeek 窗口 ======
 slides = tdivider('模块 2 · 45 分钟', 'AI 是骗子？')
 
-# Slide with embedded chat for the hillucination demo
 slides += '''
-<div class="slide"><div class="hint do" style="margin-bottom:10px">实操 — 在下面输入框中打字</div>
-<div class="demo-chat" id="chat-hallucination">
-  <div class="chat-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="title">WorkBuddy</div></div>
-  <div class="chat-body"></div>
-  <div class="chat-input"><input placeholder="输入：李白写过一首诗叫《望庐山》，请全文背诵。" onfocus="this.select()"><button>发送</button></div>
-</div>
-<p style="font-size:14px;color:rgba(255,255,255,.25);margin-top:8px">👆 老师在投影上直接打字，全班看 AI 现场编诗</p></div>
+<div class="slide ai-frame-slide"><div class="hint do" style="margin-bottom:6px">实操 — 在下方窗口中打字</div>
+<p class="frame-hint">输入：李白写过一首诗叫《望庐山》，请全文背诵。→ 回车看 AI 现场编诗</p>
+<div class="ai-frame-wrap"><iframe class="ai-frame" src="https://chat.deepseek.com" allow="clipboard-write"></iframe></div></div>
 
-<div class="slide"><div class="suspense">❓</div><h1>这首诗<br>是真的吗？</h1><div class="hint ask" style="margin-top:20px">提问</div><div class="hint-text">举手表决：觉得真的？ 觉得假的？</div></div>
+<div class="slide"><div class="suspense">❓</div><h1>AI 给的诗<br>是真的吗？</h1><div class="hint ask" style="margin-top:20px">提问</div><div class="hint-text">举手表决：觉得真的？ 觉得假的？</div></div>
 
-<div class="slide"><h1 style="color:#dc3232;font-size:clamp(48px,10vw,100px)">假的！</h1><p style="font-size:22px;margin-top:10px">李白写过《望庐山瀑布》<br>但从没写过《望庐山》</p><div class="poem-display" style="margin-top:20px"><div class="stamp">🚨 AI 编的</div><div class="title">《望庐山》</div><div class="verse">庐山巍巍入云霄<br>云海茫茫掩古桥<br>仙人已乘黄鹤去<br>空留松涛伴寂寥</div></div><p style="font-size:14px;color:rgba(255,255,255,.2);margin-top:12px">听起来像真的对吧？但这首诗——从来没人写过。<br>AI 把"庐山""仙人""黄鹤"拼在一起，编了一首根本不存在的诗。</p></div>
+<div class="slide"><h1 style="color:#dc3232;font-size:clamp(48px,10vw,100px)">假的！</h1><p style="font-size:22px;margin-top:10px">李白写过《望庐山瀑布》<br>但从没写过《望庐山》</p><div class="poem-display" style="margin-top:20px"><div class="stamp">🚨 AI 编的</div><div class="title">《望庐山》</div><div class="verse">庐山巍巍入云霄<br>云海茫茫掩古桥<br>仙人已乘黄鹤去<br>空留松涛伴寂寥</div></div><p style="font-size:14px;color:rgba(255,255,255,.2);margin-top:12px">听起来像真的对吧？但李白从来没有写过这首诗。<br>AI 把"庐山""仙人""黄鹤"拼在一起，编了一首根本不存在的诗。</p></div>
 
 <div class="slide"><div class="hint think" style="margin-bottom:16px">思考</div><h2>AI 是故意骗你的吗？</h2><p style="margin-top:12px">不是。它读了太多东西，自己把<br>"李白""庐山""诗"拼在一起，猜了一个答案。</p><p style="margin-top:12px;color:rgba(255,255,255,.3)">它自己不知道自己在说谎。</p></div>
 
 <div class="slide"><div class="formula" style="font-size:30px"><span>CEO 守则第一条</span><br>AI 给你的答案<br>先怀疑，再验证</div><div class="hint do" style="margin-top:24px">实操</div><div class="hint-text">再问 AI 一个问题，然后自己去验证对错</div></div>
 '''
 
-chat_init = '''
-initChat("chat-hallucination", {
-  "望庐山": "「望庐山」\\n\\n庐山巍巍入云霄\\n云海茫茫掩古桥\\n仙人已乘黄鹤去\\n空留松涛伴寂寥\\n\\n——李白",
-  "李白": "「望庐山」\\n\\n庐山巍巍入云霄\\n云海茫茫掩古桥\\n仙人已乘黄鹤去\\n空留松涛伴寂寥\\n\\n——李白"
-});
-'''
-
-mod('module2.html', '模块2 · AI是骗子？', slides, CHAT_JS + chat_init)
+mod('module2.html', '模块2 · AI是骗子？', slides)
 
 # ====== MODULE 2.5 ======
 slides = tdivider('模块 2.5 · 15 分钟', 'AI 的 6 个<br>超能力')
@@ -256,30 +222,19 @@ slides += '''
 '''
 mod('module3.html', '模块3 · 怎么找到真需求', slides)
 
-# ====== MODULE 4: Prompt — 嵌入对比聊天演示 ======
+# ====== MODULE 4: Prompt — 嵌入真实 DeepSeek 窗口 ======
 slides = tdivider('模块 4 · 45 分钟', '同一句话<br>AI 反应差十倍')
 slides += '''
-<div class="slide"><h2 style="margin-bottom:10px;font-size:18px">在下面试试"帮我写一封道歉信"——看看 AI 给出的什么</h2>
-<div class="demo-chat" id="chat-apology" style="height:380px">
-  <div class="chat-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="title">WorkBuddy</div></div>
-  <div class="chat-body"></div>
-  <div class="chat-input"><input placeholder="试试输入：帮我写一封道歉信"><button>发送</button></div>
-</div></div>
+<div class="slide ai-frame-slide"><div class="hint do" style="margin-bottom:6px">实操 — 试试三种不同的问法</div>
+<p class="frame-hint">第1遍："帮我写一封道歉信" → 第2遍："我是一个学生，写给老师的" → 第3遍："我是五年级的小明。上课讲话被王老师批评了。王老师嗓子都哑了还在讲课。用小孩的话写，200字以内"</p>
+<div class="ai-frame-wrap"><iframe class="ai-frame" src="https://chat.deepseek.com" allow="clipboard-write"></iframe></div></div>
 
-<div class="slide"><h2 style="margin-bottom:10px;font-size:18px">对比：三种问法，三种结果</h2><div class="letter-grid"><div class="letter-card"><div class="grade bad">10 分</div><span class="prompt-label">Prompt："帮我写一封道歉信"</span><p>尊敬的[收信人]：我写这封信是为了表达我最诚挚的歉意…</p><p style="margin-top:6px;font-size:11px;color:rgba(255,255,255,.12)">👆 不知道谁写的、写给谁、什么事</p></div><div class="letter-card"><div class="grade mid">50 分</div><span class="prompt-label">Prompt："我是一个学生，写给老师的"</span><p>亲爱的老师：我想为我在课堂上的行为向您道歉…</p><p style="margin-top:6px;font-size:11px;color:rgba(255,255,255,.12)">👆 知道是学生→老师，但还是有点假</p></div><div class="letter-card highlight"><div class="grade great">90 分</div><span class="prompt-label">Prompt："我是五年级的小明。上课讲话被王老师批评了。王老师嗓子都哑了还在讲课。用小孩的话写，200字以内"</span><p>王老师：我今天上课讲话，对不起。<b>您嗓子都哑了还在给我们讲课，我却跟同桌聊昨晚的游戏</b>…</p><p style="margin-top:6px;font-size:11px;color:rgba(240,180,41,.5)">👆 有名字、有细节、有温度</p></div></div><div class="hint think" style="margin-top:12px">思考</div><div class="hint-text">第三次比第一次，你多做了什么？<br><span class="amber-text">同一个AI，问得好90分，问得差10分。<br>中间差的80分，就是"说清楚"三个字。</span></div></div>
+<div class="slide"><h2 style="margin-bottom:10px;font-size:18px">对比：三种问法，三种结果</h2><div class="letter-grid"><div class="letter-card"><div class="grade bad">10 分</div><span class="prompt-label">Prompt："帮我写一封道歉信"</span><p>尊敬的[收信人]：我写这封信是为了表达我最诚挚的歉意…</p><p style="margin-top:6px;font-size:11px;color:rgba(255,255,255,.12)">👆 不知道谁写的、写给谁、什么事</p></div><div class="letter-card"><div class="grade mid">50 分</div><span class="prompt-label">Prompt："我是一个学生，写给老师的"</span><p>亲爱的老师：我想为我在课堂上的行为向您道歉…</p><p style="margin-top:6px;font-size:11px;color:rgba(255,255,255,.12)">👆 知道是学生→老师，但还有点假</p></div><div class="letter-card highlight"><div class="grade great">90 分</div><span class="prompt-label">Prompt："我是五年级的小明。上课讲话被王老师批评了。王老师嗓子都哑了还在讲课。用小孩的话写，200字以内"</span><p>王老师：我今天上课讲话，对不起。<b>您嗓子都哑了还在给我们讲课，我却跟同桌聊昨晚的游戏</b>…</p><p style="margin-top:6px;font-size:11px;color:rgba(240,180,41,.5)">👆 有名字、有细节、有温度</p></div></div><div class="hint think" style="margin-top:12px">思考</div><div class="hint-text">第三次比第一次，你多做了什么？<br><span class="amber-text">同一个AI，问得好90分，问得差10分。<br>中间差的80分，就是"说清楚"三个字。</span></div></div>
 
 <div class="slide"><h2>跟 AI 说话，填这 5 句</h2><div class="demo-box" style="text-align:left;font-size:18px;font-family:inherit;max-width:550px;line-height:2.5"><p>1. 你是什么？<span style="color:#f0b429;margin-left:16px">你是一个______</span></p><p>2. 帮谁？<span style="color:#f0b429;margin-left:16px">我要帮______</span></p><p>3. 做什么？<span style="color:#f0b429;margin-left:16px">做一个______</span></p><p>4. 怎么做？<span style="color:#f0b429;margin-left:16px">打开后______</span></p><p>5. 别做什么？<span style="color:#f0b429;margin-left:16px">不要______</span></p></div><div class="hint do" style="margin-top:20px">实操 · 15 分钟</div><div class="hint-text">用这张卡，为你的项目写第 1 个 prompt<br>写完立刻跑，看效果</div></div>
 '''
 
-apology_chat = '''
-initChat("chat-apology", {
-  "帮我写一封道歉信": "尊敬的[收信人]：\\n\\n我写这封信是为了表达我最诚挚的歉意。对于我的行为给您带来的不便，我深感抱歉。我意识到我的行为是不恰当的，我保证今后不会再犯类似错误。\\n\\n希望您能接受我的道歉。\\n\\n此致\\n敬礼",
-  "学生": "亲爱的老师：\\n\\n我想为我在课堂上的行为向您道歉。我知道我不该在您讲课的时候做其他事情，这是对您的不尊重。我保证以后会认真听讲，不再犯类似的错误。\\n\\n希望您能原谅我。\\n\\n您的学生",
-  "小明": "王老师：\\n\\n我今天上课讲话，对不起。\\n\\n您嗓子都哑了还在给我们讲课，我却跟同桌聊昨晚的游戏。现在想想，我真的太过分了。您每次讲到一半停下来看我们的时候，其实是在等我们安静下来吧？\\n\\n我保证明天开始，您讲课的时候我只听课。如果同桌找我说话，我就给他写纸条说"下课再聊"。\\n\\n王老师，您能原谅我吗？我想明天第一个到教室，帮您擦黑板。\\n\\n小明"
-});
-'''
-
-mod('module4.html', '模块4 · 怎么跟AI说话', slides, CHAT_JS + apology_chat)
+mod('module4.html', '模块4 · 怎么跟AI说话', slides)
 
 # ====== MODULE 5 ======
 slides = tdivider('模块 5 · 30 分钟', '做什么？')

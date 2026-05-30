@@ -25,33 +25,11 @@ p{font-size:19px;color:rgba(255,255,255,.4);text-align:center;max-width:700px;li
 .formula span{color:#f0b429}
 .demo-box{background:#151525;border:2px dashed rgba(255,255,255,.1);border-radius:16px;padding:24px 36px;font-size:18px;text-align:center;color:rgba(255,255,255,.6);max-width:600px;line-height:1.8;font-family:"SF Mono",monospace}
 
-/* === EMBEDDED DEMO CHAT WIDGET === */
-.demo-chat{width:100%;max-width:750px;background:rgba(10,10,20,.95);border:1px solid rgba(255,255,255,.08);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;height:420px;margin-top:12px}
-.demo-chat .chat-header{background:rgba(21,21,37,.9);padding:12px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.06)}
-.demo-chat .chat-header .dot{width:10px;height:10px;border-radius:50%}
-.demo-chat .chat-header .dot.r{background:#dc3232}.demo-chat .chat-header .dot.y{background:#f0b429}.demo-chat .chat-header .dot.g{background:#78c88c}
-.demo-chat .chat-header .title{font-size:13px;color:rgba(255,255,255,.4)}
-.demo-chat .chat-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
-.demo-chat .msg{max-width:85%;padding:12px 16px;border-radius:14px;font-size:14px;line-height:1.6;animation:msgIn .3s ease}
-.demo-chat .msg.user{align-self:flex-end;background:rgba(240,180,41,.15);color:rgba(255,255,255,.8);border-bottom-right-radius:4px}
-.demo-chat .msg.ai{align-self:flex-start;background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);border-bottom-left-radius:4px;font-family:"SF Mono",monospace}
-.demo-chat .msg.ai pre{white-space:pre-wrap;font-family:inherit;font-size:14px}
-.demo-chat .chat-input{display:flex;padding:12px 16px;border-top:1px solid rgba(255,255,255,.06);gap:10px}
-.demo-chat .chat-input input{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;font-family:inherit}
-.demo-chat .chat-input input:focus{border-color:rgba(240,180,41,.3)}
-.demo-chat .chat-input button{background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.3);color:#f0b429;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap}
-.demo-chat .chat-input button:hover{background:rgba(240,180,41,.25)}
-@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.typing-indicator{display:flex;gap:4px;padding:8px 0}
-.typing-indicator span{width:6px;height:6px;background:rgba(255,255,255,.3);border-radius:50%;animation:typing 1.4s infinite}
-.typing-indicator span:nth-child(2){animation-delay:.2s}
-.typing-indicator span:nth-child(3){animation-delay:.4s}
-@keyframes typing{0%,60%,100%{opacity:.2;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
-
-/* Split view for side-by-side */
-.split-view{display:flex;width:100%;max-width:1200px;gap:24px;align-items:flex-start}
-.split-view .split-left{flex:1;text-align:left}
-.split-view .split-right{flex:1}
+/* === EMBEDDED AI IFRAME === */
+.ai-frame{width:100%;height:100%;border:none;border-radius:12px}
+.ai-frame-slide{padding:30px 40px 50px}
+.ai-frame-slide .frame-hint{font-size:14px;color:rgba(255,255,255,.3);text-align:center;margin-bottom:10px}
+.ai-frame-wrap{flex:1;width:100%;max-width:1100px;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;background:#fff}
 
 /* Letter grid & other reuse */
 .letter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1150px}
@@ -113,17 +91,13 @@ p{font-size:19px;color:rgba(255,255,255,.4);text-align:center;max-width:700px;li
 
 </style></head><body><div class="slide-container">
 <div class="slide active divider"><div class="tag">模块 2 · 45 分钟</div><h1>AI 是骗子？</h1></div>
-<div class="slide"><div class="hint do" style="margin-bottom:10px">实操 — 在下面输入框中打字</div>
-<div class="demo-chat" id="chat-hallucination">
-  <div class="chat-header"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="title">WorkBuddy</div></div>
-  <div class="chat-body"></div>
-  <div class="chat-input"><input placeholder="输入：李白写过一首诗叫《望庐山》，请全文背诵。" onfocus="this.select()"><button>发送</button></div>
-</div>
-<p style="font-size:14px;color:rgba(255,255,255,.25);margin-top:8px">👆 老师在投影上直接打字，全班看 AI 现场编诗</p></div>
+<div class="slide ai-frame-slide"><div class="hint do" style="margin-bottom:6px">实操 — 在下方窗口中打字</div>
+<p class="frame-hint">输入：李白写过一首诗叫《望庐山》，请全文背诵。→ 回车看 AI 现场编诗</p>
+<div class="ai-frame-wrap"><iframe class="ai-frame" src="https://chat.deepseek.com" allow="clipboard-write"></iframe></div></div>
 
-<div class="slide"><div class="suspense">❓</div><h1>这首诗<br>是真的吗？</h1><div class="hint ask" style="margin-top:20px">提问</div><div class="hint-text">举手表决：觉得真的？ 觉得假的？</div></div>
+<div class="slide"><div class="suspense">❓</div><h1>AI 给的诗<br>是真的吗？</h1><div class="hint ask" style="margin-top:20px">提问</div><div class="hint-text">举手表决：觉得真的？ 觉得假的？</div></div>
 
-<div class="slide"><h1 style="color:#dc3232;font-size:clamp(48px,10vw,100px)">假的！</h1><p style="font-size:22px;margin-top:10px">李白写过《望庐山瀑布》<br>但从没写过《望庐山》</p><div class="poem-display" style="margin-top:20px"><div class="stamp">🚨 AI 编的</div><div class="title">《望庐山》</div><div class="verse">庐山巍巍入云霄<br>云海茫茫掩古桥<br>仙人已乘黄鹤去<br>空留松涛伴寂寥</div></div><p style="font-size:14px;color:rgba(255,255,255,.2);margin-top:12px">听起来像真的对吧？但这首诗——从来没人写过。<br>AI 把"庐山""仙人""黄鹤"拼在一起，编了一首根本不存在的诗。</p></div>
+<div class="slide"><h1 style="color:#dc3232;font-size:clamp(48px,10vw,100px)">假的！</h1><p style="font-size:22px;margin-top:10px">李白写过《望庐山瀑布》<br>但从没写过《望庐山》</p><div class="poem-display" style="margin-top:20px"><div class="stamp">🚨 AI 编的</div><div class="title">《望庐山》</div><div class="verse">庐山巍巍入云霄<br>云海茫茫掩古桥<br>仙人已乘黄鹤去<br>空留松涛伴寂寥</div></div><p style="font-size:14px;color:rgba(255,255,255,.2);margin-top:12px">听起来像真的对吧？但李白从来没有写过这首诗。<br>AI 把"庐山""仙人""黄鹤"拼在一起，编了一首根本不存在的诗。</p></div>
 
 <div class="slide"><div class="hint think" style="margin-bottom:16px">思考</div><h2>AI 是故意骗你的吗？</h2><p style="margin-top:12px">不是。它读了太多东西，自己把<br>"李白""庐山""诗"拼在一起，猜了一个答案。</p><p style="margin-top:12px;color:rgba(255,255,255,.3)">它自己不知道自己在说谎。</p></div>
 
@@ -132,65 +106,5 @@ p{font-size:19px;color:rgba(255,255,255,.4);text-align:center;max-width:700px;li
 </div>
 <div class="nav"><button onclick="prev()">←</button><span class="page" id="pageNum">1 / 6</span><button onclick="next()">→</button></div>
 <script>let c=0;const s=document.querySelectorAll(".slide"),t=s.length;function show(i){{s.forEach(x=>x.classList.remove("active"));s[i].classList.add("active");document.getElementById("pageNum").textContent=(i+1)+" / "+t}}function next(){{c=(c+1)%t;show(c)}}function prev(){{c=(c-1+t)%t;show(c)}}document.addEventListener("keydown",e=>{{if(e.key==="ArrowRight"||e.key==="ArrowDown")next();if(e.key==="ArrowLeft"||e.key==="ArrowUp")prev()}})
-
-// Embedded chat demo — handles AI-like responses for demo prompts
-function initChat(containerId, presets){
-  const container = document.getElementById(containerId);
-  if(!container) return;
-
-  const body = container.querySelector('.chat-body');
-  const input = container.querySelector('input');
-  const btn = container.querySelector('button');
-
-  function addMsg(text, cls){
-    const m = document.createElement('div'); m.className = 'msg '+cls;
-    m.innerHTML = '<pre>'+text+'</pre>';
-    body.appendChild(m);
-    body.scrollTop = body.scrollHeight;
-    return m;
-  }
-
-  function addTyping(){
-    const d = document.createElement('div'); d.className = 'typing-indicator';
-    d.innerHTML = '<span></span><span></span><span></span>';
-    body.appendChild(d);
-    body.scrollTop = body.scrollHeight;
-    return d;
-  }
-
-  function getResponse(text){
-    const t = text.trim();
-    // Match presets
-    for(const [pattern, response] of Object.entries(presets)){
-      if(t.includes(pattern)) return response;
-    }
-    // Fallback
-    return '正在生成回复...\n\n（这是一个模拟演示，在实际课堂中这里会是 AI 的真实回答）';
-  }
-
-  function send(){
-    const text = input.value.trim();
-    if(!text) return;
-    input.value = '';
-    input.disabled = true; btn.disabled = true;
-    addMsg(text, 'user');
-    const typing = addTyping();
-    setTimeout(() => {
-      typing.remove();
-      const resp = getResponse(text);
-      addMsg(resp, 'ai');
-      input.disabled = false; btn.disabled = false;
-      input.focus();
-    }, 1000 + Math.random() * 1500);
-  }
-
-  input.addEventListener('keydown', e => { if(e.key==='Enter') send(); });
-  btn.addEventListener('click', send);
-}
-
-initChat("chat-hallucination", {
-  "望庐山": "「望庐山」\n\n庐山巍巍入云霄\n云海茫茫掩古桥\n仙人已乘黄鹤去\n空留松涛伴寂寥\n\n——李白",
-  "李白": "「望庐山」\n\n庐山巍巍入云霄\n云海茫茫掩古桥\n仙人已乘黄鹤去\n空留松涛伴寂寥\n\n——李白"
-});
 
 </script></body></html>
