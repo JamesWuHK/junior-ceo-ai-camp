@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>模块1 · 创业是什么</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a14;color:#e8e8ed;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden;height:100dvh;user-select:none}
+.slide-container{width:100%;height:100dvh;position:relative}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;opacity:0;transition:opacity .4s ease}
+.slide.active{opacity:1;z-index:1}
+.slide .tag{color:rgba(240,180,41,.7);font-size:13px;letter-spacing:3px;margin-bottom:16px}
+.slide h1{font-size:clamp(36px,7vw,80px);font-weight:800;letter-spacing:-2px;text-align:center;line-height:1.15;margin-bottom:24px}
+.slide h1 .amber{color:#f0b429}
+.slide h2{font-size:clamp(28px,5vw,56px);font-weight:700;text-align:center;line-height:1.2;margin-bottom:24px}
+.slide p{font-size:20px;color:rgba(255,255,255,.4);text-align:center;max-width:700px;line-height:1.6;margin-bottom:12px}
+.slide .amber-text{color:#f0b429}
+.story-card{background:rgba(21,21,37,.8);border:1px solid rgba(255,255,255,.06);border-radius:24px;padding:40px;text-align:left;max-width:700px;margin:16px 0}
+.story-card .emoji{font-size:32px;margin-bottom:12px}
+.story-card h3{font-size:24px;margin-bottom:8px}
+.story-card p{font-size:17px;text-align:left;color:rgba(255,255,255,.5);line-height:1.6}
+.formula{background:rgba(240,180,41,.08);border:2px solid rgba(240,180,41,.3);border-radius:20px;padding:32px 48px;font-size:clamp(24px,4vw,42px);font-weight:700;text-align:center;letter-spacing:2px;margin:16px 0}
+.formula span{color:#f0b429}
+.demo-box{background:#151525;border:2px dashed rgba(255,255,255,.1);border-radius:16px;padding:24px 36px;font-size:18px;text-align:center;color:rgba(255,255,255,.6);font-family:monospace;max-width:600px;line-height:1.8;margin:16px 0}
+.letter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1100px;margin:16px 0}
+.letter-card{background:rgba(21,21,37,.8);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;text-align:left;font-size:14px;color:rgba(255,255,255,.4);line-height:1.7;position:relative}
+.letter-card .grade{position:absolute;top:-10px;right:16px;background:#555;color:#fff;padding:4px 12px;border-radius:10px;font-size:12px;font-weight:700}
+.letter-card .grade.great{background:#f0b429;color:#0a0a14}
+.letter-card b{color:rgba(255,255,255,.7)}
+.checklist{list-style:none;max-width:500px;margin:16px 0}
+.checklist li{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:18px;display:flex;align-items:center;gap:12px}
+.checklist li .dot{width:8px;height:8px;background:#f0b429;border-radius:50%;flex-shrink:0}
+.steps{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;max-width:900px;margin:16px 0}
+.step{background:rgba(21,21,37,.8);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;text-align:center;width:150px}
+.step .num{font-size:36px;font-weight:900;color:#f0b429;margin-bottom:8px}
+.step .label{font-size:14px;color:rgba(255,255,255,.5)}
+.iceberg{max-width:500px;margin:24px auto}
+.iceberg .above{font-size:18px;color:rgba(255,255,255,.6);text-align:center;padding:16px;border:1px solid rgba(255,255,255,.2);border-radius:12px 12px 0 0}
+.iceberg .below{font-size:20px;color:#f0b429;font-weight:700;text-align:center;padding:24px;background:rgba(240,180,41,.06);border:1px solid rgba(240,180,41,.2);border-radius:0 0 12px 12px;margin-top:-1px}
+.iceberg .waterline{text-align:center;font-size:12px;color:rgba(255,255,255,.2);padding:4px 0}
+.iceberg .waterline::before,.iceberg .waterline::after{content:"═══════";margin:0 8px}
+.money-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:700px;margin:16px 0}
+.money-card{background:rgba(21,21,37,.8);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:32px 24px;text-align:center}
+.money-card .price{font-size:36px;font-weight:900;color:#f0b429;margin-bottom:8px}
+.money-card .desc{font-size:14px;color:rgba(255,255,255,.4)}
+.nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:10;background:rgba(21,21,37,.9);border:1px solid rgba(255,255,255,.06);border-radius:40px;padding:8px 16px}
+.nav .page{color:rgba(255,255,255,.3);font-size:13px;min-width:60px;text-align:center;line-height:28px}
+.nav button{background:none;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;transition:all .2s}
+.nav button:hover{border-color:#f0b429;color:#f0b429}
+.divider{background:rgba(240,180,41,.05)}
+.divider h1{font-size:clamp(42px,8vw,100px)}
+.suspense{font-size:120px;margin-bottom:24px}
+.quote{font-size:clamp(22px,4vw,36px);font-style:italic;color:rgba(255,255,255,.7);text-align:center;max-width:800px;line-height:1.5}
+.quote::before{content:'"';color:#f0b429}
+.quote::after{content:'"';color:#f0b429}
+.presenter-note{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.3);border-radius:12px;padding:12px 24px;font-size:14px;color:rgba(255,255,255,.6);max-width:600px;text-align:center;z-index:5}
+.presenter-note.show{display:block}
+</style></head><body><div class="slide-container">
+<div class="slide active divider"><div class="tag">模块 1 · 45分钟</div><h1>原来这样<br>就能赚钱？</h1></div>
+<div class="slide"><div class="story-card"><div class="emoji">🎒</div><h3>11岁 · 水杯提醒器</h3>
+<p>他发现：全班每天5个人忘带水杯<br>渴了一上午，只能等午饭才喝到水</p>
+<p style="margin-top:12px">他做了：书包上缝个小口袋<br>里面一张纸条 → <span class="amber-text" style="font-size:18px">"水杯！"</span></p>
+<p style="margin-top:12px">他卖了：12个人 × ¥5 = <span class="amber-text" style="font-size:22px">¥60</span></p></div></div>
+<div class="slide"><div class="story-card"><div class="emoji">📱</div><h3>14岁 · 作业提醒闹钟</h3>
+<p>她发现：班里总有人忘写作业被扣分</p>
+<p style="margin-top:12px">她做了：用 AI 做了个小程序<br>每天放学自动弹提醒"今晚有数学作业"</p>
+<p style="margin-top:12px">她赚了：500人下载<br>奶茶店广告 → <span class="amber-text" style="font-size:22px">¥200/月</span></p></div></div>
+<div class="slide"><h1>他们有什么<br>共同点？</h1><p style="margin-top:24px;font-size:24px">讨论 1 分钟</p></div>
+<div class="slide"><div class="formula">创业 = <span>发现痛点</span> + <span>做出方案</span> + <span>让人付钱</span></div><p style="margin-top:24px;font-size:16px">痛点越小越具体 → 越容易做出产品<br>你的第一个客户 → 在你身边5米以内</p></div>
+<div class="slide divider"><div class="tag">备选</div><h1 style="font-size:clamp(28px,4vw,48px)">如果前面没共鸣<br>换下面的</h1></div>
+<div class="slide"><div class="story-card"><div class="emoji">🍱</div><h3>食堂今天有什么？</h3><p>痛点：每天午饭前不知道食堂有什么<br>排队到窗口才发现不想吃</p><p style="margin-top:8px">赚了：卖"周菜单订阅" <span class="amber-text">¥2/周 × 20人</span></p></div></div>
+<div class="slide"><div class="story-card"><div class="emoji">🗺️</div><h3>教室在哪？</h3><p>痛点：新学期第一周，拿着课表找不到教室，天天迟到</p><p style="margin-top:8px">赚了：校园地图 <span class="amber-text">¥1/张 × 50张</span></p></div></div>
+<div class="slide"><div class="story-card"><div class="emoji">📚</div><h3>明天带什么书？</h3><p>痛点：书包塞满，明天要用的没带。到底有什么课？交什么作业？</p><p style="margin-top:8px">赚了：小程序 → 广告 <span class="amber-text">¥100/月</span></p></div></div>
+
+</div>
+<div class="nav"><button onclick="prev()">←</button><span class="page" id="pageNum">1 / 9</span><button onclick="next()">→</button></div>
+<script>let c=0;const s=document.querySelectorAll('.slide'),t=s.length;function show(i){s.forEach(x=>x.classList.remove('active'));s[i].classList.add('active');document.getElementById('pageNum').textContent=(i+1)+' / '+t}function next(){c=(c+1)%t;show(c)}function prev(){c=(c-1+t)%t;show(c)}document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')next();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prev()})</script></body></html>

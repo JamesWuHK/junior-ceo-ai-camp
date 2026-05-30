@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>模块2 · AI是骗子？</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a14;color:#e8e8ed;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden;height:100dvh;user-select:none}
+.slide-container{width:100%;height:100dvh;position:relative}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;opacity:0;transition:opacity .4s ease}
+.slide.active{opacity:1;z-index:1}
+.slide .tag{color:rgba(240,180,41,.7);font-size:13px;letter-spacing:3px;margin-bottom:16px}
+.slide h1{font-size:clamp(36px,7vw,80px);font-weight:800;letter-spacing:-2px;text-align:center;line-height:1.15;margin-bottom:24px}
+.slide h1 .amber{color:#f0b429}
+.slide h2{font-size:clamp(28px,5vw,56px);font-weight:700;text-align:center;line-height:1.2;margin-bottom:24px}
+.slide p{font-size:20px;color:rgba(255,255,255,.4);text-align:center;max-width:700px;line-height:1.6;margin-bottom:12px}
+.slide .amber-text{color:#f0b429}
+.story-card{background:rgba(21,21,37,.8);border:1px solid rgba(255,255,255,.06);border-radius:24px;padding:40px;text-align:left;max-width:700px;margin:16px 0}
+.story-card .emoji{font-size:32px;margin-bottom:12px}
+.story-card h3{font-size:24px;margin-bottom:8px}
+.story-card p{font-size:17px;text-align:left;color:rgba(255,255,255,.5);line-height:1.6}
+.formula{background:rgba(240,180,41,.08);border:2px solid rgba(240,180,41,.3);border-radius:20px;padding:32px 48px;font-size:clamp(24px,4vw,42px);font-weight:700;text-align:center;letter-spacing:2px;margin:16px 0}
+.formula span{color:#f0b429}
+.demo-box{background:#151525;border:2px dashed rgba(255,255,255,.1);border-radius:16px;padding:24px 36px;font-size:18px;text-align:center;color:rgba(255,255,255,.6);font-family:monospace;max-width:600px;line-height:1.8;margin:16px 0}
+.letter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1100px;margin:16px 0}
+.letter-card{background:rgba(21,21,37,.8);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;text-align:left;font-size:14px;color:rgba(255,255,255,.4);line-height:1.7;position:relative}
+.letter-card .grade{position:absolute;top:-10px;right:16px;background:#555;color:#fff;padding:4px 12px;border-radius:10px;font-size:12px;font-weight:700}
+.letter-card .grade.great{background:#f0b429;color:#0a0a14}
+.letter-card b{color:rgba(255,255,255,.7)}
+.checklist{list-style:none;max-width:500px;margin:16px 0}
+.checklist li{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:18px;display:flex;align-items:center;gap:12px}
+.checklist li .dot{width:8px;height:8px;background:#f0b429;border-radius:50%;flex-shrink:0}
+.steps{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;max-width:900px;margin:16px 0}
+.step{background:rgba(21,21,37,.8);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;text-align:center;width:150px}
+.step .num{font-size:36px;font-weight:900;color:#f0b429;margin-bottom:8px}
+.step .label{font-size:14px;color:rgba(255,255,255,.5)}
+.iceberg{max-width:500px;margin:24px auto}
+.iceberg .above{font-size:18px;color:rgba(255,255,255,.6);text-align:center;padding:16px;border:1px solid rgba(255,255,255,.2);border-radius:12px 12px 0 0}
+.iceberg .below{font-size:20px;color:#f0b429;font-weight:700;text-align:center;padding:24px;background:rgba(240,180,41,.06);border:1px solid rgba(240,180,41,.2);border-radius:0 0 12px 12px;margin-top:-1px}
+.iceberg .waterline{text-align:center;font-size:12px;color:rgba(255,255,255,.2);padding:4px 0}
+.iceberg .waterline::before,.iceberg .waterline::after{content:"═══════";margin:0 8px}
+.money-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:700px;margin:16px 0}
+.money-card{background:rgba(21,21,37,.8);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:32px 24px;text-align:center}
+.money-card .price{font-size:36px;font-weight:900;color:#f0b429;margin-bottom:8px}
+.money-card .desc{font-size:14px;color:rgba(255,255,255,.4)}
+.nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:10;background:rgba(21,21,37,.9);border:1px solid rgba(255,255,255,.06);border-radius:40px;padding:8px 16px}
+.nav .page{color:rgba(255,255,255,.3);font-size:13px;min-width:60px;text-align:center;line-height:28px}
+.nav button{background:none;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;transition:all .2s}
+.nav button:hover{border-color:#f0b429;color:#f0b429}
+.divider{background:rgba(240,180,41,.05)}
+.divider h1{font-size:clamp(42px,8vw,100px)}
+.suspense{font-size:120px;margin-bottom:24px}
+.quote{font-size:clamp(22px,4vw,36px);font-style:italic;color:rgba(255,255,255,.7);text-align:center;max-width:800px;line-height:1.5}
+.quote::before{content:'"';color:#f0b429}
+.quote::after{content:'"';color:#f0b429}
+.presenter-note{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.3);border-radius:12px;padding:12px 24px;font-size:14px;color:rgba(255,255,255,.6);max-width:600px;text-align:center;z-index:5}
+.presenter-note.show{display:block}
+</style></head><body><div class="slide-container">
+<div class="slide active divider"><div class="tag">模块 2 · 45分钟</div><h1>AI是骗子？</h1></div>
+<div class="slide"><p style="font-size:24px">现在，所有人打开 WorkBuddy</p><p style="font-size:32px;margin-top:8px">输入下面这句话</p><div class="demo-box" style="margin-top:24px;font-size:22px">李白写过一首诗叫《望庐山》，<br>请全文背诵。</div></div>
+<div class="slide"><div class="suspense">❓</div><h1>这首诗<br>是真的吗？</h1><p style="margin-top:24px">举手——觉得真的？ 觉得假的？</p></div>
+<div class="slide"><div class="suspense">🚨</div><h1>假的</h1><p style="font-size:24px;margin-top:16px">李白没有写过《望庐山》</p><p style="margin-top:8px">AI 编了一首看起来很像真的的诗</p><p style="margin-top:24px;color:rgba(255,255,255,.3);font-size:16px">AI 不是故意骗你。它自己在猜——<br>猜你接下来想看到什么。</p></div>
+<div class="slide"><div class="formula" style="font-size:28px"><span>CEO 守则第一条</span><br>AI 给你的答案<br>先怀疑，再验证</div></div>
+
+</div>
+<div class="nav"><button onclick="prev()">←</button><span class="page" id="pageNum">1 / 5</span><button onclick="next()">→</button></div>
+<script>let c=0;const s=document.querySelectorAll('.slide'),t=s.length;function show(i){s.forEach(x=>x.classList.remove('active'));s[i].classList.add('active');document.getElementById('pageNum').textContent=(i+1)+' / '+t}function next(){c=(c+1)%t;show(c)}function prev(){c=(c-1+t)%t;show(c)}document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')next();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prev()})</script></body></html>
