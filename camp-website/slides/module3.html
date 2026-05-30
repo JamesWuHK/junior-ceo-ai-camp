@@ -1,66 +1,121 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>模块3 · 怎么找到真需求</title><style>
+
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0a0a14;color:#e8e8ed;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden;height:100dvh;user-select:none}
 .slide-container{width:100%;height:100dvh;position:relative}
-.slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;opacity:0;transition:opacity .4s ease}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;opacity:0;transition:opacity .5s ease}
 .slide.active{opacity:1;z-index:1}
-.slide .tag{color:rgba(240,180,41,.7);font-size:13px;letter-spacing:3px;margin-bottom:16px}
-.slide h1{font-size:clamp(36px,7vw,80px);font-weight:800;letter-spacing:-2px;text-align:center;line-height:1.15;margin-bottom:24px}
-.slide h1 .amber{color:#f0b429}
-.slide h2{font-size:clamp(28px,5vw,56px);font-weight:700;text-align:center;line-height:1.2;margin-bottom:24px}
-.slide p{font-size:20px;color:rgba(255,255,255,.4);text-align:center;max-width:700px;line-height:1.6;margin-bottom:12px}
-.slide .amber-text{color:#f0b429}
-.story-card{background:rgba(21,21,37,.8);border:1px solid rgba(255,255,255,.06);border-radius:24px;padding:40px;text-align:left;max-width:700px;margin:16px 0}
-.story-card .emoji{font-size:32px;margin-bottom:12px}
-.story-card h3{font-size:24px;margin-bottom:8px}
-.story-card p{font-size:17px;text-align:left;color:rgba(255,255,255,.5);line-height:1.6}
-.formula{background:rgba(240,180,41,.08);border:2px solid rgba(240,180,41,.3);border-radius:20px;padding:32px 48px;font-size:clamp(24px,4vw,42px);font-weight:700;text-align:center;letter-spacing:2px;margin:16px 0}
-.formula span{color:#f0b429}
-.demo-box{background:#151525;border:2px dashed rgba(255,255,255,.1);border-radius:16px;padding:24px 36px;font-size:18px;text-align:center;color:rgba(255,255,255,.6);font-family:monospace;max-width:600px;line-height:1.8;margin:16px 0}
-.letter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1100px;margin:16px 0}
-.letter-card{background:rgba(21,21,37,.8);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;text-align:left;font-size:14px;color:rgba(255,255,255,.4);line-height:1.7;position:relative}
-.letter-card .grade{position:absolute;top:-10px;right:16px;background:#555;color:#fff;padding:4px 12px;border-radius:10px;font-size:12px;font-weight:700}
-.letter-card .grade.great{background:#f0b429;color:#0a0a14}
-.letter-card b{color:rgba(255,255,255,.7)}
-.checklist{list-style:none;max-width:500px;margin:16px 0}
-.checklist li{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:18px;display:flex;align-items:center;gap:12px}
-.checklist li .dot{width:8px;height:8px;background:#f0b429;border-radius:50%;flex-shrink:0}
-.steps{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;max-width:900px;margin:16px 0}
-.step{background:rgba(21,21,37,.8);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;text-align:center;width:150px}
-.step .num{font-size:36px;font-weight:900;color:#f0b429;margin-bottom:8px}
-.step .label{font-size:14px;color:rgba(255,255,255,.5)}
-.iceberg{max-width:500px;margin:24px auto}
-.iceberg .above{font-size:18px;color:rgba(255,255,255,.6);text-align:center;padding:16px;border:1px solid rgba(255,255,255,.2);border-radius:12px 12px 0 0}
-.iceberg .below{font-size:20px;color:#f0b429;font-weight:700;text-align:center;padding:24px;background:rgba(240,180,41,.06);border:1px solid rgba(240,180,41,.2);border-radius:0 0 12px 12px;margin-top:-1px}
-.iceberg .waterline{text-align:center;font-size:12px;color:rgba(255,255,255,.2);padding:4px 0}
-.iceberg .waterline::before,.iceberg .waterline::after{content:"═══════";margin:0 8px}
-.money-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:700px;margin:16px 0}
-.money-card{background:rgba(21,21,37,.8);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:32px 24px;text-align:center}
-.money-card .price{font-size:36px;font-weight:900;color:#f0b429;margin-bottom:8px}
-.money-card .desc{font-size:14px;color:rgba(255,255,255,.4)}
-.nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:10;background:rgba(21,21,37,.9);border:1px solid rgba(255,255,255,.06);border-radius:40px;padding:8px 16px}
-.nav .page{color:rgba(255,255,255,.3);font-size:13px;min-width:60px;text-align:center;line-height:28px}
-.nav button{background:none;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;transition:all .2s}
-.nav button:hover{border-color:#f0b429;color:#f0b429}
+.tag{color:rgba(240,180,41,.7);font-size:13px;letter-spacing:3px;margin-bottom:16px}
+h1{font-size:clamp(36px,7vw,80px);font-weight:800;letter-spacing:-2px;text-align:center;line-height:1.15;margin-bottom:24px}
+h1 .amber{color:#f0b429}
+h2{font-size:clamp(26px,5vw,52px);font-weight:700;text-align:center;line-height:1.2;margin-bottom:20px}
+p{font-size:19px;color:rgba(255,255,255,.4);text-align:center;max-width:700px;line-height:1.6;margin-bottom:10px}
+.amber-text{color:#f0b429}
 .divider{background:rgba(240,180,41,.05)}
 .divider h1{font-size:clamp(42px,8vw,100px)}
-.suspense{font-size:120px;margin-bottom:24px}
-.quote{font-size:clamp(22px,4vw,36px);font-style:italic;color:rgba(255,255,255,.7);text-align:center;max-width:800px;line-height:1.5}
+
+/* Cards */
+.story-card{background:rgba(21,21,37,.9);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:36px 40px;text-align:left;max-width:700px}
+.story-card .emoji{font-size:36px;margin-bottom:10px}
+.story-card h3{font-size:22px;margin-bottom:8px}
+.story-card p{font-size:17px;text-align:left;color:rgba(255,255,255,.5);line-height:1.6}
+
+/* Formula */
+.formula{background:rgba(240,180,41,.08);border:2px solid rgba(240,180,41,.3);border-radius:20px;padding:32px 48px;font-size:clamp(22px,4vw,38px);font-weight:700;text-align:center;letter-spacing:2px}
+.formula span{color:#f0b429}
+
+/* Demo box */
+.demo-box{background:#151525;border:2px dashed rgba(255,255,255,.1);border-radius:16px;padding:24px 36px;font-size:18px;text-align:center;color:rgba(255,255,255,.6);max-width:600px;line-height:1.8;font-family:"SF Mono",monospace}
+
+/* Fake poem display — key visual for AI hallucination */
+.poem-display{background:linear-gradient(135deg,#1a1a30,#151525);border:2px solid rgba(240,180,41,.2);border-radius:20px;padding:40px 48px;max-width:550px;text-align:center;position:relative;overflow:hidden}
+.poem-display::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(240,180,41,.5),transparent)}
+.poem-display .title{font-size:22px;color:#f0b429;margin-bottom:20px;font-weight:700}
+.poem-display .verse{font-size:20px;color:rgba(255,255,255,.7);line-height:2;font-style:italic}
+.poem-display .stamp{position:absolute;top:20px;right:24px;background:rgba(220,50,50,.15);color:#dc3232;border:2px solid rgba(220,50,50,.4);padding:6px 16px;border-radius:10px;font-size:14px;font-weight:700;transform:rotate(12deg)}
+
+/* Letter comparison — 3 columns */
+.letter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1150px}
+.letter-card{background:rgba(21,21,37,.9);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:28px 24px;text-align:left;font-size:14px;color:rgba(255,255,255,.4);line-height:1.8;position:relative}
+.letter-card .grade{position:absolute;top:-12px;right:16px;padding:4px 14px;border-radius:10px;font-size:13px;font-weight:700}
+.letter-card .grade.bad{background:#4a4a5a;color:rgba(255,255,255,.5)}
+.letter-card .grade.mid{background:#888;color:#fff}
+.letter-card .grade.great{background:#f0b429;color:#0a0a14}
+.letter-card .prompt-label{display:block;font-size:11px;color:rgba(255,255,255,.15);margin-bottom:10px;font-family:"SF Mono",monospace;word-break:break-all}
+.letter-card b{color:rgba(255,255,255,.8)}
+.letter-card.highlight{border-color:rgba(240,180,41,.3);box-shadow:0 0 30px rgba(240,180,41,.05)}
+
+/* Lists */
+.checklist{list-style:none;max-width:500px}
+.checklist li{padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:19px;display:flex;align-items:center;gap:14px}
+.checklist li .dot{width:10px;height:10px;background:#f0b429;border-radius:50%;flex-shrink:0}
+
+/* Steps */
+.steps{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;max-width:950px}
+.step{background:rgba(21,21,37,.9);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:24px 20px;text-align:center;width:150px}
+.step .num{font-size:38px;font-weight:900;color:#f0b429;margin-bottom:10px}
+.step .label{font-size:14px;color:rgba(255,255,255,.5);line-height:1.5}
+
+/* Iceberg */
+.iceberg{max-width:500px;margin:20px auto}
+.iceberg .above{font-size:19px;color:rgba(255,255,255,.6);text-align:center;padding:20px;border:1px solid rgba(255,255,255,.2);border-radius:16px 16px 0 0}
+.iceberg .below{font-size:22px;color:#f0b429;font-weight:700;text-align:center;padding:28px;background:rgba(240,180,41,.08);border:1px solid rgba(240,180,41,.2);border-radius:0 0 16px 16px;margin-top:-1px}
+.iceberg .waterline{text-align:center;font-size:12px;color:rgba(255,255,255,.15);padding:6px 0}
+.iceberg .waterline::before,.iceberg .waterline::after{content:"━━━━━━━";margin:0 8px}
+
+/* Money cards */
+.money-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:750px}
+.money-card{background:rgba(21,21,37,.9);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:32px 24px;text-align:center}
+.money-card .price{font-size:38px;font-weight:900;color:#f0b429;margin-bottom:10px}
+.money-card .desc{font-size:14px;color:rgba(255,255,255,.4);line-height:1.6}
+
+/* Full power demo */
+.power-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:750px}
+.power-step{background:rgba(21,21,37,.9);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px}
+.power-step .icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.power-step .icon.write{background:rgba(110,142,251,.15);color:#6e8efb}
+.power-step .icon.image{background:rgba(168,120,251,.15);color:#a878fb}
+.power-step .icon.web{background:rgba(120,200,140,.15);color:#78c88c}
+.power-step .info{font-size:15px;color:rgba(255,255,255,.5);line-height:1.5}
+.power-step .time{font-size:12px;color:rgba(255,255,255,.15);margin-top:4px}
+
+/* Super power cards */
+.super-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:750px}
+.super-card{background:rgba(21,21,37,.9);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;text-align:left}
+.super-card .num{font-size:28px;font-weight:900;color:#f0b429;margin-bottom:8px}
+.super-card .cmd{font-size:15px;color:rgba(255,255,255,.7);font-family:"SF Mono",monospace;line-height:1.6}
+.super-card .cmd span{color:#f0b429}
+
+/* Hints */
+.hint{display:inline-block;padding:4px 14px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:8px}
+.hint.ask{background:rgba(240,180,41,.12);color:#f0b429;border:1px solid rgba(240,180,41,.25)}
+.hint.think{background:rgba(110,142,251,.12);color:#6e8efb;border:1px solid rgba(110,142,251,.25)}
+.hint.do{background:rgba(120,200,140,.12);color:#78c88c;border:1px solid rgba(120,200,140,.25)}
+.hint-text{font-size:18px;color:rgba(255,255,255,.6);text-align:center;max-width:580px;line-height:1.6;margin-top:6px}
+
+/* Suspense & quote */
+.suspense{font-size:100px;margin-bottom:20px}
+.quote{font-size:clamp(20px,4vw,34px);font-style:italic;color:rgba(255,255,255,.7);text-align:center;max-width:750px;line-height:1.5}
 .quote::before{content:'"';color:#f0b429}
 .quote::after{content:'"';color:#f0b429}
-.hint{display:inline-block;padding:4px 12px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:8px}
-.hint.ask{background:rgba(240,180,41,.15);color:#f0b429;border:1px solid rgba(240,180,41,.3)}
-.hint.think{background:rgba(110,142,251,.15);color:#6e8efb;border:1px solid rgba(110,142,251,.3)}
-.hint.do{background:rgba(120,200,140,.15);color:#78c88c;border:1px solid rgba(120,200,140,.3)}
-.hint-text{font-size:18px;color:rgba(255,255,255,.6);text-align:center;max-width:600px;line-height:1.6;margin-top:4px}
+
+/* Nav */
+.nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:10;background:rgba(21,21,37,.95);border:1px solid rgba(255,255,255,.06);border-radius:40px;padding:8px 16px}
+.nav .page{color:rgba(255,255,255,.25);font-size:13px;min-width:60px;text-align:center;line-height:28px}
+.nav button{background:none;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;transition:all .2s}
+.nav button:hover{border-color:#f0b429;color:#f0b429}
+
+/* Visual anchor — big emoji for empty states */
+.visual-icon{font-size:80px;margin-bottom:16px;opacity:.8}
+
 </style></head><body><div class="slide-container">
 <div class="slide active divider"><div class="tag">模块 3 · 45 分钟</div><h1>怎么知道别人<br>真的想要？</h1></div>
-<div class="slide"><h2 style="font-size:22px;margin-bottom:8px">妈妈打电话："我孩子要补英语"</h2><div class="iceberg"><div class="above">"补习英语"</div><div class="waterline">═══════ 水面 ═══════</div><div class="below">"下次考试及格<br>不要再被班主任约谈"</div></div><div class="hint think" style="margin-top:8px">思考</div><div class="hint-text">你自己的选题，有没有水面下的部分？</div></div>
-<div class="slide"><h2>三个追问法</h2><ul class="checklist" style="margin-top:24px"><li><span class="dot"></span>① 你遇到过吗？<span style="color:rgba(255,255,255,.2);margin-left:auto">→ 真不真实</span></li><li><span class="dot"></span>② 多久一次？<span style="color:rgba(255,255,255,.2);margin-left:auto">→ 值不值得</span></li><li><span class="dot"></span>③ 你试过怎么解决？<span style="color:rgba(255,255,255,.2);margin-left:auto">→ 有没有机会</span></li></ul><p style="margin-top:24px">三个全绿灯 = 真需求<br>任意红灯 = 再想想</p></div>
-<div class="slide"><h2>现在就去问真人</h2><p style="font-size:24px;margin-top:16px">每个组领 3 张用户采访卡</p><div class="demo-box" style="font-size:16px;font-family:inherit;margin-top:24px;line-height:2.2"><p>Q1. 你遇到过这个麻烦吗？</p><p>Q2. 你最在乎什么？</p><p>Q3. 愿意付多少钱？</p></div><div class="hint do" style="margin-top:16px">实操 · 25 分钟</div><div class="hint-text">采访另外 2 组的人。只能问，不能说服。<br>对方说"不需要"→ 谢谢 ta，不解释。</div></div>
+<div class="slide"><h2 style="font-size:22px;margin-bottom:8px">妈妈打电话："我孩子要补英语"</h2><div class="iceberg"><div class="above">"补习英语"</div><div class="waterline">━━━━━━━ 水面 ━━━━━━━</div><div class="below">"下次考试及格<br>不要再被班主任约谈"</div></div><div class="hint think" style="margin-top:12px">思考</div><div class="hint-text">你自己的选题，有没有水面下的部分？</div></div>
+<div class="slide"><h2>三个追问法</h2><ul class="checklist" style="margin-top:20px"><li><span class="dot"></span>① 你遇到过吗？<span style="color:rgba(255,255,255,.2);margin-left:auto">→ 真不真实</span></li><li><span class="dot"></span>② 多久一次？<span style="color:rgba(255,255,255,.2);margin-left:auto">→ 值不值得</span></li><li><span class="dot"></span>③ 你试过怎么解决？<span style="color:rgba(255,255,255,.2);margin-left:auto">→ 有没有机会</span></li></ul><p style="margin-top:20px">三个全绿灯 = 真需求<br>任意红灯 = 再想想</p></div>
+<div class="slide"><h2>现在就去问真人</h2><p style="font-size:22px;margin-top:12px">每个组领 3 张用户采访卡</p><div class="demo-box" style="font-size:16px;font-family:inherit;margin-top:20px;line-height:2.2;text-align:left;padding-left:40px"><p>Q1. 你遇到过这个麻烦吗？</p><p>Q2. 你最在乎什么？</p><p>Q3. 愿意付多少钱？</p></div><div class="hint do" style="margin-top:16px">实操 · 25 分钟</div><div class="hint-text">采访另外 2 组的人。只能问，不能说服。<br>对方说"不需要"→ 谢谢 ta，走开。</div></div>
 
 </div>
 <div class="nav"><button onclick="prev()">←</button><span class="page" id="pageNum">1 / 4</span><button onclick="next()">→</button></div>
-<script>let c=0;const s=document.querySelectorAll('.slide'),t=s.length;function show(i){s.forEach(x=>x.classList.remove('active'));s[i].classList.add('active');document.getElementById('pageNum').textContent=(i+1)+' / '+t}function next(){c=(c+1)%t;show(c)}function prev(){c=(c-1+t)%t;show(c)}document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')next();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prev()})</script></body></html>
+<script>let c=0;const s=document.querySelectorAll(".slide"),t=s.length;function show(i){{s.forEach(x=>x.classList.remove("active"));s[i].classList.add("active");document.getElementById("pageNum").textContent=(i+1)+" / "+t}}function next(){{c=(c+1)%t;show(c)}}function prev(){{c=(c-1+t)%t;show(c)}}document.addEventListener("keydown",e=>{{if(e.key==="ArrowRight"||e.key==="ArrowDown")next();if(e.key==="ArrowLeft"||e.key==="ArrowUp")prev()}})</script></body></html>
