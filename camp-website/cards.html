@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>少年CEO AI创业营 · 可打印卡片</title>
+<style>
+  @page { size: A4; margin: 10mm; }
+  body { font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
+  h2 { text-align: center; font-size: 14px; color: #999; border-bottom: 1px solid #eee; padding-bottom: 8px; margin: 24px 0 12px; }
+  .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; page-break-inside: avoid; }
+  .card {
+    border: 2px solid #333; border-radius: 12px; padding: 16px;
+    min-height: 120px; position: relative;
+  }
+  .card h3 { font-size: 16px; margin: 0 0 8px; }
+  .card .sub { font-size: 11px; color: #999; margin-bottom: 8px; }
+  .card p { font-size: 13px; margin: 4px 0; line-height: 1.5; }
+  .card .line { border: none; border-top: 1px dashed #ddd; margin: 8px 0; }
+  .card .fill { color: #ccc; }
+  .card .badge {
+    position: absolute; top: -10px; right: 12px;
+    background: #333; color: #fff; font-size: 10px;
+    padding: 2px 10px; border-radius: 8px;
+  }
+  .card .q { font-weight: bold; font-size: 14px; margin-top: 6px; }
+  .card input[type=checkbox] { margin-right: 4px; }
+  
+  @media print {
+    body { margin: 0; }
+    .card-grid { gap: 6px; }
+    .card { padding: 12px; min-height: 100px; }
+    h2 { margin: 20px 0 8px; }
+  }
+</style>
+</head>
+<body>
+
+<h2>📇 AI 超能力卡（每人 1 张，A5 裁切）</h2>
+<div class="card-grid">
+  <div class="card"><div class="badge">超能力 1-2</div>
+    <p>1. <strong>做网页</strong><br>"帮我做一个网页。_____"</p>
+    <p>2. <strong>改东西</strong><br>"把_____改成_____。"</p>
+  </div>
+  <div class="card"><div class="badge">超能力 3-4</div>
+    <p>3. <strong>说人话</strong><br>"用___岁小孩能听懂的话解释。"</p>
+    <p>4. <strong>别啰嗦</strong><br>"控制在___字以内。"</p>
+  </div>
+  <div class="card"><div class="badge">超能力 5-6</div>
+    <p>5. <strong>指哪错了</strong><br>"第___部分不对，改成：___"</p>
+    <p>6. <strong>先验再信</strong><br>AI 说完 → 自己查 → 再决定信不信</p>
+  </div>
+  <div class="card"><div class="badge">💡 小提示</div>
+    <p>不会打字？点麦克风按钮，说出来就行。</p>
+    <p>跟 AI 说话，就像给一个聪明但没见过世面的人派活——你说得越具体，它干得越好。</p>
+  </div>
+</div>
+
+<h2>🎤 用户采访卡（每组 3 张）</h2>
+<div class="card-grid">
+  <div class="card"><div class="badge">采访卡</div>
+    <p><strong>采访人：</strong>________ 第___组</p>
+    <p><strong>被采访人：</strong>________ 第___组</p>
+    <hr class="line">
+    <p class="q">Q1. 你遇到过这个麻烦吗？</p>
+    <p><span class="fill">□ 经常 □ 偶尔 □ 从没遇到过</span></p>
+    <p><span class="fill">具体说说：________________</span></p>
+  </div>
+  <div class="card"><div class="badge">采访卡</div>
+    <p><strong>采访人：</strong>________ 第___组</p>
+    <p><strong>被采访人：</strong>________ 第___组</p>
+    <hr class="line">
+    <p class="q">Q2. 你最在乎什么？</p>
+    <p><span class="fill">□ 便宜 □ 好用 □ 好看 □ 省时间</span></p>
+    <p class="q" style="margin-top:8px">Q3. 愿意付多少钱？</p>
+    <p><span class="fill">¥________</span></p>
+  </div>
+  <div class="card"><div class="badge">采访规则</div>
+    <p>1. 只能问，不能说服</p>
+    <p>2. 对方说"不需要"→ 谢谢 ta，不解释</p>
+    <p>3. 记住对方说的第一句话</p>
+    <p style="margin-top:8px;color:#999;">每个组至少采访 3 个人</p>
+  </div>
+</div>
+
+<h2>✍️ Prompt 操作卡（每人 1 张）</h2>
+<div class="card-grid">
+  <div class="card"><div class="badge">跟 AI 说话，填这 5 句</div>
+    <p>1. 你是什么？<span class="fill">  你是一个________</span></p>
+    <p>2. 帮谁？<span class="fill">      我要帮________</span></p>
+    <p>3. 做什么？<span class="fill">    做一个________</span></p>
+    <p>4. 怎么做？<span class="fill">    打开后________</span></p>
+    <p>5. 别做什么？<span class="fill">  不要________</span></p>
+  </div>
+  <div class="card"><div class="badge">示例：宠物医生</div>
+    <p>1. 你是：<strong>宠物分诊助手</strong></p>
+    <p>2. 帮：<strong>养宠物的主人</strong></p>
+    <p>3. 做：<strong>症状自查工具</strong></p>
+    <p>4. 怎么做：<strong>输入"猫吐了"→ 三色分级</strong></p>
+    <p>5. 不要：<strong>假装自己是兽医</strong></p>
+  </div>
+</div>
+
+<p style="text-align:center;color:#999;font-size:12px;margin-top:32px">
+少年CEO AI 创业营 · 课堂物料 · A4 打印，沿虚线裁切为 A5 卡片
+</p>
+
+</body>
+</html>
