@@ -50,13 +50,16 @@ body{background:#0a0a14;color:#e8e8ed;font-family:-apple-system,BlinkMacSystemFo
 .quote{font-size:clamp(22px,4vw,36px);font-style:italic;color:rgba(255,255,255,.7);text-align:center;max-width:800px;line-height:1.5}
 .quote::before{content:'"';color:#f0b429}
 .quote::after{content:'"';color:#f0b429}
-.presenter-note{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.3);border-radius:12px;padding:12px 24px;font-size:14px;color:rgba(255,255,255,.6);max-width:600px;text-align:center;z-index:5}
-.presenter-note.show{display:block}
+.hint{display:inline-block;padding:4px 12px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:8px}
+.hint.ask{background:rgba(240,180,41,.15);color:#f0b429;border:1px solid rgba(240,180,41,.3)}
+.hint.think{background:rgba(110,142,251,.15);color:#6e8efb;border:1px solid rgba(110,142,251,.3)}
+.hint.do{background:rgba(120,200,140,.15);color:#78c88c;border:1px solid rgba(120,200,140,.3)}
+.hint-text{font-size:18px;color:rgba(255,255,255,.6);text-align:center;max-width:600px;line-height:1.6;margin-top:4px}
 </style></head><body><div class="slide-container">
-<div class="slide active divider"><div class="tag">模块 2.5 · 15分钟</div><h1>AI 的 6 个<br>马上能用的<br>超能力</h1></div>
-<div class="slide"><h2 style="margin-bottom:8px">1. 做网页 &nbsp; 2. 改东西</h2><div class="demo-box" style="font-size:18px;font-family:inherit;max-width:580px;text-align:left;line-height:2.2"><p><span class="amber-text">1.</span> "帮我做一个网页。_____"</p><p><span class="amber-text">2.</span> "把_____改成_____。"</p></div><p style="font-size:16px;margin-top:16px">这两句今天下午就能用上</p></div>
-<div class="slide"><h2 style="margin-bottom:8px">3. 说人话 &nbsp; 4. 别啰嗦</h2><div class="demo-box" style="font-size:18px;font-family:inherit;max-width:580px;text-align:left;line-height:2.2"><p><span class="amber-text">3.</span> "用___岁小孩能听懂的话解释。"</p><p><span class="amber-text">4.</span> "控制在___字以内。"</p></div></div>
-<div class="slide"><h2 style="margin-bottom:8px">5. 指哪错了 &nbsp; 6. 先验再信</h2><div class="demo-box" style="font-size:18px;font-family:inherit;max-width:580px;text-align:left;line-height:2.2"><p><span class="amber-text">5.</span> "第___部分不对，改成：___"</p><p><span class="amber-text">6.</span> AI说完 → 自己查 → 再决定信不信</p></div><p style="font-size:16px;margin-top:16px;color:rgba(255,255,255,.6)">💡 不会打字？点麦克风，说出来就行</p></div>
+<div class="slide active divider"><div class="tag">模块 2.5 · 15 分钟</div><h1>AI 的 6 个<br>超能力</h1></div>
+<div class="slide"><h2 style="margin-bottom:8px">1. 做网页 &nbsp; 2. 改东西</h2><div class="demo-box" style="font-size:18px;font-family:inherit;max-width:580px;text-align:left;line-height:2.2"><p><span class="amber-text">1.</span> "帮我做一个网页。_____"</p><p><span class="amber-text">2.</span> "把_____改成_____。"</p></div><div class="hint do" style="margin-top:16px">实操</div><div class="hint-text">用超能力 1，做一个网页。随便做什么。</div></div>
+<div class="slide"><h2 style="margin-bottom:8px">3. 说人话 &nbsp; 4. 别啰嗦</h2><div class="demo-box" style="font-size:18px;font-family:inherit;max-width:580px;text-align:left;line-height:2.2"><p><span class="amber-text">3.</span> "用___岁小孩能听懂的话解释。"</p><p><span class="amber-text">4.</span> "控制在___字以内。"</p></div><div class="hint do" style="margin-top:16px">实操</div><div class="hint-text">问 AI 一个难题，然后用超能力 3 让它说人话</div></div>
+<div class="slide"><h2 style="margin-bottom:8px">5. 指哪错了 &nbsp; 6. 先验再信</h2><div class="demo-box" style="font-size:18px;font-family:inherit;max-width:580px;text-align:left;line-height:2.2"><p><span class="amber-text">5.</span> "第___部分不对，改成：___"</p><p><span class="amber-text">6.</span> AI 说完 → 自己查 → 再决定信不信</p></div><p style="font-size:16px;margin-top:16px;color:rgba(255,255,255,.6)">💡 不会打字？点麦克风，说出来就行</p></div>
 
 </div>
 <div class="nav"><button onclick="prev()">←</button><span class="page" id="pageNum">1 / 4</span><button onclick="next()">→</button></div>

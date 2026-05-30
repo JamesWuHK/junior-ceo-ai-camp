@@ -50,13 +50,16 @@ body{background:#0a0a14;color:#e8e8ed;font-family:-apple-system,BlinkMacSystemFo
 .quote{font-size:clamp(22px,4vw,36px);font-style:italic;color:rgba(255,255,255,.7);text-align:center;max-width:800px;line-height:1.5}
 .quote::before{content:'"';color:#f0b429}
 .quote::after{content:'"';color:#f0b429}
-.presenter-note{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.3);border-radius:12px;padding:12px 24px;font-size:14px;color:rgba(255,255,255,.6);max-width:600px;text-align:center;z-index:5}
-.presenter-note.show{display:block}
+.hint{display:inline-block;padding:4px 12px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:8px}
+.hint.ask{background:rgba(240,180,41,.15);color:#f0b429;border:1px solid rgba(240,180,41,.3)}
+.hint.think{background:rgba(110,142,251,.15);color:#6e8efb;border:1px solid rgba(110,142,251,.3)}
+.hint.do{background:rgba(120,200,140,.15);color:#78c88c;border:1px solid rgba(120,200,140,.3)}
+.hint-text{font-size:18px;color:rgba(255,255,255,.6);text-align:center;max-width:600px;line-height:1.6;margin-top:4px}
 </style></head><body><div class="slide-container">
-<div class="slide active divider"><div class="tag">模块 6 · 30分钟</div><h1>定多少钱？</h1></div>
-<div class="slide"><h2 style="margin-bottom:24px">三种赚钱方式</h2><div class="money-grid"><div class="money-card"><div class="price">¥3/次</div><div class="desc">按次收费<br>偶尔用的产品</div></div><div class="money-card"><div class="price">¥10/月</div><div class="desc">包月订阅<br>天天用的产品</div></div><div class="money-card"><div class="price">免费+广告</div><div class="desc">用户量大<br>广告主买单</div></div></div></div>
-<div class="slide"><h2>拍脑袋：先写一个价</h2><p style="font-size:24px;margin-top:16px">然后去问隔壁组——</p><div class="demo-box" style="font-size:20px;font-family:inherit;margin-top:16px">"如果你是用户<br>这个价你愿意付吗？为什么？"</div><p style="margin-top:16px;font-size:16px;color:rgba(255,255,255,.4)">低龄辅助："这个价能买几包辣条？几个笔？"</p></div>
-<div class="slide"><h2>算一笔账</h2><div class="formula" style="margin-top:24px;font-size:clamp(20px,3vw,32px)">100 个用户 × 每人 <span>¥__</span> / 月<br>= 一个月赚 <span>¥__</span></div><p style="margin-top:32px;font-size:20px">定价不是数学题，是共情题<br>你越懂用户，越知道ta愿意为什么付钱</p></div>
+<div class="slide active divider"><div class="tag">模块 6 · 30 分钟</div><h1>定多少钱？</h1></div>
+<div class="slide"><h2 style="margin-bottom:24px">三种赚钱方式</h2><div class="money-grid"><div class="money-card"><div class="price">¥3/次</div><div class="desc">按次收费<br>偶尔用的产品</div></div><div class="money-card"><div class="price">¥10/月</div><div class="desc">包月订阅<br>天天用的产品</div></div><div class="money-card"><div class="price">免费+广告</div><div class="desc">用户量大<br>广告主买单</div></div></div><div class="hint ask" style="margin-top:12px">提问</div><div class="hint-text">你的产品适合哪一种？为什么？</div></div>
+<div class="slide"><h2>拍脑袋：先写一个价</h2><div class="hint do" style="margin-top:8px">实操</div><div class="hint-text" style="font-size:20px">每人纸上写一个数</div><div class="demo-box" style="font-size:20px;font-family:inherit;margin-top:16px">"如果你是用户<br>这个价你愿意付吗？"</div><p style="margin-top:12px;font-size:16px">然后去问隔壁组</p><p style="font-size:14px;color:rgba(255,255,255,.3)">低龄辅助："这个价能买几包辣条？"</p></div>
+<div class="slide"><h2>算一笔账</h2><div class="formula" style="margin-top:24px;font-size:clamp(20px,3vw,32px)">100 个用户 × 每人 <span>¥__</span> / 月<br>= 一个月赚 <span>¥__</span></div><div class="hint do" style="margin-top:24px">实操</div><div class="hint-text">每组站起来，大声喊出你们的数字！</div><p style="margin-top:16px;font-size:18px">定价不是数学题，是共情题<br>你越懂用户，越知道 ta 愿意为什么付钱</p></div>
 
 </div>
 <div class="nav"><button onclick="prev()">←</button><span class="page" id="pageNum">1 / 4</span><button onclick="next()">→</button></div>

@@ -50,13 +50,16 @@ body{background:#0a0a14;color:#e8e8ed;font-family:-apple-system,BlinkMacSystemFo
 .quote{font-size:clamp(22px,4vw,36px);font-style:italic;color:rgba(255,255,255,.7);text-align:center;max-width:800px;line-height:1.5}
 .quote::before{content:'"';color:#f0b429}
 .quote::after{content:'"';color:#f0b429}
-.presenter-note{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.3);border-radius:12px;padding:12px 24px;font-size:14px;color:rgba(255,255,255,.6);max-width:600px;text-align:center;z-index:5}
-.presenter-note.show{display:block}
+.hint{display:inline-block;padding:4px 12px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:8px}
+.hint.ask{background:rgba(240,180,41,.15);color:#f0b429;border:1px solid rgba(240,180,41,.3)}
+.hint.think{background:rgba(110,142,251,.15);color:#6e8efb;border:1px solid rgba(110,142,251,.3)}
+.hint.do{background:rgba(120,200,140,.15);color:#78c88c;border:1px solid rgba(120,200,140,.3)}
+.hint-text{font-size:18px;color:rgba(255,255,255,.6);text-align:center;max-width:600px;line-height:1.6;margin-top:4px}
 </style></head><body><div class="slide-container">
-<div class="slide active divider"><div class="tag">模块 7 · 30分钟</div><h1>怎么让人听完<br>想投钱？</h1></div>
-<div class="slide"><h2 style="margin-bottom:32px">路演五步</h2><div class="steps"><div class="step"><div class="num">①</div><div class="label">"你见过<br>这种情况吗？"</div></div><div class="step"><div class="num">②</div><div class="label">"我们做了<br>一个东西"</div></div><div class="step"><div class="num">③</div><div class="label">"看，就是它"<br>演示</div></div><div class="step"><div class="num">④</div><div class="label">"它会赚钱"<br>算账</div></div><div class="step"><div class="num">⑤</div><div class="label">"投我们"<br>行动</div></div></div></div>
-<div class="slide"><div class="quote" style="margin-bottom:32px">最好的路演<br>不是介绍产品<br>是让人心里想</div><h1><span class="amber">"对对对<br>我也遇到过"</span></h1></div>
-<div class="slide"><h2>先裸讲 1 分钟</h2><p style="font-size:24px;margin-top:16px">什么都不准备，直接讲</p><p style="margin-top:24px;color:rgba(255,255,255,.3)">（大概率语无伦次）</p><p style="margin-top:32px;font-size:20px">→ 然后看老师示范同一产品<br>→ 自己找出差别<br>→ 用五步结构再来一遍</p></div>
+<div class="slide active divider"><div class="tag">模块 7 · 30 分钟</div><h1>怎么让人听完<br>想投钱？</h1></div>
+<div class="slide"><div class="hint do" style="margin-bottom:16px">实操 · 1 分钟</div><h2>现在裸讲</h2><p style="font-size:24px;margin-top:8px">每组推一个人<br>什么都不准备，直接讲</p><p style="margin-top:8px;color:rgba(255,255,255,.3)">（大概率语无伦次——正常）</p></div>
+<div class="slide"><h2 style="margin-bottom:32px">路演五步</h2><div class="steps"><div class="step"><div class="num">①</div><div class="label">"你见过<br>这种情况吗？"</div></div><div class="step"><div class="num">②</div><div class="label">"我们做了<br>一个东西"</div></div><div class="step"><div class="num">③</div><div class="label">"看，就是它"<br>演示</div></div><div class="step"><div class="num">④</div><div class="label">"它会赚钱"<br>算账</div></div><div class="step"><div class="num">⑤</div><div class="label">"投我们"<br>行动</div></div></div><div class="hint think" style="margin-top:16px">思考</div><div class="hint-text">跟第一次裸讲比，这个结构帮了你什么？</div></div>
+<div class="slide"><div class="quote" style="margin-bottom:32px">最好的路演<br>不是介绍产品<br>是让人心里想</div><h1><span class="amber">"对对对<br>我也遇到过"</span></h1><div class="hint do" style="margin-top:24px">实操</div><div class="hint-text">用五步结构再讲一遍。每个人都练。</div></div>
 
 </div>
 <div class="nav"><button onclick="prev()">←</button><span class="page" id="pageNum">1 / 4</span><button onclick="next()">→</button></div>

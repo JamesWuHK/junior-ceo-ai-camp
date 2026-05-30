@@ -50,13 +50,16 @@ body{background:#0a0a14;color:#e8e8ed;font-family:-apple-system,BlinkMacSystemFo
 .quote{font-size:clamp(22px,4vw,36px);font-style:italic;color:rgba(255,255,255,.7);text-align:center;max-width:800px;line-height:1.5}
 .quote::before{content:'"';color:#f0b429}
 .quote::after{content:'"';color:#f0b429}
-.presenter-note{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.3);border-radius:12px;padding:12px 24px;font-size:14px;color:rgba(255,255,255,.6);max-width:600px;text-align:center;z-index:5}
-.presenter-note.show{display:block}
+.hint{display:inline-block;padding:4px 12px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:8px}
+.hint.ask{background:rgba(240,180,41,.15);color:#f0b429;border:1px solid rgba(240,180,41,.3)}
+.hint.think{background:rgba(110,142,251,.15);color:#6e8efb;border:1px solid rgba(110,142,251,.3)}
+.hint.do{background:rgba(120,200,140,.15);color:#78c88c;border:1px solid rgba(120,200,140,.3)}
+.hint-text{font-size:18px;color:rgba(255,255,255,.6);text-align:center;max-width:600px;line-height:1.6;margin-top:4px}
 </style></head><body><div class="slide-container">
-<div class="slide active divider"><div class="tag">模块 3 · 45分钟</div><h1>怎么知道别人<br>真的想要？</h1></div>
-<div class="slide"><h2 style="font-size:22px;margin-bottom:8px">妈妈打电话："我孩子要补英语"</h2><div class="iceberg"><div class="above">"补习英语"</div><div class="waterline">═══════ 水面 ═══════</div><div class="below">"下次考试及格<br>不要再被班主任约谈"</div></div><p style="margin-top:16px;font-size:16px">你以为的需求 ≠ 真实的需求</p></div>
+<div class="slide active divider"><div class="tag">模块 3 · 45 分钟</div><h1>怎么知道别人<br>真的想要？</h1></div>
+<div class="slide"><h2 style="font-size:22px;margin-bottom:8px">妈妈打电话："我孩子要补英语"</h2><div class="iceberg"><div class="above">"补习英语"</div><div class="waterline">═══════ 水面 ═══════</div><div class="below">"下次考试及格<br>不要再被班主任约谈"</div></div><div class="hint think" style="margin-top:8px">思考</div><div class="hint-text">你自己的选题，有没有水面下的部分？</div></div>
 <div class="slide"><h2>三个追问法</h2><ul class="checklist" style="margin-top:24px"><li><span class="dot"></span>① 你遇到过吗？<span style="color:rgba(255,255,255,.2);margin-left:auto">→ 真不真实</span></li><li><span class="dot"></span>② 多久一次？<span style="color:rgba(255,255,255,.2);margin-left:auto">→ 值不值得</span></li><li><span class="dot"></span>③ 你试过怎么解决？<span style="color:rgba(255,255,255,.2);margin-left:auto">→ 有没有机会</span></li></ul><p style="margin-top:24px">三个全绿灯 = 真需求<br>任意红灯 = 再想想</p></div>
-<div class="slide"><h2>现在就去问真人</h2><p style="font-size:24px;margin-top:16px">每个组领 3 张用户采访卡</p><div class="demo-box" style="font-size:16px;font-family:inherit;margin-top:24px;line-height:2.2"><p>Q1. 你遇到过这个麻烦吗？</p><p>Q2. 你最在乎什么？便宜/好用/省时间？</p><p>Q3. 愿意付多少钱？</p></div><p style="margin-top:24px;font-size:16px">只能问，不能说服<br>对方说"不需要"→ 谢谢ta，不要解释</p></div>
+<div class="slide"><h2>现在就去问真人</h2><p style="font-size:24px;margin-top:16px">每个组领 3 张用户采访卡</p><div class="demo-box" style="font-size:16px;font-family:inherit;margin-top:24px;line-height:2.2"><p>Q1. 你遇到过这个麻烦吗？</p><p>Q2. 你最在乎什么？</p><p>Q3. 愿意付多少钱？</p></div><div class="hint do" style="margin-top:16px">实操 · 25 分钟</div><div class="hint-text">采访另外 2 组的人。只能问，不能说服。<br>对方说"不需要"→ 谢谢 ta，不解释。</div></div>
 
 </div>
 <div class="nav"><button onclick="prev()">←</button><span class="page" id="pageNum">1 / 4</span><button onclick="next()">→</button></div>

@@ -50,12 +50,15 @@ body{background:#0a0a14;color:#e8e8ed;font-family:-apple-system,BlinkMacSystemFo
 .quote{font-size:clamp(22px,4vw,36px);font-style:italic;color:rgba(255,255,255,.7);text-align:center;max-width:800px;line-height:1.5}
 .quote::before{content:'"';color:#f0b429}
 .quote::after{content:'"';color:#f0b429}
-.presenter-note{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.3);border-radius:12px;padding:12px 24px;font-size:14px;color:rgba(255,255,255,.6);max-width:600px;text-align:center;z-index:5}
-.presenter-note.show{display:block}
+.hint{display:inline-block;padding:4px 12px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:8px}
+.hint.ask{background:rgba(240,180,41,.15);color:#f0b429;border:1px solid rgba(240,180,41,.3)}
+.hint.think{background:rgba(110,142,251,.15);color:#6e8efb;border:1px solid rgba(110,142,251,.3)}
+.hint.do{background:rgba(120,200,140,.15);color:#78c88c;border:1px solid rgba(120,200,140,.3)}
+.hint-text{font-size:18px;color:rgba(255,255,255,.6);text-align:center;max-width:600px;line-height:1.6;margin-top:4px}
 </style></head><body><div class="slide-container">
-<div class="slide active divider"><div class="tag">模块 5 · 30分钟</div><h1>做什么？</h1></div>
-<div class="slide"><div style="font-size:clamp(32px,6vw,56px);line-height:1.3;text-align:center"><p style="color:rgba(255,255,255,.5);margin-bottom:16px">把你们想做的功能都列出来</p><p>→</p><p style="margin-top:16px"><span class="amber-text">如果只剩 2 小时<br>只能做 1 个功能</span></p><p style="margin-top:16px;color:rgba(255,255,255,.5)">你保留哪个？</p></div></div>
-<div class="slide"><h2>MVP = 能让人30秒看懂<br>你在干嘛的最小版本</h2><div class="demo-box" style="font-family:inherit;font-size:16px;text-align:left;margin-top:24px;line-height:2"><p style="color:#f0b429">例：宠物医生</p><p>完整版：连医院数据库 + 预约挂号 + 看评价 + 在线问诊</p><p style="color:#f0b429">MVP版：</p><p>一个网页，输入"猫吐了"</p><p>→ 告诉我：绿色·在家观察 / 红色·去医院</p></div><p style="margin-top:16px;font-size:16px">今天只做 MVP。多了做不完。</p></div>
+<div class="slide active divider"><div class="tag">模块 5 · 30 分钟</div><h1>做什么？</h1></div>
+<div class="slide"><div style="font-size:clamp(32px,6vw,56px);line-height:1.3;text-align:center"><p style="color:rgba(255,255,255,.5);margin-bottom:16px">把你们想做的功能都列出来</p><p>→</p><p style="margin-top:16px"><span class="amber-text">如果只剩 2 小时<br>只能做 1 个功能</span></p><p style="margin-top:16px;color:rgba(255,255,255,.5)">你保留哪个？</p></div><div class="hint do" style="margin-top:24px">实操 · 5 分钟</div><div class="hint-text">每组列出所有功能 → 砍到只剩 1 个</div></div>
+<div class="slide"><h2>MVP = 能让人 30 秒看懂<br>你在干嘛的最小版本</h2><div class="demo-box" style="font-family:inherit;font-size:16px;text-align:left;margin-top:24px;line-height:2"><p style="color:#f0b429">例：宠物医生</p><p>完整版：连医院数据库 + 预约挂号 + 看评价 + 在线问诊</p><p style="color:#f0b429">MVP 版：</p><p>一个网页，输入"猫吐了"</p><p>→ 告诉我：绿色·在家观察 / 红色·去医院</p></div><div class="hint think" style="margin-top:8px">思考</div><div class="hint-text">完整版和 MVP 版，哪个能在 2 小时内做出来？</div></div>
 
 </div>
 <div class="nav"><button onclick="prev()">←</button><span class="page" id="pageNum">1 / 3</span><button onclick="next()">→</button></div>

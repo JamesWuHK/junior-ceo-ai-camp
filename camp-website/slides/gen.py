@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""Generate standalone module slide decks for 少年CEO AI 创业营"""
+"""Generate standalone module slide decks for 少年CEO AI 创业营 with 提问/思考/实操 hints"""
 import json
 
-# Shared CSS and JS template
 WRAPPER = '''<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>{title}</title><style>
@@ -55,8 +54,11 @@ body{{background:#0a0a14;color:#e8e8ed;font-family:-apple-system,BlinkMacSystemF
 .quote{{font-size:clamp(22px,4vw,36px);font-style:italic;color:rgba(255,255,255,.7);text-align:center;max-width:800px;line-height:1.5}}
 .quote::before{{content:'"';color:#f0b429}}
 .quote::after{{content:'"';color:#f0b429}}
-.presenter-note{{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.3);border-radius:12px;padding:12px 24px;font-size:14px;color:rgba(255,255,255,.6);max-width:600px;text-align:center;z-index:5}}
-.presenter-note.show{{display:block}}
+.hint{{display:inline-block;padding:4px 12px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:8px}}
+.hint.ask{{background:rgba(240,180,41,.15);color:#f0b429;border:1px solid rgba(240,180,41,.3)}}
+.hint.think{{background:rgba(110,142,251,.15);color:#6e8efb;border:1px solid rgba(110,142,251,.3)}}
+.hint.do{{background:rgba(120,200,140,.15);color:#78c88c;border:1px solid rgba(120,200,140,.3)}}
+.hint-text{{font-size:18px;color:rgba(255,255,255,.6);text-align:center;max-width:600px;line-height:1.6;margin-top:4px}}
 </style></head><body><div class="slide-container">
 {slides}
 </div>
@@ -73,86 +75,80 @@ def module_file(filename, title, slides_html):
         f.write(html)
     print(f'  {filename}: {total} slides')
 
-# ====== MODULE 1: 创业是什么 ======
-slides = tdivider('模块 1 · 45分钟', '原来这样<br>就能赚钱？')
+# ====== MODULE 1 ======
+slides = tdivider('模块 1 · 45 分钟', '原来这样<br>就能赚钱？')
 slides += '''
-<div class="slide"><div class="story-card"><div class="emoji">🎒</div><h3>11岁 · 水杯提醒器</h3>
-<p>他发现：全班每天5个人忘带水杯<br>渴了一上午，只能等午饭才喝到水</p>
-<p style="margin-top:12px">他做了：书包上缝个小口袋<br>里面一张纸条 → <span class="amber-text" style="font-size:18px">"水杯！"</span></p>
-<p style="margin-top:12px">他卖了：12个人 × ¥5 = <span class="amber-text" style="font-size:22px">¥60</span></p></div></div>
-<div class="slide"><div class="story-card"><div class="emoji">📱</div><h3>14岁 · 作业提醒闹钟</h3>
-<p>她发现：班里总有人忘写作业被扣分</p>
-<p style="margin-top:12px">她做了：用 AI 做了个小程序<br>每天放学自动弹提醒"今晚有数学作业"</p>
-<p style="margin-top:12px">她赚了：500人下载<br>奶茶店广告 → <span class="amber-text" style="font-size:22px">¥200/月</span></p></div></div>
-<div class="slide"><h1>他们有什么<br>共同点？</h1><p style="margin-top:24px;font-size:24px">讨论 1 分钟</p></div>
-<div class="slide"><div class="formula">创业 = <span>发现痛点</span> + <span>做出方案</span> + <span>让人付钱</span></div><p style="margin-top:24px;font-size:16px">痛点越小越具体 → 越容易做出产品<br>你的第一个客户 → 在你身边5米以内</p></div>
-<div class="slide divider"><div class="tag">备选</div><h1 style="font-size:clamp(28px,4vw,48px)">如果前面没共鸣<br>换下面的</h1></div>
-<div class="slide"><div class="story-card"><div class="emoji">🍱</div><h3>食堂今天有什么？</h3><p>痛点：每天午饭前不知道食堂有什么<br>排队到窗口才发现不想吃</p><p style="margin-top:8px">赚了：卖"周菜单订阅" <span class="amber-text">¥2/周 × 20人</span></p></div></div>
-<div class="slide"><div class="story-card"><div class="emoji">🗺️</div><h3>教室在哪？</h3><p>痛点：新学期第一周，拿着课表找不到教室，天天迟到</p><p style="margin-top:8px">赚了：校园地图 <span class="amber-text">¥1/张 × 50张</span></p></div></div>
-<div class="slide"><div class="story-card"><div class="emoji">📚</div><h3>明天带什么书？</h3><p>痛点：书包塞满，明天要用的没带。到底有什么课？交什么作业？</p><p style="margin-top:8px">赚了：小程序 → 广告 <span class="amber-text">¥100/月</span></p></div></div>
+<div class="slide"><div class="story-card"><div class="emoji">🎒</div><h3>11 岁 · 水杯提醒器</h3><p>发现：全班每天 5 个人忘带水杯<br>渴了一上午，只能等午饭才喝到水</p><p style="margin-top:12px">做了：书包上缝个小口袋<br>纸条 → <span class="amber-text" style="font-size:18px">"水杯！"</span></p><p style="margin-top:12px">卖了：12 人 × ¥5 = <span class="amber-text" style="font-size:22px">¥60</span></p></div><div class="hint ask">提问</div><div class="hint-text">他是第一个发现"忘带水杯"的人吗？为什么是他赚了 ¥60？</div></div>
+<div class="slide"><div class="story-card"><div class="emoji">📱</div><h3>14 岁 · 作业提醒闹钟</h3><p>发现：班里总有人忘写作业被扣分</p><p style="margin-top:12px">做了：用 AI 做了小程序<br>放学自动弹提醒"今晚有数学作业"</p><p style="margin-top:12px">赚了：500 人下载<br>奶茶店广告 → <span class="amber-text" style="font-size:22px">¥200/月</span></p></div><div class="hint think">思考</div><div class="hint-text">她写了代码吗？AI 帮她做了什么？</div></div>
+<div class="slide"><h1>他们有什么<br>共同点？</h1><div class="hint think" style="margin-top:8px">思考 · 1 分钟</div><div class="hint-text">两人各发现了什么？做了什么？赚到了什么？<br>用自己的话总结"创业是什么"</div></div>
+<div class="slide"><div class="formula">创业 = <span>发现痛点</span> + <span>做出方案</span> + <span>让人付钱</span></div><p style="margin-top:24px;font-size:16px">痛点越小越具体 → 越容易做出产品<br>你的第一个客户 → 在你身边 5 米以内</p><div class="hint do" style="margin-top:16px">实操</div><div class="hint-text">从烦人墙上选 1 个问题，用公式写："帮___解决___"</div></div>
+<div class="slide divider"><div class="tag">备选</div><h1 style="font-size:clamp(28px,4vw,48px)">如果前面没共鸣<br>换下面的故事</h1></div>
+<div class="slide"><div class="story-card"><div class="emoji">🍱</div><h3>食堂今天有什么？</h3><p>痛点：午饭前不知道食堂有什么<br>排队到窗口才发现不想吃</p><p style="margin-top:8px">赚了：周菜单订阅 <span class="amber-text">¥2/周 × 20 人</span></p></div></div>
+<div class="slide"><div class="story-card"><div class="emoji">🗺️</div><h3>教室在哪？</h3><p>痛点：新学期拿着课表找不到教室，天天迟到</p><p style="margin-top:8px">赚了：校园地图 <span class="amber-text">¥1/张 × 50 张</span></p></div></div>
+<div class="slide"><div class="story-card"><div class="emoji">📚</div><h3>明天带什么书？</h3><p>痛点：书包塞满，要用的没带。到底有什么课？交什么作业？</p><p style="margin-top:8px">赚了：小程序 → 广告 <span class="amber-text">¥100/月</span></p></div></div>
 '''
 module_file('module1.html', '模块1 · 创业是什么', slides)
 
-# ====== MODULE 2: AI是骗子？ ======
-slides = tdivider('模块 2 · 45分钟', 'AI是骗子？')
+# ====== MODULE 2 ======
+slides = tdivider('模块 2 · 45 分钟', 'AI 是骗子？')
 slides += '''
-<div class="slide"><p style="font-size:24px">现在，所有人打开 WorkBuddy</p><p style="font-size:32px;margin-top:8px">输入下面这句话</p><div class="demo-box" style="margin-top:24px;font-size:22px">李白写过一首诗叫《望庐山》，<br>请全文背诵。</div></div>
-<div class="slide"><div class="suspense">❓</div><h1>这首诗<br>是真的吗？</h1><p style="margin-top:24px">举手——觉得真的？ 觉得假的？</p></div>
-<div class="slide"><div class="suspense">🚨</div><h1>假的</h1><p style="font-size:24px;margin-top:16px">李白没有写过《望庐山》</p><p style="margin-top:8px">AI 编了一首看起来很像真的的诗</p><p style="margin-top:24px;color:rgba(255,255,255,.3);font-size:16px">AI 不是故意骗你。它自己在猜——<br>猜你接下来想看到什么。</p></div>
-<div class="slide"><div class="formula" style="font-size:28px"><span>CEO 守则第一条</span><br>AI 给你的答案<br>先怀疑，再验证</div></div>
+<div class="slide"><div class="hint do">实操</div><div class="hint-text" style="font-size:24px;margin-bottom:16px">现在，所有人打开 WorkBuddy</div><div class="demo-box" style="font-size:22px">李白写过一首诗叫《望庐山》，<br>请全文背诵。</div><p style="font-size:16px;margin-top:16px;color:rgba(255,255,255,.3)">每个人都输入这句话，回车</p></div>
+<div class="slide"><div class="suspense">❓</div><h1>这首诗<br>是真的吗？</h1><div class="hint ask" style="margin-top:16px">提问</div><div class="hint-text">举手表决：觉得真的？觉得假的？</div></div>
+<div class="slide"><div class="suspense">🚨</div><h1>假的</h1><p style="font-size:24px;margin-top:16px">李白没有写过《望庐山》</p><p>AI 编了一首看起来很像真的的诗</p><div class="hint think" style="margin-top:20px">思考</div><div class="hint-text">AI 是故意骗你的吗？<br>以后问 AI，第一件事要做什么？</div></div>
+<div class="slide"><div class="formula" style="font-size:28px"><span>CEO 守则第一条</span><br>AI 给你的答案<br>先怀疑，再验证</div><div class="hint do" style="margin-top:20px">实操</div><div class="hint-text">再问 AI 一个问题，然后自己验证对错</div></div>
 '''
 module_file('module2.html', '模块2 · AI是骗子？', slides)
 
-# ====== MODULE 2.5: AI超能力 ======
-slides = tdivider('模块 2.5 · 15分钟', 'AI 的 6 个<br>马上能用的<br>超能力')
+# ====== MODULE 2.5 ======
+slides = tdivider('模块 2.5 · 15 分钟', 'AI 的 6 个<br>超能力')
 slides += '''
-<div class="slide"><h2 style="margin-bottom:8px">1. 做网页 &nbsp; 2. 改东西</h2><div class="demo-box" style="font-size:18px;font-family:inherit;max-width:580px;text-align:left;line-height:2.2"><p><span class="amber-text">1.</span> "帮我做一个网页。_____"</p><p><span class="amber-text">2.</span> "把_____改成_____。"</p></div><p style="font-size:16px;margin-top:16px">这两句今天下午就能用上</p></div>
-<div class="slide"><h2 style="margin-bottom:8px">3. 说人话 &nbsp; 4. 别啰嗦</h2><div class="demo-box" style="font-size:18px;font-family:inherit;max-width:580px;text-align:left;line-height:2.2"><p><span class="amber-text">3.</span> "用___岁小孩能听懂的话解释。"</p><p><span class="amber-text">4.</span> "控制在___字以内。"</p></div></div>
-<div class="slide"><h2 style="margin-bottom:8px">5. 指哪错了 &nbsp; 6. 先验再信</h2><div class="demo-box" style="font-size:18px;font-family:inherit;max-width:580px;text-align:left;line-height:2.2"><p><span class="amber-text">5.</span> "第___部分不对，改成：___"</p><p><span class="amber-text">6.</span> AI说完 → 自己查 → 再决定信不信</p></div><p style="font-size:16px;margin-top:16px;color:rgba(255,255,255,.6)">💡 不会打字？点麦克风，说出来就行</p></div>
+<div class="slide"><h2 style="margin-bottom:8px">1. 做网页 &nbsp; 2. 改东西</h2><div class="demo-box" style="font-size:18px;font-family:inherit;max-width:580px;text-align:left;line-height:2.2"><p><span class="amber-text">1.</span> "帮我做一个网页。_____"</p><p><span class="amber-text">2.</span> "把_____改成_____。"</p></div><div class="hint do" style="margin-top:16px">实操</div><div class="hint-text">用超能力 1，做一个网页。随便做什么。</div></div>
+<div class="slide"><h2 style="margin-bottom:8px">3. 说人话 &nbsp; 4. 别啰嗦</h2><div class="demo-box" style="font-size:18px;font-family:inherit;max-width:580px;text-align:left;line-height:2.2"><p><span class="amber-text">3.</span> "用___岁小孩能听懂的话解释。"</p><p><span class="amber-text">4.</span> "控制在___字以内。"</p></div><div class="hint do" style="margin-top:16px">实操</div><div class="hint-text">问 AI 一个难题，然后用超能力 3 让它说人话</div></div>
+<div class="slide"><h2 style="margin-bottom:8px">5. 指哪错了 &nbsp; 6. 先验再信</h2><div class="demo-box" style="font-size:18px;font-family:inherit;max-width:580px;text-align:left;line-height:2.2"><p><span class="amber-text">5.</span> "第___部分不对，改成：___"</p><p><span class="amber-text">6.</span> AI 说完 → 自己查 → 再决定信不信</p></div><p style="font-size:16px;margin-top:16px;color:rgba(255,255,255,.6)">💡 不会打字？点麦克风，说出来就行</p></div>
 '''
 module_file('module2-5.html', '模块2.5 · AI超能力卡', slides)
 
-# ====== MODULE 3: 怎么找到真需求 ======
-slides = tdivider('模块 3 · 45分钟', '怎么知道别人<br>真的想要？')
+# ====== MODULE 3 ======
+slides = tdivider('模块 3 · 45 分钟', '怎么知道别人<br>真的想要？')
 slides += '''
-<div class="slide"><h2 style="font-size:22px;margin-bottom:8px">妈妈打电话："我孩子要补英语"</h2><div class="iceberg"><div class="above">"补习英语"</div><div class="waterline">═══════ 水面 ═══════</div><div class="below">"下次考试及格<br>不要再被班主任约谈"</div></div><p style="margin-top:16px;font-size:16px">你以为的需求 ≠ 真实的需求</p></div>
+<div class="slide"><h2 style="font-size:22px;margin-bottom:8px">妈妈打电话："我孩子要补英语"</h2><div class="iceberg"><div class="above">"补习英语"</div><div class="waterline">═══════ 水面 ═══════</div><div class="below">"下次考试及格<br>不要再被班主任约谈"</div></div><div class="hint think" style="margin-top:8px">思考</div><div class="hint-text">你自己的选题，有没有水面下的部分？</div></div>
 <div class="slide"><h2>三个追问法</h2><ul class="checklist" style="margin-top:24px"><li><span class="dot"></span>① 你遇到过吗？<span style="color:rgba(255,255,255,.2);margin-left:auto">→ 真不真实</span></li><li><span class="dot"></span>② 多久一次？<span style="color:rgba(255,255,255,.2);margin-left:auto">→ 值不值得</span></li><li><span class="dot"></span>③ 你试过怎么解决？<span style="color:rgba(255,255,255,.2);margin-left:auto">→ 有没有机会</span></li></ul><p style="margin-top:24px">三个全绿灯 = 真需求<br>任意红灯 = 再想想</p></div>
-<div class="slide"><h2>现在就去问真人</h2><p style="font-size:24px;margin-top:16px">每个组领 3 张用户采访卡</p><div class="demo-box" style="font-size:16px;font-family:inherit;margin-top:24px;line-height:2.2"><p>Q1. 你遇到过这个麻烦吗？</p><p>Q2. 你最在乎什么？便宜/好用/省时间？</p><p>Q3. 愿意付多少钱？</p></div><p style="margin-top:24px;font-size:16px">只能问，不能说服<br>对方说"不需要"→ 谢谢ta，不要解释</p></div>
+<div class="slide"><h2>现在就去问真人</h2><p style="font-size:24px;margin-top:16px">每个组领 3 张用户采访卡</p><div class="demo-box" style="font-size:16px;font-family:inherit;margin-top:24px;line-height:2.2"><p>Q1. 你遇到过这个麻烦吗？</p><p>Q2. 你最在乎什么？</p><p>Q3. 愿意付多少钱？</p></div><div class="hint do" style="margin-top:16px">实操 · 25 分钟</div><div class="hint-text">采访另外 2 组的人。只能问，不能说服。<br>对方说"不需要"→ 谢谢 ta，不解释。</div></div>
 '''
 module_file('module3.html', '模块3 · 怎么找到真需求', slides)
 
-# ====== MODULE 4: 怎么跟AI说话 ======
-slides = tdivider('模块 4 · 45分钟', '同一句话<br>AI 反应差十倍')
+# ====== MODULE 4 ======
+slides = tdivider('模块 4 · 45 分钟', '同一句话<br>AI 反应差十倍')
 slides += '''
-<div class="slide"><h2 style="margin-bottom:16px">让 AI 写一封道歉信</h2><div class="letter-grid"><div class="letter-card"><div class="grade">差</div><p style="margin-bottom:8px;font-size:12px;color:rgba(255,255,255,.2)">"帮我写一封道歉信"</p><p>尊敬的[收信人]：我写这封信是为了表达我最诚挚的歉意。对于我的行为给您带来的不便，我深感抱歉...</p></div><div class="letter-card"><div class="grade" style="background:#888">中</div><p style="margin-bottom:8px;font-size:12px;color:rgba(255,255,255,.2)">"我是一个学生，写给老师的"</p><p>亲爱的老师：我想为我在课堂上的行为向您道歉。我保证以后会认真听讲...</p></div><div class="letter-card"><div class="grade great">好</div><p style="margin-bottom:8px;font-size:12px;color:rgba(255,255,255,.2)">"我是五年级的小明。上课讲话被王老师批评了。王老师嗓子都哑了还在讲课。用小孩的话写，200字以内"</p><p>王老师：我今天上课讲话，对不起。<b>您嗓子都哑了还在给我们讲课，我却跟同桌聊昨晚的游戏</b>。我保证明天开始...</p></div></div><p style="margin-top:16px;font-size:16px">不是 AI 笨——是你没说清楚</p></div>
-<div class="slide"><h2>跟 AI 说话，填这 5 句</h2><div class="demo-box" style="text-align:left;font-size:18px;font-family:inherit;max-width:520px;line-height:2.4"><p>1. 你是什么？<span style="color:#f0b429;margin-left:12px">你是一个______</span></p><p>2. 帮谁？<span style="color:#f0b429;margin-left:12px">我要帮______</span></p><p>3. 做什么？<span style="color:#f0b429;margin-left:12px">做一个______</span></p><p>4. 怎么做？<span style="color:#f0b429;margin-left:12px">打开后______</span></p><p>5. 别做什么？<span style="color:#f0b429;margin-left:12px">不要______</span></p></div><p style="margin-top:16px;font-size:16px">现在用这张卡，给你的项目写第 1 个 prompt</p></div>
+<div class="slide"><h2 style="margin-bottom:16px">让 AI 写一封道歉信</h2><div class="letter-grid"><div class="letter-card"><div class="grade">差</div><p style="margin-bottom:8px;font-size:12px;color:rgba(255,255,255,.2)">"帮我写一封道歉信"</p><p>尊敬的[收信人]：我写这封信是为了表达我最诚挚的歉意。对于我的行为给您带来的不便，我深感抱歉...</p></div><div class="letter-card"><div class="grade" style="background:#888">中</div><p style="margin-bottom:8px;font-size:12px;color:rgba(255,255,255,.2)">"我是一个学生，写给老师的"</p><p>亲爱的老师：我想为我在课堂上的行为向您道歉...</p></div><div class="letter-card"><div class="grade great">好</div><p style="margin-bottom:8px;font-size:12px;color:rgba(255,255,255,.2)">"我是五年级的小明。上课讲话被王老师批评了。王老师嗓子都哑了还在讲课。用小孩的话写，200字以内"</p><p>王老师：我今天上课讲话，对不起。<b>您嗓子都哑了还在给我们讲课，我却跟同桌聊昨晚的游戏</b>。我保证明天开始...</p></div></div><div class="hint think" style="margin-top:12px">思考</div><div class="hint-text">第三次比第一次，你多做了什么？不是 AI 笨——是你没说清楚。</div></div>
+<div class="slide"><h2>跟 AI 说话，填这 5 句</h2><div class="demo-box" style="text-align:left;font-size:18px;font-family:inherit;max-width:520px;line-height:2.4"><p>1. 你是什么？<span style="color:#f0b429;margin-left:12px">你是一个______</span></p><p>2. 帮谁？<span style="color:#f0b429;margin-left:12px">我要帮______</span></p><p>3. 做什么？<span style="color:#f0b429;margin-left:12px">做一个______</span></p><p>4. 怎么做？<span style="color:#f0b429;margin-left:12px">打开后______</span></p><p>5. 别做什么？<span style="color:#f0b429;margin-left:12px">不要______</span></p></div><div class="hint do" style="margin-top:16px">实操 · 15 分钟</div><div class="hint-text">用这张卡，为你的项目写第 1 个 prompt<br>写完立刻在 WorkBuddy 上跑，看效果</div></div>
 '''
 module_file('module4.html', '模块4 · 怎么跟AI说话', slides)
 
-# ====== MODULE 5: 只做一个功能 ======
-slides = tdivider('模块 5 · 30分钟', '做什么？')
+# ====== MODULE 5 ======
+slides = tdivider('模块 5 · 30 分钟', '做什么？')
 slides += '''
-<div class="slide"><div style="font-size:clamp(32px,6vw,56px);line-height:1.3;text-align:center"><p style="color:rgba(255,255,255,.5);margin-bottom:16px">把你们想做的功能都列出来</p><p>→</p><p style="margin-top:16px"><span class="amber-text">如果只剩 2 小时<br>只能做 1 个功能</span></p><p style="margin-top:16px;color:rgba(255,255,255,.5)">你保留哪个？</p></div></div>
-<div class="slide"><h2>MVP = 能让人30秒看懂<br>你在干嘛的最小版本</h2><div class="demo-box" style="font-family:inherit;font-size:16px;text-align:left;margin-top:24px;line-height:2"><p style="color:#f0b429">例：宠物医生</p><p>完整版：连医院数据库 + 预约挂号 + 看评价 + 在线问诊</p><p style="color:#f0b429">MVP版：</p><p>一个网页，输入"猫吐了"</p><p>→ 告诉我：绿色·在家观察 / 红色·去医院</p></div><p style="margin-top:16px;font-size:16px">今天只做 MVP。多了做不完。</p></div>
+<div class="slide"><div style="font-size:clamp(32px,6vw,56px);line-height:1.3;text-align:center"><p style="color:rgba(255,255,255,.5);margin-bottom:16px">把你们想做的功能都列出来</p><p>→</p><p style="margin-top:16px"><span class="amber-text">如果只剩 2 小时<br>只能做 1 个功能</span></p><p style="margin-top:16px;color:rgba(255,255,255,.5)">你保留哪个？</p></div><div class="hint do" style="margin-top:24px">实操 · 5 分钟</div><div class="hint-text">每组列出所有功能 → 砍到只剩 1 个</div></div>
+<div class="slide"><h2>MVP = 能让人 30 秒看懂<br>你在干嘛的最小版本</h2><div class="demo-box" style="font-family:inherit;font-size:16px;text-align:left;margin-top:24px;line-height:2"><p style="color:#f0b429">例：宠物医生</p><p>完整版：连医院数据库 + 预约挂号 + 看评价 + 在线问诊</p><p style="color:#f0b429">MVP 版：</p><p>一个网页，输入"猫吐了"</p><p>→ 告诉我：绿色·在家观察 / 红色·去医院</p></div><div class="hint think" style="margin-top:8px">思考</div><div class="hint-text">完整版和 MVP 版，哪个能在 2 小时内做出来？</div></div>
 '''
 module_file('module5.html', '模块5 · 只做一个功能', slides)
 
-# ====== MODULE 6: 定多少钱 ======
-slides = tdivider('模块 6 · 30分钟', '定多少钱？')
+# ====== MODULE 6 ======
+slides = tdivider('模块 6 · 30 分钟', '定多少钱？')
 slides += '''
-<div class="slide"><h2 style="margin-bottom:24px">三种赚钱方式</h2><div class="money-grid"><div class="money-card"><div class="price">¥3/次</div><div class="desc">按次收费<br>偶尔用的产品</div></div><div class="money-card"><div class="price">¥10/月</div><div class="desc">包月订阅<br>天天用的产品</div></div><div class="money-card"><div class="price">免费+广告</div><div class="desc">用户量大<br>广告主买单</div></div></div></div>
-<div class="slide"><h2>拍脑袋：先写一个价</h2><p style="font-size:24px;margin-top:16px">然后去问隔壁组——</p><div class="demo-box" style="font-size:20px;font-family:inherit;margin-top:16px">"如果你是用户<br>这个价你愿意付吗？为什么？"</div><p style="margin-top:16px;font-size:16px;color:rgba(255,255,255,.4)">低龄辅助："这个价能买几包辣条？几个笔？"</p></div>
-<div class="slide"><h2>算一笔账</h2><div class="formula" style="margin-top:24px;font-size:clamp(20px,3vw,32px)">100 个用户 × 每人 <span>¥__</span> / 月<br>= 一个月赚 <span>¥__</span></div><p style="margin-top:32px;font-size:20px">定价不是数学题，是共情题<br>你越懂用户，越知道ta愿意为什么付钱</p></div>
+<div class="slide"><h2 style="margin-bottom:24px">三种赚钱方式</h2><div class="money-grid"><div class="money-card"><div class="price">¥3/次</div><div class="desc">按次收费<br>偶尔用的产品</div></div><div class="money-card"><div class="price">¥10/月</div><div class="desc">包月订阅<br>天天用的产品</div></div><div class="money-card"><div class="price">免费+广告</div><div class="desc">用户量大<br>广告主买单</div></div></div><div class="hint ask" style="margin-top:12px">提问</div><div class="hint-text">你的产品适合哪一种？为什么？</div></div>
+<div class="slide"><h2>拍脑袋：先写一个价</h2><div class="hint do" style="margin-top:8px">实操</div><div class="hint-text" style="font-size:20px">每人纸上写一个数</div><div class="demo-box" style="font-size:20px;font-family:inherit;margin-top:16px">"如果你是用户<br>这个价你愿意付吗？"</div><p style="margin-top:12px;font-size:16px">然后去问隔壁组</p><p style="font-size:14px;color:rgba(255,255,255,.3)">低龄辅助："这个价能买几包辣条？"</p></div>
+<div class="slide"><h2>算一笔账</h2><div class="formula" style="margin-top:24px;font-size:clamp(20px,3vw,32px)">100 个用户 × 每人 <span>¥__</span> / 月<br>= 一个月赚 <span>¥__</span></div><div class="hint do" style="margin-top:24px">实操</div><div class="hint-text">每组站起来，大声喊出你们的数字！</div><p style="margin-top:16px;font-size:18px">定价不是数学题，是共情题<br>你越懂用户，越知道 ta 愿意为什么付钱</p></div>
 '''
 module_file('module6.html', '模块6 · 定多少钱', slides)
 
-# ====== MODULE 7: 怎么讲好故事 ======
-slides = tdivider('模块 7 · 30分钟', '怎么让人听完<br>想投钱？')
+# ====== MODULE 7 ======
+slides = tdivider('模块 7 · 30 分钟', '怎么让人听完<br>想投钱？')
 slides += '''
-<div class="slide"><h2 style="margin-bottom:32px">路演五步</h2><div class="steps"><div class="step"><div class="num">①</div><div class="label">"你见过<br>这种情况吗？"</div></div><div class="step"><div class="num">②</div><div class="label">"我们做了<br>一个东西"</div></div><div class="step"><div class="num">③</div><div class="label">"看，就是它"<br>演示</div></div><div class="step"><div class="num">④</div><div class="label">"它会赚钱"<br>算账</div></div><div class="step"><div class="num">⑤</div><div class="label">"投我们"<br>行动</div></div></div></div>
-<div class="slide"><div class="quote" style="margin-bottom:32px">最好的路演<br>不是介绍产品<br>是让人心里想</div><h1><span class="amber">"对对对<br>我也遇到过"</span></h1></div>
-<div class="slide"><h2>先裸讲 1 分钟</h2><p style="font-size:24px;margin-top:16px">什么都不准备，直接讲</p><p style="margin-top:24px;color:rgba(255,255,255,.3)">（大概率语无伦次）</p><p style="margin-top:32px;font-size:20px">→ 然后看老师示范同一产品<br>→ 自己找出差别<br>→ 用五步结构再来一遍</p></div>
+<div class="slide"><div class="hint do" style="margin-bottom:16px">实操 · 1 分钟</div><h2>现在裸讲</h2><p style="font-size:24px;margin-top:8px">每组推一个人<br>什么都不准备，直接讲</p><p style="margin-top:8px;color:rgba(255,255,255,.3)">（大概率语无伦次——正常）</p></div>
+<div class="slide"><h2 style="margin-bottom:32px">路演五步</h2><div class="steps"><div class="step"><div class="num">①</div><div class="label">"你见过<br>这种情况吗？"</div></div><div class="step"><div class="num">②</div><div class="label">"我们做了<br>一个东西"</div></div><div class="step"><div class="num">③</div><div class="label">"看，就是它"<br>演示</div></div><div class="step"><div class="num">④</div><div class="label">"它会赚钱"<br>算账</div></div><div class="step"><div class="num">⑤</div><div class="label">"投我们"<br>行动</div></div></div><div class="hint think" style="margin-top:16px">思考</div><div class="hint-text">跟第一次裸讲比，这个结构帮了你什么？</div></div>
+<div class="slide"><div class="quote" style="margin-bottom:32px">最好的路演<br>不是介绍产品<br>是让人心里想</div><h1><span class="amber">"对对对<br>我也遇到过"</span></h1><div class="hint do" style="margin-top:24px">实操</div><div class="hint-text">用五步结构再讲一遍。每个人都练。</div></div>
 '''
 module_file('module7.html', '模块7 · 怎么讲好故事', slides)
 
-print("\nDone! 7 module decks generated.")
+print("\nDone! 7 modules with 提问/思考/实操 hints.")
