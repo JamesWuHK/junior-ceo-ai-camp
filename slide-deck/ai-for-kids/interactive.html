@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI通识5讲 · 互动版</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#080d14;color:#fff;font-family:"PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden}
+/* === Slides === */
+.s{display:none;width:100vw;height:100vh;padding:40px 60px;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.s.on{display:flex}
+.s.title-page{text-align:center}
+.s.title-page h1{font-size:clamp(32px,5vw,60px);background:linear-gradient(135deg,#60c8a0,#4a90d9);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.s.title-page .sub{font-size:18px;color:rgba(255,255,255,.35);margin-top:16px}
+.s.divider{text-align:center}
+.s.divider .num{font-size:14px;color:rgba(96,200,160,.6);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px}
+.s.divider h2{font-size:clamp(28px,4vw,48px);line-height:1.3}
+.s.divider .hint{font-size:16px;color:rgba(255,255,255,.3);margin-top:16px}
+
+/* === Demo slide with AI window === */
+.s.demo{padding:30px 40px;justify-content:flex-start;gap:20px}
+.demo-top{width:100%;max-width:1200px;text-align:center;flex-shrink:0}
+.demo-top h3{font-size:20px;margin-bottom:4px}
+.demo-top p{font-size:14px;color:rgba(255,255,255,.35)}
+.demo-top .try{display:inline-block;margin-top:8px;padding:4px 16px;background:rgba(96,200,160,.12);border:1px solid rgba(96,200,160,.25);border-radius:20px;font-size:13px;color:#60c8a0}
+.ai-frame{flex:1;width:100%;max-width:1200px;min-height:520px;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;background:#fff}
+.ai-frame iframe{width:100%;height:100%;border:none}
+
+/* === Reveal slide === */
+.s.reveal{text-align:center;gap:24px}
+.reveal .big{font-size:clamp(48px,8vw,90px)}
+.reveal .truth{font-size:20px;color:rgba(255,255,255,.6);max-width:600px;line-height:1.6}
+.tag{display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700}
+.tag.ask{background:rgba(240,180,41,.12);color:#f0b429;border:1px solid rgba(240,180,41,.25)}
+.tag.think{background:rgba(74,144,217,.12);color:#4a90d9;border:1px solid rgba(74,144,217,.25)}
+.tag.do{background:rgba(96,200,160,.12);color:#60c8a0;border:1px solid rgba(96,200,160,.25)}
+.card-grid{display:flex;gap:20px;max-width:1000px;flex-wrap:wrap;justify-content:center}
+.card{flex:1;min-width:220px;max-width:300px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:28px 24px;text-align:center}
+.card .icon{font-size:36px;margin-bottom:12px}
+.card h4{font-size:16px;margin-bottom:8px}
+.card p{font-size:13px;color:rgba(255,255,255,.4);line-height:1.6}
+
+/* === Nav === */
+.nav{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;background:rgba(10,15,25,.95);padding:10px 24px;border-radius:40px;border:1px solid rgba(255,255,255,.08);z-index:100}
+.nav button{background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;padding:6px 12px;border-radius:8px;transition:.2s}
+.nav button:hover{color:#fff}
+.nav .pg{font-size:13px;color:rgba(255,255,255,.3);min-width:50px;text-align:center}
+.nav .pg b{color:#60c8a0}
+
+/* === Progress dots === */
+.dots{position:fixed;right:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:99}
+.dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.1);cursor:pointer;transition:.2s}
+.dot:hover{background:rgba(255,255,255,.3)}
+.dot.on{background:#60c8a0;box-shadow:0 0 8px rgba(96,200,160,.4)}
+
+/* CEO rule card */
+.rule{background:linear-gradient(135deg,rgba(240,180,41,.08),rgba(240,180,41,.02));border:1px solid rgba(240,180,41,.2);border-radius:20px;padding:32px 48px;text-align:center;max-width:600px}
+.rule h2{font-size:24px;color:#f0b429;margin-bottom:12px}
+.rule p{font-size:18px;color:rgba(255,255,255,.5)}
+.launch-btn{display:inline-flex;align-items:center;gap:10px;padding:14px 32px;background:linear-gradient(135deg,#60c8a0,#4a90d9);border:none;border-radius:30px;color:#fff;font-size:18px;font-weight:700;cursor:pointer;transition:all .3s;text-decoration:none;margin-top:20px}
+.launch-btn:hover{transform:scale(1.04);box-shadow:0 8px 30px rgba(96,200,160,.25)}
+</style>
+</head>
+<body>
+
+<!-- ====== 01: COVER ====== -->
+<div class="s title-page on" data-n="0">
+  <h1>AI 通识 5 讲</h1>
+  <p class="sub">5 个 AI 秘密 · 打开真正的 AI 窗口 · 你亲手试</p>
+</div>
+
+<!-- ====== TOPIC 1: TURING ====== -->
+<div class="s demo" data-n="1">
+  <div class="demo-top">
+    <span class="tag ask">主题 1 · 图灵测试</span>
+    <h3>你分得清谁是人、谁是 AI 吗？</h3>
+    <p style="font-size:16px;color:rgba(255,255,255,.5);margin-top:8px">试着跟 AI 聊天——随便聊什么。你能分辨对面是机器吗？</p>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px 40px;text-align:left;max-width:700px;font-size:15px;color:rgba(255,255,255,.45);line-height:2">
+      <p>💬 <span style="color:#f0b429">试着问：</span>"你最喜欢的颜色是什么？为什么？"</p>
+      <p>💬 <span style="color:#f0b429">再问：</span>"给我讲一个你小时候的故事"</p>
+      <p>💬 <span style="color:#f0b429">再问：</span>"你觉得人类会害怕你吗？"</p>
+    </div>
+    <a class="launch-btn" href="https://chat.deepseek.com" target="_blank" rel="noopener">🚀 打开 DeepSeek · 现在就试</a>
+    <p style="font-size:13px;color:rgba(255,255,255,.15)">窗口会新开一个标签页。投影在屏幕上，全班一起看 AI 怎么回答。</p>
+  </div>
+</div>
+
+<div class="s reveal" data-n="2">
+  <span class="tag think">思考</span>
+  <div class="big">❓</div>
+  <p class="truth" style="font-size:22px">1950 年，科学家图灵问了同一个问题：<br><br>「如果一台机器跟你聊天，<br>你分不出来它是机器还是人——<br>那它算不算<strong style="color:#f0b429">聪明</strong>？」</p>
+</div>
+
+<div class="s reveal" data-n="3">
+  <span class="tag do">关键</span>
+  <p class="truth" style="font-size:20px">判断 AI 够不够聪明，<br>不是看它会不会算题，<br>是看它会不会 <strong style="color:#60c8a0">像人一样聊天</strong>。</p>
+  <p class="truth" style="font-size:15px;margin-top:12px;color:rgba(255,255,255,.3)">这 3 天，你每天都在做图灵测试。</p>
+</div>
+
+<!-- ====== TOPIC 2: MULTIMODAL ====== -->
+<div class="s demo" data-n="4">
+  <div class="demo-top">
+    <span class="tag ask">主题 2 · 多模态</span>
+    <h3>AI 不只会聊天——它还能看、能听、能画</h3>
+    <p style="font-size:16px;color:rgba(255,255,255,.5);margin-top:8px">试试让 AI 画出你脑中的画面</p>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px 40px;text-align:left;max-width:700px;font-size:15px;color:rgba(255,255,255,.45);line-height:2">
+      <p>🎨 <span style="color:#60c8a0">试这句：</span>"帮我画一只穿着宇航服的猫，在月球上吃鱼"</p>
+      <p>🎤 <span style="color:#60c8a0">再试：</span>"给这个画面写一首四句诗，押韵的"</p>
+      <p>👁️ <span style="color:#60c8a0">再试：</span>"描述一下一只熊猫和一只企鹅打架谁会赢"</p>
+    </div>
+    <a class="launch-btn" href="https://chat.deepseek.com" target="_blank" rel="noopener">🚀 打开 DeepSeek · 试试多模态</a>
+    <p style="font-size:13px;color:rgba(255,255,255,.15)">注意：同一个 AI，你说"写诗"它就写诗，说"画画"它就画画 —— 像一个人有多只手。</p>
+  </div>
+</div>
+
+<div class="s reveal" data-n="4b">
+  <span class="tag think">思考</span>
+  <div class="big">👁️ 👂 🎨</div>
+  <p class="truth">
+    AI 的"感官"一个一个被打开：<br><br>
+    <span style="color:#60c8a0">2010</span> 只会看文字<br>
+    <span style="color:#60c8a0">2015</span> 学会看图片<br>
+    <span style="color:#60c8a0">2020</span> 能听懂人说话<br>
+    <span style="color:#60c8a0">2024</span> 会画画、做视频了
+  </p>
+  <p class="truth" style="font-size:15px;color:rgba(255,255,255,.3)">你正在见证 AI 的感官被一个一个打开。</p>
+</div>
+
+<!-- ====== TOPIC 3: AGENT ====== -->
+<div class="s demo" data-n="5">
+  <div class="demo-top">
+    <span class="tag do">主题 3 · 智能体</span>
+    <h3>AI 不只是你问它答——它能自己干活</h3>
+    <p style="font-size:16px;color:rgba(255,255,255,.5);margin-top:8px">你给一个目标，它自己想办法完成</p>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(96,200,160,.15);border-radius:16px;padding:24px 40px;text-align:center;max-width:700px">
+      <p style="font-size:18px;color:#60c8a0;line-height:2;font-weight:700">输入这段话：</p>
+      <p style="font-size:17px;color:rgba(255,255,255,.7);line-height:2">"帮我策划一个 12 岁男孩的生日派对。<br>告诉我：定哪天、在哪办、写邀请函、算预算。<br>每一项都自己想办法。"</p>
+    </div>
+    <a class="launch-btn" href="https://chat.deepseek.com" target="_blank" rel="noopener">🚀 打开 DeepSeek · 试试派活</a>
+    <p style="font-size:13px;color:rgba(255,255,255,.15)">对比：刚才那页是"问一个问题，得一个答案"。<br>这次是"给一个目标，AI 自己把活干了"——这就是智能体。</p>
+  </div>
+</div>
+
+<div class="s" data-n="5b" style="text-align:center;gap:24px">
+  <span class="tag think">对比</span>
+  <div class="card-grid">
+    <div class="card">
+      <div class="icon">💬</div>
+      <h4>普通 AI</h4>
+      <p>你问一个问题<br>它回答一个答案<br><br>像对着聪明人说话</p>
+    </div>
+    <div class="card" style="border-color:rgba(96,200,160,.3)">
+      <div class="icon">🤖</div>
+      <h4>AI 智能体</h4>
+      <p>你给它一个目标<br>它自己想办法完成<br><br>像给聪明人派活</p>
+    </div>
+  </div>
+</div>
+
+<div class="s reveal" data-n="5c">
+  <span class="tag do">关键</span>
+  <p class="truth" style="font-size:22px">这 3 天你们就是在当<br><strong style="color:#60c8a0">「AI 的老板」</strong><br><br>给它目标，让它干活。</p>
+</div>
+
+<!-- ====== TOPIC 4: DEEPSEEK ====== -->
+<div class="s demo" data-n="6">
+  <div class="demo-top">
+    <span class="tag ask">主题 4 · 中国的 DeepSeek</span>
+    <h3>你现在用的这个 AI，就是 DeepSeek</h3>
+    <p style="font-size:16px;color:rgba(255,255,255,.5);margin-top:8px">2025 年 1 月，全世界学 AI 的人都在讨论它</p>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px 40px;text-align:left;max-width:700px;font-size:15px;color:rgba(255,255,255,.45);line-height:2">
+      <p>🐉 <span style="color:#f0b429">问问它：</span>"你是谁？什么时候出生的？为什么你这么厉害？"</p>
+      <p>🐉 <span style="color:#f0b429">再问：</span>"你和 ChatGPT 谁更聪明？"</p>
+      <p>🐉 <span style="color:#f0b429">再问：</span>"你训练花了多少钱？"</p>
+    </div>
+    <a class="launch-btn" href="https://chat.deepseek.com" target="_blank" rel="noopener">🚀 打开 DeepSeek · 问问它是谁</a>
+    <p style="font-size:13px;color:rgba(255,255,255,.15)">你正在用的这个窗口就是 DeepSeek——中国的 AI，免费、聪明、配方公开。</p>
+  </div>
+</div>
+
+<div class="s" data-n="6b" style="text-align:center;gap:24px">
+  <span class="tag think">为什么 DeepSeek 这么厉害？</span>
+  <div class="card-grid">
+    <div class="card" style="border-color:rgba(96,200,160,.3)">
+      <div class="icon">🆓</div>
+      <h4>几乎免费</h4>
+      <p>别的 AI 要收费<br>DeepSeek 随便用</p>
+    </div>
+    <div class="card" style="border-color:rgba(74,144,217,.3)">
+      <div class="icon">🧠</div>
+      <h4>特别聪明</h4>
+      <p>跟全世界最聪明<br>的 AI 一样厉害</p>
+    </div>
+    <div class="card" style="border-color:rgba(240,180,41,.3)">
+      <div class="icon">🔓</div>
+      <h4>配方公开</h4>
+      <p>把怎么做 AI 的方法<br>告诉了全世界</p>
+    </div>
+  </div>
+</div>
+
+<div class="s reveal" data-n="6c">
+  <span class="tag do">重点</span>
+  <div class="rule">
+    <h2>100 块做了别人 1000 块的事</h2>
+    <p>就像你用 100 块做出了别人花 1000 块才做出来的东西。<br><br>训练 DeepSeek 花的钱只有别人的十分之一。</p>
+  </div>
+  <p class="truth" style="font-size:16px;margin-top:12px;color:rgba(255,255,255,.3)">最厉害的技术，不一定要最多钱。聪明比钱重要。</p>
+</div>
+
+<!-- ====== TOPIC 5: COMPETITION ====== -->
+<div class="s" data-n="7" style="text-align:center;gap:24px">
+  <span class="tag ask">主题 5 · 两个团队在比赛</span>
+  <div class="big" style="font-size:clamp(40px,7vw,70px)">🇺🇸 vs 🇨🇳</div>
+  <p class="truth" style="font-size:20px">两个团队在比谁做的 AI 更好。</p>
+  <p class="truth" style="font-size:15px;color:rgba(255,255,255,.3)">不是打架——是比赛。比赛让两个队都变强了。</p>
+</div>
+
+<div class="s" data-n="7b" style="text-align:center;gap:24px">
+  <span class="tag think">各有什么绝活？</span>
+  <div class="card-grid">
+    <div class="card" style="border-color:rgba(74,144,217,.3)">
+      <div class="icon">🇺🇸</div>
+      <h4>Team USA</h4>
+      <p>擅长发明新东西<br>做最厉害的芯片<br>吸引全世界人才</p>
+    </div>
+    <div class="card" style="border-color:rgba(240,180,41,.3)">
+      <div class="icon">🇨🇳</div>
+      <h4>Team China</h4>
+      <p>擅长把技术用起来<br>用户多、数据多<br>效率高、成本低</p>
+    </div>
+  </div>
+</div>
+
+<div class="s reveal" data-n="7c">
+  <span class="tag do">最后一句</span>
+  <p class="truth" style="font-size:22px">
+    你们现在学的 AI<br>
+    全世界的人都在学<br><br>
+    比赛才刚开始<br>
+    <strong style="color:#f0b429">谁是冠军，还说不定。</strong>
+  </p>
+</div>
+
+<!-- ====== FINAL ====== -->
+<div class="s reveal" data-n="8">
+  <div class="big">🧑‍💼</div>
+  <p class="truth" style="font-size:28px;color:#60c8a0"><strong>AI 时代<br>你是 CEO</strong></p>
+  <p class="truth" style="font-size:16px;color:rgba(255,255,255,.3);margin-top:8px">AI 是你的员工。判断力在你手里。</p>
+</div>
+
+<!-- === NAV === -->
+<div class="nav">
+  <button onclick="go(current-1)">←</button>
+  <div class="pg"><b id="num">1</b> / <span id="tot">18</span></div>
+  <button onclick="go(current+1)">→</button>
+</div>
+
+<div class="dots" id="dots"></div>
+
+<script>
+const slides = document.querySelectorAll('.s');
+const TOTAL = slides.length;
+let current = 0;
+
+// Assign index
+slides.forEach((s,i) => s.dataset.n = i);
+
+// Create dots
+const dotsEl = document.getElementById('dots');
+for (let i=0; i<TOTAL; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot';
+  d.onclick = () => go(i);
+  dotsEl.appendChild(d);
+}
+document.getElementById('tot').textContent = TOTAL;
+
+function go(i) {
+  if (i < 0 || i >= TOTAL) return;
+  slides.forEach(s => s.classList.remove('on'));
+  slides[i].classList.add('on');
+  document.querySelectorAll('.dot').forEach((d,j) => d.classList.toggle('on', j===i));
+  document.getElementById('num').textContent = i + 1;
+  current = i;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(current+1); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(current-1); }
+  if (e.key === 'Home') { e.preventDefault(); go(0); }
+  if (e.key === 'End') { e.preventDefault(); go(TOTAL-1); }
+});
+
+go(0);
+</script>
+</body>
+</html>
