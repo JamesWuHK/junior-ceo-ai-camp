@@ -601,12 +601,8 @@ tailwind.config = {
 </section>
 
 <script>
-// ====== Feishu Webhook 配置 ======
-// 使用方法：
-// 1. 在飞书群聊中 → 设置 → 群机器人 → 添加自定义机器人
-// 2. 复制 Webhook 地址，替换下面的 URL
-// 3. 安全设置选择"自定义关键词"，添加关键词"报名"
-const FEISHU_WEBHOOK_URL = 'YOUR_FEISHU_WEBHOOK_URL_HERE';
+// 飞书群机器人 Webhook — 报名提交直接推卡片到群
+const SIGNUP_URL = 'https://open.feishu.cn/open-apis/bot/v2/hook/4328438e-8e43-4037-aebd-66951a7cd8bd';
 
 const form = document.getElementById('signup-form');
 const btn = document.getElementById('submit-btn');
@@ -614,13 +610,6 @@ const msg = document.getElementById('form-msg');
 
 form.addEventListener('submit', async function(e) {
   e.preventDefault();
-
-  if (FEISHU_WEBHOOK_URL === 'YOUR_FEISHU_WEBHOOK_URL_HERE') {
-    msg.className = 'text-center text-sm text-red-400 mt-3';
-    msg.style.display = 'block';
-    msg.textContent = 'Webhook 尚未配置，请联系管理员。';
-    return;
-  }
 
   const formData = new FormData(form);
   const data = Object.fromEntries(formData.entries());
@@ -647,7 +636,7 @@ form.addEventListener('submit', async function(e) {
   };
 
   try {
-    const resp = await fetch(FEISHU_WEBHOOK_URL, {
+    const resp = await fetch(SIGNUP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(card)
@@ -659,7 +648,7 @@ form.addEventListener('submit', async function(e) {
       msg.textContent = '报名成功！我们会在 24 小时内联系你。';
       form.reset();
     } else {
-      throw new Error(result.msg || '飞书返回错误');
+      throw new Error(result.msg || '提交失败');
     }
   } catch (err) {
     msg.className = 'text-center text-sm text-red-400 mt-3';
