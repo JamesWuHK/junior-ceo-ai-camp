@@ -63,6 +63,7 @@ tailwind.config = {
       <a href="#showcase" class="hover:text-amber transition-colors">作品展示</a>
       <a href="#awards" class="hover:text-amber transition-colors">荣誉殿堂</a>
       <a href="#highlights" class="hover:text-amber transition-colors">高光时刻</a>
+      <a href="#story" class="hover:text-amber transition-colors">活动回顾</a>
       <a href="#faq" class="hover:text-amber transition-colors">常见问题</a>
     </div>
     <div class="flex items-center gap-3">
@@ -475,27 +476,48 @@ tailwind.config = {
 </section>
 
 <!-- ====== SOCIAL PROOF ====== -->
-<section class="py-24 px-6 bg-ink-light/30">
+<section id="story" class="py-24 px-6 bg-ink-light/30">
   <div class="max-w-4xl mx-auto">
     <div class="text-center mb-16">
-      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">听过分享的家长说</h2>
+      <div class="inline-block px-3 py-1 border border-amber/20 rounded-full text-xs text-amber/70 mb-4">活动回顾</div>
+      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">给 30 个家长演示了一遍 AI</h2>
+      <p class="text-white/40 max-w-xl mx-auto">顺义 LIA 公益社区 · 2026年5月</p>
     </div>
 
-    <div class="glass rounded-2xl p-10 relative">
+    <!-- Demo story -->
+    <div class="glass rounded-2xl p-10 relative mb-6">
       <div class="text-6xl text-amber/20 absolute top-6 left-6">"</div>
       <blockquote class="relative z-10">
         <p class="text-xl md:text-2xl leading-relaxed text-white/70 mb-6">
           来的时候是好奇，听到一半感觉寒毛竖起——不是吓的，是发现 AI 时代孩子现在学的东西跟将来要用的东西，差距太大了。
         </p>
-        <footer class="text-sm text-white/40">
-          —— 顺义国际学校家长社区 · AI分享会后
-        </footer>
+        <footer class="text-sm text-white/40">—— 顺义国际学校家长社区 · AI分享会后</footer>
       </blockquote>
     </div>
 
-    <div class="mt-6 glass rounded-2xl p-8">
+    <!-- Key moment -->
+    <div class="glass rounded-2xl p-8 mb-6">
+      <p class="text-sm text-white/50 leading-relaxed mb-4">
+        那天下午，没有讲"AI 是什么"。武宁老师投屏打开电脑，直接打开一个空白页面，一句指令下去，AI 根据老师的一句话自动输出一篇完整的微信公众号文章——标题、正文、配图全了。台下瞬间骚动。
+      </p>
       <p class="text-sm text-white/50 leading-relaxed">
-        分享会结束后，家长群里有三件事被反复提：给孩子开 AI 训练营，尽快；家长能不能也开课，大人想跟着学；别教"怎么操作 AI"，教"AI 时代怎么思考"。这个训练营，就是对这三个诉求的回答。
+        然后每个家长都在自己的电脑上动了手。不是看——是自己敲键盘、自己下指令、自己看 AI 在面前产出东西。那几秒的沉默，全场都安静了。
+      </p>
+    </div>
+
+    <!-- 10x insight -->
+    <div class="glass rounded-2xl p-8 mb-6 border-l-2 border-amber/30">
+      <p class="text-amber font-semibold mb-2 text-sm">现场最触动家长的一句话</p>
+      <p class="text-white/60 text-sm leading-relaxed">"AI 工具是能力放大器，善用AI的人就像是拥有了超能力，但不同能力的人用AI，产出的差距会比原先更大出十倍。"</p>
+    </div>
+
+    <!-- Parent demands -->
+    <div class="glass rounded-2xl p-8">
+      <p class="text-sm text-white/50 leading-relaxed mb-4">
+        讲座结束后，家长群里有三件事被反复提：给孩子开 AI 训练营，尽快；家长能不能也开课，大人想跟着学；别教"怎么操作 AI"，教"AI 时代怎么思考"。
+      </p>
+      <p class="text-sm text-amber/70 leading-relaxed font-semibold">
+        这个训练营，就是对这三个诉求的回答。
       </p>
     </div>
   </div>
@@ -506,7 +528,7 @@ tailwind.config = {
   <div class="max-w-4xl mx-auto">
     <div class="glass rounded-2xl p-10 md:flex gap-10 items-center">
       <div class="flex-shrink-0 mb-6 md:mb-0">
-        <div class="w-24 h-24 rounded-full bg-amber/10 flex items-center justify-center text-amber text-3xl font-bold">武</div>
+        <img src="avatar.png" alt="武宁" class="w-24 h-24 rounded-full object-cover">
       </div>
       <div>
         <h3 class="text-xl font-bold mb-2">武宁</h3>
@@ -541,6 +563,10 @@ tailwind.config = {
       <div class="glass rounded-2xl p-6">
         <h4 class="font-semibold mb-2">家长怎么参与？</h4>
         <p class="text-sm text-white/40">第三天下午3点，请来当"投资人"。不是来围观——是真的要提问、打分、投票。每个孩子都会站在你面前路演。</p>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h4 class="font-semibold mb-2">孩子没选上 CEO 怎么办？</h4>
+        <p class="text-sm text-white/40">营里的"CEO"有两层意思。第一层：每个孩子都是自己 AI 团队的 CEO——指挥 AI 干活的是他、判断 AI 对错的是他、对产品负责的还是他。第二层：团队选出的项目协调人负责统筹分工，但这不决定谁"当领导"——路演环节每个人都要站到投资人面前讲自己的部分，每个人都在练领导力。</p>
       </div>
     </div>
   </div>
@@ -653,7 +679,7 @@ form.addEventListener('submit', async function(e) {
   } catch (err) {
     msg.className = 'text-center text-sm text-red-400 mt-3';
     msg.style.display = 'block';
-    msg.textContent = '提交失败，请稍后再试或直接微信联系我们。';
+    msg.textContent = '网络不稳定，请刷新页面后重试（Ctrl+Shift+R），或直接微信联系我们。';
   } finally {
     btn.disabled = false;
     btn.textContent = '提交报名';
