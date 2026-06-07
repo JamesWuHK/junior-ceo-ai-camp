@@ -591,10 +591,6 @@ function FuturePhotoReview({ refresh }: { refresh: () => Promise<void> }) {
   );
 }
 
-function isPhotoWallPage(module: CourseModule, page: CourseModule["pages"][number]) {
-  return module.id === "future-photo-studio" && page.page_type === "showcase";
-}
-
 function LessonPageCanvas({
   module,
   page,
@@ -606,9 +602,19 @@ function LessonPageCanvas({
   students: Student[];
   onOpenPhoto: (student: Student) => void;
 }) {
-  const isWall = isPhotoWallPage(module, page);
+  if (module.id === "future-photo-studio") {
+    return (
+      <FuturePhotoStudioSlide
+        module={module}
+        page={page}
+        students={students}
+        onOpenPhoto={onOpenPhoto}
+      />
+    );
+  }
+
   return (
-    <article className={isWall ? "lesson-canvas wall-canvas" : "lesson-canvas"}>
+    <article className="lesson-canvas">
       <div className="lesson-canvas-copy">
         <small>第 {page.page_no} 页 · {page.page_type}</small>
         <h2>{page.title}</h2>
@@ -619,14 +625,119 @@ function LessonPageCanvas({
           ))}
         </div>
       </div>
-      {isWall ? (
-        <CoursePhotoWall students={students} variant="lesson" onOpenPhoto={onOpenPhoto} />
-      ) : (
-        <div className="lesson-visual">
-          <Sparkles size={44} />
-          <span>{module.title}</span>
+      <div className="lesson-visual">
+        <Sparkles size={44} />
+        <span>{module.title}</span>
+      </div>
+    </article>
+  );
+}
+
+function FuturePhotoStudioSlide({
+  module,
+  page,
+  students,
+  onOpenPhoto
+}: {
+  module: CourseModule;
+  page: CourseModule["pages"][number];
+  students: Student[];
+  onOpenPhoto: (student: Student) => void;
+}) {
+  if (page.page_no === 1) {
+    return (
+      <article className="lesson-canvas studio-slide studio-cover">
+        <div className="studio-copy">
+          <span className="studio-kicker">D1 破冰 · 第一站</span>
+          <h2>未来照相馆</h2>
+          <p>一张照片，打开一个关于未来的小实验。</p>
+          <div className="studio-badges">
+            <span>AI 体验</span>
+            <span>职业想象</span>
+            <span>全班照片墙</span>
+          </div>
         </div>
-      )}
+        <div className="studio-cover-art" aria-label="未来照相馆视觉">
+          <div className="photo-card today">
+            <span>现在</span>
+            <UsersRound size={44} />
+          </div>
+          <div className="photo-card future">
+            <span>未来</span>
+            <Sparkles size={50} />
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  if (page.page_no === 2) {
+    return (
+      <article className="lesson-canvas studio-slide studio-story">
+        <div className="studio-copy">
+          <span className="studio-kicker">开场预热</span>
+          <h2>看见一张照片里的职业线索</h2>
+          <p>画面、服装、工具、场景，会一起讲出一个职业故事。</p>
+        </div>
+        <div className="comparison-stage">
+          <div className="comparison-card child">
+            <span>今天的我</span>
+            <div className="portrait-symbol">
+              <UsersRound size={52} />
+            </div>
+          </div>
+          <div className="comparison-arrow">
+            <Sparkles size={30} />
+          </div>
+          <div className="comparison-card career">
+            <span>未来职业照</span>
+            <div className="career-clues">
+              <strong>场景</strong>
+              <strong>工具</strong>
+              <strong>动作</strong>
+            </div>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  if (page.page_no === 3) {
+    return (
+      <article className="lesson-canvas studio-slide studio-task">
+        <div className="studio-copy">
+          <span className="studio-kicker">学生端任务</span>
+          <h2>上传照片，说出理想职业</h2>
+          <p>学生端只保留一个清楚动作：提交。</p>
+        </div>
+        <div className="task-stage">
+          <div className="qr-card">
+            <div className="qr-grid" aria-hidden="true">
+              {Array.from({ length: 49 }).map((_, index) => (
+                <span key={index} className={index % 3 === 0 || index % 8 === 0 ? "filled" : ""} />
+              ))}
+            </div>
+            <strong>学生入口二维码</strong>
+            <small>对应官网学生入口 / student.html</small>
+          </div>
+          <div className="task-steps">
+            <span>1. 上传照片</span>
+            <span>2. 选择或说出职业</span>
+            <span>3. 提交生成预览</span>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  return (
+    <article className="lesson-canvas studio-slide studio-wall">
+      <div className="studio-copy compact">
+        <span className="studio-kicker">全班作品展示</span>
+        <h2>{page.title}</h2>
+        <p>审核通过后，职业照片会替换名单占位。</p>
+      </div>
+      <CoursePhotoWall students={students} variant="lesson" onOpenPhoto={onOpenPhoto} />
     </article>
   );
 }
@@ -744,18 +855,16 @@ function PresentationOverlay({
       <button className="close-presentation" onClick={onClose} aria-label="关闭演示">
         <X size={24} />
       </button>
-      <article className="presentation-slide">
-        <span className="eyebrow">D{module.day} · {module.time_range}</span>
-        <h1>{page?.title || module.title}</h1>
-        {page?.content_summary && <p>{page.content_summary}</p>}
-        <div className="presentation-tags">
-          <span>{page?.page_type || "课件页"}</span>
-          {page?.activity_buttons.map((button) => <span key={button}>{button}</span>)}
-        </div>
-        {page && isPhotoWallPage(module, page) && (
-          <CoursePhotoWall students={students} variant="presentation" onOpenPhoto={onOpenPhoto} />
-        )}
-      </article>
+      {page && (
+        <section className="presentation-slide">
+          <LessonPageCanvas
+            module={module}
+            page={page}
+            students={students}
+            onOpenPhoto={onOpenPhoto}
+          />
+        </section>
+      )}
       <footer className="presentation-footer">
         <button disabled={pageIndex === 0} onClick={() => setPageIndex((index) => Math.max(index - 1, 0))}>
           上一页
