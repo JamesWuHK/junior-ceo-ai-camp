@@ -77,22 +77,22 @@ function coursewarePages(module: CourseModule | null | undefined) {
     activity_buttons: []
   };
   return [
-    { ...base, id: "future-photo-story", page_no: 1, title: "神奇照相馆", page_type: "story" },
-    { ...base, id: "future-photo-examples", page_no: 2, title: "未来样片", page_type: "image" },
-    { ...base, id: "future-photo-your-turn", page_no: 3, title: "轮到你了", page_type: "activity" },
-    { ...base, id: "future-photo-wall", page_no: 4, title: "未来照片墙", page_type: "showcase" },
-    { ...base, id: "future-photo-ai-secret", page_no: 5, title: "AI 解密", page_type: "experiment" }
+    { ...base, id: "future-photo-story", page_no: 1, title: "照相馆开门", page_type: "story" },
+    { ...base, id: "future-photo-examples", page_no: 2, title: "未来照片寄到", page_type: "image" },
+    { ...base, id: "future-photo-your-turn", page_no: 3, title: "下一张写着你", page_type: "activity" },
+    { ...base, id: "future-photo-wall", page_no: 4, title: "照片墙亮起来", page_type: "showcase" },
+    { ...base, id: "future-photo-ai-secret", page_no: 5, title: "照相馆后台", page_type: "experiment" }
   ] satisfies CourseModule["pages"];
 }
 
 function lessonPageTitle(module: CourseModule | null | undefined, page: CourseModule["pages"][number]) {
   if (module?.id !== "future-photo-studio") return page.title;
   const titles: Record<number, string> = {
-    1: "神奇照相馆",
-    2: "未来样片",
-    3: "轮到你了",
-    4: "照片墙",
-    5: "AI 解密"
+    1: "照相馆开门",
+    2: "未来照片寄到",
+    3: "下一张写着你",
+    4: "照片墙亮起来",
+    5: "照相馆后台"
   };
   return titles[page.page_no] ?? page.title;
 }
@@ -719,15 +719,19 @@ function FuturePhotoStudioSlide({
         <img src={openingImages.cover} alt="未来照相馆封面" />
         <div className="studio-cover-shade" />
         <div className="studio-copy">
-          <span className="studio-kicker">传说有一家照相馆</span>
-          <h2>它能拍到长大后的你</h2>
-          <p>一张今天的照片，加上一个理想职业，就会出现一张未来照片。</p>
+          <span className="studio-kicker">门口的牌子写着</span>
+          <h2>只拍未来的照片</h2>
+          <p>走进去的人，会带走一张长大后的照片。</p>
           <div className="studio-badges">
-            <span>一张照片</span>
-            <span>一个理想职业</span>
-            <span>一张未来照</span>
+            <span>今天的你</span>
+            <span>想做的事</span>
+            <span>未来照片</span>
           </div>
         </div>
+        <aside className="studio-door-sign" aria-hidden="true">
+          <strong>营业中</strong>
+          <span>只拍未来</span>
+        </aside>
       </article>
     );
   }
@@ -736,21 +740,24 @@ function FuturePhotoStudioSlide({
     return (
       <article className="lesson-canvas studio-slide studio-story">
         <div className="studio-copy">
-          <span className="studio-kicker">三张未来样片</span>
-          <h2>这些孩子好像去了未来</h2>
-          <p>看场景、工具和动作，猜猜他们长大后在做什么。</p>
+          <span className="studio-kicker">第一批照片寄到了</span>
+          <h2>他们去了哪个未来？</h2>
+          <p>看衣服、工具、房间和动作，先猜职业。</p>
         </div>
         <div className="opening-pairs">
           <figure>
             <img src={openingImages.vet} alt="孩子与未来动物医生职业照对比" />
+            <span className="sample-code">样片 01</span>
             <figcaption>动物医生</figcaption>
           </figure>
           <figure>
             <img src={openingImages.robot} alt="孩子与未来机器人设计师职业照对比" />
+            <span className="sample-code">样片 02</span>
             <figcaption>机器人设计师</figcaption>
           </figure>
           <figure>
             <img src={openingImages.space} alt="孩子与未来太空建筑师职业照对比" />
+            <span className="sample-code">样片 03</span>
             <figcaption>太空建筑师</figcaption>
           </figure>
         </div>
@@ -762,9 +769,9 @@ function FuturePhotoStudioSlide({
     return (
       <article className="lesson-canvas studio-slide studio-task">
         <div className="studio-copy">
-          <span className="studio-kicker">轮到你进入照相馆</span>
-          <h2>拍下今天的你，说出未来的职业</h2>
-          <p>照片会先回到你的屏幕上，确认后再一起点亮照片墙。</p>
+          <span className="studio-kicker">柜台上还有一只空相框</span>
+          <h2>下一张，写着你的名字</h2>
+          <p>扫码，拍今天的你，说出长大想做的职业。</p>
         </div>
         <div className="task-stage">
           <div className="qr-card">
@@ -777,11 +784,15 @@ function FuturePhotoStudioSlide({
             <small>未来照相馆</small>
           </div>
           <div className="task-steps">
-            <span>1. 拍一张今天的照片</span>
-            <span>2. 说出理想职业</span>
-            <span>3. 看见未来照片</span>
+            <span>1. 拍今天的你</span>
+            <span>2. 说出职业</span>
+            <span>3. 等照片送回来</span>
           </div>
-          <img className="task-preview-image" src={openingImages.robot} alt="未来职业照生成示例" />
+          <div className="empty-future-frame">
+            <Sparkles size={36} />
+            <strong>下一张：你</strong>
+            <small>照片生成后会先回到你的屏幕</small>
+          </div>
         </div>
       </article>
     );
@@ -791,39 +802,39 @@ function FuturePhotoStudioSlide({
     page.page_no === 4 ? (
       <article className="lesson-canvas studio-slide studio-wall">
         <div className="studio-copy compact">
-          <span className="studio-kicker">照片墙亮起来</span>
-          <h2>我们的未来照片到了</h2>
-          <p>看看每张照片里出现了哪些职业线索。</p>
+          <span className="studio-kicker">照片送回来了</span>
+          <h2>谁的未来先亮起来？</h2>
+          <p>点开一张，看看 TA 正在做什么。</p>
         </div>
         <CoursePhotoWall students={students} variant="lesson" onOpenPhoto={onOpenPhoto} />
       </article>
     ) : (
       <article className="lesson-canvas studio-slide studio-secret">
         <div className="studio-copy compact">
-          <span className="studio-kicker">照相馆解密</span>
-          <h2>原来是 AI 在画未来</h2>
-          <p>AI 把今天的照片和职业关键词合在一起，生成一张未来想象照。</p>
+          <span className="studio-kicker">打开照相馆后台</span>
+          <h2>秘密藏在三样东西里</h2>
+          <p>AI 读照片，也读职业词，然后生成一张新的图。</p>
         </div>
         <div className="ai-secret-flow">
           <div>
             <Image size={36} />
-            <strong>今天的照片</strong>
+            <strong>照片</strong>
           </div>
           <span>+</span>
           <div>
             <Mic size={36} />
-            <strong>职业关键词</strong>
+            <strong>职业词</strong>
           </div>
           <span>=</span>
           <div className="highlight">
             <Sparkles size={40} />
-            <strong>未来想象照</strong>
+            <strong>新画面</strong>
           </div>
         </div>
         <div className="ai-secret-words">
-          <span>大模型</span>
-          <span>提示词</span>
-          <span>图像生成</span>
+          <span><strong>大模型</strong>读过很多图和字</span>
+          <span><strong>提示词</strong>告诉 AI 画什么</span>
+          <span><strong>图像生成</strong>把新画面画出来</span>
         </div>
       </article>
     )
