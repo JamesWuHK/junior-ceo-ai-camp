@@ -76,7 +76,7 @@ export const api = {
   deleteStudent: (id: string) =>
     request<{ ok: boolean; student: Student }>(`/students/${encodeURIComponent(id)}`, {
       method: "DELETE",
-      headers: headers(true)
+      headers: { Authorization: `Bearer ${teacherToken()}` }
     }),
   teams: () => request<{ teams: Team[] }>("/teams"),
   uploadToken: (kind: string, fileName: string) =>
