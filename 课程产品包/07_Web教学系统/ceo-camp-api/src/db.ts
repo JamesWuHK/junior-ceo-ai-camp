@@ -268,6 +268,24 @@ export function initializeDatabase() {
       FOREIGN KEY (student_id) REFERENCES students(id)
     );
 
+    CREATE TABLE IF NOT EXISTS future_photo_jobs (
+      id TEXT PRIMARY KEY,
+      camp_id TEXT NOT NULL,
+      submission_id TEXT NOT NULL,
+      provider TEXT NOT NULL DEFAULT 'qingyuntop',
+      model TEXT,
+      status TEXT NOT NULL DEFAULT 'QUEUED',
+      attempt INTEGER NOT NULL DEFAULT 0,
+      max_attempts INTEGER NOT NULL DEFAULT 1,
+      error_message TEXT,
+      started_at TEXT,
+      finished_at TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (camp_id) REFERENCES camp_offerings(id),
+      FOREIGN KEY (submission_id) REFERENCES future_photo_submissions(id)
+    );
+
     CREATE TABLE IF NOT EXISTS media_assets (
       id TEXT PRIMARY KEY,
       camp_id TEXT NOT NULL,
@@ -353,6 +371,7 @@ export function initializeDatabase() {
   `);
 
   migrateStudentAccounts();
+  migrateFuturePhotoJobs();
   seedDefaultCamp();
 }
 
@@ -366,6 +385,15 @@ function migrateStudentAccounts() {
   }
   if (!hasColumn("last_login_at")) db.exec("ALTER TABLE students ADD COLUMN last_login_at TEXT");
   db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_students_username ON students(username) WHERE username IS NOT NULL");
+}
+
+function migrateFuturePhotoJobs() {
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_future_photo_jobs_status
+      ON future_photo_jobs(camp_id, status, created_at);
+    CREATE INDEX IF NOT EXISTS idx_future_photo_jobs_submission
+      ON future_photo_jobs(submission_id, created_at);
+  `);
 }
 
 function seedDefaultCamp() {

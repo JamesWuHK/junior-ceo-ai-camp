@@ -33,6 +33,21 @@ const app = Fastify({
 });
 
 const uploadBodyLimit = 20 * 1024 * 1024;
+recoverFuturePhotoJobs();
+scheduleFuturePhotoWorker();
+
+type FuturePhotoSubmissionRow = Record<string, any>;
+type FuturePhotoJobRow = {
+  id: string;
+  camp_id: string;
+  submission_id: string;
+  provider: string;
+  model?: string | null;
+  status: string;
+  attempt: number;
+  max_attempts: number;
+  error_message?: string | null;
+};
 
 app.addContentTypeParser(/^image\/.+$/, { parseAs: "buffer", bodyLimit: uploadBodyLimit }, (_request, body, done) => {
   done(null, body);
@@ -327,6 +342,282 @@ function emitState(event = "state.changed") {
     camp: currentCamp(),
     wall: wallData()
   });
+}
+
+function futurePhotoModels() {
+  const models = config.qingyun.imageEditModels.length
+    ? config.qingyun.imageEditModels
+    : [config.qingyun.imageEditModel];
+  return models.map((model) => model.trim()).filter(Boolean);
+}
+
+function dailyGenerationCount() {
+  const dayStart = `${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`;
+  return (
+    row<{ count: number }>(
+      `SELECT COUNT(*) AS count
+         FROM future_photo_jobs
+        WHERE camp_id = ?
+          AND provider = 'qingyuntop'
+          AND status <> 'CANCELLED'
+          AND created_at >= ?`,
+      [campId(), dayStart]
+    )?.count ?? 0
+  );
+}
+
+function latestRunningFuturePhotoJob(submissionId: string) {
+  return row<FuturePhotoJobRow>(
+    `SELECT *
+       FROM future_photo_jobs
+      WHERE submission_id = ?
+        AND status IN ('QUEUED', 'RUNNING')
+      ORDER BY created_at DESC
+      LIMIT 1`,
+    submissionId
+  );
+}
+
+function previousFuturePhotoJobCount(submissionId: string) {
+  return (
+    row<{ count: number }>(
+      `SELECT COUNT(*) AS count
+         FROM future_photo_jobs
+        WHERE submission_id = ?
+          AND status <> 'CANCELLED'`,
+      submissionId
+    )?.count ?? 0
+  );
+}
+
+function completeFuturePhotoGeneration(
+  submission: FuturePhotoSubmissionRow,
+  resultPhotoKey: string,
+  generationPayload: JsonValue
+) {
+  db.prepare(
+    `UPDATE future_photo_submissions
+        SET status = 'AWAITING_REVIEW',
+            result_photo_key = ?,
+            review_note = ?,
+            updated_at = ?
+      WHERE id = ?`
+  ).run(resultPhotoKey, JSON.stringify(generationPayload), nowSql(), submission.id);
+  if (submission.student_id) {
+    db.prepare("UPDATE students SET display_status = 'AWAITING_REVIEW', updated_at = ? WHERE id = ?").run(
+      nowSql(),
+      submission.student_id
+    );
+  }
+}
+
+function enqueueFuturePhotoJob(submission: FuturePhotoSubmissionRow) {
+  const existing = latestRunningFuturePhotoJob(String(submission.id));
+  if (existing) return { job: existing, queued: false };
+
+  if (!submission.source_photo_key) {
+    throw new Error("SOURCE_PHOTO_REQUIRED");
+  }
+
+  const dailyLimit = Math.max(0, config.futurePhoto.dailyAutoLimit);
+  if (dailyLimit === 0 || dailyGenerationCount() >= dailyLimit) {
+    throw new Error(`FUTURE_PHOTO_DAILY_LIMIT_REACHED: 今日自动出图上限为 ${dailyLimit} 次`);
+  }
+
+  const models = futurePhotoModels();
+  if (models.length === 0) throw new Error("QINGYUN_MODEL_NOT_CONFIGURED");
+
+  const previousCount = previousFuturePhotoJobCount(String(submission.id));
+  const model = models[Math.min(previousCount, models.length - 1)];
+  const maxAttempts = Math.max(1, Math.min(config.futurePhoto.maxAutoAttempts, models.length));
+  const id = randomUUID();
+  const record = {
+    id,
+    camp_id: campId(),
+    submission_id: String(submission.id),
+    provider: "qingyuntop",
+    model,
+    status: "QUEUED",
+    attempt: 0,
+    max_attempts: maxAttempts,
+    error_message: null,
+    updated_at: nowSql()
+  };
+  db.prepare(
+    `INSERT INTO future_photo_jobs
+      (id, camp_id, submission_id, provider, model, status, attempt, max_attempts, error_message, updated_at)
+     VALUES
+      (@id, @camp_id, @submission_id, @provider, @model, @status, @attempt, @max_attempts, @error_message, @updated_at)`
+  ).run(record);
+  db.prepare(
+    `UPDATE future_photo_submissions
+        SET status = 'GENERATING',
+            review_note = ?,
+            updated_at = ?
+      WHERE id = ?`
+  ).run(
+    JSON.stringify({
+      mode: "qingyuntop",
+      status: "queued",
+      model,
+      daily_limit: dailyLimit,
+      auto_attempts: maxAttempts
+    }),
+    nowSql(),
+    submission.id
+  );
+  if (submission.student_id) {
+    db.prepare("UPDATE students SET display_status = 'GENERATING', updated_at = ? WHERE id = ?").run(
+      nowSql(),
+      submission.student_id
+    );
+  }
+  audit("future_photo.job.queued", "future_photo_jobs", id, record);
+  emitState("future_photo.queued");
+  scheduleFuturePhotoWorker();
+  return { job: row<FuturePhotoJobRow>("SELECT * FROM future_photo_jobs WHERE id = ?", id), queued: true };
+}
+
+let futurePhotoWorkerRunning = false;
+
+function scheduleFuturePhotoWorker() {
+  setTimeout(() => {
+    void processFuturePhotoQueue();
+  }, 0);
+}
+
+async function processFuturePhotoQueue() {
+  if (futurePhotoWorkerRunning) return;
+  futurePhotoWorkerRunning = true;
+  try {
+    for (;;) {
+      const job = row<FuturePhotoJobRow>(
+        `SELECT *
+           FROM future_photo_jobs
+          WHERE camp_id = ?
+            AND status = 'QUEUED'
+          ORDER BY created_at ASC
+          LIMIT 1`,
+        campId()
+      );
+      if (!job) break;
+      await processFuturePhotoJob(job);
+    }
+  } finally {
+    futurePhotoWorkerRunning = false;
+  }
+}
+
+async function processFuturePhotoJob(job: FuturePhotoJobRow) {
+  const submission = row<FuturePhotoSubmissionRow>(
+    "SELECT * FROM future_photo_submissions WHERE id = ?",
+    job.submission_id
+  );
+  if (!submission) {
+    db.prepare(
+      `UPDATE future_photo_jobs
+          SET status = 'CANCELLED',
+              error_message = 'SUBMISSION_NOT_FOUND',
+              finished_at = ?,
+              updated_at = ?
+        WHERE id = ?`
+    ).run(nowSql(), nowSql(), job.id);
+    return;
+  }
+
+  const models = futurePhotoModels();
+  const maxAttempts = Math.max(1, Number(job.max_attempts || 1));
+  let attempt = Number(job.attempt || 0);
+  let latestError = "";
+
+  while (attempt < maxAttempts) {
+    const model = attempt === 0 && job.model ? job.model : models[Math.min(attempt, models.length - 1)];
+    attempt += 1;
+    db.prepare(
+      `UPDATE future_photo_jobs
+          SET status = 'RUNNING',
+              model = ?,
+              attempt = ?,
+              error_message = NULL,
+              started_at = COALESCE(started_at, ?),
+              updated_at = ?
+        WHERE id = ?`
+    ).run(model, attempt, nowSql(), nowSql(), job.id);
+    audit("future_photo.job.running", "future_photo_jobs", job.id, { attempt, model });
+    emitState("future_photo.generating");
+
+    try {
+      const result = await generateFuturePhotoWithQingyun({
+        submissionId: String(submission.id),
+        studentName: String(submission.student_name ?? ""),
+        careerText: String(submission.career_text ?? ""),
+        sourcePhotoKey: String(submission.source_photo_key ?? ""),
+        model
+      });
+      completeFuturePhotoGeneration(submission, result.resultPhotoKey, {
+        ...result,
+        mode: "qingyuntop",
+        job_id: job.id,
+        attempt
+      });
+      db.prepare(
+        `UPDATE future_photo_jobs
+            SET status = 'SUCCEEDED',
+                model = ?,
+                finished_at = ?,
+                updated_at = ?
+          WHERE id = ?`
+      ).run(result.model, nowSql(), nowSql(), job.id);
+      audit("future_photo.job.succeeded", "future_photo_jobs", job.id, result);
+      emitState("future_photo.generated");
+      return;
+    } catch (error) {
+      latestError = error instanceof Error ? error.message : "QINGYUN_GENERATION_FAILED";
+      app.log.warn({ job_id: job.id, model, attempt, error: latestError }, "future photo generation failed");
+      audit("future_photo.job.attempt_failed", "future_photo_jobs", job.id, {
+        attempt,
+        model,
+        message: latestError
+      });
+    }
+  }
+
+  const failedPayload = {
+    mode: "qingyuntop",
+    status: "failed",
+    job_id: job.id,
+    model: job.model ?? null,
+    attempts: attempt,
+    retryable: true,
+    message: latestError
+  };
+  db.prepare(
+    `UPDATE future_photo_jobs
+        SET status = 'FAILED',
+            error_message = ?,
+            finished_at = ?,
+            updated_at = ?
+      WHERE id = ?`
+  ).run(latestError, nowSql(), nowSql(), job.id);
+  db.prepare(
+    `UPDATE future_photo_submissions
+        SET review_note = ?,
+            updated_at = ?
+      WHERE id = ?`
+  ).run(JSON.stringify(failedPayload), nowSql(), submission.id);
+  audit("future_photo.job.failed", "future_photo_jobs", job.id, failedPayload);
+  emitState("future_photo.generate.failed");
+}
+
+function recoverFuturePhotoJobs() {
+  db.prepare(
+    `UPDATE future_photo_jobs
+        SET status = 'QUEUED',
+            error_message = 'RECOVERED_AFTER_RESTART',
+            updated_at = ?
+      WHERE camp_id = ?
+        AND status = 'RUNNING'`
+  ).run(nowSql(), campId());
 }
 
 app.get("/health", async () => {
@@ -637,16 +928,14 @@ app.post("/future-photo/:id/generate", async (request, reply) => {
 
   if (!resultPhotoKey) {
     try {
-      const result = await generateFuturePhotoWithQingyun({
-        submissionId: id,
-        studentName: String(item.student_name ?? ""),
-        careerText: String(item.career_text ?? ""),
-        sourcePhotoKey: String(item.source_photo_key ?? "")
+      const { job, queued } = enqueueFuturePhotoJob(item);
+      return reply.code(202).send({
+        submission: row("SELECT * FROM future_photo_submissions WHERE id = ?", id),
+        job,
+        queued
       });
-      resultPhotoKey = result.resultPhotoKey;
-      generationPayload = result;
     } catch (error) {
-      const message = error instanceof Error ? error.message : "QINGYUN_GENERATION_FAILED";
+      const message = error instanceof Error ? error.message : "FUTURE_PHOTO_QUEUE_FAILED";
       db.prepare(
         `UPDATE future_photo_submissions
             SET review_note = ?,
@@ -656,27 +945,24 @@ app.post("/future-photo/:id/generate", async (request, reply) => {
       audit("future_photo.generate.failed", "future_photo_submissions", id, {
         message
       });
-      return reply.code(message === "QINGYUN_NOT_CONFIGURED" ? 503 : 502).send({
-        error: "FUTURE_PHOTO_GENERATION_FAILED",
+      const code = message.startsWith("FUTURE_PHOTO_DAILY_LIMIT_REACHED") ? 429 : 502;
+      return reply.code(code).send({
+        error: "FUTURE_PHOTO_QUEUE_FAILED",
         message
       });
     }
   }
 
   db.prepare(
-    `UPDATE future_photo_submissions
-        SET status = 'AWAITING_REVIEW',
-            result_photo_key = ?,
-            review_note = ?,
+    `UPDATE future_photo_jobs
+        SET status = 'CANCELLED',
+            error_message = 'MANUAL_RESULT_ATTACHED',
+            finished_at = ?,
             updated_at = ?
-      WHERE id = ?`
-  ).run(resultPhotoKey, JSON.stringify(generationPayload), nowSql(), id);
-  if (item.student_id) {
-    db.prepare("UPDATE students SET display_status = 'AWAITING_REVIEW', updated_at = ? WHERE id = ?").run(
-      nowSql(),
-      item.student_id
-    );
-  }
+      WHERE submission_id = ?
+        AND status = 'QUEUED'`
+  ).run(nowSql(), nowSql(), id);
+  completeFuturePhotoGeneration(item, resultPhotoKey, generationPayload);
   audit("future_photo.generate", "future_photo_submissions", id, generationPayload);
   emitState("future_photo.generated");
   return {
@@ -794,18 +1080,21 @@ app.post("/tasks/current", async (request, reply) => {
   return { task: { ...record, payload: jsonParse(record.payload, {}) } };
 });
 
-app.get("/submissions", async () => ({
-  future_photo_submissions: rows(
-    "SELECT * FROM future_photo_submissions WHERE camp_id = ? ORDER BY created_at DESC",
-    campId()
-  ),
-  task_submissions: rows("SELECT * FROM task_submissions WHERE camp_id = ? ORDER BY created_at DESC", campId()).map(
-    (submission) => ({
-      ...submission,
-      payload: jsonParse(submission.payload, {})
-    })
-  )
-}));
+app.get("/submissions", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  return {
+    future_photo_submissions: rows(
+      "SELECT * FROM future_photo_submissions WHERE camp_id = ? ORDER BY created_at DESC",
+      campId()
+    ),
+    task_submissions: rows("SELECT * FROM task_submissions WHERE camp_id = ? ORDER BY created_at DESC", campId()).map(
+      (submission) => ({
+        ...submission,
+        payload: jsonParse(submission.payload, {})
+      })
+    )
+  };
+});
 
 app.post("/publish/showcase", async (request, reply) => {
   if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });

@@ -2,6 +2,14 @@ import "dotenv/config";
 import { randomBytes } from "node:crypto";
 
 const defaultAuthSecret = randomBytes(32).toString("hex");
+const imageEditModels = (
+  process.env.QINGYUN_IMAGE_EDIT_MODELS ??
+  process.env.QINGYUN_IMAGE_EDIT_MODEL ??
+  "grok-imagine-image"
+)
+  .split(",")
+  .map((model) => model.trim())
+  .filter(Boolean);
 
 export const config = {
   nodeEnv: process.env.NODE_ENV ?? "development",
@@ -34,8 +42,13 @@ export const config = {
   qingyun: {
     apiKey: process.env.QINGYUN_API_KEY ?? "",
     baseUrl: process.env.QINGYUN_BASE_URL ?? "https://api.qingyuntop.top/v1",
-    imageEditModel: process.env.QINGYUN_IMAGE_EDIT_MODEL ?? "grok-imagine-image-pro",
+    imageEditModel: imageEditModels[0] ?? "grok-imagine-image",
+    imageEditModels,
     timeoutMs: Number(process.env.QINGYUN_TIMEOUT_MS ?? 180_000)
+  },
+  futurePhoto: {
+    dailyAutoLimit: Number(process.env.FUTURE_PHOTO_DAILY_LIMIT ?? 5),
+    maxAutoAttempts: Number(process.env.FUTURE_PHOTO_MAX_AUTO_ATTEMPTS ?? 1)
   }
 };
 

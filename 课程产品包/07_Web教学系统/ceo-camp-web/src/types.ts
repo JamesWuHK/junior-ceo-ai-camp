@@ -85,6 +85,7 @@ export interface FuturePhotoSubmission {
   voice_key?: string;
   result_photo_key?: string;
   status: "SUBMITTED" | "GENERATING" | "AWAITING_REVIEW" | "APPROVED" | "REJECTED" | "SAVED_ONLY";
+  review_note?: string;
   created_at: string;
   updated_at: string;
 }

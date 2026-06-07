@@ -7,6 +7,7 @@ interface FuturePhotoInput {
   studentName: string;
   careerText: string;
   sourcePhotoKey: string;
+  model?: string;
 }
 
 function normalizeBaseUrl(baseUrl: string) {
@@ -45,9 +46,10 @@ export async function generateFuturePhotoWithQingyun(input: FuturePhotoInput) {
     throw new Error("SOURCE_PHOTO_REQUIRED");
   }
 
+  const model = input.model ?? config.qingyun.imageEditModel;
   const source = await readCosObject(input.sourcePhotoKey);
   const form = new FormData();
-  form.append("model", config.qingyun.imageEditModel);
+  form.append("model", model);
   form.append("prompt", buildFuturePhotoPrompt(input.studentName, input.careerText));
   form.append("n", "1");
   form.append("image", new Blob([source.body], { type: source.contentType }), "source-photo.png");
@@ -93,6 +95,6 @@ export async function generateFuturePhotoWithQingyun(input: FuturePhotoInput) {
   return {
     resultPhotoKey: resultKey,
     provider: "qingyuntop",
-    model: config.qingyun.imageEditModel
+    model
   };
 }

@@ -49,6 +49,18 @@ const statusText: Record<Student["display_status"], string> = {
   SAVED_ONLY: "已保存"
 };
 
+function futurePhotoHint(item: FuturePhotoSubmission) {
+  if (!item.review_note) return "";
+  try {
+    const note = JSON.parse(item.review_note) as { status?: string; message?: string };
+    if (note.status === "queued") return "已加入生成队列";
+    if (note.status === "failed") return "上游生成失败，可稍后重试";
+  } catch {
+    if (item.review_note.includes("FUTURE_PHOTO_DAILY_LIMIT_REACHED")) return "今日自动出图已达上限";
+  }
+  return "";
+}
+
 function useInitialData(active: "teacher" | "student" | "wall") {
   const [camp, setCamp] = useState<Camp | null>(null);
   const [modules, setModules] = useState<CourseModule[]>([]);
@@ -484,6 +496,7 @@ function FuturePhotoReview({ refresh }: { refresh: () => Promise<void> }) {
     try {
       if (action === "generate") {
         await api.markGenerated(item.id);
+        setMessage("已加入生成队列，生成完成后会进入审核。");
       } else {
         await api.reviewFuturePhoto(item.id, action);
       }
@@ -509,11 +522,12 @@ function FuturePhotoReview({ refresh }: { refresh: () => Promise<void> }) {
               <strong>{item.student_name}</strong>
               <span>{item.career_text}</span>
               <small>{item.status}</small>
+              {futurePhotoHint(item) && <small>{futurePhotoHint(item)}</small>}
             </div>
             <div className="review-actions">
               {(item.status === "GENERATING" || item.status === "SUBMITTED") && (
                 <button disabled={loading} onClick={() => act(item, "generate")}>
-                  {loading ? "生成中" : "生成未来照"}
+                  {loading ? "处理中" : "加入生成队列"}
                 </button>
               )}
               {item.status === "AWAITING_REVIEW" && (
