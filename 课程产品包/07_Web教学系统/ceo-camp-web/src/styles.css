@@ -433,6 +433,16 @@ button:disabled {
   color: #60705f;
 }
 
+.student-row strong {
+  display: grid;
+  gap: 2px;
+}
+
+.student-row strong small {
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .review-item {
   grid-template-columns: minmax(0, 1fr) auto;
 }

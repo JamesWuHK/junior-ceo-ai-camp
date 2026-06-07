@@ -385,29 +385,45 @@ function Metric({ label, value }: { label: string; value: number }) {
 }
 
 function TeacherStudents({ students, refresh }: { students: Student[]; refresh: () => Promise<void> }) {
+  const [managedStudents, setManagedStudents] = useState<Student[]>([]);
   const [nickname, setNickname] = useState("");
   const [age, setAge] = useState("");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const visibleStudents = managedStudents.length ? managedStudents : students;
+
+  const loadStudents = async () => {
+    try {
+      const result = await api.students();
+      setManagedStudents(result.students);
+    } catch {
+      setManagedStudents([]);
+    }
+  };
+
+  useEffect(() => {
+    loadStudents();
+  }, []);
 
   const addStudent = async () => {
     if (!nickname.trim()) return;
     setSaving(true);
     setMessage("");
     try {
-      await api.saveStudents({
+      const result = await api.saveStudents({
         id: `student-${Date.now()}`,
-        student_no: String(students.length + 1).padStart(2, "0"),
+        student_no: String(visibleStudents.length + 1).padStart(2, "0"),
         nickname: nickname.trim(),
         age: age ? Number(age) : undefined,
         photo_authorization: "SELF_PHOTO",
         projection_consent: true,
         public_showcase_consent: false
       });
+      const created = result.students[0];
       setNickname("");
       setAge("");
-      setMessage("已加入大屏占位。");
-      await refresh();
+      setMessage(created?.username ? `已加入大屏占位。学生账号：${created.username}` : "已加入大屏占位。");
+      await Promise.all([loadStudents(), refresh()]);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "添加失败");
     } finally {
@@ -428,14 +444,17 @@ function TeacherStudents({ students, refresh }: { students: Student[]; refresh: 
       </div>
       {message && <p className="hint">{message}</p>}
       <div className="student-table">
-        {students.map((student) => (
+        {visibleStudents.map((student) => (
           <div key={student.id} className="student-row">
             <span>{student.student_no || "--"}</span>
-            <strong>{student.nickname}</strong>
+            <strong>
+              {student.nickname}
+              {student.username && <small>账号 {student.username}</small>}
+            </strong>
             <small>{statusText[student.display_status]}</small>
           </div>
         ))}
-        {!students.length && <p className="empty">先录入学员，大屏会显示名字占位。</p>}
+        {!visibleStudents.length && <p className="empty">先录入学员，大屏会显示名字占位。</p>}
       </div>
     </section>
   );
