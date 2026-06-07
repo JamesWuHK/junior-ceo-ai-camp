@@ -101,3 +101,27 @@ export async function readCosObject(objectKey: string) {
     contentLength: response.headers.get("content-length")
   };
 }
+
+export async function putCosObject(objectKey: string, body: Buffer, contentType = "image/png") {
+  if (!isCosConfigured()) {
+    throw new Error("COS_NOT_CONFIGURED");
+  }
+  const host = `${config.cos.bucket}.cos.${config.cos.region}.myqcloud.com`;
+  const pathname = `/${encodePath(objectKey)}`;
+  const response = await fetch(`https://${host}${pathname}`, {
+    method: "PUT",
+    headers: {
+      Authorization: cosAuthorization("put", pathname, host, config.cos.expiresSeconds),
+      "Content-Type": contentType
+    },
+    body: new Blob([new Uint8Array(body)], { type: contentType })
+  });
+  if (!response.ok) {
+    throw new Error(`COS_WRITE_FAILED_${response.status}`);
+  }
+  return {
+    objectKey,
+    contentType,
+    bytes: body.length
+  };
+}

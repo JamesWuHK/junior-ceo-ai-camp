@@ -29,6 +29,12 @@ export const config = {
     region: process.env.COS_REGION ?? "ap-beijing",
     prefix: process.env.COS_UPLOAD_PREFIX ?? "ceo-camp",
     expiresSeconds: Number(process.env.COS_UPLOAD_EXPIRES_SECONDS ?? 900)
+  },
+  qingyun: {
+    apiKey: process.env.QINGYUN_API_KEY ?? "",
+    baseUrl: process.env.QINGYUN_BASE_URL ?? "https://api.qingyuntop.top/v1",
+    imageEditModel: process.env.QINGYUN_IMAGE_EDIT_MODEL ?? "grok-imagine-image-pro",
+    timeoutMs: Number(process.env.QINGYUN_TIMEOUT_MS ?? 180_000)
   }
 };
 
@@ -39,4 +45,8 @@ export function isCosConfigured() {
       config.cos.bucket &&
       config.cos.region
   );
+}
+
+export function isQingyunConfigured() {
+  return Boolean(config.qingyun.apiKey && config.qingyun.baseUrl && config.qingyun.imageEditModel);
 }

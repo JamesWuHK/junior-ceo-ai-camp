@@ -488,7 +488,9 @@ function FuturePhotoReview({ refresh }: { refresh: () => Promise<void> }) {
             </div>
             <div className="review-actions">
               {(item.status === "GENERATING" || item.status === "SUBMITTED") && (
-                <button disabled={loading} onClick={() => act(item, "generate")}>生成完成</button>
+                <button disabled={loading} onClick={() => act(item, "generate")}>
+                  {loading ? "生成中" : "生成未来照"}
+                </button>
               )}
               {item.status === "AWAITING_REVIEW" && (
                 <>

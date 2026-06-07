@@ -7,6 +7,7 @@ import { hashPassword, issueTeacherToken, verifyPassword, verifyTeacherToken, ty
 import { config } from "./config.js";
 import { createUploadTarget, readCosObject } from "./cos.js";
 import { broadcast, addClient, removeClient, clientCount } from "./events.js";
+import { generateFuturePhotoWithQingyun } from "./qingyun.js";
 import { db, initializeDatabase, nowSql, openDatabase, row, rows } from "./db.js";
 import type { JsonValue } from "./types.js";
 
@@ -454,23 +455,52 @@ app.post("/future-photo/:id/generate", async (request, reply) => {
   const body = (request.body ?? {}) as { result_photo_key?: string };
   const item = row("SELECT * FROM future_photo_submissions WHERE id = ?", id);
   if (!item) return reply.code(404).send({ error: "NOT_FOUND" });
-  const resultPhotoKey =
-    body.result_photo_key ??
-    `generated/future-photo/${id}.jpg`;
+  let resultPhotoKey = body.result_photo_key;
+  let generationPayload: JsonValue = { mode: resultPhotoKey ? "manual" : "qingyuntop" };
+
+  if (!resultPhotoKey) {
+    try {
+      const result = await generateFuturePhotoWithQingyun({
+        submissionId: id,
+        studentName: String(item.student_name ?? ""),
+        careerText: String(item.career_text ?? ""),
+        sourcePhotoKey: String(item.source_photo_key ?? "")
+      });
+      resultPhotoKey = result.resultPhotoKey;
+      generationPayload = result;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "QINGYUN_GENERATION_FAILED";
+      db.prepare(
+        `UPDATE future_photo_submissions
+            SET review_note = ?,
+                updated_at = ?
+          WHERE id = ?`
+      ).run(message, nowSql(), id);
+      audit("future_photo.generate.failed", "future_photo_submissions", id, {
+        message
+      });
+      return reply.code(message === "QINGYUN_NOT_CONFIGURED" ? 503 : 502).send({
+        error: "FUTURE_PHOTO_GENERATION_FAILED",
+        message
+      });
+    }
+  }
+
   db.prepare(
     `UPDATE future_photo_submissions
         SET status = 'AWAITING_REVIEW',
             result_photo_key = ?,
+            review_note = ?,
             updated_at = ?
       WHERE id = ?`
-  ).run(resultPhotoKey, nowSql(), id);
+  ).run(resultPhotoKey, JSON.stringify(generationPayload), nowSql(), id);
   if (item.student_id) {
     db.prepare("UPDATE students SET display_status = 'AWAITING_REVIEW', updated_at = ? WHERE id = ?").run(
       nowSql(),
       item.student_id
     );
   }
-  audit("future_photo.generate", "future_photo_submissions", id);
+  audit("future_photo.generate", "future_photo_submissions", id, generationPayload);
   emitState("future_photo.generated");
   return {
     submission: row("SELECT * FROM future_photo_submissions WHERE id = ?", id)
