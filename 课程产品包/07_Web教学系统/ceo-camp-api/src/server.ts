@@ -352,7 +352,7 @@ function futurePhotoModels() {
 }
 
 function dailyGenerationCount() {
-  const dayStart = `${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`;
+  const dayStart = `${new Date().toISOString().slice(0, 10)} 00:00:00`;
   return (
     row<{ count: number }>(
       `SELECT COUNT(*) AS count
