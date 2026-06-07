@@ -459,7 +459,7 @@ function FuturePhotoReview({ refresh }: { refresh: () => Promise<void> }) {
     setMessage("");
     try {
       if (action === "generate") {
-        await api.markGenerated(item.id, item.result_photo_key || `mock/generated/${item.id}.jpg`);
+        await api.markGenerated(item.id);
       } else {
         await api.reviewFuturePhoto(item.id, action);
       }
