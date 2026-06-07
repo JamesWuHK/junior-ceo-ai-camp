@@ -65,13 +65,34 @@ const photoWallStatusText: Record<Student["display_status"], string> = {
   SAVED_ONLY: "已保存"
 };
 
+function coursewarePages(module: CourseModule | null | undefined) {
+  if (!module) return [];
+  if (module.id !== "future-photo-studio") return module.pages;
+  const base = module.pages[0] ?? {
+    id: "future-photo-studio-page",
+    module_id: module.id,
+    page_no: 1,
+    title: "",
+    page_type: "story",
+    activity_buttons: []
+  };
+  return [
+    { ...base, id: "future-photo-story", page_no: 1, title: "神奇照相馆", page_type: "story" },
+    { ...base, id: "future-photo-examples", page_no: 2, title: "未来样片", page_type: "image" },
+    { ...base, id: "future-photo-your-turn", page_no: 3, title: "轮到你了", page_type: "activity" },
+    { ...base, id: "future-photo-wall", page_no: 4, title: "未来照片墙", page_type: "showcase" },
+    { ...base, id: "future-photo-ai-secret", page_no: 5, title: "AI 解密", page_type: "experiment" }
+  ] satisfies CourseModule["pages"];
+}
+
 function lessonPageTitle(module: CourseModule | null | undefined, page: CourseModule["pages"][number]) {
   if (module?.id !== "future-photo-studio") return page.title;
   const titles: Record<number, string> = {
-    1: "开场封面",
-    2: "猜猜未来",
-    3: "进入照相馆",
-    4: "职业照片墙"
+    1: "神奇照相馆",
+    2: "未来样片",
+    3: "轮到你了",
+    4: "照片墙",
+    5: "AI 解密"
   };
   return titles[page.page_no] ?? page.title;
 }
@@ -179,7 +200,8 @@ function TeacherApp({
   const [selectedPhoto, setSelectedPhoto] = useState<Student | null>(null);
   const [actionMessage, setActionMessage] = useState("");
   const selectedModule = modules.find((module) => module.id === selectedModuleId) || modules[0];
-  const selectedPage = selectedModule?.pages[selectedPageIndex] || selectedModule?.pages[0];
+  const lessonPages = useMemo(() => coursewarePages(selectedModule), [selectedModule]);
+  const selectedPage = lessonPages[selectedPageIndex] || lessonPages[0];
   const byDay = useMemo(
     () => [1, 2, 3].map((day) => ({ day, modules: modules.filter((module) => module.day === day) })),
     [modules]
@@ -306,7 +328,7 @@ function TeacherApp({
           </div>
           {actionMessage && <p className="hint">{actionMessage}</p>}
           <div className="lesson-page-nav">
-            {selectedModule?.pages.map((page, index) => (
+            {lessonPages.map((page, index) => (
               <button
                 key={page.id}
                 className={index === selectedPageIndex ? "active" : ""}
@@ -334,6 +356,7 @@ function TeacherApp({
       {presenting && selectedModule && (
         <PresentationOverlay
           module={selectedModule}
+          pages={lessonPages}
           students={students}
           initialPageIndex={selectedPageIndex}
           onClose={closePresentation}
@@ -696,13 +719,13 @@ function FuturePhotoStudioSlide({
         <img src={openingImages.cover} alt="未来照相馆封面" />
         <div className="studio-cover-shade" />
         <div className="studio-copy">
-          <span className="studio-kicker">D1 破冰 · 第一站</span>
-          <h2>未来照相馆</h2>
-          <p>拍下一张今天的照片，打开一幅未来的想象。</p>
+          <span className="studio-kicker">传说有一家照相馆</span>
+          <h2>它能拍到长大后的你</h2>
+          <p>一张今天的照片，加上一个理想职业，就会出现一张未来照片。</p>
           <div className="studio-badges">
-            <span>拍一张照片</span>
-            <span>说一个职业</span>
-            <span>点亮照片墙</span>
+            <span>一张照片</span>
+            <span>一个理想职业</span>
+            <span>一张未来照</span>
           </div>
         </div>
       </article>
@@ -713,9 +736,9 @@ function FuturePhotoStudioSlide({
     return (
       <article className="lesson-canvas studio-slide studio-story">
         <div className="studio-copy">
-          <span className="studio-kicker">开场预热</span>
-          <h2>猜一猜：未来的他们在做什么？</h2>
-          <p>看画面里的场景、工具和动作，找出职业故事。</p>
+          <span className="studio-kicker">三张未来样片</span>
+          <h2>这些孩子好像去了未来</h2>
+          <p>看场景、工具和动作，猜猜他们长大后在做什么。</p>
         </div>
         <div className="opening-pairs">
           <figure>
@@ -739,9 +762,9 @@ function FuturePhotoStudioSlide({
     return (
       <article className="lesson-canvas studio-slide studio-task">
         <div className="studio-copy">
-          <span className="studio-kicker">轮到你了</span>
-          <h2>进入照相馆，说出你的未来职业</h2>
-          <p>上传照片，选择或说出职业，点击提交。</p>
+          <span className="studio-kicker">轮到你进入照相馆</span>
+          <h2>拍下今天的你，说出未来的职业</h2>
+          <p>照片会先回到你的屏幕上，确认后再一起点亮照片墙。</p>
         </div>
         <div className="task-stage">
           <div className="qr-card">
@@ -754,9 +777,9 @@ function FuturePhotoStudioSlide({
             <small>未来照相馆</small>
           </div>
           <div className="task-steps">
-            <span>1. 上传照片</span>
-            <span>2. 选择或说出职业</span>
-            <span>3. 点击提交</span>
+            <span>1. 拍一张今天的照片</span>
+            <span>2. 说出理想职业</span>
+            <span>3. 看见未来照片</span>
           </div>
           <img className="task-preview-image" src={openingImages.robot} alt="未来职业照生成示例" />
         </div>
@@ -765,14 +788,45 @@ function FuturePhotoStudioSlide({
   }
 
   return (
-    <article className="lesson-canvas studio-slide studio-wall">
-      <div className="studio-copy compact">
-        <span className="studio-kicker">全班作品展示</span>
-        <h2>我们的未来职业照</h2>
-        <p>照片墙会一点点亮起来，看看大家的未来想象。</p>
-      </div>
-      <CoursePhotoWall students={students} variant="lesson" onOpenPhoto={onOpenPhoto} />
-    </article>
+    page.page_no === 4 ? (
+      <article className="lesson-canvas studio-slide studio-wall">
+        <div className="studio-copy compact">
+          <span className="studio-kicker">照片墙亮起来</span>
+          <h2>我们的未来照片到了</h2>
+          <p>看看每张照片里出现了哪些职业线索。</p>
+        </div>
+        <CoursePhotoWall students={students} variant="lesson" onOpenPhoto={onOpenPhoto} />
+      </article>
+    ) : (
+      <article className="lesson-canvas studio-slide studio-secret">
+        <div className="studio-copy compact">
+          <span className="studio-kicker">照相馆解密</span>
+          <h2>原来是 AI 在画未来</h2>
+          <p>AI 把今天的照片和职业关键词合在一起，生成一张未来想象照。</p>
+        </div>
+        <div className="ai-secret-flow">
+          <div>
+            <Image size={36} />
+            <strong>今天的照片</strong>
+          </div>
+          <span>+</span>
+          <div>
+            <Mic size={36} />
+            <strong>职业关键词</strong>
+          </div>
+          <span>=</span>
+          <div className="highlight">
+            <Sparkles size={40} />
+            <strong>未来想象照</strong>
+          </div>
+        </div>
+        <div className="ai-secret-words">
+          <span>大模型</span>
+          <span>提示词</span>
+          <span>图像生成</span>
+        </div>
+      </article>
+    )
   );
 }
 
@@ -860,29 +914,31 @@ function PhotoLightbox({ student, onClose }: { student: Student; onClose: () => 
 
 function PresentationOverlay({
   module,
+  pages,
   students,
   initialPageIndex,
   onClose,
   onOpenPhoto
 }: {
   module: CourseModule;
+  pages: CourseModule["pages"];
   students: Student[];
   initialPageIndex: number;
   onClose: () => void;
   onOpenPhoto: (student: Student) => void;
 }) {
   const [pageIndex, setPageIndex] = useState(initialPageIndex);
-  const page = module.pages[pageIndex];
+  const page = pages[pageIndex];
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
-      if (event.key === "ArrowRight") setPageIndex((index) => Math.min(index + 1, module.pages.length - 1));
+      if (event.key === "ArrowRight") setPageIndex((index) => Math.min(index + 1, pages.length - 1));
       if (event.key === "ArrowLeft") setPageIndex((index) => Math.max(index - 1, 0));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [module.pages.length, onClose]);
+  }, [pages.length, onClose]);
 
   return (
     <section className="presentation-overlay">
@@ -903,10 +959,10 @@ function PresentationOverlay({
         <button disabled={pageIndex === 0} onClick={() => setPageIndex((index) => Math.max(index - 1, 0))}>
           上一页
         </button>
-        <span>{pageIndex + 1} / {module.pages.length}</span>
+        <span>{pageIndex + 1} / {pages.length}</span>
         <button
-          disabled={pageIndex === module.pages.length - 1}
-          onClick={() => setPageIndex((index) => Math.min(index + 1, module.pages.length - 1))}
+          disabled={pageIndex === pages.length - 1}
+          onClick={() => setPageIndex((index) => Math.min(index + 1, pages.length - 1))}
         >
           下一页
         </button>

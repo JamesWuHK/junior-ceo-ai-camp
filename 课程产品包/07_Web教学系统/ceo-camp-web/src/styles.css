@@ -804,6 +804,72 @@ button:disabled {
     linear-gradient(135deg, #f8f7ef, #e9f2e4);
 }
 
+.studio-secret {
+  grid-template-columns: minmax(260px, 0.36fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  background:
+    linear-gradient(90deg, rgba(36, 90, 123, 0.04) 1px, transparent 1px),
+    linear-gradient(rgba(36, 90, 123, 0.04) 1px, transparent 1px),
+    linear-gradient(135deg, #fffdf6, #eaf5ff);
+  background-size: 42px 42px, 42px 42px, auto;
+}
+
+.ai-secret-flow {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1.18fr);
+  align-items: center;
+  gap: clamp(10px, 1.5vw, 18px);
+}
+
+.ai-secret-flow > div {
+  min-height: clamp(190px, 22vw, 330px);
+  border-radius: 8px;
+  border: 1px solid rgba(36, 90, 123, 0.16);
+  background: rgba(255, 255, 255, 0.82);
+  color: #245a7b;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+  padding: clamp(12px, 2vw, 24px);
+  box-shadow: 0 16px 36px rgba(36, 90, 123, 0.1);
+}
+
+.ai-secret-flow > span {
+  color: #245a7b;
+  font-size: clamp(34px, 5vw, 72px);
+  font-weight: 900;
+}
+
+.ai-secret-flow strong {
+  font-size: clamp(18px, 2vw, 30px);
+  text-align: center;
+}
+
+.ai-secret-flow .highlight {
+  background: #1f6f50;
+  color: #fff;
+  border-color: rgba(31, 111, 80, 0.3);
+}
+
+.ai-secret-words {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-self: end;
+}
+
+.ai-secret-words span {
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(36, 90, 123, 0.16);
+  color: #245a7b;
+  padding: 9px 13px;
+  font-weight: 900;
+}
+
 .slide-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(170px, 1fr));
@@ -1411,7 +1477,8 @@ button:disabled {
 
   .studio-story,
   .studio-task,
-  .studio-wall {
+  .studio-wall,
+  .studio-secret {
     grid-template-columns: 1fr;
   }
 
@@ -1468,6 +1535,23 @@ button:disabled {
   .task-stage {
     grid-template-columns: 1fr;
   }
+
+  .ai-secret-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-secret-flow > span {
+    font-size: 34px;
+    justify-self: center;
+  }
+
+  .ai-secret-flow > div {
+    min-height: 150px;
+  }
+
+  .ai-secret-words {
+    grid-column: 1;
+  }
 }
 
 @media (max-height: 700px) {
@@ -1490,11 +1574,16 @@ button:disabled {
 
 @media (max-height: 560px) {
   .studio-badges,
-  .task-preview-image {
+  .task-preview-image,
+  .ai-secret-words {
     display: none;
   }
 
   .opening-pairs img {
     min-height: 200px;
+  }
+
+  .ai-secret-flow > div {
+    min-height: 120px;
   }
 }
