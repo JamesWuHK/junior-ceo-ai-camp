@@ -81,7 +81,7 @@ function coursewarePages(module: CourseModule | null | undefined) {
     { ...base, id: "future-photo-examples", page_no: 2, title: "未来照片寄到", page_type: "image" },
     { ...base, id: "future-photo-your-turn", page_no: 3, title: "下一张写着你", page_type: "activity" },
     { ...base, id: "future-photo-wall", page_no: 4, title: "照片墙亮起来", page_type: "showcase" },
-    { ...base, id: "future-photo-ai-secret", page_no: 5, title: "照相馆后台", page_type: "experiment" }
+    { ...base, id: "future-photo-ai-secret", page_no: 5, title: "秘密揭晓", page_type: "experiment" }
   ] satisfies CourseModule["pages"];
 }
 
@@ -92,7 +92,7 @@ function lessonPageTitle(module: CourseModule | null | undefined, page: CourseMo
     2: "未来照片寄到",
     3: "下一张写着你",
     4: "照片墙亮起来",
-    5: "照相馆后台"
+    5: "秘密揭晓"
   };
   return titles[page.page_no] ?? page.title;
 }
@@ -811,9 +811,9 @@ function FuturePhotoStudioSlide({
     ) : (
       <article className="lesson-canvas studio-slide studio-secret">
         <div className="studio-copy compact">
-          <span className="studio-kicker">打开照相馆后台</span>
-          <h2>秘密藏在三样东西里</h2>
-          <p>AI 读照片，也读职业词，然后生成一张新的图。</p>
+          <span className="studio-kicker">照相馆的秘密</span>
+          <h2>原来是 AI 画出来的</h2>
+          <p>AI 看照片，也看职业词，再画出一张新的未来照片。</p>
         </div>
         <div className="ai-secret-flow">
           <div>
