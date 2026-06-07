@@ -1,0 +1,18 @@
+services:
+  ceo-camp-api:
+    build: .
+    image: ceo-camp-api:latest
+    container_name: ceo-camp-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    networks:
+      - wanli-edu-market_default
+
+networks:
+  wanli-edu-market_default:
+    external: true
