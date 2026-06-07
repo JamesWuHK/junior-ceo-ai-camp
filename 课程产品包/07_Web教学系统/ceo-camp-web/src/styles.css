@@ -340,6 +340,7 @@ button:disabled {
   gap: 8px;
   align-items: center;
   font-weight: 800;
+  min-width: 0;
 }
 
 .lesson-page-nav button span {
@@ -421,10 +422,10 @@ button:disabled {
 .studio-slide {
   min-height: 520px;
   background:
-    linear-gradient(90deg, rgba(23, 32, 24, 0.04) 1px, transparent 1px),
-    linear-gradient(rgba(23, 32, 24, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 32, 24, 0.035) 1px, transparent 1px),
+    linear-gradient(rgba(23, 32, 24, 0.035) 1px, transparent 1px),
     var(--course-paper);
-  background-size: 34px 34px, 34px 34px, auto;
+  background-size: 42px 42px, 42px 42px, auto;
   padding: clamp(18px, 2.6vw, 34px);
 }
 
@@ -583,7 +584,21 @@ button:disabled {
 }
 
 .studio-story {
-  grid-template-columns: minmax(260px, 0.42fr) minmax(0, 1fr);
+  grid-template-columns: 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.studio-story .studio-copy {
+  align-content: start;
+  max-width: min(920px, 100%);
+}
+
+.studio-story .studio-copy h2 {
+  font-size: clamp(38px, 4.8vw, 72px);
+}
+
+.studio-story .studio-copy p {
+  max-width: 760px;
 }
 
 .comparison-stage {
@@ -597,6 +612,7 @@ button:disabled {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(10px, 1.5vw, 18px);
   align-content: stretch;
+  perspective: 1200px;
 }
 
 .opening-pairs figure {
@@ -610,10 +626,22 @@ button:disabled {
   box-shadow: 0 18px 40px rgba(23, 32, 24, 0.1);
 }
 
+.opening-pairs figure:nth-child(1) {
+  transform: rotate(-1.2deg);
+}
+
+.opening-pairs figure:nth-child(2) {
+  transform: translateY(clamp(14px, 2vw, 28px));
+}
+
+.opening-pairs figure:nth-child(3) {
+  transform: rotate(1.2deg);
+}
+
 .opening-pairs img {
   width: 100%;
   height: 100%;
-  min-height: clamp(300px, 34vw, 520px);
+  min-height: clamp(240px, 26vw, 430px);
   object-fit: cover;
 }
 
@@ -627,6 +655,14 @@ button:disabled {
   padding: 8px 12px;
   font-weight: 900;
   backdrop-filter: blur(8px);
+}
+
+.studio-task {
+  background:
+    linear-gradient(90deg, rgba(31, 111, 80, 0.04) 1px, transparent 1px),
+    linear-gradient(rgba(31, 111, 80, 0.04) 1px, transparent 1px),
+    linear-gradient(135deg, #fffdf6, #eff7ef);
+  background-size: 42px 42px, 42px 42px, auto;
 }
 
 .comparison-card {
@@ -687,17 +723,18 @@ button:disabled {
 }
 
 .task-stage {
-  grid-template-columns: minmax(180px, 0.72fr) minmax(0, 1fr);
+  grid-template-columns: minmax(180px, 0.62fr) minmax(0, 1fr);
   gap: clamp(14px, 2vw, 26px);
 }
 
 .task-preview-image {
   grid-column: 1 / -1;
   width: 100%;
-  height: clamp(110px, 14vw, 190px);
+  height: clamp(130px, 15vw, 210px);
   object-fit: cover;
   border-radius: 8px;
   border: 1px solid #e7e2d2;
+  box-shadow: 0 16px 36px rgba(23, 32, 24, 0.1);
 }
 
 .qr-card {
@@ -710,6 +747,7 @@ button:disabled {
   justify-items: center;
   gap: 12px;
   padding: clamp(14px, 2vw, 24px);
+  box-shadow: 0 18px 40px rgba(23, 32, 24, 0.08);
 }
 
 .qr-card strong {
@@ -756,10 +794,14 @@ button:disabled {
   padding: 0 clamp(14px, 2vw, 24px);
   font-size: clamp(18px, 2vw, 30px);
   font-weight: 900;
+  box-shadow: 0 10px 24px rgba(31, 111, 80, 0.08);
 }
 
 .studio-wall {
-  grid-template-columns: minmax(220px, 0.28fr) minmax(0, 1fr);
+  grid-template-columns: minmax(230px, 0.25fr) minmax(0, 1fr);
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.2)),
+    linear-gradient(135deg, #f8f7ef, #e9f2e4);
 }
 
 .slide-strip {
@@ -1375,6 +1417,12 @@ button:disabled {
 
   .opening-pairs {
     grid-template-columns: 1fr;
+  }
+
+  .opening-pairs figure:nth-child(1),
+  .opening-pairs figure:nth-child(2),
+  .opening-pairs figure:nth-child(3) {
+    transform: none;
   }
 
   .opening-pairs img {

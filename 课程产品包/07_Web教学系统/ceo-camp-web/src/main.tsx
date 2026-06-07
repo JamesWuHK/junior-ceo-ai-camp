@@ -57,6 +57,25 @@ const statusText: Record<Student["display_status"], string> = {
   SAVED_ONLY: "已保存"
 };
 
+const photoWallStatusText: Record<Student["display_status"], string> = {
+  WAITING: "等待进入",
+  GENERATING: "正在生成",
+  AWAITING_REVIEW: "即将亮相",
+  ON_WALL: "已亮相",
+  SAVED_ONLY: "已保存"
+};
+
+function lessonPageTitle(module: CourseModule | null | undefined, page: CourseModule["pages"][number]) {
+  if (module?.id !== "future-photo-studio") return page.title;
+  const titles: Record<number, string> = {
+    1: "开场封面",
+    2: "猜猜未来",
+    3: "进入照相馆",
+    4: "职业照片墙"
+  };
+  return titles[page.page_no] ?? page.title;
+}
+
 function futurePhotoHint(item: FuturePhotoSubmission) {
   if (!item.review_note) return "";
   try {
@@ -294,7 +313,7 @@ function TeacherApp({
                 onClick={() => setSelectedPageIndex(index)}
               >
                 <span>{page.page_no}</span>
-                {page.title}
+                {lessonPageTitle(selectedModule, page)}
               </button>
             ))}
           </div>
@@ -679,11 +698,11 @@ function FuturePhotoStudioSlide({
         <div className="studio-copy">
           <span className="studio-kicker">D1 破冰 · 第一站</span>
           <h2>未来照相馆</h2>
-          <p>一张照片，打开一个关于未来的小实验。</p>
+          <p>拍下一张今天的照片，打开一幅未来的想象。</p>
           <div className="studio-badges">
-            <span>AI 体验</span>
-            <span>职业想象</span>
-            <span>全班照片墙</span>
+            <span>拍一张照片</span>
+            <span>说一个职业</span>
+            <span>点亮照片墙</span>
           </div>
         </div>
       </article>
@@ -695,8 +714,8 @@ function FuturePhotoStudioSlide({
       <article className="lesson-canvas studio-slide studio-story">
         <div className="studio-copy">
           <span className="studio-kicker">开场预热</span>
-          <h2>看见一张照片里的职业线索</h2>
-          <p>画面、服装、工具、场景，会一起讲出一个职业故事。</p>
+          <h2>猜一猜：未来的他们在做什么？</h2>
+          <p>看画面里的场景、工具和动作，找出职业故事。</p>
         </div>
         <div className="opening-pairs">
           <figure>
@@ -720,9 +739,9 @@ function FuturePhotoStudioSlide({
     return (
       <article className="lesson-canvas studio-slide studio-task">
         <div className="studio-copy">
-          <span className="studio-kicker">学生端任务</span>
-          <h2>上传照片，说出理想职业</h2>
-          <p>学生端只保留一个清楚动作：提交。</p>
+          <span className="studio-kicker">轮到你了</span>
+          <h2>进入照相馆，说出你的未来职业</h2>
+          <p>上传照片，选择或说出职业，点击提交。</p>
         </div>
         <div className="task-stage">
           <div className="qr-card">
@@ -731,13 +750,13 @@ function FuturePhotoStudioSlide({
                 <span key={index} className={index % 3 === 0 || index % 8 === 0 ? "filled" : ""} />
               ))}
             </div>
-            <strong>学生入口二维码</strong>
-            <small>对应官网学生入口 / student.html</small>
+            <strong>扫码进入</strong>
+            <small>未来照相馆</small>
           </div>
           <div className="task-steps">
             <span>1. 上传照片</span>
             <span>2. 选择或说出职业</span>
-            <span>3. 提交生成预览</span>
+            <span>3. 点击提交</span>
           </div>
           <img className="task-preview-image" src={openingImages.robot} alt="未来职业照生成示例" />
         </div>
@@ -749,8 +768,8 @@ function FuturePhotoStudioSlide({
     <article className="lesson-canvas studio-slide studio-wall">
       <div className="studio-copy compact">
         <span className="studio-kicker">全班作品展示</span>
-        <h2>{page.title}</h2>
-        <p>审核通过后，职业照片会替换名单占位。</p>
+        <h2>我们的未来职业照</h2>
+        <p>照片墙会一点点亮起来，看看大家的未来想象。</p>
       </div>
       <CoursePhotoWall students={students} variant="lesson" onOpenPhoto={onOpenPhoto} />
     </article>
@@ -794,7 +813,7 @@ function CoursePhotoWall({
             )}
             <footer>
               <strong>{student.nickname}</strong>
-              <span>{statusText[student.display_status]}</span>
+              <span>{photoWallStatusText[student.display_status]}</span>
             </footer>
           </button>
         );
