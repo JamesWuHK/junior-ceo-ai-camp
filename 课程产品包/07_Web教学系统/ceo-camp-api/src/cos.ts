@@ -55,7 +55,7 @@ export function createUploadTarget(kind: string, fileName = "upload.bin") {
   const httpString = `${httpMethod}\n${pathname}\n\nhost=${host}\n`;
   const stringToSign = `sha1\n${keyTime}\n${sha1(httpString)}\n`;
   const signKey = hmacSha1(config.cos.secretKey, keyTime);
-  const signature = hmacSha1(Buffer.from(signKey, "hex"), stringToSign);
+  const signature = hmacSha1(signKey, stringToSign);
   const authorization = [
     "q-sign-algorithm=sha1",
     `q-ak=${config.cos.secretId}`,
