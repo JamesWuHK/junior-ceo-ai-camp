@@ -71,8 +71,7 @@ export function createUploadTarget(kind: string, fileName = "upload.bin") {
     objectKey,
     uploadUrl: `https://${host}${pathname}`,
     headers: {
-      Authorization: authorization,
-      Host: host
+      Authorization: authorization
     },
     expiresAt: new Date(end * 1000).toISOString()
   };
