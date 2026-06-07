@@ -46,10 +46,23 @@ export function createUploadTarget(kind: string, fileName = "upload.bin") {
 
   const host = `${config.cos.bucket}.cos.${config.cos.region}.myqcloud.com`;
   const pathname = `/${encodePath(objectKey)}`;
+  const authorization = cosAuthorization("put", pathname, host, config.cos.expiresSeconds);
+
+  return {
+    provider: "cos",
+    objectKey,
+    uploadUrl: `https://${host}${pathname}`,
+    headers: {
+      Authorization: authorization
+    },
+    expiresAt: new Date((Math.floor(Date.now() / 1000) + config.cos.expiresSeconds) * 1000).toISOString()
+  };
+}
+
+function cosAuthorization(httpMethod: "get" | "put", pathname: string, host: string, expiresSeconds: number) {
   const now = Math.floor(Date.now() / 1000);
-  const end = now + config.cos.expiresSeconds;
+  const end = now + expiresSeconds;
   const keyTime = `${now};${end}`;
-  const httpMethod = "put";
   const headerList = "host";
   const urlParamList = "";
   const httpString = `${httpMethod}\n${pathname}\n\nhost=${host}\n`;
@@ -65,14 +78,26 @@ export function createUploadTarget(kind: string, fileName = "upload.bin") {
     `q-url-param-list=${urlParamList}`,
     `q-signature=${signature}`
   ].join("&");
+  return authorization;
+}
 
-  return {
-    provider: "cos",
-    objectKey,
-    uploadUrl: `https://${host}${pathname}`,
+export async function readCosObject(objectKey: string) {
+  if (!isCosConfigured()) {
+    throw new Error("COS_NOT_CONFIGURED");
+  }
+  const host = `${config.cos.bucket}.cos.${config.cos.region}.myqcloud.com`;
+  const pathname = `/${encodePath(objectKey)}`;
+  const response = await fetch(`https://${host}${pathname}`, {
     headers: {
-      Authorization: authorization
-    },
-    expiresAt: new Date(end * 1000).toISOString()
+      Authorization: cosAuthorization("get", pathname, host, 120)
+    }
+  });
+  if (!response.ok) {
+    throw new Error(`COS_READ_FAILED_${response.status}`);
+  }
+  return {
+    body: Buffer.from(await response.arrayBuffer()),
+    contentType: response.headers.get("content-type") ?? "application/octet-stream",
+    contentLength: response.headers.get("content-length")
   };
 }

@@ -5,7 +5,7 @@ import { dirname, resolve } from "node:path";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { hashPassword, issueTeacherToken, verifyPassword, verifyTeacherToken, type TeacherPrincipal } from "./auth.js";
 import { config } from "./config.js";
-import { createUploadTarget } from "./cos.js";
+import { createUploadTarget, readCosObject } from "./cos.js";
 import { broadcast, addClient, removeClient, clientCount } from "./events.js";
 import { db, initializeDatabase, nowSql, openDatabase, row, rows } from "./db.js";
 import type { JsonValue } from "./types.js";
@@ -106,6 +106,22 @@ function isSafeObjectKey(objectKey: string) {
   return Boolean(objectKey && !objectKey.startsWith("/") && !objectKey.includes("..") && !objectKey.includes("\\"));
 }
 
+function canReadWallObject(objectKey: string) {
+  if (!isSafeObjectKey(objectKey)) return false;
+  return Boolean(
+    row(
+      `SELECT f.id
+         FROM future_photo_submissions f
+         JOIN students s ON s.id = f.student_id
+        WHERE f.result_photo_key = ?
+          AND f.status = 'APPROVED'
+          AND s.display_status = 'ON_WALL'
+        LIMIT 1`,
+      objectKey
+    )
+  );
+}
+
 function localUploadPath(objectKey: string) {
   const root = resolve(config.localUploadDir);
   const target = resolve(root, objectKey);
@@ -194,6 +210,10 @@ function wallData() {
             result_photo_key:
               submission.status === "APPROVED" && student.display_status === "ON_WALL"
                 ? submission.result_photo_key
+                : null,
+            result_photo_url:
+              submission.status === "APPROVED" && student.display_status === "ON_WALL" && submission.result_photo_key
+                ? `${config.publicApiBase}/media/object?key=${encodeURIComponent(String(submission.result_photo_key))}`
                 : null
           }
         : null
@@ -495,6 +515,21 @@ app.post("/future-photo/:id/review", async (request, reply) => {
 app.get("/wall/future-photo", async () => ({
   students: wallData()
 }));
+
+app.get("/media/object", async (request, reply) => {
+  const query = request.query as { key?: string };
+  const objectKey = String(query.key ?? "");
+  if (!canReadWallObject(objectKey)) return reply.code(404).send({ error: "NOT_FOUND" });
+  try {
+    const object = await readCosObject(objectKey);
+    reply.header("Content-Type", object.contentType);
+    reply.header("Cache-Control", "private, max-age=120");
+    if (object.contentLength) reply.header("Content-Length", object.contentLength);
+    return reply.send(object.body);
+  } catch {
+    return reply.code(502).send({ error: "MEDIA_READ_FAILED" });
+  }
+});
 
 app.get("/events", async (request, reply) => {
   const id = randomUUID();

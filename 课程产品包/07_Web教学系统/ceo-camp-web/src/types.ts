@@ -46,6 +46,7 @@ export interface Student {
     career_text: string;
     status: string;
     result_photo_key?: string | null;
+    result_photo_url?: string | null;
   } | null;
 }
 

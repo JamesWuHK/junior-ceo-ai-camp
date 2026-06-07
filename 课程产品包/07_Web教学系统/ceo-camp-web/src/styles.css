@@ -607,6 +607,28 @@ button:disabled {
     radial-gradient(circle at 20% 20%, rgba(241, 200, 100, 0.32), transparent 28%),
     linear-gradient(135deg, #315f49, #132018);
   gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.generated-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.generated-photo strong {
+  position: relative;
+  align-self: end;
+  width: calc(100% - 20px);
+  margin: 0 10px 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(16, 21, 17, 0.76);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .wall-tile footer {

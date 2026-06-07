@@ -676,7 +676,11 @@ function WallApp({ camp, students }: { camp: Camp | null; students: Student[] })
           <article className={`wall-tile ${student.display_status.toLowerCase()}`} key={student.id}>
             {student.display_status === "ON_WALL" ? (
               <div className="generated-photo">
-                <Sparkles size={38} />
+                {student.future_photo?.result_photo_url ? (
+                  <img src={student.future_photo.result_photo_url} alt={`${student.nickname}的未来职业照`} />
+                ) : (
+                  <Sparkles size={38} />
+                )}
                 <strong>{student.future_photo?.career_text || "未来职业"}</strong>
               </div>
             ) : (
