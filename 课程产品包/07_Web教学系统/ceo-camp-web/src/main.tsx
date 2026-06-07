@@ -42,6 +42,13 @@ const careerChoices = [
   "运动员"
 ];
 
+const openingImages = {
+  cover: "/courseware/opening/future-studio-cover.webp",
+  vet: "/courseware/opening/future-pair-vet.webp",
+  robot: "/courseware/opening/future-pair-robot.webp",
+  space: "/courseware/opening/future-pair-space.webp"
+};
+
 const statusText: Record<Student["display_status"], string> = {
   WAITING: "等待提交",
   GENERATING: "生成中",
@@ -191,6 +198,26 @@ function TeacherApp({
     }
   };
 
+  const openPresentation = async () => {
+    setPresenting(true);
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch {
+      // The overlay still fills the viewport when browser-level fullscreen is unavailable.
+    }
+  };
+
+  const closePresentation = async () => {
+    setPresenting(false);
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+    } catch {
+      // Ignore fullscreen exit errors from browser gesture restrictions.
+    }
+  };
+
   return (
     <main className="teacher-layout">
       <aside className="sidebar">
@@ -248,7 +275,7 @@ function TeacherApp({
               <p>{selectedModule?.subtitle}</p>
             </div>
             <div className="lesson-actions">
-              <button className="secondary" onClick={() => setPresenting(true)}>
+              <button className="secondary" onClick={openPresentation}>
                 <Maximize2 size={18} />
                 全屏演示
               </button>
@@ -290,7 +317,7 @@ function TeacherApp({
           module={selectedModule}
           students={students}
           initialPageIndex={selectedPageIndex}
-          onClose={() => setPresenting(false)}
+          onClose={closePresentation}
           onOpenPhoto={setSelectedPhoto}
         />
       )}
@@ -646,7 +673,9 @@ function FuturePhotoStudioSlide({
 }) {
   if (page.page_no === 1) {
     return (
-      <article className="lesson-canvas studio-slide studio-cover">
+      <article className="lesson-canvas studio-slide studio-cover studio-cover-image">
+        <img src={openingImages.cover} alt="未来照相馆封面" />
+        <div className="studio-cover-shade" />
         <div className="studio-copy">
           <span className="studio-kicker">D1 破冰 · 第一站</span>
           <h2>未来照相馆</h2>
@@ -655,16 +684,6 @@ function FuturePhotoStudioSlide({
             <span>AI 体验</span>
             <span>职业想象</span>
             <span>全班照片墙</span>
-          </div>
-        </div>
-        <div className="studio-cover-art" aria-label="未来照相馆视觉">
-          <div className="photo-card today">
-            <span>现在</span>
-            <UsersRound size={44} />
-          </div>
-          <div className="photo-card future">
-            <span>未来</span>
-            <Sparkles size={50} />
           </div>
         </div>
       </article>
@@ -679,24 +698,19 @@ function FuturePhotoStudioSlide({
           <h2>看见一张照片里的职业线索</h2>
           <p>画面、服装、工具、场景，会一起讲出一个职业故事。</p>
         </div>
-        <div className="comparison-stage">
-          <div className="comparison-card child">
-            <span>今天的我</span>
-            <div className="portrait-symbol">
-              <UsersRound size={52} />
-            </div>
-          </div>
-          <div className="comparison-arrow">
-            <Sparkles size={30} />
-          </div>
-          <div className="comparison-card career">
-            <span>未来职业照</span>
-            <div className="career-clues">
-              <strong>场景</strong>
-              <strong>工具</strong>
-              <strong>动作</strong>
-            </div>
-          </div>
+        <div className="opening-pairs">
+          <figure>
+            <img src={openingImages.vet} alt="孩子与未来动物医生职业照对比" />
+            <figcaption>动物医生</figcaption>
+          </figure>
+          <figure>
+            <img src={openingImages.robot} alt="孩子与未来机器人设计师职业照对比" />
+            <figcaption>机器人设计师</figcaption>
+          </figure>
+          <figure>
+            <img src={openingImages.space} alt="孩子与未来太空建筑师职业照对比" />
+            <figcaption>太空建筑师</figcaption>
+          </figure>
         </div>
       </article>
     );
@@ -725,6 +739,7 @@ function FuturePhotoStudioSlide({
             <span>2. 选择或说出职业</span>
             <span>3. 提交生成预览</span>
           </div>
+          <img className="task-preview-image" src={openingImages.robot} alt="未来职业照生成示例" />
         </div>
       </article>
     );

@@ -428,6 +428,67 @@ button:disabled {
   padding: clamp(18px, 2.6vw, 34px);
 }
 
+.studio-cover-image {
+  position: relative;
+  grid-template-columns: minmax(0, 0.74fr) minmax(0, 0.26fr);
+  background: #1b130e;
+  color: #fff;
+  padding: clamp(26px, 5vw, 74px);
+}
+
+.studio-cover-image > img,
+.studio-cover-shade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.studio-cover-image > img {
+  object-fit: cover;
+}
+
+.studio-cover-shade {
+  background:
+    linear-gradient(90deg, rgba(16, 10, 6, 0.86), rgba(16, 10, 6, 0.42) 44%, rgba(16, 10, 6, 0.08)),
+    linear-gradient(0deg, rgba(16, 10, 6, 0.28), transparent 45%);
+}
+
+.studio-cover-image .studio-copy {
+  position: relative;
+  z-index: 1;
+  max-width: min(720px, 64vw);
+}
+
+.studio-cover-image .studio-kicker {
+  background: rgba(255, 250, 238, 0.14);
+  color: #ffe2a5;
+  border-color: rgba(255, 226, 165, 0.32);
+  backdrop-filter: blur(8px);
+}
+
+.studio-cover-image .studio-copy h2,
+.studio-cover-image .studio-copy p {
+  color: #fff8e9;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.38);
+}
+
+.studio-cover-image .studio-copy h2 {
+  font-size: clamp(62px, 8.2vw, 138px);
+}
+
+.studio-cover-image .studio-copy p {
+  max-width: 640px;
+  color: rgba(255, 248, 233, 0.86);
+}
+
+.studio-cover-image .studio-badges span {
+  background: rgba(255, 250, 238, 0.14);
+  border-color: rgba(255, 226, 165, 0.28);
+  color: #fff0c3;
+  backdrop-filter: blur(8px);
+}
+
 .studio-copy {
   display: grid;
   align-content: center;
@@ -530,6 +591,44 @@ button:disabled {
   gap: clamp(10px, 1.5vw, 20px);
 }
 
+.opening-pairs {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(10px, 1.5vw, 18px);
+  align-content: stretch;
+}
+
+.opening-pairs figure {
+  position: relative;
+  margin: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(23, 32, 24, 0.1);
+  background: #fff;
+  overflow: hidden;
+  min-height: 0;
+  box-shadow: 0 18px 40px rgba(23, 32, 24, 0.1);
+}
+
+.opening-pairs img {
+  width: 100%;
+  height: 100%;
+  min-height: clamp(300px, 34vw, 520px);
+  object-fit: cover;
+}
+
+.opening-pairs figcaption {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  border-radius: 999px;
+  background: rgba(16, 21, 17, 0.78);
+  color: #fff;
+  padding: 8px 12px;
+  font-weight: 900;
+  backdrop-filter: blur(8px);
+}
+
 .comparison-card {
   min-height: clamp(230px, 30vw, 400px);
   border-radius: 8px;
@@ -590,6 +689,15 @@ button:disabled {
 .task-stage {
   grid-template-columns: minmax(180px, 0.72fr) minmax(0, 1fr);
   gap: clamp(14px, 2vw, 26px);
+}
+
+.task-preview-image {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: clamp(110px, 14vw, 190px);
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e7e2d2;
 }
 
 .qr-card {
@@ -1154,13 +1262,15 @@ button:disabled {
   color: #162116;
   display: grid;
   grid-template-rows: 1fr auto;
-  padding: clamp(16px, 2.5vw, 32px);
+  padding: 0;
+  overflow: hidden;
 }
 
 .close-presentation {
   position: absolute;
-  top: 18px;
-  right: 18px;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
   width: 46px;
   height: 46px;
   border: 1px solid #d7d1bf;
@@ -1174,27 +1284,41 @@ button:disabled {
 .presentation-slide {
   align-self: center;
   justify-self: center;
-  width: min(100%, calc((100dvh - 120px) * 16 / 9));
+  width: 100dvw;
+  height: 100dvh;
   display: block;
 }
 
 .presentation-slide .lesson-canvas {
   margin: 0;
   width: 100%;
+  height: 100%;
   min-height: 0;
-  max-height: calc(100dvh - 120px);
-  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.35);
+  max-height: none;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .presentation-slide .photo-wall.lesson {
-  max-height: calc(100dvh - 220px);
+  max-height: calc(100dvh - 170px);
 }
 
 .presentation-footer {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 2;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 16px;
+  border-radius: 999px;
+  background: rgba(17, 21, 18, 0.62);
+  padding: 8px;
+  backdrop-filter: blur(12px);
 }
 
 .presentation-footer button {
@@ -1238,6 +1362,24 @@ button:disabled {
   .lesson-canvas {
     grid-template-columns: 1fr;
   }
+
+  .studio-cover-image .studio-copy {
+    max-width: min(720px, 88vw);
+  }
+
+  .studio-story,
+  .studio-task,
+  .studio-wall {
+    grid-template-columns: 1fr;
+  }
+
+  .opening-pairs {
+    grid-template-columns: 1fr;
+  }
+
+  .opening-pairs img {
+    min-height: 220px;
+  }
 }
 
 @media (max-width: 620px) {
@@ -1265,5 +1407,46 @@ button:disabled {
   .photo-wall.presentation,
   .photo-wall.wall {
     grid-template-columns: 1fr;
+  }
+
+  .studio-cover-image {
+    padding: 22px;
+  }
+
+  .studio-cover-image .studio-copy h2 {
+    font-size: clamp(48px, 15vw, 74px);
+  }
+
+  .task-stage {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 700px) {
+  .studio-slide {
+    padding: clamp(16px, 2vw, 24px);
+  }
+
+  .studio-copy h2 {
+    font-size: clamp(34px, 5vw, 64px);
+  }
+
+  .studio-copy p {
+    font-size: clamp(16px, 1.8vw, 24px);
+  }
+
+  .opening-pairs img {
+    min-height: 260px;
+  }
+}
+
+@media (max-height: 560px) {
+  .studio-badges,
+  .task-preview-image {
+    display: none;
+  }
+
+  .opening-pairs img {
+    min-height: 200px;
   }
 }
