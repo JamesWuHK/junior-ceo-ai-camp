@@ -4,6 +4,7 @@ import type {
   FuturePhotoSubmission,
   StatePayload,
   Student,
+  StudentAccount,
   TeacherAccount,
   Team,
   UploadTarget
@@ -17,11 +18,23 @@ function teacherToken() {
   return window.localStorage.getItem("ceo_camp_teacher_token") || "";
 }
 
+function studentToken() {
+  return window.localStorage.getItem("ceo_camp_student_token") || "";
+}
+
 function headers(auth = false) {
   const base: Record<string, string> = {
     "Content-Type": "application/json"
   };
   if (auth) base.Authorization = `Bearer ${teacherToken()}`;
+  return base;
+}
+
+function studentHeaders(auth = false) {
+  const base: Record<string, string> = {
+    "Content-Type": "application/json"
+  };
+  if (auth) base.Authorization = `Bearer ${studentToken()}`;
   return base;
 }
 
@@ -44,9 +57,16 @@ export const api = {
       body: JSON.stringify({ username, password })
     }),
   me: () => request<{ teacher: TeacherAccount }>("/auth/teacher/me", { headers: headers(true) }),
+  studentLogin: (username: string, password: string) =>
+    request<{ token: string; expires_in: number; student: StudentAccount }>("/auth/student/login", {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ username, password })
+    }),
+  studentMe: () => request<{ student: StudentAccount }>("/auth/student/me", { headers: studentHeaders(true) }),
   currentCamp: () => request<Camp>("/camp/current"),
   courseModules: () => request<{ modules: CourseModule[] }>("/course/modules"),
-  students: () => request<{ students: Student[] }>("/students"),
+  students: () => request<{ students: Student[] }>("/students", { headers: headers(true) }),
   saveStudents: (students: Partial<Student> | Partial<Student>[]) =>
     request<{ students: Student[] }>("/students", {
       method: "POST",
@@ -57,19 +77,17 @@ export const api = {
   uploadToken: (kind: string, fileName: string) =>
     request<UploadTarget>("/future-photo/upload-token", {
       method: "POST",
-      headers: headers(),
+      headers: studentHeaders(true),
       body: JSON.stringify({ kind, file_name: fileName })
     }),
   submitFuturePhoto: (payload: {
-    student_id?: string;
-    student_name: string;
     career_text: string;
     career_source: string;
     source_photo_key?: string;
   }) =>
     request<{ submission: FuturePhotoSubmission }>("/future-photo/submissions", {
       method: "POST",
-      headers: headers(),
+      headers: studentHeaders(true),
       body: JSON.stringify(payload)
     }),
   markGenerated: (id: string, resultPhotoKey?: string) =>
@@ -139,4 +157,28 @@ export function getTeacherAccount() {
 export function clearTeacherToken() {
   window.localStorage.removeItem("ceo_camp_teacher_token");
   window.localStorage.removeItem("ceo_camp_teacher");
+}
+
+export function setStudentToken(token: string, student?: StudentAccount) {
+  window.localStorage.setItem("ceo_camp_student_token", token);
+  if (student) window.localStorage.setItem("ceo_camp_student", JSON.stringify(student));
+}
+
+export function hasStudentToken() {
+  return Boolean(studentToken());
+}
+
+export function getStudentAccount() {
+  const value = window.localStorage.getItem("ceo_camp_student");
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as StudentAccount;
+  } catch {
+    return null;
+  }
+}
+
+export function clearStudentToken() {
+  window.localStorage.removeItem("ceo_camp_student_token");
+  window.localStorage.removeItem("ceo_camp_student");
 }

@@ -15,6 +15,7 @@ export const config = {
     password: process.env.TEACHER_SEED_PASSWORD ?? process.env.TEACHER_PASSWORD ?? "change-me-before-class",
     displayName: process.env.TEACHER_SEED_DISPLAY_NAME ?? "主讲老师"
   },
+  studentDefaultPassword: process.env.STUDENT_DEFAULT_PASSWORD ?? "camp2026",
   databasePath: process.env.DATABASE_PATH ?? "./data/camp.db",
   publicApiBase: process.env.PUBLIC_API_BASE ?? "http://localhost:7001",
   localUploadEnabled:

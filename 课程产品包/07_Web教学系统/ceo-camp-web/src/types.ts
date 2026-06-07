@@ -41,6 +41,9 @@ export interface Student {
   projection_consent: boolean;
   public_showcase_consent: boolean;
   display_status: "WAITING" | "GENERATING" | "AWAITING_REVIEW" | "ON_WALL" | "SAVED_ONLY";
+  username?: string;
+  account_status?: "ACTIVE" | "DISABLED";
+  last_login_at?: string | null;
   future_photo?: {
     id: string;
     career_text: string;
@@ -48,6 +51,11 @@ export interface Student {
     result_photo_key?: string | null;
     result_photo_url?: string | null;
   } | null;
+}
+
+export interface StudentAccount extends Student {
+  username: string;
+  account_status: "ACTIVE" | "DISABLED";
 }
 
 export interface Team {

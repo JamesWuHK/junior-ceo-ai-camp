@@ -3,7 +3,16 @@ import cors from "@fastify/cors";
 import { randomUUID } from "node:crypto";
 import { dirname, resolve } from "node:path";
 import { mkdirSync, writeFileSync } from "node:fs";
-import { hashPassword, issueTeacherToken, verifyPassword, verifyTeacherToken, type TeacherPrincipal } from "./auth.js";
+import {
+  hashPassword,
+  issueStudentToken,
+  issueTeacherToken,
+  verifyPassword,
+  verifyStudentToken,
+  verifyTeacherToken,
+  type StudentPrincipal,
+  type TeacherPrincipal
+} from "./auth.js";
 import { config } from "./config.js";
 import { createUploadTarget, readCosObject } from "./cos.js";
 import { broadcast, addClient, removeClient, clientCount } from "./events.js";
@@ -14,6 +23,7 @@ import type { JsonValue } from "./types.js";
 await openDatabase();
 initializeDatabase();
 ensureDefaultTeacher();
+ensureStudentAccounts();
 
 const app = Fastify({
   logger: {
@@ -84,6 +94,24 @@ function requireTeacher(request: { headers: Record<string, unknown> }): TeacherP
   };
 }
 
+function requireStudent(request: { headers: Record<string, unknown> }): StudentPrincipal | null {
+  const header = request.headers.authorization;
+  if (typeof header !== "string" || !header.startsWith("Bearer ")) return null;
+  const principal = verifyStudentToken(header.slice("Bearer ".length));
+  if (!principal) return null;
+  const student = row<StudentPrincipal & { account_status: string }>(
+    "SELECT id, username, nickname, student_no, account_status FROM students WHERE id = ?",
+    principal.id
+  );
+  if (!student || student.account_status !== "ACTIVE") return null;
+  return {
+    id: student.id,
+    username: student.username,
+    nickname: student.nickname,
+    student_no: student.student_no ?? null
+  };
+}
+
 function ensureDefaultTeacher() {
   const count = row<{ count: number }>("SELECT COUNT(*) AS count FROM teachers")?.count ?? 0;
   if (count > 0) return;
@@ -100,6 +128,57 @@ function ensureDefaultTeacher() {
     display_name: config.teacherSeed.displayName,
     password_hash: hashPassword(config.teacherSeed.password),
     updated_at: nowSql()
+  });
+}
+
+function normalizeStudentUsername(username: string) {
+  return username
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, "")
+    .slice(0, 32);
+}
+
+function studentUsernameFromNo(studentNo: unknown, fallbackIndex: number) {
+  const digits = String(studentNo ?? "").replace(/\D/g, "");
+  return `student${(digits || String(fallbackIndex)).padStart(2, "0")}`;
+}
+
+function uniqueStudentUsername(baseUsername: string, used: Set<string>) {
+  const base = normalizeStudentUsername(baseUsername) || `student${String(used.size + 1).padStart(2, "0")}`;
+  let username = base;
+  let suffix = 2;
+  while (used.has(username)) {
+    username = `${base}-${suffix}`;
+    suffix += 1;
+  }
+  used.add(username);
+  return username;
+}
+
+function ensureStudentAccounts() {
+  const students = rows<{ id: string; student_no?: string | null; username?: string | null; password_hash?: string | null }>(
+    "SELECT id, student_no, username, password_hash FROM students WHERE camp_id = ? ORDER BY COALESCE(student_no, created_at), created_at",
+    campId()
+  );
+  const used = new Set(
+    students
+      .map((student) => normalizeStudentUsername(String(student.username ?? "")))
+      .filter(Boolean)
+  );
+  students.forEach((student, index) => {
+    if (student.username && student.password_hash) return;
+    const username = student.username
+      ? normalizeStudentUsername(student.username)
+      : uniqueStudentUsername(studentUsernameFromNo(student.student_no, index + 1), used);
+    db.prepare(
+      `UPDATE students
+          SET username = ?,
+              password_hash = ?,
+              account_status = COALESCE(account_status, 'ACTIVE'),
+              updated_at = ?
+        WHERE id = ?`
+    ).run(username, student.password_hash ?? hashPassword(config.studentDefaultPassword), nowSql(), student.id);
   });
 }
 
@@ -132,14 +211,14 @@ function localUploadPath(objectKey: string) {
   return target;
 }
 
-function audit(action: string, targetType?: string, targetId?: string, payload: JsonValue = {}) {
+function audit(action: string, targetType?: string, targetId?: string, payload: JsonValue = {}, actor = "teacher") {
   db.prepare(
     `INSERT INTO audit_logs (id, camp_id, actor, action, target_type, target_id, payload)
      VALUES (@id, @camp_id, @actor, @action, @target_type, @target_id, @payload)`
   ).run({
     id: randomUUID(),
     camp_id: campId(),
-    actor: "teacher",
+    actor,
     action,
     target_type: targetType ?? null,
     target_id: targetId ?? null,
@@ -172,6 +251,27 @@ function courseModules() {
         activity_buttons: jsonParse(page.activity_buttons, [])
       }))
   }));
+}
+
+function serializeStudent(student: Record<string, any>) {
+  return {
+    id: student.id,
+    student_no: student.student_no,
+    nickname: student.nickname,
+    real_name: student.real_name,
+    age: student.age,
+    guardian_contact_masked: student.guardian_contact_masked,
+    checkin_status: student.checkin_status,
+    photo_authorization: student.photo_authorization,
+    projection_consent: Boolean(student.projection_consent),
+    public_showcase_consent: Boolean(student.public_showcase_consent),
+    team_id: student.team_id,
+    team_name: student.team_name,
+    display_status: student.display_status,
+    username: student.username,
+    account_status: student.account_status ?? "ACTIVE",
+    last_login_at: student.last_login_at
+  };
 }
 
 function wallData() {
@@ -268,6 +368,56 @@ app.get("/auth/teacher/me", async (request, reply) => {
   return { teacher };
 });
 
+app.post("/auth/student/login", async (request, reply) => {
+  const body = (request.body ?? {}) as { username?: string; password?: string };
+  const username = normalizeStudentUsername(String(body.username ?? ""));
+  const password = String(body.password ?? "");
+  if (!username || !password) return reply.code(400).send({ error: "USERNAME_PASSWORD_REQUIRED" });
+
+  const student = row<
+    StudentPrincipal & {
+      password_hash: string;
+      account_status: string;
+      team_id?: string | null;
+      team_name?: string | null;
+      display_status: string;
+    }
+  >(
+    `SELECT s.id, s.username, s.nickname, s.student_no, s.password_hash, s.account_status,
+            s.team_id, t.name AS team_name, s.display_status
+       FROM students s
+       LEFT JOIN teams t ON t.id = s.team_id
+      WHERE lower(s.username) = lower(?)
+        AND s.camp_id = ?`,
+    [username, campId()]
+  );
+  if (!student || student.account_status !== "ACTIVE" || !verifyPassword(password, student.password_hash)) {
+    return reply.code(401).send({ error: "INVALID_CREDENTIALS" });
+  }
+  db.prepare("UPDATE students SET last_login_at = ?, updated_at = ? WHERE id = ?").run(nowSql(), nowSql(), student.id);
+  audit("student.login", "students", student.id, { username: student.username }, `student:${student.id}`);
+  return issueStudentToken({
+    id: student.id,
+    username: student.username,
+    nickname: student.nickname,
+    student_no: student.student_no ?? null
+  });
+});
+
+app.get("/auth/student/me", async (request, reply) => {
+  const principal = requireStudent(request);
+  if (!principal) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const student = row(
+    `SELECT s.*, t.name AS team_name
+       FROM students s
+       LEFT JOIN teams t ON t.id = s.team_id
+      WHERE s.id = ?`,
+    principal.id
+  );
+  if (!student) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  return { student: serializeStudent(student) };
+});
+
 app.get("/camp/current", async () => currentCamp());
 
 app.get("/course/modules", async () => ({
@@ -275,20 +425,19 @@ app.get("/course/modules", async () => ({
   modules: courseModules()
 }));
 
-app.get("/students", async () => ({
-  students: rows(
+app.get("/students", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  return {
+    students: rows(
     `SELECT s.*, t.name AS team_name
        FROM students s
        LEFT JOIN teams t ON t.id = s.team_id
       WHERE s.camp_id = ?
       ORDER BY COALESCE(s.student_no, s.created_at), s.created_at`,
     campId()
-  ).map((student) => ({
-    ...student,
-    projection_consent: Boolean(student.projection_consent),
-    public_showcase_consent: Boolean(student.public_showcase_consent)
-  }))
-}));
+    ).map(serializeStudent)
+  };
+});
 
 app.post("/students", async (request, reply) => {
   if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
@@ -298,11 +447,11 @@ app.post("/students", async (request, reply) => {
     `INSERT INTO students
       (id, camp_id, student_no, nickname, real_name, age, guardian_contact_masked,
        checkin_status, photo_authorization, projection_consent, public_showcase_consent,
-       team_id, display_status, updated_at)
+       team_id, display_status, username, password_hash, account_status, updated_at)
      VALUES
       (@id, @camp_id, @student_no, @nickname, @real_name, @age, @guardian_contact_masked,
        @checkin_status, @photo_authorization, @projection_consent, @public_showcase_consent,
-       @team_id, @display_status, @updated_at)
+       @team_id, @display_status, @username, @password_hash, @account_status, @updated_at)
      ON CONFLICT(id) DO UPDATE SET
        student_no = excluded.student_no,
        nickname = excluded.nickname,
@@ -315,15 +464,37 @@ app.post("/students", async (request, reply) => {
        public_showcase_consent = excluded.public_showcase_consent,
        team_id = excluded.team_id,
        display_status = excluded.display_status,
+       username = excluded.username,
+       password_hash = excluded.password_hash,
+       account_status = excluded.account_status,
        updated_at = excluded.updated_at`
   );
+  const existingUsernames = new Set(
+    rows<{ username?: string | null }>("SELECT username FROM students WHERE username IS NOT NULL")
+      .map((student) => normalizeStudentUsername(String(student.username ?? "")))
+      .filter(Boolean)
+  );
   const saved = db.transaction((records: Record<string, unknown>[]) =>
-    records.map((item) => {
+    records.map((item, index) => {
       const id = String(item.id ?? randomUUID());
+      const existing = row<{ username?: string | null; password_hash?: string | null }>(
+        "SELECT username, password_hash FROM students WHERE id = ?",
+        id
+      );
+      if (existing?.username) existingUsernames.delete(normalizeStudentUsername(existing.username));
+      const studentNo = item.student_no ? String(item.student_no) : null;
+      const username = uniqueStudentUsername(
+        String(item.username ?? existing?.username ?? studentUsernameFromNo(studentNo, index + 1)),
+        existingUsernames
+      );
+      const passwordHash =
+        item.password || !existing?.password_hash
+          ? hashPassword(String(item.password ?? config.studentDefaultPassword))
+          : existing.password_hash;
       const record = {
         id,
         camp_id: campId(),
-        student_no: item.student_no ? String(item.student_no) : null,
+        student_no: studentNo,
         nickname: String(item.nickname ?? item.name ?? "未命名学员"),
         real_name: item.real_name ? String(item.real_name) : null,
         age: item.age === undefined ? null : Number(item.age),
@@ -336,10 +507,13 @@ app.post("/students", async (request, reply) => {
         public_showcase_consent: item.public_showcase_consent === true ? 1 : 0,
         team_id: item.team_id ? String(item.team_id) : null,
         display_status: String(item.display_status ?? "WAITING"),
+        username,
+        password_hash: passwordHash,
+        account_status: String(item.account_status ?? "ACTIVE"),
         updated_at: nowSql()
       };
       insert.run(record);
-      return record;
+      return serializeStudent(record);
     })
   )(items);
   audit("students.upsert", "students", undefined, { count: saved.length });
@@ -388,7 +562,8 @@ app.post("/teams", async (request, reply) => {
   return { team: { ...record, roles: jsonParse(record.roles, {}) } };
 });
 
-app.post("/future-photo/upload-token", async (request) => {
+app.post("/future-photo/upload-token", async (request, reply) => {
+  if (!requireTeacher(request) && !requireStudent(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
   const body = (request.body ?? {}) as { kind?: string; file_name?: string };
   return createUploadTarget(body.kind ?? "future-photo", body.file_name ?? "upload.bin");
 });
@@ -410,11 +585,13 @@ app.put("/uploads/local", async (request, reply) => {
   };
 });
 
-app.post("/future-photo/submissions", async (request) => {
+app.post("/future-photo/submissions", async (request, reply) => {
+  const student = requireStudent(request);
+  if (!student) return reply.code(401).send({ error: "UNAUTHORIZED" });
   const body = request.body as Record<string, unknown>;
   const id = randomUUID();
-  const studentId = body.student_id ? String(body.student_id) : null;
-  const studentName = String(body.student_name ?? body.nickname ?? "未命名学员");
+  const studentId = student.id;
+  const studentName = student.nickname;
   const careerText = String(body.career_text ?? body.career ?? "");
   const status = "GENERATING";
   db.prepare(
@@ -442,7 +619,7 @@ app.post("/future-photo/submissions", async (request) => {
       studentId
     );
   }
-  audit("future_photo.submit", "future_photo_submissions", id, { student_id: studentId });
+  audit("future_photo.submit", "future_photo_submissions", id, { student_id: studentId }, `student:${studentId}`);
   emitState("future_photo.submitted");
   return {
     submission: row("SELECT * FROM future_photo_submissions WHERE id = ?", id)

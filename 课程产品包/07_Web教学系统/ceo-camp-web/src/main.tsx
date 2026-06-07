@@ -17,13 +17,17 @@ import {
 } from "lucide-react";
 import {
   api,
+  clearStudentToken,
   clearTeacherToken,
   connectEvents,
+  getStudentAccount,
   getTeacherAccount,
+  hasStudentToken,
   hasTeacherToken,
+  setStudentToken,
   setTeacherToken
 } from "./api";
-import type { Camp, CourseModule, FuturePhotoSubmission, Student, TeacherAccount } from "./types";
+import type { Camp, CourseModule, FuturePhotoSubmission, Student, StudentAccount, TeacherAccount } from "./types";
 import "./styles.css";
 
 const careerChoices = [
@@ -45,7 +49,7 @@ const statusText: Record<Student["display_status"], string> = {
   SAVED_ONLY: "已保存"
 };
 
-function useInitialData() {
+function useInitialData(active: "teacher" | "student" | "wall") {
   const [camp, setCamp] = useState<Camp | null>(null);
   const [modules, setModules] = useState<CourseModule[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -55,8 +59,8 @@ function useInitialData() {
   const refresh = async () => {
     const [campResult, moduleResult, wallResult] = await Promise.all([
       api.currentCamp(),
-      api.courseModules(),
-      api.wall()
+      active === "teacher" ? api.courseModules() : Promise.resolve({ modules: [] }),
+      active === "student" ? Promise.resolve({ students: [] }) : api.wall()
     ]);
     setCamp(campResult);
     setModules(moduleResult.modules);
@@ -67,19 +71,20 @@ function useInitialData() {
     refresh()
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+    if (active === "student") return undefined;
     return connectEvents((payload) => {
       setCamp(payload.camp);
       setStudents(payload.wall);
     });
-  }, []);
+  }, [active]);
 
   return { camp, modules, students, loading, error, refresh };
 }
 
 function App() {
   const route = window.location.pathname || "/teacher";
-  const data = useInitialData();
   const active = route.startsWith("/student") ? "student" : route.startsWith("/wall") ? "wall" : "teacher";
+  const data = useInitialData(active);
 
   if (data.loading) {
     return (
@@ -109,7 +114,7 @@ function App() {
           refresh={data.refresh}
         />
       )}
-      {active === "student" && <StudentApp camp={data.camp} students={data.students} refresh={data.refresh} />}
+      {active === "student" && <StudentApp camp={data.camp} refresh={data.refresh} />}
       {active === "wall" && <WallApp camp={data.camp} students={data.students} />}
     </>
   );
@@ -553,28 +558,43 @@ function PresentationOverlay({ module, onClose }: { module: CourseModule; onClos
 
 function StudentApp({
   camp,
-  students,
   refresh
 }: {
   camp: Camp | null;
-  students: Student[];
   refresh: () => Promise<void>;
 }) {
-  const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || "");
-  const selectedStudent = students.find((student) => student.id === selectedStudentId);
-  const [nickname, setNickname] = useState(selectedStudent?.nickname || "");
+  const [loggedIn, setLoggedIn] = useState(hasStudentToken());
+  const [student, setStudent] = useState<StudentAccount | null>(getStudentAccount());
+  const [checking, setChecking] = useState(hasStudentToken());
   const [career, setCareer] = useState("");
   const [photoKey, setPhotoKey] = useState("");
   const [preview, setPreview] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState("");
+  const taskTitle = camp?.active_task?.title || "未来照相馆";
 
   useEffect(() => {
-    if (selectedStudent) setNickname(selectedStudent.nickname);
-  }, [selectedStudentId]);
+    if (!hasStudentToken()) {
+      setChecking(false);
+      return;
+    }
+    api.studentMe()
+      .then((payload) => {
+        setStudent(payload.student);
+        setStudentToken(window.localStorage.getItem("ceo_camp_student_token") || "", payload.student);
+        setLoggedIn(true);
+      })
+      .catch(() => {
+        clearStudentToken();
+        setStudent(null);
+        setLoggedIn(false);
+      })
+      .finally(() => setChecking(false));
+  }, []);
 
   const onFile = async (file?: File) => {
     if (!file) return;
+    setResult("");
     setPreview(URL.createObjectURL(file));
     const target = await api.uploadToken("source-photo", file.name);
     if ((target.provider === "cos" || target.provider === "local") && target.uploadUrl) {
@@ -589,45 +609,70 @@ function StudentApp({
   };
 
   const submit = async () => {
-    if (!nickname.trim() || !career.trim()) return;
+    if (!career.trim()) {
+      setResult("先告诉未来照相馆：你理想的未来职业是？");
+      return;
+    }
+    if (!photoKey) {
+      setResult("先上传一张照片，再提交。");
+      return;
+    }
     setSubmitting(true);
     try {
       await api.submitFuturePhoto({
-        student_id: selectedStudentId || undefined,
-        student_name: nickname.trim(),
         career_text: career.trim(),
         career_source: "choice",
-        source_photo_key: photoKey || undefined
+        source_photo_key: photoKey
       });
       setResult("已提交，照片会先进入生成和老师审核。");
       await refresh();
+      const me = await api.studentMe();
+      setStudent(me.student);
+      setStudentToken(window.localStorage.getItem("ceo_camp_student_token") || "", me.student);
+    } catch (err) {
+      setResult(err instanceof Error ? err.message : "提交失败，请找老师帮忙。");
     } finally {
       setSubmitting(false);
     }
   };
 
+  const logout = () => {
+    clearStudentToken();
+    setStudent(null);
+    setLoggedIn(false);
+  };
+
+  if (checking) {
+    return (
+      <main className="loading-screen">
+        <Loader2 className="spin" />
+        <span>正在进入学生端</span>
+      </main>
+    );
+  }
+
+  if (!loggedIn || !student) {
+    return <StudentLogin camp={camp} onLoggedIn={(account) => {
+      setStudent(account);
+      setLoggedIn(true);
+    }} />;
+  }
+
   return (
     <main className="student-page">
       <section className="student-shell">
         <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
-        <h1>未来照相馆</h1>
+        <h1>{taskTitle}</h1>
         <p>上传照片，告诉未来照相馆：你理想的未来职业是？</p>
         <div className="student-card">
-          <label>
-            选择你的名字
-            <select value={selectedStudentId} onChange={(event) => setSelectedStudentId(event.target.value)}>
-              <option value="">自己填写</option>
-              {students.map((student) => (
-                <option value={student.id} key={student.id}>
-                  {student.nickname}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            昵称
-            <input value={nickname} onChange={(event) => setNickname(event.target.value)} placeholder="你的昵称" />
-          </label>
+          <div className="student-current">
+            <div>
+              <span>当前同学</span>
+              <strong>{student.nickname}</strong>
+              <small>{student.student_no ? `学号 ${student.student_no}` : student.username}</small>
+            </div>
+            <button className="text-button" onClick={logout}>退出</button>
+          </div>
           <label className="photo-uploader">
             <input type="file" accept="image/*" onChange={(event) => onFile(event.target.files?.[0])} />
             {preview ? <img src={preview} alt="预览" /> : <span><Image size={28} /> 上传照片</span>}
@@ -655,6 +700,65 @@ function StudentApp({
           <p className="hint">提交后老师审核，通过后会出现在大屏上。</p>
           {result && <p className="success">{result}</p>}
         </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentLogin({ camp, onLoggedIn }: { camp: Camp | null; onLoggedIn: (student: StudentAccount) => void }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const login = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!username.trim() || !password.trim()) return;
+    setLoading(true);
+    setError("");
+    try {
+      const result = await api.studentLogin(username.trim(), password);
+      setStudentToken(result.token, result.student);
+      onLoggedIn(result.student);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "登录失败");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell student-login-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>学生端</h1>
+        <p>登录后进入当前课堂任务。</p>
+        <form className="student-card student-login-card" onSubmit={login}>
+          <label>
+            学生账号
+            <input
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder="例如：student01"
+              autoComplete="username"
+            />
+          </label>
+          <label>
+            密码
+            <input
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="请输入密码"
+              type="password"
+              autoComplete="current-password"
+            />
+          </label>
+          <button className="submit-button" disabled={loading} type="submit">
+            {loading ? <Loader2 className="spin" size={18} /> : <Sparkles size={18} />}
+            进入学生端
+          </button>
+          {error && <p className="error">{error}</p>}
+        </form>
       </section>
     </main>
   );

@@ -491,6 +491,49 @@ button:disabled {
   font-weight: 800;
 }
 
+.student-current {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid #e5eadf;
+  border-radius: 8px;
+  background: #f7fbf2;
+  padding: 12px 14px;
+}
+
+.student-current div {
+  display: grid;
+  gap: 2px;
+}
+
+.student-current span,
+.student-current small {
+  color: #657462;
+  font-size: 13px;
+}
+
+.student-current strong {
+  color: #1f2a21;
+  font-size: 20px;
+}
+
+.text-button {
+  border: 0;
+  background: transparent;
+  color: #2a5d43;
+  font-weight: 800;
+  padding: 8px;
+}
+
+.student-login-shell {
+  width: min(560px, 100%);
+}
+
+.student-login-card {
+  margin-top: 18px;
+}
+
 .photo-uploader {
   min-height: 190px;
   border: 1px dashed #9dad95;

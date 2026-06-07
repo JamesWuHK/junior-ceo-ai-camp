@@ -187,6 +187,10 @@ export function initializeDatabase() {
       public_showcase_consent INTEGER NOT NULL DEFAULT 0,
       team_id TEXT,
       display_status TEXT NOT NULL DEFAULT 'WAITING',
+      username TEXT,
+      password_hash TEXT,
+      account_status TEXT NOT NULL DEFAULT 'ACTIVE',
+      last_login_at TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (camp_id) REFERENCES camp_offerings(id)
@@ -348,7 +352,20 @@ export function initializeDatabase() {
     );
   `);
 
+  migrateStudentAccounts();
   seedDefaultCamp();
+}
+
+function migrateStudentAccounts() {
+  const columns = db.prepare("PRAGMA table_info(students)").all() as { name: string }[];
+  const hasColumn = (name: string) => columns.some((column) => column.name === name);
+  if (!hasColumn("username")) db.exec("ALTER TABLE students ADD COLUMN username TEXT");
+  if (!hasColumn("password_hash")) db.exec("ALTER TABLE students ADD COLUMN password_hash TEXT");
+  if (!hasColumn("account_status")) {
+    db.exec("ALTER TABLE students ADD COLUMN account_status TEXT NOT NULL DEFAULT 'ACTIVE'");
+  }
+  if (!hasColumn("last_login_at")) db.exec("ALTER TABLE students ADD COLUMN last_login_at TEXT");
+  db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_students_username ON students(username) WHERE username IS NOT NULL");
 }
 
 function seedDefaultCamp() {

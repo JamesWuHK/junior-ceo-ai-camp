@@ -44,6 +44,8 @@
 
 - `GET /health`
 - `POST /auth/teacher/login`
+- `POST /auth/student/login`
+- `GET /auth/student/me`
 - `GET /camp/current`
 - `GET /course/modules`
 - `GET /students`
@@ -72,6 +74,14 @@ AUTH_SECRET=change-me-long-random-auth-secret
 ```
 
 密码会以 PBKDF2 哈希形式保存，不会明文保存。`AUTH_SECRET` 用于签发教师登录 token，生产环境必须使用足够长的随机值。
+
+学生账号直接由 `students` 表管理。老师录入学员时，如果没有指定账号，系统会按学号生成 `student01`、`student02` 这类用户名；如果没有指定密码，则使用：
+
+```text
+STUDENT_DEFAULT_PASSWORD=camp2026
+```
+
+学生端需要先调用 `POST /auth/student/login` 登录，再携带返回的 `Authorization: Bearer <token>` 上传照片和提交“未来职业”。学生 token 只绑定自己的学员资料，学生端不再展示全班名单。
 
 ## 本地开发
 
