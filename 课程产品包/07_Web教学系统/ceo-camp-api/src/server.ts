@@ -44,6 +44,18 @@ function campId() {
   return "beijing-2026-summer";
 }
 
+function responseCorsOrigin(requestOrigin: unknown) {
+  if (config.corsOrigin === "*") return "*";
+  const allowedOrigins = config.corsOrigin
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  if (typeof requestOrigin === "string" && allowedOrigins.includes(requestOrigin)) {
+    return requestOrigin;
+  }
+  return allowedOrigins[0] ?? "*";
+}
+
 function jsonParse<T>(value: unknown, fallback: T): T {
   if (typeof value !== "string") return fallback;
   try {
@@ -75,7 +87,7 @@ function ensureDefaultTeacher() {
   const count = row<{ count: number }>("SELECT COUNT(*) AS count FROM teachers")?.count ?? 0;
   if (count > 0) return;
   const id = randomUUID();
-  const username = config.teacherSeed.username.trim().toLowerCase();
+  const username = config.teacherSeed.username.trim().toLowerCase() || "teacher";
   db.prepare(
     `INSERT INTO teachers
       (id, username, display_name, password_hash, role, status, updated_at)
@@ -489,7 +501,10 @@ app.get("/events", async (request, reply) => {
   reply.raw.writeHead(200, {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
-    Connection: "keep-alive"
+    Connection: "keep-alive",
+    "Access-Control-Allow-Origin": responseCorsOrigin(request.headers.origin),
+    "Access-Control-Allow-Credentials": "true",
+    Vary: "Origin"
   });
   const write = (event: string, data: JsonValue) => {
     reply.raw.write(`event: ${event}\n`);
