@@ -73,6 +73,11 @@ export const api = {
       headers: headers(true),
       body: JSON.stringify(students)
     }),
+  deleteStudent: (id: string) =>
+    request<{ ok: boolean; student: Student }>(`/students/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: headers(true)
+    }),
   teams: () => request<{ teams: Team[] }>("/teams"),
   uploadToken: (kind: string, fileName: string) =>
     request<UploadTarget>("/future-photo/upload-token", {

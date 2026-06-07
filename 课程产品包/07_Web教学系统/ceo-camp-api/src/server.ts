@@ -812,6 +812,44 @@ app.post("/students", async (request, reply) => {
   return { students: saved };
 });
 
+app.delete("/students/:id", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const { id } = request.params as { id: string };
+  const student = row(
+    `SELECT s.*, t.name AS team_name
+       FROM students s
+       LEFT JOIN teams t ON t.id = s.team_id
+      WHERE s.id = ?
+        AND s.camp_id = ?`,
+    [id, campId()]
+  );
+  if (!student) return reply.code(404).send({ error: "NOT_FOUND" });
+
+  const submissionIds = rows<{ id: string }>(
+    "SELECT id FROM future_photo_submissions WHERE camp_id = ? AND student_id = ?",
+    [campId(), id]
+  ).map((submission) => submission.id);
+
+  db.transaction(() => {
+    for (const submissionId of submissionIds) {
+      db.prepare("DELETE FROM future_photo_jobs WHERE submission_id = ?").run(submissionId);
+    }
+    db.prepare("DELETE FROM future_photo_submissions WHERE camp_id = ? AND student_id = ?").run([campId(), id]);
+    db.prepare("DELETE FROM task_submissions WHERE camp_id = ? AND student_id = ?").run([campId(), id]);
+    db.prepare("DELETE FROM students WHERE camp_id = ? AND id = ?").run([campId(), id]);
+  })();
+
+  audit("students.delete", "students", id, {
+    nickname: student.nickname,
+    future_photo_submissions: submissionIds.length
+  });
+  emitState("students.changed");
+  return {
+    ok: true,
+    student: serializeStudent(student)
+  };
+});
+
 app.get("/teams", async () => ({
   teams: rows("SELECT * FROM teams WHERE camp_id = ? ORDER BY group_no", campId()).map((team) => ({
     ...team,

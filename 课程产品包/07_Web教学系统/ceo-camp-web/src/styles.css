@@ -313,6 +313,100 @@ button:disabled {
   padding: 10px 12px;
 }
 
+.lesson-page-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.lesson-page-nav button {
+  border: 1px solid #e7e2d2;
+  border-radius: 6px;
+  background: #fbfaf6;
+  color: #465344;
+  min-height: 50px;
+  padding: 9px 11px;
+  text-align: left;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 800;
+}
+
+.lesson-page-nav button span {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #edf2e8;
+  color: #2a5d43;
+  flex: 0 0 auto;
+}
+
+.lesson-page-nav button.active {
+  border-color: #1f6f50;
+  background: #eef6ea;
+}
+
+.lesson-page-nav button.active span {
+  background: #1f6f50;
+  color: #fff;
+}
+
+.lesson-canvas {
+  margin-top: 14px;
+  min-height: 420px;
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fbfaf6;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.38fr) minmax(0, 1fr);
+  gap: 18px;
+  overflow: hidden;
+}
+
+.lesson-canvas-copy {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.lesson-canvas-copy small {
+  color: #6b7b6a;
+  font-weight: 800;
+}
+
+.lesson-canvas-copy h2 {
+  margin: 0;
+  font-size: clamp(30px, 4vw, 54px);
+  line-height: 1.05;
+}
+
+.lesson-canvas-copy p {
+  margin: 0;
+  color: #536151;
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.lesson-visual {
+  min-height: 300px;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 25% 22%, rgba(241, 200, 100, 0.28), transparent 30%),
+    linear-gradient(135deg, #dfeadc, #f7f2d8);
+  color: #1f6f50;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 900;
+}
+
 .slide-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(170px, 1fr));
@@ -425,7 +519,7 @@ button:disabled {
 }
 
 .student-row {
-  grid-template-columns: 42px minmax(0, 1fr) 88px;
+  grid-template-columns: 42px minmax(0, 1fr) 88px 36px;
 }
 
 .student-row small,
@@ -441,6 +535,18 @@ button:disabled {
 .student-row strong small {
   font-size: 12px;
   font-weight: 700;
+}
+
+.danger-icon {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ecd5cd;
+  border-radius: 6px;
+  background: #fff3ef;
+  color: #a53b20;
+  display: grid;
+  place-items: center;
+  padding: 0;
 }
 
 .review-item {
@@ -624,13 +730,31 @@ button:disabled {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.wall-grid {
+.photo-wall {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 14px;
 }
 
-.wall-tile,
+.photo-wall.lesson {
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  align-content: start;
+  max-height: 520px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.photo-wall.presentation,
+.photo-wall.wall {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.photo-wall.presentation {
+  max-height: calc(100vh - 360px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.photo-wall-tile,
 .wall-empty {
   min-height: 230px;
   border-radius: 8px;
@@ -639,6 +763,28 @@ button:disabled {
   overflow: hidden;
   display: grid;
   grid-template-rows: 1fr auto;
+}
+
+.photo-wall-tile {
+  color: #fff;
+  padding: 0;
+  text-align: left;
+}
+
+.photo-wall-tile:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.photo-wall.lesson .photo-wall-tile {
+  min-height: 190px;
+  background: #fffdf8;
+  border-color: #e7e2d2;
+  color: #172018;
+}
+
+.photo-wall.presentation .photo-wall-tile {
+  min-height: 220px;
 }
 
 .placeholder,
@@ -653,6 +799,10 @@ button:disabled {
   color: rgba(255, 255, 255, 0.36);
   width: 42px;
   height: 42px;
+}
+
+.photo-wall.lesson .placeholder svg {
+  color: #9dad95;
 }
 
 .generated-photo {
@@ -684,7 +834,7 @@ button:disabled {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
-.wall-tile footer {
+.photo-wall-tile footer {
   padding: 12px;
   display: flex;
   justify-content: space-between;
@@ -692,12 +842,16 @@ button:disabled {
   align-items: center;
 }
 
-.wall-tile footer span {
+.photo-wall-tile footer span {
   color: #f1c864;
   font-size: 13px;
 }
 
-.wall-tile.on_wall {
+.photo-wall.lesson .photo-wall-tile footer span {
+  color: #2a5d43;
+}
+
+.photo-wall-tile.on_wall {
   border-color: rgba(241, 200, 100, 0.6);
 }
 
@@ -706,6 +860,41 @@ button:disabled {
   min-height: 300px;
   color: rgba(255, 255, 255, 0.7);
   gap: 12px;
+}
+
+.photo-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: #080b08;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  place-items: center;
+  padding: 32px;
+}
+
+.photo-lightbox img {
+  max-width: min(96vw, 1280px);
+  max-height: calc(100vh - 120px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.5);
+}
+
+.photo-lightbox footer {
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  align-items: center;
+  padding-top: 18px;
+  font-size: clamp(18px, 2.4vw, 30px);
+}
+
+.photo-lightbox footer span {
+  color: #f1c864;
 }
 
 .presentation-overlay {
@@ -735,7 +924,8 @@ button:disabled {
 
 .presentation-slide {
   align-self: center;
-  max-width: 980px;
+  width: min(1200px, 100%);
+  max-width: 1200px;
   display: grid;
   gap: 22px;
 }
@@ -802,9 +992,14 @@ button:disabled {
 
   .metrics,
   .slide-strip,
+  .lesson-canvas,
   .teacher-grid,
   .career-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .lesson-canvas {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -817,6 +1012,7 @@ button:disabled {
 
   .metrics,
   .slide-strip,
+  .lesson-page-nav,
   .teacher-grid,
   .career-grid,
   .student-form {
@@ -825,6 +1021,12 @@ button:disabled {
 
   .student-row,
   .review-item {
+    grid-template-columns: 1fr;
+  }
+
+  .photo-wall.lesson,
+  .photo-wall.presentation,
+  .photo-wall.wall {
     grid-template-columns: 1fr;
   }
 }

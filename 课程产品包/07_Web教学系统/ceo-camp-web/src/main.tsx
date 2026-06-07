@@ -12,6 +12,7 @@ import {
   Play,
   ShieldCheck,
   Sparkles,
+  Trash2,
   X,
   UsersRound
 } from "lucide-react";
@@ -147,13 +148,20 @@ function TeacherApp({
   const [teacher, setTeacher] = useState<TeacherAccount | null>(getTeacherAccount());
   const [selectedDay, setSelectedDay] = useState(1);
   const [selectedModuleId, setSelectedModuleId] = useState("future-photo-studio");
+  const [selectedPageIndex, setSelectedPageIndex] = useState(0);
   const [presenting, setPresenting] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<Student | null>(null);
   const [actionMessage, setActionMessage] = useState("");
   const selectedModule = modules.find((module) => module.id === selectedModuleId) || modules[0];
+  const selectedPage = selectedModule?.pages[selectedPageIndex] || selectedModule?.pages[0];
   const byDay = useMemo(
     () => [1, 2, 3].map((day) => ({ day, modules: modules.filter((module) => module.day === day) })),
     [modules]
   );
+
+  useEffect(() => {
+    setSelectedPageIndex(0);
+  }, [selectedModuleId]);
 
   if (!isAuthed) {
     return (
@@ -251,20 +259,26 @@ function TeacherApp({
             </div>
           </div>
           {actionMessage && <p className="hint">{actionMessage}</p>}
-          <div className="slide-strip">
-            {selectedModule?.pages.map((page) => (
-              <article key={page.id} className="slide-card">
-                <small>第 {page.page_no} 页 · {page.page_type}</small>
-                <h3>{page.title}</h3>
-                <p>{page.content_summary}</p>
-                <div className="button-row">
-                  {page.activity_buttons.map((button) => (
-                    <span key={button}>{button}</span>
-                  ))}
-                </div>
-              </article>
+          <div className="lesson-page-nav">
+            {selectedModule?.pages.map((page, index) => (
+              <button
+                key={page.id}
+                className={index === selectedPageIndex ? "active" : ""}
+                onClick={() => setSelectedPageIndex(index)}
+              >
+                <span>{page.page_no}</span>
+                {page.title}
+              </button>
             ))}
           </div>
+          {selectedModule && selectedPage && (
+            <LessonPageCanvas
+              module={selectedModule}
+              page={selectedPage}
+              students={students}
+              onOpenPhoto={setSelectedPhoto}
+            />
+          )}
         </section>
         <section className="teacher-grid">
           <TeacherStudents students={students} refresh={refresh} />
@@ -272,8 +286,15 @@ function TeacherApp({
         </section>
       </section>
       {presenting && selectedModule && (
-        <PresentationOverlay module={selectedModule} onClose={() => setPresenting(false)} />
+        <PresentationOverlay
+          module={selectedModule}
+          students={students}
+          initialPageIndex={selectedPageIndex}
+          onClose={() => setPresenting(false)}
+          onOpenPhoto={setSelectedPhoto}
+        />
       )}
+      {selectedPhoto && <PhotoLightbox student={selectedPhoto} onClose={() => setSelectedPhoto(null)} />}
     </main>
   );
 }
@@ -402,6 +423,7 @@ function TeacherStudents({ students, refresh }: { students: Student[]; refresh: 
   const [age, setAge] = useState("");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState("");
   const visibleStudents = managedStudents.length ? managedStudents : students;
 
   const loadStudents = async () => {
@@ -443,11 +465,27 @@ function TeacherStudents({ students, refresh }: { students: Student[]; refresh: 
     }
   };
 
+  const deleteStudent = async (student: Student) => {
+    const confirmed = window.confirm(`确定从本次营期名单中删除「${student.nickname}」吗？`);
+    if (!confirmed) return;
+    setDeletingId(student.id);
+    setMessage("");
+    try {
+      await api.deleteStudent(student.id);
+      setMessage(`已删除 ${student.nickname}。`);
+      await Promise.all([loadStudents(), refresh()]);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "删除失败");
+    } finally {
+      setDeletingId("");
+    }
+  };
+
   return (
     <section className="panel">
       <div className="panel-title">
         <UsersRound size={20} />
-        <h2>学员占位</h2>
+        <h2>学生名单</h2>
       </div>
       <div className="student-form">
         <input value={nickname} onChange={(event) => setNickname(event.target.value)} placeholder="昵称" />
@@ -464,6 +502,14 @@ function TeacherStudents({ students, refresh }: { students: Student[]; refresh: 
               {student.username && <small>账号 {student.username}</small>}
             </strong>
             <small>{statusText[student.display_status]}</small>
+            <button
+              className="danger-icon"
+              disabled={deletingId === student.id}
+              onClick={() => deleteStudent(student)}
+              aria-label={`删除${student.nickname}`}
+            >
+              {deletingId === student.id ? <Loader2 className="spin" size={16} /> : <Trash2 size={16} />}
+            </button>
           </div>
         ))}
         {!visibleStudents.length && <p className="empty">先录入学员，大屏会显示名字占位。</p>}
@@ -545,8 +591,142 @@ function FuturePhotoReview({ refresh }: { refresh: () => Promise<void> }) {
   );
 }
 
-function PresentationOverlay({ module, onClose }: { module: CourseModule; onClose: () => void }) {
-  const [pageIndex, setPageIndex] = useState(0);
+function isPhotoWallPage(module: CourseModule, page: CourseModule["pages"][number]) {
+  return module.id === "future-photo-studio" && page.page_type === "showcase";
+}
+
+function LessonPageCanvas({
+  module,
+  page,
+  students,
+  onOpenPhoto
+}: {
+  module: CourseModule;
+  page: CourseModule["pages"][number];
+  students: Student[];
+  onOpenPhoto: (student: Student) => void;
+}) {
+  const isWall = isPhotoWallPage(module, page);
+  return (
+    <article className={isWall ? "lesson-canvas wall-canvas" : "lesson-canvas"}>
+      <div className="lesson-canvas-copy">
+        <small>第 {page.page_no} 页 · {page.page_type}</small>
+        <h2>{page.title}</h2>
+        {page.content_summary && <p>{page.content_summary}</p>}
+        <div className="button-row">
+          {page.activity_buttons.map((button) => (
+            <span key={button}>{button}</span>
+          ))}
+        </div>
+      </div>
+      {isWall ? (
+        <CoursePhotoWall students={students} variant="lesson" onOpenPhoto={onOpenPhoto} />
+      ) : (
+        <div className="lesson-visual">
+          <Sparkles size={44} />
+          <span>{module.title}</span>
+        </div>
+      )}
+    </article>
+  );
+}
+
+function CoursePhotoWall({
+  students,
+  variant,
+  onOpenPhoto
+}: {
+  students: Student[];
+  variant: "lesson" | "presentation" | "wall";
+  onOpenPhoto: (student: Student) => void;
+}) {
+  return (
+    <section className={`photo-wall ${variant}`}>
+      {students.map((student) => {
+        const canOpen = student.display_status === "ON_WALL" && Boolean(student.future_photo?.result_photo_url);
+        return (
+          <button
+            type="button"
+            className={`photo-wall-tile ${student.display_status.toLowerCase()}`}
+            disabled={!canOpen}
+            key={student.id}
+            onClick={() => onOpenPhoto(student)}
+          >
+            {student.display_status === "ON_WALL" ? (
+              <div className="generated-photo">
+                {student.future_photo?.result_photo_url ? (
+                  <img src={student.future_photo.result_photo_url} alt={`${student.nickname}的未来职业照`} />
+                ) : (
+                  <Sparkles size={38} />
+                )}
+                <strong>{student.future_photo?.career_text || "未来职业"}</strong>
+              </div>
+            ) : (
+              <div className="placeholder">
+                {student.display_status === "GENERATING" ? <Loader2 className="spin" /> : <UsersRound />}
+              </div>
+            )}
+            <footer>
+              <strong>{student.nickname}</strong>
+              <span>{statusText[student.display_status]}</span>
+            </footer>
+          </button>
+        );
+      })}
+      {!students.length && (
+        <article className="wall-empty">
+          <CheckCircle2 size={42} />
+          老师录入名单后，这里会显示每位同学的占位。
+        </article>
+      )}
+    </section>
+  );
+}
+
+function PhotoLightbox({ student, onClose }: { student: Student; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const photoUrl = student.future_photo?.result_photo_url;
+  return (
+    <section className="photo-lightbox" role="dialog" aria-modal="true">
+      <button className="close-presentation" onClick={onClose} aria-label="关闭照片">
+        <X size={24} />
+      </button>
+      {photoUrl ? (
+        <img src={photoUrl} alt={`${student.nickname}的未来职业照`} />
+      ) : (
+        <div className="placeholder">
+          <Sparkles size={64} />
+        </div>
+      )}
+      <footer>
+        <strong>{student.nickname}</strong>
+        <span>{student.future_photo?.career_text || "未来职业"}</span>
+      </footer>
+    </section>
+  );
+}
+
+function PresentationOverlay({
+  module,
+  students,
+  initialPageIndex,
+  onClose,
+  onOpenPhoto
+}: {
+  module: CourseModule;
+  students: Student[];
+  initialPageIndex: number;
+  onClose: () => void;
+  onOpenPhoto: (student: Student) => void;
+}) {
+  const [pageIndex, setPageIndex] = useState(initialPageIndex);
   const page = module.pages[pageIndex];
 
   useEffect(() => {
@@ -572,6 +752,9 @@ function PresentationOverlay({ module, onClose }: { module: CourseModule; onClos
           <span>{page?.page_type || "课件页"}</span>
           {page?.activity_buttons.map((button) => <span key={button}>{button}</span>)}
         </div>
+        {page && isPhotoWallPage(module, page) && (
+          <CoursePhotoWall students={students} variant="presentation" onOpenPhoto={onOpenPhoto} />
+        )}
       </article>
       <footer className="presentation-footer">
         <button disabled={pageIndex === 0} onClick={() => setPageIndex((index) => Math.max(index - 1, 0))}>
@@ -798,6 +981,7 @@ function StudentLogin({ camp, onLoggedIn }: { camp: Camp | null; onLoggedIn: (st
 }
 
 function WallApp({ camp, students }: { camp: Camp | null; students: Student[] }) {
+  const [selectedPhoto, setSelectedPhoto] = useState<Student | null>(null);
   return (
     <main className="wall-page">
       <header className="wall-header">
@@ -810,36 +994,8 @@ function WallApp({ camp, students }: { camp: Camp | null; students: Student[] })
           实时更新
         </div>
       </header>
-      <section className="wall-grid">
-        {students.map((student) => (
-          <article className={`wall-tile ${student.display_status.toLowerCase()}`} key={student.id}>
-            {student.display_status === "ON_WALL" ? (
-              <div className="generated-photo">
-                {student.future_photo?.result_photo_url ? (
-                  <img src={student.future_photo.result_photo_url} alt={`${student.nickname}的未来职业照`} />
-                ) : (
-                  <Sparkles size={38} />
-                )}
-                <strong>{student.future_photo?.career_text || "未来职业"}</strong>
-              </div>
-            ) : (
-              <div className="placeholder">
-                {student.display_status === "GENERATING" ? <Loader2 className="spin" /> : <UsersRound />}
-              </div>
-            )}
-            <footer>
-              <strong>{student.nickname}</strong>
-              <span>{statusText[student.display_status]}</span>
-            </footer>
-          </article>
-        ))}
-        {!students.length && (
-          <article className="wall-empty">
-            <CheckCircle2 size={42} />
-            老师录入名单后，这里会显示每位同学的占位。
-          </article>
-        )}
-      </section>
+      <CoursePhotoWall students={students} variant="wall" onOpenPhoto={setSelectedPhoto} />
+      {selectedPhoto && <PhotoLightbox student={selectedPhoto} onClose={() => setSelectedPhoto(null)} />}
     </main>
   );
 }
