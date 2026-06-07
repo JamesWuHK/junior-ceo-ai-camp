@@ -4,6 +4,7 @@ import type {
   FuturePhotoSubmission,
   StatePayload,
   Student,
+  TeacherAccount,
   Team,
   UploadTarget
 } from "./types";
@@ -36,12 +37,13 @@ async function request<T>(path: string, options: RequestInit = {}) {
 
 export const api = {
   health: () => request<{ ok: boolean; service: string; version: string }>("/health"),
-  login: (password: string) =>
-    request<{ token: string; expires_in: number }>("/auth/teacher/login", {
+  login: (username: string, password: string) =>
+    request<{ token: string; expires_in: number; teacher: TeacherAccount }>("/auth/teacher/login", {
       method: "POST",
       headers: headers(),
-      body: JSON.stringify({ password })
+      body: JSON.stringify({ username, password })
     }),
+  me: () => request<{ teacher: TeacherAccount }>("/auth/teacher/me", { headers: headers(true) }),
   currentCamp: () => request<Camp>("/camp/current"),
   courseModules: () => request<{ modules: CourseModule[] }>("/course/modules"),
   students: () => request<{ students: Student[] }>("/students"),
@@ -115,14 +117,26 @@ export function connectEvents(onState: (payload: StatePayload) => void) {
   return () => source.close();
 }
 
-export function setTeacherToken(token: string) {
+export function setTeacherToken(token: string, teacher?: TeacherAccount) {
   window.localStorage.setItem("ceo_camp_teacher_token", token);
+  if (teacher) window.localStorage.setItem("ceo_camp_teacher", JSON.stringify(teacher));
 }
 
 export function hasTeacherToken() {
   return Boolean(teacherToken());
 }
 
+export function getTeacherAccount() {
+  const value = window.localStorage.getItem("ceo_camp_teacher");
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as TeacherAccount;
+  } catch {
+    return null;
+  }
+}
+
 export function clearTeacherToken() {
   window.localStorage.removeItem("ceo_camp_teacher_token");
+  window.localStorage.removeItem("ceo_camp_teacher");
 }

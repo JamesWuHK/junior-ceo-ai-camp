@@ -3,6 +3,7 @@ import cors from "@fastify/cors";
 import { randomUUID } from "node:crypto";
 import { dirname, resolve } from "node:path";
 import { mkdirSync, writeFileSync } from "node:fs";
+import { hashPassword, issueTeacherToken, verifyPassword, verifyTeacherToken, type TeacherPrincipal } from "./auth.js";
 import { config } from "./config.js";
 import { createUploadTarget } from "./cos.js";
 import { broadcast, addClient, removeClient, clientCount } from "./events.js";
@@ -11,6 +12,7 @@ import type { JsonValue } from "./types.js";
 
 await openDatabase();
 initializeDatabase();
+ensureDefaultTeacher();
 
 const app = Fastify({
   logger: {
@@ -51,10 +53,41 @@ function jsonParse<T>(value: unknown, fallback: T): T {
   }
 }
 
-function requireTeacher(request: { headers: Record<string, unknown> }) {
+function requireTeacher(request: { headers: Record<string, unknown> }): TeacherPrincipal | null {
   const header = request.headers.authorization;
-  if (typeof header !== "string") return false;
-  return header === `Bearer ${config.teacherToken}`;
+  if (typeof header !== "string" || !header.startsWith("Bearer ")) return null;
+  const principal = verifyTeacherToken(header.slice("Bearer ".length));
+  if (!principal) return null;
+  const teacher = row<TeacherPrincipal & { status: string }>(
+    "SELECT id, username, display_name, role, status FROM teachers WHERE id = ?",
+    principal.id
+  );
+  if (!teacher || teacher.status !== "ACTIVE") return null;
+  return {
+    id: teacher.id,
+    username: teacher.username,
+    display_name: teacher.display_name,
+    role: teacher.role
+  };
+}
+
+function ensureDefaultTeacher() {
+  const count = row<{ count: number }>("SELECT COUNT(*) AS count FROM teachers")?.count ?? 0;
+  if (count > 0) return;
+  const id = randomUUID();
+  const username = config.teacherSeed.username.trim().toLowerCase();
+  db.prepare(
+    `INSERT INTO teachers
+      (id, username, display_name, password_hash, role, status, updated_at)
+     VALUES
+      (@id, @username, @display_name, @password_hash, 'TEACHER', 'ACTIVE', @updated_at)`
+  ).run({
+    id,
+    username,
+    display_name: config.teacherSeed.displayName,
+    password_hash: hashPassword(config.teacherSeed.password),
+    updated_at: nowSql()
+  });
 }
 
 function isSafeObjectKey(objectKey: string) {
@@ -174,15 +207,32 @@ app.get("/health", async () => {
 });
 
 app.post("/auth/teacher/login", async (request, reply) => {
-  const body = (request.body ?? {}) as { password?: string };
-  if (body.password !== config.teacherPassword) {
-    return reply.code(401).send({ error: "INVALID_PASSWORD" });
+  const body = (request.body ?? {}) as { username?: string; password?: string };
+  const username = String(body.username ?? "").trim().toLowerCase();
+  const password = String(body.password ?? "");
+  if (!username || !password) return reply.code(400).send({ error: "USERNAME_PASSWORD_REQUIRED" });
+
+  const teacher = row<TeacherPrincipal & { password_hash: string; status: string }>(
+    "SELECT id, username, display_name, password_hash, role, status FROM teachers WHERE lower(username) = lower(?)",
+    username
+  );
+  if (!teacher || teacher.status !== "ACTIVE" || !verifyPassword(password, teacher.password_hash)) {
+    return reply.code(401).send({ error: "INVALID_CREDENTIALS" });
   }
-  audit("teacher.login");
-  return {
-    token: config.teacherToken,
-    expires_in: 60 * 60 * 12
-  };
+  db.prepare("UPDATE teachers SET last_login_at = ?, updated_at = ? WHERE id = ?").run(nowSql(), nowSql(), teacher.id);
+  audit("teacher.login", "teachers", teacher.id, { username: teacher.username });
+  return issueTeacherToken({
+    id: teacher.id,
+    username: teacher.username,
+    display_name: teacher.display_name,
+    role: teacher.role
+  });
+});
+
+app.get("/auth/teacher/me", async (request, reply) => {
+  const teacher = requireTeacher(request);
+  if (!teacher) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  return { teacher };
 });
 
 app.get("/camp/current", async () => currentCamp());

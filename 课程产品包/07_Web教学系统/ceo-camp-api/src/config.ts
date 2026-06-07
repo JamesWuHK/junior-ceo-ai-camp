@@ -1,15 +1,20 @@
 import "dotenv/config";
 import { randomBytes } from "node:crypto";
 
-const defaultToken = randomBytes(24).toString("hex");
+const defaultAuthSecret = randomBytes(32).toString("hex");
 
 export const config = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   host: process.env.HOST ?? "0.0.0.0",
   port: Number(process.env.PORT ?? 7001),
   corsOrigin: process.env.CORS_ORIGIN ?? "*",
-  teacherPassword: process.env.TEACHER_PASSWORD ?? "change-me-before-class",
-  teacherToken: process.env.TEACHER_TOKEN ?? defaultToken,
+  authSecret: process.env.AUTH_SECRET ?? process.env.TEACHER_TOKEN ?? defaultAuthSecret,
+  authTokenExpiresSeconds: Number(process.env.AUTH_TOKEN_EXPIRES_SECONDS ?? 60 * 60 * 12),
+  teacherSeed: {
+    username: process.env.TEACHER_SEED_USERNAME ?? process.env.TEACHER_USERNAME ?? "teacher",
+    password: process.env.TEACHER_SEED_PASSWORD ?? process.env.TEACHER_PASSWORD ?? "change-me-before-class",
+    displayName: process.env.TEACHER_SEED_DISPLAY_NAME ?? "主讲老师"
+  },
   databasePath: process.env.DATABASE_PATH ?? "./data/camp.db",
   publicApiBase: process.env.PUBLIC_API_BASE ?? "http://localhost:7001",
   localUploadEnabled:

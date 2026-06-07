@@ -244,6 +244,18 @@ button:disabled {
   text-decoration: none;
 }
 
+.teacher-badge {
+  border: 1px solid #d9d4c4;
+  border-radius: 999px;
+  background: #f6f5ef;
+  color: #445142;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-weight: 800;
+}
+
 .metric {
   background: #f6f5ef;
   border-radius: 6px;

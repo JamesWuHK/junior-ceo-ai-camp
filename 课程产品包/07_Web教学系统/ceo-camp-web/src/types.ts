@@ -59,6 +59,13 @@ export interface Team {
   showcase_status: string;
 }
 
+export interface TeacherAccount {
+  id: string;
+  username: string;
+  display_name: string;
+  role: string;
+}
+
 export interface FuturePhotoSubmission {
   id: string;
   student_id?: string;

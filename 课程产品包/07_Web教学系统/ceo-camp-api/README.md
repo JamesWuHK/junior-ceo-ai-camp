@@ -60,7 +60,18 @@
 - `GET /submissions`
 - `POST /publish/showcase`
 
-教师写接口需要 `Authorization: Bearer <TEACHER_TOKEN>`。
+教师写接口需要先调用 `POST /auth/teacher/login` 登录，再携带返回的 `Authorization: Bearer <token>`。
+
+教师账号由 `teachers` 表管理。首次启动时，如果表中没有账号，系统会根据这些环境变量创建一个默认教师账号：
+
+```text
+TEACHER_SEED_USERNAME=teacher
+TEACHER_SEED_PASSWORD=change-me-before-class
+TEACHER_SEED_DISPLAY_NAME=主讲老师
+AUTH_SECRET=change-me-long-random-auth-secret
+```
+
+密码会以 PBKDF2 哈希形式保存，不会明文保存。`AUTH_SECRET` 用于签发教师登录 token，生产环境必须使用足够长的随机值。
 
 ## 本地开发
 
@@ -68,7 +79,7 @@
 npm install
 npm run check
 npm run build
-DATABASE_PATH=./data/test-camp.db TEACHER_PASSWORD=test TEACHER_TOKEN=test-token PORT=7011 npm start
+DATABASE_PATH=./data/test-camp.db TEACHER_SEED_PASSWORD=test AUTH_SECRET=test-secret PORT=7011 npm start
 ```
 
 本地真实保存照片测试：
@@ -78,8 +89,8 @@ DATABASE_PATH=/tmp/ceo-camp-dev/camp.db \
 LOCAL_UPLOAD_ENABLED=true \
 LOCAL_UPLOAD_DIR=/tmp/ceo-camp-dev/uploads \
 PUBLIC_API_BASE=http://localhost:7001 \
-TEACHER_PASSWORD=test \
-TEACHER_TOKEN=test-token \
+TEACHER_SEED_PASSWORD=test \
+AUTH_SECRET=test-secret \
 PORT=7001 \
 npm run dev
 ```

@@ -19,10 +19,11 @@ import {
   api,
   clearTeacherToken,
   connectEvents,
+  getTeacherAccount,
   hasTeacherToken,
   setTeacherToken
 } from "./api";
-import type { Camp, CourseModule, FuturePhotoSubmission, Student } from "./types";
+import type { Camp, CourseModule, FuturePhotoSubmission, Student, TeacherAccount } from "./types";
 import "./styles.css";
 
 const careerChoices = [
@@ -126,6 +127,7 @@ function TeacherApp({
   refresh: () => Promise<void>;
 }) {
   const [isAuthed, setIsAuthed] = useState(hasTeacherToken());
+  const [teacher, setTeacher] = useState<TeacherAccount | null>(getTeacherAccount());
   const [selectedDay, setSelectedDay] = useState(1);
   const [selectedModuleId, setSelectedModuleId] = useState("future-photo-studio");
   const [presenting, setPresenting] = useState(false);
@@ -137,7 +139,15 @@ function TeacherApp({
   );
 
   if (!isAuthed) {
-    return <TeacherLogin camp={camp} onLoggedIn={() => setIsAuthed(true)} />;
+    return (
+      <TeacherLogin
+        camp={camp}
+        onLoggedIn={(account) => {
+          setTeacher(account);
+          setIsAuthed(true);
+        }}
+      />
+    );
   }
 
   const publishCurrentModule = async () => {
@@ -198,8 +208,10 @@ function TeacherApp({
         <TeacherHeader
           camp={camp}
           students={students}
+          teacher={teacher}
           onLogout={() => {
             clearTeacherToken();
+            setTeacher(null);
             setIsAuthed(false);
           }}
         />
@@ -249,20 +261,27 @@ function TeacherApp({
   );
 }
 
-function TeacherLogin({ camp, onLoggedIn }: { camp: Camp | null; onLoggedIn: () => void }) {
+function TeacherLogin({
+  camp,
+  onLoggedIn
+}: {
+  camp: Camp | null;
+  onLoggedIn: (teacher: TeacherAccount) => void;
+}) {
+  const [username, setUsername] = useState("teacher");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const login = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!password.trim()) return;
+    if (!username.trim() || !password.trim()) return;
     setLoading(true);
     setError("");
     try {
-      const result = await api.login(password.trim());
-      setTeacherToken(result.token);
-      onLoggedIn();
+      const result = await api.login(username.trim(), password.trim());
+      setTeacherToken(result.token, result.teacher);
+      onLoggedIn(result.teacher);
     } catch (err) {
       setError(err instanceof Error ? err.message : "登录失败");
     } finally {
@@ -277,12 +296,22 @@ function TeacherLogin({ camp, onLoggedIn }: { camp: Camp | null; onLoggedIn: () 
         <h1>教师端</h1>
         <p>进入三天教学总控、课件演示、活动发起、大屏控制和后台管理。</p>
         <label>
-          教师口令
+          教师账号
+          <input
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            placeholder="请输入教师账号"
+            autoComplete="username"
+          />
+        </label>
+        <label>
+          密码
           <input
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="请输入教师口令"
+            placeholder="请输入密码"
             type="password"
+            autoComplete="current-password"
           />
         </label>
         <button className="primary" disabled={loading} type="submit">
@@ -298,10 +327,12 @@ function TeacherLogin({ camp, onLoggedIn }: { camp: Camp | null; onLoggedIn: () 
 function TeacherHeader({
   camp,
   students,
+  teacher,
   onLogout
 }: {
   camp: Camp | null;
   students: Student[];
+  teacher: TeacherAccount | null;
   onLogout: () => void;
 }) {
   const counts = {
@@ -324,6 +355,7 @@ function TeacherHeader({
           <Metric label="已上墙" value={counts.wall} />
         </div>
         <div className="header-actions">
+          <span className="teacher-badge">{teacher?.display_name || teacher?.username || "教师"}</span>
           <a className="icon-link" href="/wall" target="_blank" rel="noreferrer">
             <Monitor size={18} />
             大屏
