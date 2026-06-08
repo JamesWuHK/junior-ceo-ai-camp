@@ -470,19 +470,86 @@ function getHeadings(html, level) {
 
 function jsonLdTypes(html) {
   const types = new Set();
+  for (const item of jsonLdObjects(html)) {
+    const type = item?.['@type'];
+    if (Array.isArray(type)) {
+      for (const value of type) types.add(value);
+    } else if (type) {
+      types.add(type);
+    }
+  }
+  return types;
+}
+
+function jsonLdObjects(html) {
+  const objects = [];
   for (const raw of getJsonLd(html)) {
     const parsed = JSON.parse(raw);
     const graph = Array.isArray(parsed['@graph']) ? parsed['@graph'] : [parsed];
     for (const item of graph) {
-      const type = item?.['@type'];
-      if (Array.isArray(type)) {
-        for (const value of type) types.add(value);
-      } else if (type) {
-        types.add(type);
+      if (item && typeof item === 'object') objects.push(item);
+    }
+  }
+  return objects;
+}
+
+function objectContainsValue(value, expected) {
+  if (value === expected) return true;
+  if (Array.isArray(value)) return value.some((item) => objectContainsValue(item, expected));
+  if (value && typeof value === 'object') {
+    return Object.values(value).some((item) => objectContainsValue(item, expected));
+  }
+  return false;
+}
+
+function primarySchemaObject(objects, pageUrl) {
+  const excludedTypes = new Set(['WebSite', 'Organization', 'FAQPage', 'BreadcrumbList']);
+  return objects.find((item) => {
+    const id = item?.['@id'] || '';
+    const type = item?.['@type'];
+    const typeList = Array.isArray(type) ? type : [type];
+    return id.startsWith(`${pageUrl}#`) && !typeList.some((value) => excludedTypes.has(value));
+  });
+}
+
+function schemaSignalFailures(html, entry) {
+  const pageUrl = siteUrl(entry.path);
+  const objects = jsonLdObjects(html);
+  const primary = primarySchemaObject(objects, pageUrl);
+  const failures = [];
+  const websiteId = siteUrl('/#website');
+  const organizationId = siteUrl('/#organization');
+  const courseId = siteUrl('/#course');
+
+  if (!primary) {
+    failures.push('missing primary schema object with page @id');
+    return failures;
+  }
+  if (!objectContainsValue(primary.mainEntityOfPage, pageUrl)) {
+    failures.push('primary schema missing mainEntityOfPage URL');
+  }
+  if (!objectContainsValue(primary.isPartOf, websiteId)) {
+    failures.push('primary schema missing site isPartOf link');
+  }
+  if (!primary.dateModified) {
+    failures.push('primary schema missing dateModified');
+  }
+  if (!objectContainsValue(primary, organizationId)) {
+    failures.push('primary schema missing organization @id link');
+  }
+  if (!objectContainsValue(primary, courseId)) {
+    failures.push('primary schema missing course entity @id link');
+  }
+  if (entry.path !== '/') {
+    const contextLinks = ALTERNATE_CONTEXT_BY_SOURCE[entry.source] || [];
+    for (const context of contextLinks) {
+      if (!objectContainsValue(primary, context.href)) {
+        failures.push(`primary schema missing context document link: ${context.href}`);
       }
     }
   }
-  return types;
+
+  return failures;
 }
 
 function escapeRegExp(value) {
@@ -747,6 +814,13 @@ function check() {
     if (!getMeta(page, 'og:title')) checks.push(fail(`${entry.source} missing og:title`));
     if (!getMeta(page, 'og:description')) checks.push(fail(`${entry.source} missing og:description`));
     if (!getJsonLd(page).length) checks.push(fail(`${entry.source} missing json-ld`));
+    try {
+      for (const failure of schemaSignalFailures(page, entry)) {
+        checks.push(fail(`${entry.source} schema signal: ${failure}`));
+      }
+    } catch (error) {
+      checks.push(fail(`${entry.source} invalid schema signal json-ld: ${error.message}`));
+    }
     const alternateLinks = getAlternateLinks(page);
     for (const expected of ALTERNATE_CONTEXT_BY_SOURCE[entry.source] || []) {
       const hasAlternate = alternateLinks.some((link) => link.href === expected.href && link.type === expected.type);
@@ -1099,16 +1173,28 @@ function alternateMarkersForSource(source) {
   return (ALTERNATE_CONTEXT_BY_SOURCE[source] || []).map((entry) => `href="${entry.href}"`);
 }
 
+function schemaMarkersForSource(source) {
+  const markers = [
+    'mainEntityOfPage',
+    'dateModified',
+    `"@id": "${siteUrl('/#organization')}"`
+  ];
+  if (source !== 'index.html') {
+    markers.push(`"@id": "${siteUrl('/#course')}"`);
+  }
+  return markers;
+}
+
 function onlineTargets() {
   return [
-    { url: siteUrl('/'), markers: [`<link rel="canonical" href="${siteUrl('/')}">`, 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('index.html')] },
-    { url: siteUrl('/ai-pbl-camp.html'), markers: ['AI PBL 创业营', 'application/ld+json', 'AI产品原型课程', ...alternateMarkersForSource('ai-pbl-camp.html')] },
-    { url: siteUrl('/ai-product-prototype-course.html'), markers: ['AI产品原型课程', 'application/ld+json', '孩子做AI产品', ...alternateMarkersForSource('ai-product-prototype-course.html')] },
-    { url: siteUrl('/beijing-shunyi-youth-ai-course.html'), markers: ['北京顺义青少年AI课程', 'application/ld+json', '顺义AI课程', ...alternateMarkersForSource('beijing-shunyi-youth-ai-course.html')] },
-    { url: siteUrl('/youth-ai-course-guide.html'), markers: ['青少年AI课程怎么选', 'application/ld+json', 'AI PBL创业营', ...alternateMarkersForSource('youth-ai-course-guide.html')] },
-    { url: siteUrl('/ai-course-vs-coding.html'), markers: ['少儿编程和AI课程区别', 'application/ld+json', '孩子该学AI还是编程', ...alternateMarkersForSource('ai-course-vs-coding.html')] },
-    { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子', ...alternateMarkersForSource('shunyi-ai-parent-class.html')] },
-    { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html')] },
+    { url: siteUrl('/'), markers: [`<link rel="canonical" href="${siteUrl('/')}">`, 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('index.html'), ...schemaMarkersForSource('index.html')] },
+    { url: siteUrl('/ai-pbl-camp.html'), markers: ['AI PBL 创业营', 'application/ld+json', 'AI产品原型课程', ...alternateMarkersForSource('ai-pbl-camp.html'), ...schemaMarkersForSource('ai-pbl-camp.html')] },
+    { url: siteUrl('/ai-product-prototype-course.html'), markers: ['AI产品原型课程', 'application/ld+json', '孩子做AI产品', ...alternateMarkersForSource('ai-product-prototype-course.html'), ...schemaMarkersForSource('ai-product-prototype-course.html')] },
+    { url: siteUrl('/beijing-shunyi-youth-ai-course.html'), markers: ['北京顺义青少年AI课程', 'application/ld+json', '顺义AI课程', ...alternateMarkersForSource('beijing-shunyi-youth-ai-course.html'), ...schemaMarkersForSource('beijing-shunyi-youth-ai-course.html')] },
+    { url: siteUrl('/youth-ai-course-guide.html'), markers: ['青少年AI课程怎么选', 'application/ld+json', 'AI PBL创业营', ...alternateMarkersForSource('youth-ai-course-guide.html'), ...schemaMarkersForSource('youth-ai-course-guide.html')] },
+    { url: siteUrl('/ai-course-vs-coding.html'), markers: ['少儿编程和AI课程区别', 'application/ld+json', '孩子该学AI还是编程', ...alternateMarkersForSource('ai-course-vs-coding.html'), ...schemaMarkersForSource('ai-course-vs-coding.html')] },
+    { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子', ...alternateMarkersForSource('shunyi-ai-parent-class.html'), ...schemaMarkersForSource('shunyi-ai-parent-class.html')] },
+    { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html'), ...schemaMarkersForSource('partner-ai-pbl-camp.html')] },
     { url: siteUrl('/robots.txt'), markers: [`Sitemap: ${siteUrl('/sitemap-index.xml')}`, `Sitemap: ${siteUrl('/sitemap.xml')}`, `Sitemap: ${siteUrl('/sitemap-context.xml')}`] },
     { url: siteUrl('/sitemap-index.xml'), markers: [`<loc>${siteUrl('/sitemap.xml')}</loc>`, `<loc>${siteUrl('/sitemap-context.xml')}</loc>`] },
     { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },

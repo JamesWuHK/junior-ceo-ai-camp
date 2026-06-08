@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-09T01:11:53+08:00
+Generated: 2026-06-09T01:20:34+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -65,14 +65,14 @@ PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构�
 
 Status | URL | HTTP | Bytes | Missing markers / error
 --- | --- | --- | --- | ---
-PASS | https://camps.wanli.wiki/ | 200 | 47499 | none
-PASS | https://camps.wanli.wiki/ai-pbl-camp.html | 200 | 8817 | none
-PASS | https://camps.wanli.wiki/ai-product-prototype-course.html | 200 | 9929 | none
-PASS | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | 200 | 10062 | none
-PASS | https://camps.wanli.wiki/youth-ai-course-guide.html | 200 | 9932 | none
-PASS | https://camps.wanli.wiki/ai-course-vs-coding.html | 200 | 8948 | none
-PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.html | 200 | 7473 | none
-PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.html | 200 | 8201 | none
+PASS | https://camps.wanli.wiki/ | 200 | 49255 | none
+PASS | https://camps.wanli.wiki/ai-pbl-camp.html | 200 | 9801 | none
+PASS | https://camps.wanli.wiki/ai-product-prototype-course.html | 200 | 11024 | none
+PASS | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | 200 | 11001 | none
+PASS | https://camps.wanli.wiki/youth-ai-course-guide.html | 200 | 11022 | none
+PASS | https://camps.wanli.wiki/ai-course-vs-coding.html | 200 | 10054 | none
+PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.html | 200 | 8591 | none
+PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.html | 200 | 9189 | none
 PASS | https://camps.wanli.wiki/robots.txt | 200 | 265 | none
 PASS | https://camps.wanli.wiki/sitemap-index.xml | 200 | 352 | none
 PASS | https://camps.wanli.wiki/sitemap.xml | 200 | 1561 | none
