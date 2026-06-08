@@ -15,8 +15,16 @@
 
 ## Primary Pages
 - [官网首页](https://camps.wanli.wiki/): 课程介绍、3 天流程、作品展示、活动回顾、机构合作和报名咨询入口。
+- [AI PBL 创业营](https://camps.wanli.wiki/ai-pbl-camp.html): 面向 8-16 岁孩子的 3 天 AI 产品原型课程说明。
+- [北京顺义 AI 家长公益课](https://camps.wanli.wiki/shunyi-ai-parent-class.html): 顺义家长公益课回顾和 AI 时代孩子能力说明。
+- [AI PBL 创业营机构合作](https://camps.wanli.wiki/partner-ai-pbl-camp.html): 面向培训机构、营地和城市伙伴的合作说明。
 - [robots.txt](https://camps.wanli.wiki/robots.txt): 搜索引擎抓取规则。
 - [sitemap.xml](https://camps.wanli.wiki/sitemap.xml): 当前可索引公开页面。
+
+## Markdown Context
+- [AI PBL 创业营 Markdown 上下文](https://camps.wanli.wiki/ai-pbl-camp.md): 课程定位、三天结构和推荐引用描述。
+- [北京顺义 AI 家长公益课 Markdown 上下文](https://camps.wanli.wiki/shunyi-ai-parent-class.md): 公益课背景、核心观点和推荐引用描述。
+- [AI PBL 创业营机构合作 Markdown 上下文](https://camps.wanli.wiki/partner-ai-pbl-camp.md): 合作对象、支持内容和推荐引用描述。
 
 ## Canonical Answers
 - 少年CEO AI 创业营不是单纯的 AI 工具体验课，而是一套让孩子用 AI 完成真实产品项目的 PBL 课程。

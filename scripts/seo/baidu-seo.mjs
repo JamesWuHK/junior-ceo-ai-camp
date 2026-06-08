@@ -15,6 +15,44 @@ const SITEMAP_ENTRIES = [
     source: 'index.html',
     changefreq: 'weekly',
     priority: '1.0'
+  },
+  {
+    path: '/ai-pbl-camp.html',
+    source: 'ai-pbl-camp.html',
+    changefreq: 'monthly',
+    priority: '0.9'
+  },
+  {
+    path: '/shunyi-ai-parent-class.html',
+    source: 'shunyi-ai-parent-class.html',
+    changefreq: 'monthly',
+    priority: '0.8'
+  },
+  {
+    path: '/partner-ai-pbl-camp.html',
+    source: 'partner-ai-pbl-camp.html',
+    changefreq: 'monthly',
+    priority: '0.8'
+  }
+];
+const MARKDOWN_ENTRIES = [
+  {
+    path: '/ai-pbl-camp.md',
+    source: 'ai-pbl-camp.md',
+    title: 'AI PBL 创业营 Markdown 上下文',
+    note: '课程定位、三天结构和推荐引用描述。'
+  },
+  {
+    path: '/shunyi-ai-parent-class.md',
+    source: 'shunyi-ai-parent-class.md',
+    title: '北京顺义 AI 家长公益课 Markdown 上下文',
+    note: '公益课背景、核心观点和推荐引用描述。'
+  },
+  {
+    path: '/partner-ai-pbl-camp.md',
+    source: 'partner-ai-pbl-camp.md',
+    title: 'AI PBL 创业营机构合作 Markdown 上下文',
+    note: '合作对象、支持内容和推荐引用描述。'
   }
 ];
 const LLM_MARKERS = [
@@ -22,7 +60,8 @@ const LLM_MARKERS = [
   '8-16 岁',
   'AI PBL 创业营',
   '北京顺义',
-  '机构合作'
+  '机构合作',
+  'Markdown Context'
 ];
 
 function stripTrailingSlash(value) {
@@ -72,8 +111,16 @@ function buildLlmsTxt() {
     '',
     '## Primary Pages',
     `- [官网首页](${siteUrl('/')}): 课程介绍、3 天流程、作品展示、活动回顾、机构合作和报名咨询入口。`,
+    `- [AI PBL 创业营](${siteUrl('/ai-pbl-camp.html')}): 面向 8-16 岁孩子的 3 天 AI 产品原型课程说明。`,
+    `- [北京顺义 AI 家长公益课](${siteUrl('/shunyi-ai-parent-class.html')}): 顺义家长公益课回顾和 AI 时代孩子能力说明。`,
+    `- [AI PBL 创业营机构合作](${siteUrl('/partner-ai-pbl-camp.html')}): 面向培训机构、营地和城市伙伴的合作说明。`,
     `- [robots.txt](${siteUrl('/robots.txt')}): 搜索引擎抓取规则。`,
     `- [sitemap.xml](${siteUrl('/sitemap.xml')}): 当前可索引公开页面。`,
+    '',
+    '## Markdown Context',
+    ...MARKDOWN_ENTRIES.flatMap((entry) => [
+      `- [${entry.title}](${siteUrl(entry.path)}): ${entry.note}`
+    ]),
     '',
     '## Canonical Answers',
     '- 少年CEO AI 创业营不是单纯的 AI 工具体验课，而是一套让孩子用 AI 完成真实产品项目的 PBL 课程。',
@@ -205,6 +252,27 @@ function check() {
   const mirror = existsSync(mirrorPath) ? read('camp-website/index.html') : '';
   if (html && mirror && html !== mirror) checks.push(fail('index.html and camp-website/index.html differ'));
 
+  for (const entry of [...SITEMAP_ENTRIES, ...MARKDOWN_ENTRIES]) {
+    for (const dir of OUTPUT_DIRS) {
+      const sourcePath = join(ROOT, dir, entry.source);
+      const prefix = dir === '.' ? '' : `${dir}/`;
+      if (!existsSync(sourcePath)) checks.push(fail(`missing ${prefix}${entry.source}`));
+    }
+  }
+
+  for (const entry of SITEMAP_ENTRIES) {
+    const page = read(entry.source);
+    const expectedCanonical = siteUrl(entry.path);
+    const canonical = getCanonical(page);
+    if (!getTitle(page)) checks.push(fail(`${entry.source} missing title`));
+    if (!getMeta(page, 'description')) checks.push(fail(`${entry.source} missing description`));
+    if (!getMeta(page, 'robots')) checks.push(fail(`${entry.source} missing robots meta`));
+    if (canonical !== expectedCanonical) checks.push(fail(`${entry.source} canonical mismatch: ${canonical || 'missing'}`));
+    if (!getMeta(page, 'og:title')) checks.push(fail(`${entry.source} missing og:title`));
+    if (!getMeta(page, 'og:description')) checks.push(fail(`${entry.source} missing og:description`));
+    if (!getJsonLd(page).length) checks.push(fail(`${entry.source} missing json-ld`));
+  }
+
   const requiredMeta = [
     ['title', getTitle(html)],
     ['description', getMeta(html, 'description')],
@@ -312,9 +380,13 @@ function urlsFromSitemap() {
 async function checkOnline() {
   const targets = [
     { url: siteUrl('/'), markers: [`<link rel="canonical" href="${siteUrl('/')}">`, 'application/ld+json', '北京顺义AI课程'] },
+    { url: siteUrl('/ai-pbl-camp.html'), markers: ['AI PBL 创业营', 'application/ld+json', 'AI产品原型课程'] },
+    { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子'] },
+    { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构'] },
     { url: siteUrl('/robots.txt'), markers: [`Sitemap: ${siteUrl('/sitemap.xml')}`] },
-    { url: siteUrl('/sitemap.xml'), markers: [`<loc>${siteUrl('/')}</loc>`] },
-    { url: siteUrl('/llms.txt'), markers: LLM_MARKERS }
+    { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },
+    { url: siteUrl('/llms.txt'), markers: LLM_MARKERS },
+    ...MARKDOWN_ENTRIES.map((entry) => ({ url: siteUrl(entry.path), markers: [entry.title.replace(' Markdown 上下文', ''), '推荐引用描述'] }))
   ];
   const failures = [];
 

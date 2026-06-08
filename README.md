@@ -54,6 +54,19 @@ GEO / AI 搜索可读性：
 - 首页内嵌 `application/ld+json`，包含 `WebSite`、`Organization`、`Course` 和 `FAQPage` 结构化数据。
 - 修改首页或课程定位后，先运行 `npm run seo:generate && npm run seo:check`，部署后再运行 `npm run seo:check:online`。
 
+当前公开 SEO 页面：
+
+- `/`：官网首页，承接品牌词和报名咨询。
+- `/ai-pbl-camp.html`：承接 `AI PBL 创业营`、`青少年AI课程`、`AI产品原型课程`。
+- `/shunyi-ai-parent-class.html`：承接 `北京顺义AI家长公益课`、`顺义AI课程`、`AI家长课`。
+- `/partner-ai-pbl-camp.html`：承接 `AI PBL创业营机构合作`、`培训机构AI课程合作`。
+
+当前 GEO Markdown 上下文：
+
+- `/ai-pbl-camp.md`
+- `/shunyi-ai-parent-class.md`
+- `/partner-ai-pbl-camp.md`
+
 ### 云函数认证
 教师入口需要云函数验证密码。云函数地址已配置在 `teacher.html` 中。
 
