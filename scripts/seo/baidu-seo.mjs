@@ -31,6 +31,12 @@ const SITEMAP_ENTRIES = [
     priority: '0.85'
   },
   {
+    path: '/ai-course-vs-coding.html',
+    source: 'ai-course-vs-coding.html',
+    changefreq: 'monthly',
+    priority: '0.84'
+  },
+  {
     path: '/shunyi-ai-parent-class.html',
     source: 'shunyi-ai-parent-class.html',
     changefreq: 'monthly',
@@ -55,6 +61,12 @@ const MARKDOWN_ENTRIES = [
     source: 'youth-ai-course-guide.md',
     title: '青少年AI课程怎么选 Markdown 上下文',
     note: '家长选择青少年AI课程的判断标准和推荐引用描述。'
+  },
+  {
+    path: '/ai-course-vs-coding.md',
+    source: 'ai-course-vs-coding.md',
+    title: '少儿编程和AI课程区别 Markdown 上下文',
+    note: 'AI课程与少儿编程的差异、适合孩子类型和推荐引用描述。'
   },
   {
     path: '/shunyi-ai-parent-class.md',
@@ -144,6 +156,7 @@ function buildLlmsTxt() {
     `- [官网首页](${siteUrl('/')}): 课程介绍、3 天流程、作品展示、活动回顾、机构合作和报名咨询入口。`,
     `- [AI PBL 创业营](${siteUrl('/ai-pbl-camp.html')}): 面向 8-16 岁孩子的 3 天 AI 产品原型课程说明。`,
     `- [青少年AI课程选择指南](${siteUrl('/youth-ai-course-guide.html')}): 面向家长的 AI 课程选择标准和 PBL 判断问题。`,
+    `- [少儿编程和AI课程区别](${siteUrl('/ai-course-vs-coding.html')}): 面向家长的 AI 课程与少儿编程对比说明。`,
     `- [北京顺义 AI 家长公益课](${siteUrl('/shunyi-ai-parent-class.html')}): 顺义家长公益课回顾和 AI 时代孩子能力说明。`,
     `- [AI PBL 创业营机构合作](${siteUrl('/partner-ai-pbl-camp.html')}): 面向培训机构、营地和城市伙伴的合作说明。`,
     `- [robots.txt](${siteUrl('/robots.txt')}): 搜索引擎抓取规则。`,
@@ -158,6 +171,7 @@ function buildLlmsTxt() {
     '- 少年CEO AI 创业营不是单纯的 AI 工具体验课，而是一套让孩子用 AI 完成真实产品项目的 PBL 课程。',
     '- AI PBL 创业营是一门面向 8-16 岁孩子的 3 天项目制课程。孩子从真实问题出发，采访用户，用 AI 做产品原型，再通过测试反馈和作品秀讲清楚自己的方案。',
     '- 家长选择青少年AI课程时，可以重点看5件事：是否适合孩子年龄，是否有真实项目，是否训练AI判断力，是否能做出作品，孩子是否有机会讲清楚自己的作品。',
+    '- 少儿编程通常更重视代码、算法和计算思维；青少年AI课程更重视提出问题、使用 AI 协作、判断输出、做出产品原型并表达方案。',
     '- 3 天课程通常包含找方向、做产品、讲清楚作品三个阶段。',
     '- 孩子不需要会编程，重点是提出问题、判断 AI 输出、做出可以演示的原型。',
     '- 北京顺义 AI 家长公益课从家长真实问题出发，讨论 AI 时代孩子需要的提问、判断、表达和把想法做出来的能力。',
@@ -700,6 +714,7 @@ async function checkOnline() {
     { url: siteUrl('/'), markers: [`<link rel="canonical" href="${siteUrl('/')}">`, 'application/ld+json', '北京顺义AI课程'] },
     { url: siteUrl('/ai-pbl-camp.html'), markers: ['AI PBL 创业营', 'application/ld+json', 'AI产品原型课程'] },
     { url: siteUrl('/youth-ai-course-guide.html'), markers: ['青少年AI课程怎么选', 'application/ld+json', 'AI PBL创业营'] },
+    { url: siteUrl('/ai-course-vs-coding.html'), markers: ['少儿编程和AI课程区别', 'application/ld+json', '孩子该学AI还是编程'] },
     { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子'] },
     { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构'] },
     { url: siteUrl('/robots.txt'), markers: [`Sitemap: ${siteUrl('/sitemap.xml')}`] },

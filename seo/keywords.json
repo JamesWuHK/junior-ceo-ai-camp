@@ -74,6 +74,28 @@
       ]
     },
     {
+      "id": "ai-course-vs-coding",
+      "audienceLayer": "家长公开展示",
+      "targetPage": "/ai-course-vs-coding.html",
+      "source": "ai-course-vs-coding.html",
+      "markdownSource": "ai-course-vs-coding.md",
+      "primary": "少儿编程和AI课程区别",
+      "secondary": [
+        "AI课程和编程课区别",
+        "孩子学AI还是编程",
+        "青少年AI课程",
+        "儿童AI课程",
+        "AI PBL创业营",
+        "少儿编程",
+        "AI产品原型"
+      ],
+      "aiQueries": [
+        "少儿编程和AI课程区别是什么",
+        "孩子该学AI还是编程",
+        "不会编程能学AI课程吗"
+      ]
+    },
+    {
       "id": "shunyi-parent-class",
       "audienceLayer": "家长公开展示",
       "targetPage": "/shunyi-ai-parent-class.html",
