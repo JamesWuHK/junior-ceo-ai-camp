@@ -134,6 +134,18 @@ export const api = {
       headers: { Authorization: `Bearer ${teacherToken()}` }
     }),
   teams: () => request<{ teams: Team[] }>("/teams"),
+  saveTeam: (payload: Partial<Team>) =>
+    request<{ team: Team }>("/teams", {
+      method: "POST",
+      headers: headers(true),
+      body: JSON.stringify(payload)
+    }),
+  assignStudentTeam: (id: string, teamId: string | null) =>
+    request<{ student: Student }>(`/students/${encodeURIComponent(id)}/team`, {
+      method: "POST",
+      headers: headers(true),
+      body: JSON.stringify({ team_id: teamId })
+    }),
   uploadToken: (kind: string, fileName: string, tokenOverride?: string, studentId?: string) =>
     request<UploadTarget>("/future-photo/upload-token", {
       method: "POST",

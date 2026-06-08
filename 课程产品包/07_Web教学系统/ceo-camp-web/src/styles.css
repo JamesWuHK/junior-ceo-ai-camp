@@ -2145,6 +2145,130 @@ button:disabled {
   gap: 12px;
 }
 
+.team-workspace-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.team-workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.75fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.team-edit-list,
+.member-assignment-list {
+  display: grid;
+  gap: 10px;
+}
+
+.team-edit-card {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fffdf6;
+  padding: 13px;
+  display: grid;
+  gap: 11px;
+}
+
+.team-edit-header,
+.team-role-grid,
+.team-status-selects {
+  display: grid;
+  gap: 8px;
+}
+
+.team-edit-header {
+  grid-template-columns: 74px minmax(0, 1fr) 96px;
+}
+
+.team-role-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.team-status-selects {
+  grid-template-columns: 1fr 1fr;
+}
+
+.team-edit-card label {
+  display: grid;
+  gap: 5px;
+}
+
+.team-edit-card label span,
+.member-assignment-row small {
+  color: #60705f;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.team-edit-card input,
+.team-edit-card select,
+.member-assignment-row select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #dfd6c1;
+  border-radius: 6px;
+  background: #fff;
+  color: #1d251c;
+  font: inherit;
+  font-weight: 800;
+  padding: 9px 10px;
+}
+
+.team-edit-card footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.team-edit-card footer small {
+  color: #536151;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.team-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.member-assignment-list {
+  max-height: 560px;
+  overflow: auto;
+}
+
+.member-assignment-row {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fffdf8;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.8fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.member-assignment-row div {
+  display: grid;
+  gap: 3px;
+}
+
+.member-assignment-row span {
+  color: #7a6a4d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.member-assignment-row strong {
+  color: #172018;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
 .progress-board-panel {
   display: grid;
   gap: 12px;
@@ -4396,6 +4520,7 @@ button:disabled {
   .showcase-form,
   .lesson-canvas,
   .teacher-grid,
+  .team-workspace-grid,
   .progress-board-grid,
   .career-grid {
     grid-template-columns: 1fr 1fr;
@@ -4548,6 +4673,11 @@ button:disabled {
   .award-manage-row,
   .project-submission-row,
   .feedback-note,
+  .team-workspace-grid,
+  .team-edit-header,
+  .team-role-grid,
+  .team-status-selects,
+  .member-assignment-row,
   .progress-board-grid,
   .progress-team-card header,
   .blocker-note,

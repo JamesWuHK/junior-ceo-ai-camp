@@ -2056,6 +2056,7 @@ function TeacherApp({
             />
           )}
         </section>
+        <TeacherTeamWorkspace students={students} refresh={refresh} />
         <TeacherProgressBoard students={students} />
         <section className="teacher-grid">
           <TeacherStudents students={students} refresh={refresh} />
@@ -2115,6 +2116,234 @@ const progressMilestones = [
   { key: "product_feedback", label: "互测反馈" },
   { key: "final_showcase", label: "展示卡" }
 ] as const;
+
+const teamRoleLabels = ["采访", "产品", "AI", "展示"] as const;
+
+const projectStatusOptions = [
+  { value: "NOT_STARTED", label: "未开始" },
+  { value: "DISCOVERY", label: "找问题" },
+  { value: "PROTOTYPING", label: "做原型" },
+  { value: "TESTING", label: "互测" },
+  { value: "READY", label: "准备展示" }
+];
+
+const showcaseStatusOptions = [
+  { value: "DRAFT", label: "草稿" },
+  { value: "READY", label: "可上场" },
+  { value: "PUBLISHED", label: "已展示" }
+];
+
+function TeacherTeamWorkspace({ students, refresh }: { students: Student[]; refresh: () => Promise<void> }) {
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [managedStudents, setManagedStudents] = useState<Student[]>(students);
+  const [message, setMessage] = useState("");
+  const [savingTeamId, setSavingTeamId] = useState("");
+  const [assigningStudentId, setAssigningStudentId] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  const load = async () => {
+    try {
+      const [teamResult, studentResult] = await Promise.all([api.teams(), api.students()]);
+      setTeams(teamResult.teams);
+      setManagedStudents(studentResult.students);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "小组编排加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  useEffect(() => {
+    setManagedStudents(students);
+  }, [students]);
+
+  const updateTeam = (teamId: string, patch: Partial<Team>) => {
+    setTeams((items) => items.map((team) => (team.id === teamId ? { ...team, ...patch } : team)));
+  };
+
+  const updateTeamRole = (team: Team, role: string, value: string) => {
+    updateTeam(team.id, { roles: { ...(team.roles || {}), [role]: value } });
+  };
+
+  const saveTeam = async (team: Team) => {
+    setSavingTeamId(team.id);
+    setMessage("");
+    try {
+      const result = await api.saveTeam(team);
+      setTeams((items) => items.map((item) => (item.id === team.id ? result.team : item)));
+      setMessage(`${result.team.name} 已保存。`);
+      await Promise.all([refresh(), load()]);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setSavingTeamId("");
+    }
+  };
+
+  const addTeam = async () => {
+    const nextGroupNo = Math.max(0, ...teams.map((team) => Number(team.group_no) || 0)) + 1;
+    const draft: Team = {
+      id: `team-${nextGroupNo}`,
+      group_no: nextGroupNo,
+      name: `第 ${nextGroupNo} 组`,
+      table_no: String(nextGroupNo),
+      roles: {},
+      project_status: "NOT_STARTED",
+      showcase_status: "DRAFT"
+    };
+    setAdding(true);
+    setMessage("");
+    try {
+      const result = await api.saveTeam(draft);
+      setTeams((items) => [...items, result.team].sort((a, b) => a.group_no - b.group_no));
+      setMessage(`${result.team.name} 已加入。`);
+      await Promise.all([refresh(), load()]);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "新增失败");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const assignStudentTeam = async (student: Student, teamId: string) => {
+    setAssigningStudentId(student.id);
+    setMessage("");
+    try {
+      const result = await api.assignStudentTeam(student.id, teamId || null);
+      setManagedStudents((items) => items.map((item) => (item.id === student.id ? result.student : item)));
+      setMessage(`${student.nickname} 的小组已更新。`);
+      await refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "分组失败");
+    } finally {
+      setAssigningStudentId("");
+    }
+  };
+
+  const assignedCount = managedStudents.filter((student) => student.team_id).length;
+
+  return (
+    <section className="panel team-workspace-panel">
+      <div className="panel-title">
+        <UsersRound size={20} />
+        <h2>小组编排</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{teams.length} 个小组</span>
+        <span>{assignedCount} 名已分组</span>
+        <span>{Math.max(0, managedStudents.length - assignedCount)} 名待分组</span>
+      </div>
+      <div className="team-actions">
+        <button className="secondary" disabled={adding} onClick={addTeam}>
+          {adding ? "添加中" : "新增小组"}
+        </button>
+        <button className="secondary" onClick={() => void load()}>
+          刷新
+        </button>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="team-workspace-grid">
+        <div className="team-edit-list">
+          {teams.map((team) => {
+            const members = managedStudents.filter((student) => student.team_id === team.id);
+            return (
+              <article className="team-edit-card" key={team.id}>
+                <header className="team-edit-header">
+                  <label>
+                    <span>组序</span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={team.group_no}
+                      onChange={(event) => updateTeam(team.id, { group_no: Number(event.target.value) || 1 })}
+                    />
+                  </label>
+                  <label>
+                    <span>组名</span>
+                    <input value={team.name} onChange={(event) => updateTeam(team.id, { name: event.target.value })} />
+                  </label>
+                  <label>
+                    <span>桌号</span>
+                    <input value={team.table_no || ""} onChange={(event) => updateTeam(team.id, { table_no: event.target.value })} />
+                  </label>
+                </header>
+                <div className="team-role-grid">
+                  {teamRoleLabels.map((role) => (
+                    <label key={role}>
+                      <span>{role}</span>
+                      <input
+                        value={team.roles?.[role] || ""}
+                        onChange={(event) => updateTeamRole(team, role, event.target.value)}
+                        placeholder="姓名"
+                      />
+                    </label>
+                  ))}
+                </div>
+                <div className="team-status-selects">
+                  <label>
+                    <span>项目进度</span>
+                    <select
+                      value={team.project_status || "NOT_STARTED"}
+                      onChange={(event) => updateTeam(team.id, { project_status: event.target.value })}
+                    >
+                      {projectStatusOptions.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>展示准备</span>
+                    <select
+                      value={team.showcase_status || "DRAFT"}
+                      onChange={(event) => updateTeam(team.id, { showcase_status: event.target.value })}
+                    >
+                      {showcaseStatusOptions.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <footer>
+                  <small>{members.length ? members.map((student) => student.nickname).join("、") : "还没有成员"}</small>
+                  <button disabled={savingTeamId === team.id} onClick={() => void saveTeam(team)}>
+                    {savingTeamId === team.id ? "保存中" : "保存小组"}
+                  </button>
+                </footer>
+              </article>
+            );
+          })}
+        </div>
+        <div className="member-assignment-list">
+          {managedStudents.map((student) => (
+            <div className="member-assignment-row" key={student.id}>
+              <div>
+                <span>{student.student_no || "--"}</span>
+                <strong>{student.nickname}</strong>
+                <small>{student.team_name || "未分组"}</small>
+              </div>
+              <select
+                value={student.team_id || ""}
+                disabled={assigningStudentId === student.id}
+                onChange={(event) => void assignStudentTeam(student, event.target.value)}
+                aria-label={`设置 ${student.nickname} 的小组`}
+              >
+                <option value="">未分组</option>
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    第 {team.group_no} 组 · {team.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+          {!managedStudents.length && <p className="empty">先添加学生名单，再进行分组。</p>}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function submissionTeamId(item: TaskSubmission) {
   return item.team_id || asText(item.payload.team_id);
@@ -6852,4 +7081,9 @@ function WallApp({
   );
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+const rootElement = document.getElementById("root");
+if (!rootElement) throw new Error("Root element not found");
+
+const rootStore = window as Window & typeof globalThis & { __ceoCampRoot?: ReturnType<typeof createRoot> };
+rootStore.__ceoCampRoot ??= createRoot(rootElement);
+rootStore.__ceoCampRoot.render(<App />);

@@ -1145,6 +1145,36 @@ app.delete("/students/:id", async (request, reply) => {
   };
 });
 
+app.post("/students/:id/team", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const { id } = request.params as { id: string };
+  const body = (request.body ?? {}) as { team_id?: string | null };
+  const teamId = body.team_id ? String(body.team_id) : null;
+  const student = row("SELECT id, nickname FROM students WHERE id = ? AND camp_id = ?", [id, campId()]);
+  if (!student) return reply.code(404).send({ error: "NOT_FOUND" });
+  if (teamId) {
+    const team = row("SELECT id FROM teams WHERE id = ? AND camp_id = ?", [teamId, campId()]);
+    if (!team) return reply.code(404).send({ error: "TEAM_NOT_FOUND" });
+  }
+  db.prepare("UPDATE students SET team_id = ?, updated_at = ? WHERE id = ? AND camp_id = ?").run(
+    teamId,
+    nowSql(),
+    id,
+    campId()
+  );
+  audit("students.team.assign", "students", id, { team_id: teamId });
+  emitState("students.changed");
+  const updated = row(
+    `SELECT s.*, t.name AS team_name
+       FROM students s
+       LEFT JOIN teams t ON t.id = s.team_id
+      WHERE s.id = ?
+        AND s.camp_id = ?`,
+    [id, campId()]
+  );
+  return { student: serializeStudent(updated ?? student) };
+});
+
 app.get("/teams", async () => ({
   teams: rows("SELECT * FROM teams WHERE camp_id = ? ORDER BY group_no", campId()).map((team) => ({
     ...team,
