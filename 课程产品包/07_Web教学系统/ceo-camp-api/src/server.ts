@@ -133,6 +133,11 @@ const scoreDimensions: ScoreDimension[] = [
   "story_expression",
   "team_pitch"
 ];
+const classroomMediaAssetTypes = new Set([
+  "product-screenshot",
+  "product-poster",
+  "final-showcase-screenshot"
+]);
 
 function requireTeacher(request: { headers: Record<string, unknown> }): TeacherPrincipal | null {
   const header = request.headers.authorization;
@@ -262,8 +267,7 @@ function isSafeObjectKey(objectKey: string) {
 
 function canReadWallObject(objectKey: string) {
   if (!isSafeObjectKey(objectKey)) return false;
-  return Boolean(
-    row(
+  const approvedFuturePhoto = row(
       `SELECT f.id
          FROM future_photo_submissions f
          JOIN students s ON s.id = f.student_id
@@ -272,6 +276,18 @@ function canReadWallObject(objectKey: string) {
           AND s.display_status = 'ON_WALL'
         LIMIT 1`,
       objectKey
+  );
+  if (approvedFuturePhoto) return true;
+  return Boolean(
+    row(
+      `SELECT id
+         FROM media_assets
+        WHERE camp_id = ?
+          AND object_key = ?
+          AND asset_type IN ('product-screenshot', 'product-poster', 'final-showcase-screenshot')
+          AND display_permission IN ('CLASSROOM', 'PUBLIC')
+        LIMIT 1`,
+      [campId(), objectKey]
     )
   );
 }
@@ -1481,6 +1497,64 @@ app.put("/uploads/local", async (request, reply) => {
   };
 });
 
+app.post("/media/assets", async (request, reply) => {
+  const teacher = requireTeacher(request);
+  const studentPrincipal = requireStudent(request);
+  if (!teacher && !studentPrincipal) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const body = (request.body ?? {}) as Record<string, unknown>;
+  const objectKey = String(body.object_key ?? "");
+  const assetType = String(body.asset_type ?? "product-screenshot");
+  if (!isSafeObjectKey(objectKey)) return reply.code(400).send({ error: "INVALID_UPLOAD_KEY" });
+  if (!classroomMediaAssetTypes.has(assetType)) return reply.code(400).send({ error: "INVALID_ASSET_TYPE" });
+  const student = studentPrincipal
+    ? row<{ id: string; nickname: string; team_id?: string | null; team_name?: string | null }>(
+        `SELECT s.id, s.nickname, s.team_id, t.name AS team_name
+           FROM students s
+           LEFT JOIN teams t ON t.id = s.team_id
+          WHERE s.id = ?
+            AND s.camp_id = ?`,
+        [studentPrincipal.id, campId()]
+      )
+    : null;
+  if (studentPrincipal && !student) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const id = randomUUID();
+  const ownerType = student?.team_id ? "team" : student ? "student" : "teacher";
+  const ownerId = student?.team_id || student?.id || teacher?.id || null;
+  const title = String(body.title ?? "").trim().slice(0, 120) || "作品展示图";
+  const record = {
+    id,
+    camp_id: campId(),
+    owner_type: ownerType,
+    owner_id: ownerId,
+    asset_type: assetType,
+    object_key: objectKey,
+    title,
+    day: body.day ? Number(body.day) : null,
+    audit_status: "SUBMITTED",
+    display_permission: "CLASSROOM",
+    updated_at: nowSql()
+  };
+  db.prepare(
+    `INSERT INTO media_assets
+      (id, camp_id, owner_type, owner_id, asset_type, object_key, title, day,
+       audit_status, display_permission, updated_at)
+     VALUES
+      (@id, @camp_id, @owner_type, @owner_id, @asset_type, @object_key, @title, @day,
+       @audit_status, @display_permission, @updated_at)`
+  ).run(record);
+  audit("media.asset.register", "media_assets", id, {
+    owner_type: ownerType,
+    owner_id: ownerId,
+    asset_type: assetType
+  }, student ? `student:${student.id}` : `teacher:${teacher?.id}`);
+  return {
+    asset: {
+      ...record,
+      url: `${config.publicApiBase}/media/object?key=${encodeURIComponent(objectKey)}`
+    }
+  };
+});
+
 app.post("/future-photo/submissions", async (request, reply) => {
   const student = requireStudent(request);
   if (!student) return reply.code(401).send({ error: "UNAUTHORIZED" });
@@ -2041,7 +2115,7 @@ app.get("/media/object", async (request, reply) => {
   const objectKey = String(query.key ?? "");
   if (!canReadWallObject(objectKey)) return reply.code(404).send({ error: "NOT_FOUND" });
   try {
-    const object = await readCosObject(objectKey);
+    const object = await readPrivateUploadObject(objectKey);
     reply.header("Content-Type", object.contentType);
     reply.header("Cache-Control", "private, max-age=120");
     if (object.contentLength) reply.header("Content-Length", object.contentLength);

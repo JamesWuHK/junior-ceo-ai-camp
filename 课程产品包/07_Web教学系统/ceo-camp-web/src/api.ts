@@ -161,6 +161,12 @@ export const api = {
       headers: studentHeaders(true, tokenOverride),
       body: JSON.stringify({ kind, file_name: fileName, student_id: studentId })
     }),
+  registerMediaAsset: (payload: { object_key: string; asset_type: string; title?: string; day?: number }) =>
+    request<{ asset: { id: string; object_key: string; asset_type: string; title?: string; url: string } }>("/media/assets", {
+      method: "POST",
+      headers: studentHeaders(true),
+      body: JSON.stringify(payload)
+    }),
   mobileUploadLink: () =>
     request<{ token: string; expires_in: number; student_id: string; student: StudentAccount }>("/future-photo/mobile-upload-link", {
       method: "POST",

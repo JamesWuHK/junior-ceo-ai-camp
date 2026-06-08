@@ -3932,7 +3932,8 @@ function TeacherProjectSubmissions() {
       asText(definition?.payload.one_liner).trim() ||
       (targetUser && coreProblem ? `${targetUser}：${coreProblem}` : "") ||
       asText(packaging?.payload.slogan).trim();
-    const screenshotUrl = asText(packaging?.payload.poster_url).trim();
+    const screenshotKey = asText(item.payload.screenshot_key).trim() || asText(packaging?.payload.poster_key).trim();
+    const screenshotUrl = asText(item.payload.screenshot_url).trim() || asText(packaging?.payload.poster_url).trim();
     if (!productName || !accessUrl) {
       setMessage("这条提交缺少作品名或链接。");
       return;
@@ -3947,6 +3948,7 @@ function TeacherProjectSubmissions() {
         track: teamName || item.student_name || targetUser || undefined,
         one_liner: mergedLine || undefined,
         access_url: normalizeShowcaseUrl(accessUrl),
+        screenshot_key: screenshotKey || undefined,
         screenshot_url: screenshotUrl ? normalizeShowcaseUrl(screenshotUrl) : undefined,
         publish_status: "PUBLISHED"
       });
@@ -3971,8 +3973,14 @@ function TeacherProjectSubmissions() {
           const productName = asText(item.payload.product_name);
           const oneLiner = asText(item.payload.one_liner);
           const accessUrl = asText(item.payload.access_url);
+          const screenshot = asText(item.payload.screenshot_url);
           return (
             <article className="project-submission-row" key={item.id}>
+              {screenshot && (
+                <div className="project-submission-shot">
+                  <img src={normalizeShowcaseUrl(screenshot)} alt={productName || "作品展示图"} />
+                </div>
+              )}
               <div>
                 <span>{item.team_name || item.student_name || "未分组"}</span>
                 <strong>{productName || "未命名作品"}</strong>
@@ -4521,6 +4529,7 @@ function TeacherFinalShowcase() {
     );
     const packaging = latestTask(relatedItems.filter((candidate) => candidate.task_type === "product_packaging"));
     const story = latestTask(relatedItems.filter((candidate) => candidate.task_type === "story_pitch"));
+    const screenshotKey = asText(item.payload.screenshot_key).trim() || asText(packaging?.payload.poster_key).trim();
     const screenshotUrl = asText(item.payload.screenshot_url).trim() || asText(packaging?.payload.poster_url).trim();
     const oneLiner =
       valueLine ||
@@ -4540,6 +4549,7 @@ function TeacherFinalShowcase() {
         track: teamName || item.student_name || asText(packaging?.payload.target_user) || undefined,
         one_liner: oneLiner || undefined,
         access_url: normalizeShowcaseUrl(accessUrl),
+        screenshot_key: screenshotKey || undefined,
         screenshot_url: screenshotUrl ? normalizeShowcaseUrl(screenshotUrl) : undefined,
         publish_status: "PUBLISHED"
       });
@@ -5403,6 +5413,107 @@ function normalizeShowcaseUrl(value: string) {
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   if (trimmed.startsWith("/")) return trimmed;
   return `https://${trimmed}`;
+}
+
+type ClassroomImageAssetType = "product-screenshot" | "product-poster" | "final-showcase-screenshot";
+
+function mediaObjectUrl(objectKey: string) {
+  return `${API_BASE}/media/object?key=${encodeURIComponent(objectKey)}`;
+}
+
+async function uploadClassroomImage(file: File, assetType: ClassroomImageAssetType) {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("请选择一张图片。");
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    throw new Error("这张图片有点大，请换一张小于 8MB 的图片。");
+  }
+  const target = await api.uploadToken(assetType, file.name);
+  if (target.provider !== "mock") {
+    const response = await fetch(target.uploadUrl, {
+      method: "PUT",
+      headers: target.headers,
+      body: file
+    });
+    if (!response.ok) throw new Error("图片没有传好，请重新选一次。");
+  }
+  await api.registerMediaAsset({
+    object_key: target.objectKey,
+    asset_type: assetType,
+    title: file.name
+  });
+  return {
+    objectKey: target.objectKey,
+    url: mediaObjectUrl(target.objectKey)
+  };
+}
+
+function StudentImageUploadField({
+  label,
+  value,
+  objectKey,
+  assetType,
+  onChange,
+  onObjectKeyChange
+}: {
+  label: string;
+  value: string;
+  objectKey: string;
+  assetType: ClassroomImageAssetType;
+  onChange: (value: string) => void;
+  onObjectKeyChange: (value: string) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const selectFile = async (file: File | null) => {
+    if (!file) return;
+    setUploading(true);
+    setMessage("");
+    try {
+      const result = await uploadClassroomImage(file, assetType);
+      onChange(result.url);
+      onObjectKeyChange(result.objectKey);
+      setMessage("展示图已准备好。");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "图片没有传好，请重新选一次。");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="student-upload-field">
+      <label>
+        {label}
+        <input
+          type="file"
+          accept="image/*"
+          disabled={uploading}
+          onChange={(event) => void selectFile(event.currentTarget.files?.[0] ?? null)}
+        />
+      </label>
+      <label>
+        或粘贴图片链接
+        <input
+          value={value}
+          onChange={(event) => {
+            onChange(event.target.value);
+            onObjectKeyChange("");
+          }}
+          placeholder="https://..."
+          inputMode="url"
+        />
+      </label>
+      {value && (
+        <div className="student-upload-preview">
+          <img src={normalizeShowcaseUrl(value)} alt="展示图预览" />
+          <span>{objectKey ? "展示图已准备好" : "已填写图片链接"}</span>
+        </div>
+      )}
+      {message && <p className={message.includes("准备好") ? "student-upload-message success" : "student-upload-message"}>{message}</p>}
+    </div>
+  );
 }
 
 function ShowcaseGallery({ items, variant = "panel" }: { items: ShowcaseItem[]; variant?: "panel" | "wall" }) {
@@ -9090,6 +9201,7 @@ function StudentFinalShowcaseTask({
   const [coreProblem, setCoreProblem] = useState("");
   const [accessUrl, setAccessUrl] = useState("");
   const [screenshotUrl, setScreenshotUrl] = useState("");
+  const [screenshotKey, setScreenshotKey] = useState("");
   const [valueLine, setValueLine] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
@@ -9136,8 +9248,10 @@ function StudentFinalShowcaseTask({
           target_user: targetUser.trim(),
           core_problem: coreProblem.trim(),
           access_url: normalizeShowcaseUrl(accessUrl),
+          screenshot_key: screenshotKey,
           screenshot_url: screenshotUrl.trim() ? normalizeShowcaseUrl(screenshotUrl) : "",
           value_line: valueLine.trim(),
+          team_id: student.team_id || "",
           team_name: student.team_name || ""
         }
       });
@@ -9149,6 +9263,7 @@ function StudentFinalShowcaseTask({
       setCoreProblem("");
       setAccessUrl("");
       setScreenshotUrl("");
+      setScreenshotKey("");
       setValueLine("");
       await refresh();
     } catch (err) {
@@ -9227,15 +9342,14 @@ function StudentFinalShowcaseTask({
               inputMode="url"
             />
           </label>
-          <label>
-            展示图链接（可选）
-            <input
-              value={screenshotUrl}
-              onChange={(event) => setScreenshotUrl(event.target.value)}
-              placeholder="https://..."
-              inputMode="url"
-            />
-          </label>
+          <StudentImageUploadField
+            label="上传展示图（可选）"
+            value={screenshotUrl}
+            objectKey={screenshotKey}
+            assetType="final-showcase-screenshot"
+            onChange={setScreenshotUrl}
+            onObjectKeyChange={setScreenshotKey}
+          />
           <label>
             一句话价值
             <textarea
@@ -9273,6 +9387,8 @@ function StudentProductLinkTask({
   const [productName, setProductName] = useState("");
   const [oneLiner, setOneLiner] = useState("");
   const [accessUrl, setAccessUrl] = useState("");
+  const [screenshotUrl, setScreenshotUrl] = useState("");
+  const [screenshotKey, setScreenshotKey] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
 
@@ -9299,10 +9415,15 @@ function StudentProductLinkTask({
           product_name: productName.trim(),
           one_liner: oneLiner.trim(),
           access_url: normalizeShowcaseUrl(accessUrl),
+          screenshot_key: screenshotKey,
+          screenshot_url: screenshotUrl.trim() ? normalizeShowcaseUrl(screenshotUrl) : "",
+          team_id: student.team_id || "",
           team_name: student.team_name || ""
         }
       });
       showMessage("success", "收到啦。老师会看到这张作品卡。");
+      setScreenshotUrl("");
+      setScreenshotKey("");
       await refresh();
     } catch (err) {
       showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
@@ -9354,6 +9475,14 @@ function StudentProductLinkTask({
               enterKeyHint="done"
             />
           </label>
+          <StudentImageUploadField
+            label="上传展示图（可选）"
+            value={screenshotUrl}
+            objectKey={screenshotKey}
+            assetType="product-screenshot"
+            onChange={setScreenshotUrl}
+            onObjectKeyChange={setScreenshotKey}
+          />
           <button className="submit-button" disabled={submitting} onClick={submit}>
             {submitting ? <Loader2 className="spin" size={18} /> : <ExternalLink size={18} />}
             提交
@@ -10007,6 +10136,7 @@ function StudentProductPackagingTask({
   const [sellingPoints, setSellingPoints] = useState("");
   const [posterPlan, setPosterPlan] = useState("");
   const [posterUrl, setPosterUrl] = useState("");
+  const [posterKey, setPosterKey] = useState("");
   const [accessUrl, setAccessUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
@@ -10050,6 +10180,7 @@ function StudentProductPackagingTask({
           selling_points: pointItems,
           selling_point_summary: pointItems.join(" / "),
           poster_plan: posterPlan.trim(),
+          poster_key: posterKey,
           poster_url: posterUrl.trim() ? normalizeShowcaseUrl(posterUrl) : "",
           access_url: accessUrl.trim() ? normalizeShowcaseUrl(accessUrl) : "",
           team_id: student.team_id || "",
@@ -10063,6 +10194,7 @@ function StudentProductPackagingTask({
       setSellingPoints("");
       setPosterPlan("");
       setPosterUrl("");
+      setPosterKey("");
       setAccessUrl("");
       await refresh();
     } catch (err) {
@@ -10137,15 +10269,14 @@ function StudentProductPackagingTask({
               rows={3}
             />
           </label>
-          <label>
-            海报或截图链接（可选）
-            <input
-              value={posterUrl}
-              onChange={(event) => setPosterUrl(event.target.value)}
-              placeholder="https://..."
-              inputMode="url"
-            />
-          </label>
+          <StudentImageUploadField
+            label="上传海报或截图（可选）"
+            value={posterUrl}
+            objectKey={posterKey}
+            assetType="product-poster"
+            onChange={setPosterUrl}
+            onObjectKeyChange={setPosterKey}
+          />
           <label>
             作品链接（可选）
             <input
