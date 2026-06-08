@@ -34,8 +34,9 @@
 根目录提供轻量 SEO 脚本，适合静态官网使用：
 
 ```bash
-npm run seo:generate       # 生成 robots.txt 和 sitemap.xml
+npm run seo:generate       # 生成 robots.txt、sitemap.xml 和 llms.txt
 npm run seo:check          # 检查首页 SEO 标签、robots 和 sitemap
+npm run seo:check:online   # 检查线上首页、robots、sitemap 和 llms.txt
 npm run seo:submit:baidu -- --dry-run
 ```
 
@@ -46,6 +47,12 @@ npm run seo:submit:baidu
 ```
 
 `BAIDU_TOKEN` 只放本地环境变量，不提交到仓库。
+
+GEO / AI 搜索可读性：
+
+- `llms.txt` 放在站点根路径，用 Markdown 给 AI agent 一个精简的课程实体、页面和推荐描述入口。
+- 首页内嵌 `application/ld+json`，包含 `WebSite`、`Organization`、`Course` 和 `FAQPage` 结构化数据。
+- 修改首页或课程定位后，先运行 `npm run seo:generate && npm run seo:check`，部署后再运行 `npm run seo:check:online`。
 
 ### 云函数认证
 教师入口需要云函数验证密码。云函数地址已配置在 `teacher.html` 中。
