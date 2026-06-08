@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,6 +9,8 @@ const ROOT = resolve(__dirname, '../..');
 loadDotEnv();
 const SITE_URL = stripTrailingSlash(process.env.SITE_URL || 'https://camps.wanli.wiki');
 const OUTPUT_DIRS = ['.', 'camp-website'];
+const KEYWORD_CONFIG_FILE = 'seo/keywords.json';
+const COVERAGE_REPORT_FILE = 'reports/seo-baidu-geo-coverage.md';
 const SITEMAP_ENTRIES = [
   {
     path: '/',
@@ -62,6 +64,21 @@ const LLM_MARKERS = [
   '北京顺义',
   '机构合作',
   'Markdown Context'
+];
+const PUBLIC_INTERNAL_TERMS = [
+  '后台',
+  '审核',
+  '待审核',
+  '管理配置',
+  '生成队列',
+  '发布状态',
+  '接口',
+  'API',
+  '权限',
+  '数据库',
+  '同步',
+  '日志',
+  '运营'
 ];
 
 function stripTrailingSlash(value) {
@@ -200,6 +217,10 @@ function read(relativePath) {
   return readFileSync(join(ROOT, relativePath), 'utf8');
 }
 
+function readJson(relativePath) {
+  return JSON.parse(read(relativePath));
+}
+
 function getTitle(html) {
   return html.match(/<title>([\s\S]*?)<\/title>/i)?.[1]?.trim() || '';
 }
@@ -216,6 +237,10 @@ function getCanonical(html) {
 
 function getJsonLd(html) {
   return Array.from(html.matchAll(/<script\s+type=["']application\/ld\+json["']>([\s\S]*?)<\/script>/gi), (match) => match[1].trim());
+}
+
+function getHeadings(html, level) {
+  return Array.from(html.matchAll(new RegExp(`<h${level}\\b[^>]*>([\\s\\S]*?)<\\/h${level}>`, 'gi')), (match) => htmlToText(match[1]));
 }
 
 function jsonLdTypes(html) {
@@ -237,6 +262,82 @@ function jsonLdTypes(html) {
 
 function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function htmlToText(html) {
+  return String(html || '')
+    .replace(/<script\b[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style\b[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeForSearch(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[\s\-_/|｜·.。,:：;；!?！？'"“”‘’()（）[\]【】<>《》]+/g, '');
+}
+
+function includesPhrase(haystack, phrase) {
+  return normalizeForSearch(haystack).includes(normalizeForSearch(phrase));
+}
+
+function pageSearchFields(html) {
+  const bodyText = htmlToText(html);
+  const jsonLd = getJsonLd(html).join('\n');
+  return {
+    title: getTitle(html),
+    description: getMeta(html, 'description'),
+    keywords: getMeta(html, 'keywords'),
+    h1: getHeadings(html, 1).join(' '),
+    h2: getHeadings(html, 2).join(' '),
+    body: bodyText,
+    jsonLd,
+    all: [
+      getTitle(html),
+      getMeta(html, 'description'),
+      getMeta(html, 'keywords'),
+      getMeta(html, 'og:title'),
+      getMeta(html, 'og:description'),
+      getHeadings(html, 1).join(' '),
+      getHeadings(html, 2).join(' '),
+      bodyText,
+      jsonLd
+    ].join('\n')
+  };
+}
+
+function coverageLocations(fields, phrase) {
+  return ['title', 'description', 'keywords', 'h1', 'h2', 'body', 'jsonLd']
+    .filter((field) => includesPhrase(fields[field], phrase));
+}
+
+function statusLabel(failures, warnings) {
+  if (failures > 0) return 'FAIL';
+  if (warnings > 0) return 'WARN';
+  return 'PASS';
+}
+
+function markdownSourceForCluster(cluster) {
+  if (cluster.markdownSource) return cluster.markdownSource;
+  if (!cluster.targetPage || cluster.targetPage === '/') return '';
+  return cluster.targetPage.replace(/^\//, '').replace(/\.html$/, '.md');
+}
+
+function ensureReportDir() {
+  mkdirSync(join(ROOT, 'reports'), { recursive: true });
+}
+
+function writeReport(relativePath, content) {
+  ensureReportDir();
+  writeFileSync(join(ROOT, relativePath), content, 'utf8');
 }
 
 function check() {
@@ -350,6 +451,204 @@ function check() {
   }
 
   console.log('SEO check passed.');
+}
+
+function coverage() {
+  const rows = [];
+  const detailSections = [];
+  const config = readJson(KEYWORD_CONFIG_FILE);
+  const defaults = config.defaults || {};
+  const sitemap = existsSync(join(ROOT, 'sitemap.xml')) ? read('sitemap.xml') : '';
+  const llms = existsSync(join(ROOT, 'llms.txt')) ? read('llms.txt') : '';
+  const sitemapUrls = urlsFromSitemap();
+  const generatedAt = new Date().toISOString();
+
+  for (const cluster of config.clusters || []) {
+    const source = cluster.source || (cluster.targetPage === '/' ? 'index.html' : cluster.targetPage.replace(/^\//, ''));
+    const pageUrl = siteUrl(cluster.targetPage || '/');
+    const requiredPrimaryLocations = cluster.requiredPrimaryLocations || defaults.requiredPrimaryLocations || ['title', 'description', 'h1', 'body', 'jsonLd'];
+    const minimumSecondaryMatches = Number.isFinite(cluster.minimumSecondaryMatches)
+      ? cluster.minimumSecondaryMatches
+      : Number(defaults.minimumSecondaryMatches || 0);
+    const failures = [];
+    const warnings = [];
+    const markdownSource = markdownSourceForCluster(cluster);
+    let fields = {};
+    let primaryLocations = [];
+    let secondaryMatches = [];
+    let secondaryMissing = cluster.secondary || [];
+    let jsonLdTypeList = [];
+    let publicInternalTerms = [];
+
+    if (!existsSync(join(ROOT, source))) {
+      failures.push(`missing source file: ${source}`);
+    } else {
+      const html = read(source);
+      fields = pageSearchFields(html);
+      primaryLocations = coverageLocations(fields, cluster.primary);
+      const missingPrimaryLocations = requiredPrimaryLocations.filter((location) => !includesPhrase(fields[location], cluster.primary));
+      secondaryMatches = (cluster.secondary || []).filter((keyword) => includesPhrase(fields.all, keyword));
+      secondaryMissing = (cluster.secondary || []).filter((keyword) => !includesPhrase(fields.all, keyword));
+      publicInternalTerms = PUBLIC_INTERNAL_TERMS.filter((term) => includesPhrase(fields.body, term));
+
+      if (missingPrimaryLocations.length > 0) {
+        failures.push(`primary keyword missing in: ${missingPrimaryLocations.join(', ')}`);
+      }
+      if (secondaryMatches.length < minimumSecondaryMatches) {
+        failures.push(`secondary keyword coverage ${secondaryMatches.length}/${minimumSecondaryMatches}`);
+      }
+      if (getCanonical(html) !== pageUrl) {
+        failures.push(`canonical mismatch: ${getCanonical(html) || 'missing'}`);
+      }
+      try {
+        jsonLdTypeList = Array.from(jsonLdTypes(html)).sort();
+        if (jsonLdTypeList.length === 0) failures.push('missing json-ld type');
+      } catch (error) {
+        failures.push(`invalid json-ld: ${error.message}`);
+      }
+      if (publicInternalTerms.length > 0) {
+        failures.push(`public visible copy contains internal terms: ${publicInternalTerms.join(', ')}`);
+      }
+    }
+
+    if (!sitemap.includes(`<loc>${pageUrl}</loc>`)) {
+      failures.push('sitemap missing page URL');
+    }
+    if (!llms || (!llms.includes(pageUrl) && !includesPhrase(llms, cluster.primary))) {
+      warnings.push('llms.txt does not mention page URL or primary keyword');
+    }
+    if (markdownSource) {
+      if (!existsSync(join(ROOT, markdownSource))) {
+        failures.push(`missing markdown context: ${markdownSource}`);
+      } else {
+        const markdown = read(markdownSource);
+        if (!includesPhrase(markdown, cluster.primary)) failures.push(`${markdownSource} missing primary keyword`);
+        const markdownSecondaryMatches = (cluster.secondary || []).filter((keyword) => includesPhrase(markdown, keyword));
+        if (markdownSecondaryMatches.length === 0) warnings.push(`${markdownSource} has no secondary keyword coverage`);
+      }
+    }
+
+    const status = statusLabel(failures.length, warnings.length);
+    rows.push({
+      id: cluster.id,
+      page: cluster.targetPage,
+      primary: cluster.primary,
+      primaryLocations,
+      secondaryMatches,
+      secondaryMissing,
+      sitemap: sitemap.includes(`<loc>${pageUrl}</loc>`) ? 'yes' : 'no',
+      llms: llms && (llms.includes(pageUrl) || includesPhrase(llms, cluster.primary)) ? 'yes' : 'warn',
+      markdown: markdownSource ? (existsSync(join(ROOT, markdownSource)) ? markdownSource : 'missing') : 'n/a',
+      jsonLdTypes: jsonLdTypeList,
+      failures,
+      warnings,
+      status
+    });
+
+    detailSections.push([
+      `### ${cluster.id}`,
+      '',
+      `- Audience layer: ${cluster.audienceLayer || 'public'}`,
+      `- Target page: ${pageUrl}`,
+      `- Source: ${source}`,
+      `- Primary keyword: ${cluster.primary}`,
+      `- Primary locations measured: ${primaryLocations.length > 0 ? primaryLocations.join(', ') : 'none'}`,
+      `- Secondary matches measured: ${secondaryMatches.length}/${(cluster.secondary || []).length}${secondaryMatches.length > 0 ? ` (${secondaryMatches.join(', ')})` : ''}`,
+      `- JSON-LD types measured: ${jsonLdTypeList.length > 0 ? jsonLdTypeList.join(', ') : 'none'}`,
+      `- AI query coverage targets: ${(cluster.aiQueries || []).join(' | ') || 'n/a'}`,
+      `- Status: ${status}`,
+      failures.length > 0 ? `- Failures: ${failures.join(' | ')}` : '- Failures: none',
+      warnings.length > 0 ? `- Warnings: ${warnings.join(' | ')}` : '- Warnings: none',
+      ''
+    ].join('\n'));
+  }
+
+  const failedRows = rows.filter((row) => row.status === 'FAIL');
+  const warningRows = rows.filter((row) => row.status === 'WARN');
+  const overallStatus = statusLabel(failedRows.length, warningRows.length);
+  const report = buildCoverageReport({
+    generatedAt,
+    overallStatus,
+    rows,
+    sitemapUrls,
+    detailSections
+  });
+
+  writeReport(COVERAGE_REPORT_FILE, report);
+  console.log(`SEO/GEO coverage status: ${overallStatus}`);
+  console.log(`Report: ${COVERAGE_REPORT_FILE}`);
+  for (const row of rows) {
+    console.log(`- ${row.status} ${row.id}: ${row.primaryLocations.join(', ') || 'no primary locations'}; secondary ${row.secondaryMatches.length}/${row.secondaryMatches.length + row.secondaryMissing.length}`);
+  }
+
+  if (failedRows.length > 0) {
+    console.log('');
+    console.log('Coverage failures:');
+    for (const row of failedRows) {
+      console.log(`- ${row.id}: ${row.failures.join('; ')}`);
+    }
+    process.exitCode = 1;
+  }
+}
+
+function buildCoverageReport({ generatedAt, overallStatus, rows, sitemapUrls, detailSections }) {
+  const dryRunUrls = sitemapUrls.map((url) => `- ${url}`).join('\n');
+  const tableRows = rows.map((row) => [
+    row.status,
+    row.id,
+    row.page,
+    row.primary,
+    row.primaryLocations.join(', ') || 'none',
+    `${row.secondaryMatches.length}/${row.secondaryMatches.length + row.secondaryMissing.length}`,
+    row.sitemap,
+    row.llms,
+    row.markdown
+  ].map(escapeMarkdownCell).join(' | '));
+
+  return [
+    '# Baidu SEO / GEO Coverage Report',
+    '',
+    `Generated: ${generatedAt}`,
+    `Overall status: ${overallStatus}`,
+    '',
+    '## Inputs',
+    '',
+    `- Keyword map: ${KEYWORD_CONFIG_FILE}`,
+    `- Site URL: ${SITE_URL}`,
+    '- Metrics label: Measured from local repository files. Search volume, Baidu indexation, ranking positions, crawler frequency, and AI citation frequency are N/A until connected to Baidu Search Resource Platform or a rank monitor.',
+    '',
+    '## Keyword Coverage',
+    '',
+    'Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | Sitemap | llms.txt | Markdown context',
+    '--- | --- | --- | --- | --- | --- | --- | --- | ---',
+    ...tableRows,
+    '',
+    '## Baidu Submission Set',
+    '',
+    'These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:submit:baidu -- --dry-run` submits:',
+    '',
+    dryRunUrls || '- none',
+    '',
+    '## GEO Notes',
+    '',
+    '- Every indexable topic page should expose a standalone answer in HTML, matching JSON-LD, and a Markdown context file linked from `llms.txt`.',
+    '- `llms.txt` is a GEO context aid for AI agents and search-style LLMs; it is not a replacement for HTML crawlability, sitemap submission, or Baidu Search Resource Platform data.',
+    '- The public visible copy scan checks for internal classroom/system terms from `AGENTS.md` so public pages do not accidentally read like internal tooling.',
+    '',
+    '## Open Loops',
+    '',
+    '- Add `BAIDU_TOKEN` privately in `.env` and run `npm run seo:submit:baidu` for real Baidu push submission.',
+    '- Submit or confirm `https://camps.wanli.wiki/sitemap.xml` inside Baidu Search Resource Platform.',
+    '- Record measured Baidu data after submission: indexed URLs, crawl frequency, impressions, clicks, and keyword positions for each cluster.',
+    '',
+    '## Details',
+    '',
+    ...detailSections
+  ].join('\n');
+}
+
+function escapeMarkdownCell(value) {
+  return String(value ?? '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
 }
 
 function fail(message) {
@@ -474,6 +773,7 @@ function usage() {
     '  llms              Write llms.txt',
     '  robots            Write robots.txt',
     '  sitemap           Write sitemap.xml',
+    '  coverage          Validate Baidu SEO and GEO keyword coverage',
     '  check             Validate homepage SEO files and tags',
     '  check-online      Validate live homepage, robots, sitemap, and llms.txt',
     '  submit [--dry-run] Submit sitemap URLs to Baidu Search Resource Platform'
@@ -496,6 +796,9 @@ async function main() {
       break;
     case 'sitemap':
       generateSitemap();
+      break;
+    case 'coverage':
+      coverage();
       break;
     case 'check':
       check();

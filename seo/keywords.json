@@ -1,0 +1,100 @@
+{
+  "version": "2026-06-08",
+  "siteUrl": "https://camps.wanli.wiki",
+  "purpose": "Baidu SEO and GEO keyword coverage map for public indexable pages.",
+  "defaults": {
+    "requiredPrimaryLocations": ["title", "description", "h1", "body", "jsonLd"],
+    "minimumSecondaryMatches": 3
+  },
+  "clusters": [
+    {
+      "id": "brand-home",
+      "audienceLayer": "家长公开展示",
+      "targetPage": "/",
+      "source": "index.html",
+      "primary": "少年CEO AI 创业营",
+      "secondary": [
+        "少年CEO",
+        "AI创业营",
+        "北京顺义AI课程",
+        "青少年AI课程",
+        "PBL创业营",
+        "AI夏令营",
+        "儿童AI课程",
+        "AI产品原型"
+      ],
+      "aiQueries": [
+        "少年CEO AI 创业营是什么",
+        "适合8-16岁孩子的AI创业营",
+        "北京顺义青少年AI课程推荐"
+      ]
+    },
+    {
+      "id": "ai-pbl-camp",
+      "audienceLayer": "家长公开展示",
+      "targetPage": "/ai-pbl-camp.html",
+      "source": "ai-pbl-camp.html",
+      "markdownSource": "ai-pbl-camp.md",
+      "primary": "AI PBL 创业营",
+      "secondary": [
+        "青少年AI课程",
+        "AI产品原型课程",
+        "少年CEO",
+        "AI创业营",
+        "8-16岁AI课程",
+        "PBL项目制学习",
+        "提示词实践"
+      ],
+      "aiQueries": [
+        "AI PBL 创业营适合什么孩子",
+        "孩子不懂编程能参加AI创业营吗",
+        "青少年AI产品原型课程怎么上"
+      ]
+    },
+    {
+      "id": "shunyi-parent-class",
+      "audienceLayer": "家长公开展示",
+      "targetPage": "/shunyi-ai-parent-class.html",
+      "source": "shunyi-ai-parent-class.html",
+      "markdownSource": "shunyi-ai-parent-class.md",
+      "primary": "北京顺义 AI 家长公益课",
+      "secondary": [
+        "北京.顺义 AI 家长公益课",
+        "顺义AI课程",
+        "AI家长课",
+        "少年CEO",
+        "青少年AI教育",
+        "AI时代孩子能力",
+        "LIA公益社区"
+      ],
+      "aiQueries": [
+        "北京顺义AI家长公益课讲什么",
+        "AI时代孩子需要什么能力",
+        "顺义家长怎么理解孩子学AI"
+      ]
+    },
+    {
+      "id": "partner-cooperation",
+      "audienceLayer": "机构公开展示",
+      "targetPage": "/partner-ai-pbl-camp.html",
+      "source": "partner-ai-pbl-camp.html",
+      "markdownSource": "partner-ai-pbl-camp.md",
+      "primary": "AI PBL 创业营机构合作",
+      "secondary": [
+        "培训机构AI课程合作",
+        "青少年AI营地合作",
+        "少年CEO",
+        "AI创业营合作",
+        "培训机构",
+        "营地",
+        "学校社群",
+        "城市合作伙伴"
+      ],
+      "aiQueries": [
+        "培训机构如何合作开展AI PBL创业营",
+        "青少年AI营地合作课程方案",
+        "AI创业营机构合作支持什么"
+      ]
+    }
+  ]
+}
