@@ -183,10 +183,19 @@ function siteUrl(pathname = '/') {
   return `${SITE_URL}${pathname.startsWith('/') ? pathname : `/${pathname}`}`;
 }
 
+function localDate(value = new Date()) {
+  return new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(value);
+}
+
 function dateFromFile(relativePath) {
   const file = join(ROOT, relativePath);
-  if (!existsSync(file)) return new Date().toISOString().slice(0, 10);
-  return statSync(file).mtime.toISOString().slice(0, 10);
+  if (!existsSync(file)) return localDate();
+  return localDate(statSync(file).mtime);
 }
 
 function buildRobots() {
