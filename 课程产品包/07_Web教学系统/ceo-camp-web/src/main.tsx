@@ -819,6 +819,12 @@ function isProductLinkTask(camp: Camp | null) {
   );
 }
 
+function isPeerFeedbackTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  return /试玩|试用|互测|反馈/.test(title) || moduleId === "user-testing";
+}
+
 function futurePhotoHint(item: FuturePhotoSubmission) {
   if (!item.review_note) return "";
   try {
@@ -1291,6 +1297,7 @@ function TeacherApp({
           <FuturePhotoReview refresh={refresh} />
         </section>
         <TeacherProjectSubmissions />
+        <TeacherPeerFeedback />
         <TeacherShowcase />
       </section>
       {presenting && selectedModule && (
@@ -1393,6 +1400,80 @@ function TeacherProjectSubmissions() {
           );
         })}
         {!items.length && <p className="empty">学生提交作品链接后，会出现在这里。</p>}
+      </div>
+    </section>
+  );
+}
+
+function TeacherPeerFeedback() {
+  const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [message, setMessage] = useState("");
+
+  const load = async () => {
+    try {
+      const result = await api.submissions();
+      setItems(result.task_submissions.filter((item) => item.task_type === "product_feedback"));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const groups = useMemo(() => {
+    const map = new Map<string, TaskSubmission[]>();
+    for (const item of items) {
+      const key = asText(item.payload.showcase_item_id) || asText(item.payload.product_name) || item.id;
+      map.set(key, [...(map.get(key) || []), item]);
+    }
+    return Array.from(map.values());
+  }, [items]);
+
+  return (
+    <section className="panel feedback-summary-panel">
+      <div className="panel-title">
+        <MessageSquareText size={20} />
+        <h2>同伴试用反馈</h2>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="feedback-summary-list">
+        {groups.map((group) => {
+          const first = group[0];
+          const productName = asText(first.payload.product_name) || "未命名作品";
+          const teamName = asText(first.payload.team_name) || "作品";
+          const accessUrl = asText(first.payload.access_url);
+          return (
+            <article className="feedback-summary-card" key={asText(first.payload.showcase_item_id) || first.id}>
+              <header>
+                <div>
+                  <span>{teamName}</span>
+                  <strong>{productName}</strong>
+                  <small>{group.length} 条反馈</small>
+                </div>
+                {accessUrl && (
+                  <a href={normalizeShowcaseUrl(accessUrl)} target="_blank" rel="noreferrer">
+                    <ExternalLink size={15} />
+                    打开作品
+                  </a>
+                )}
+              </header>
+              <div className="feedback-summary-notes">
+                {group.map((item) => (
+                  <div key={item.id} className="feedback-note">
+                    <span>{item.student_name || "学生"}</span>
+                    <p><strong>有用：</strong>{asText(item.payload.most_useful) || "未填写"}</p>
+                    <p><strong>建议：</strong>{asText(item.payload.suggestion) || "未填写"}</p>
+                  </div>
+                ))}
+              </div>
+            </article>
+          );
+        })}
+        {!groups.length && <p className="empty">学生试玩后提交的反馈会出现在这里。</p>}
       </div>
     </section>
   );
@@ -3017,6 +3098,7 @@ function StudentApp({
   const loadedSourcePhotoRef = useRef("");
   const taskTitle = camp?.active_task?.title || "未来照相馆";
   const productLinkTask = isProductLinkTask(camp);
+  const peerFeedbackTask = isPeerFeedbackTask(camp);
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
@@ -3095,18 +3177,18 @@ function StudentApp({
   };
 
   useEffect(() => {
-    if (!loggedIn || !student || productLinkTask) return;
+    if (!loggedIn || !student || productLinkTask || peerFeedbackTask) return;
     void createMobileUploadLink();
     void loadSourcePhoto(false);
-  }, [loggedIn, student?.id, productLinkTask]);
+  }, [loggedIn, student?.id, productLinkTask, peerFeedbackTask]);
 
   useEffect(() => {
-    if (!loggedIn || !student || photoKey || productLinkTask) return undefined;
+    if (!loggedIn || !student || photoKey || productLinkTask || peerFeedbackTask) return undefined;
     const timer = window.setInterval(() => {
       void loadSourcePhoto(true);
     }, 2200);
     return () => window.clearInterval(timer);
-  }, [loggedIn, student?.id, photoKey, productLinkTask]);
+  }, [loggedIn, student?.id, photoKey, productLinkTask, peerFeedbackTask]);
 
   const startVoiceInput = () => {
     setMessage(null);
@@ -3198,6 +3280,18 @@ function StudentApp({
   if (productLinkTask) {
     return (
       <StudentProductLinkTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (peerFeedbackTask) {
+    return (
+      <StudentPeerFeedbackTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -3406,6 +3500,182 @@ function StudentProductLinkTask({
             提交
           </button>
           <p className="hint">提交后，作品会准备成一张可以点开的卡片。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentPeerFeedbackTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [items, setItems] = useState<ShowcaseItem[]>([]);
+  const [selectedId, setSelectedId] = useState("");
+  const [mostUseful, setMostUseful] = useState("");
+  const [suggestion, setSuggestion] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+  const visibleItems = useMemo(
+    () => items.filter((item) => !student.team_id || item.team_id !== student.team_id),
+    [items, student.team_id]
+  );
+  const selectedItem = visibleItems.find((item) => item.id === selectedId) || null;
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    api.showcase()
+      .then((result) => {
+        if (!alive) return;
+        const published = result.showcase_items.filter((item) => item.publish_status === "PUBLISHED");
+        setItems(published);
+        const nextVisible = published.filter((item) => !student.team_id || item.team_id !== student.team_id);
+        setSelectedId((current) => current || nextVisible[0]?.id || "");
+      })
+      .catch(() => showMessage("hint", "作品卡还没出来，可以等一下再刷新。"))
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [student.team_id]);
+
+  const submit = async () => {
+    if (!selectedItem) {
+      showMessage("error", "先选一个你试用过的作品。");
+      return;
+    }
+    if (!mostUseful.trim()) {
+      showMessage("error", "先写一句最有用的地方。");
+      return;
+    }
+    if (!suggestion.trim()) {
+      showMessage("error", "再写一句建议改进的地方。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "product_feedback",
+        title: taskTitle,
+        payload: {
+          showcase_item_id: selectedItem.id,
+          product_name: selectedItem.product_name,
+          team_name: selectedItem.team_name || selectedItem.track || "",
+          access_url: selectedItem.access_url || "",
+          most_useful: mostUseful.trim(),
+          suggestion: suggestion.trim()
+        }
+      });
+      showMessage("success", "收到啦。这条反馈可以帮作品改出下一版。");
+      setMostUseful("");
+      setSuggestion("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "试玩别人的作品"}</h1>
+        <p>先点开一个作品试用，再写下你看到的亮点和建议。</p>
+        <div className="student-card feedback-card">
+          <div className="student-current">
+            <div>
+              <span>观察员</span>
+              <strong>{student.nickname}</strong>
+              <small>{student.team_name || student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          {loading ? (
+            <div className="feedback-loading">
+              <Loader2 className="spin" size={24} />
+              <span>正在找作品卡</span>
+            </div>
+          ) : visibleItems.length ? (
+            <>
+              <div className="feedback-product-grid">
+                {visibleItems.map((item) => {
+                  const active = item.id === selectedId;
+                  const href = item.access_url ? normalizeShowcaseUrl(item.access_url) : "";
+                  return (
+                    <article className={active ? "feedback-product active" : "feedback-product"} key={item.id}>
+                      <button onClick={() => setSelectedId(item.id)}>
+                        <span>{item.team_name || item.track || "作品"}</span>
+                        <strong>{item.product_name}</strong>
+                        <small>{item.one_liner || "点开看看它怎么帮到用户。"}</small>
+                      </button>
+                      {href && (
+                        <a href={href} target="_blank" rel="noreferrer">
+                          <ExternalLink size={15} />
+                          打开作品
+                        </a>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+              <label>
+                我试用的是
+                <input value={selectedItem?.product_name || ""} readOnly />
+              </label>
+              <label>
+                我觉得最有用的地方
+                <input
+                  value={mostUseful}
+                  onChange={(event) => setMostUseful(event.target.value)}
+                  placeholder="例如：我很快就知道下一步点哪里"
+                  inputMode="text"
+                />
+              </label>
+              <label>
+                我建议改进的地方
+                <input
+                  value={suggestion}
+                  onChange={(event) => setSuggestion(event.target.value)}
+                  placeholder="例如：按钮名字可以再清楚一点"
+                  inputMode="text"
+                  enterKeyHint="done"
+                />
+              </label>
+              <button className="submit-button" disabled={submitting} onClick={submit}>
+                {submitting ? <Loader2 className="spin" size={18} /> : <MessageSquareText size={18} />}
+                提交
+              </button>
+              <p className="hint">好的反馈会让作品更容易被别人用起来。</p>
+            </>
+          ) : (
+            <div className="feedback-empty">
+              <Package size={28} />
+              <strong>还没有可以试用的其他组作品</strong>
+              <span>等作品卡出现后，再回来写反馈。</span>
+              <button className="text-button" onClick={() => window.location.reload()}>刷新</button>
+            </div>
+          )}
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>

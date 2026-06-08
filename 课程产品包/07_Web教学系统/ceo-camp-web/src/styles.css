@@ -2109,9 +2109,19 @@ button:disabled {
   gap: 12px;
 }
 
+.feedback-summary-panel {
+  display: grid;
+  gap: 12px;
+}
+
 .project-submission-list {
   display: grid;
   gap: 10px;
+}
+
+.feedback-summary-list {
+  display: grid;
+  gap: 12px;
 }
 
 .project-submission-row {
@@ -2170,6 +2180,76 @@ button:disabled {
 .project-submission-row button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+}
+
+.feedback-summary-card {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fffdf6;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.feedback-summary-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.feedback-summary-card header span,
+.feedback-summary-card header small,
+.feedback-note span {
+  color: #60705f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.feedback-summary-card header strong {
+  display: block;
+  color: #172018;
+  font-size: 20px;
+  line-height: 1.15;
+  margin-top: 4px;
+}
+
+.feedback-summary-card header small {
+  display: block;
+  margin-top: 4px;
+}
+
+.feedback-summary-card header a {
+  border-radius: 6px;
+  background: #e9f5eb;
+  color: #1f6f50;
+  padding: 10px 14px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.feedback-summary-notes {
+  display: grid;
+  gap: 8px;
+}
+
+.feedback-note {
+  border-top: 1px solid #e7e2d2;
+  padding-top: 8px;
+}
+
+.feedback-note p {
+  margin: 4px 0 0;
+  color: #536151;
+  line-height: 1.45;
+}
+
+.feedback-note p strong {
+  color: #172018;
 }
 
 .showcase-manage-row {
@@ -2337,6 +2417,93 @@ button:disabled {
 
 .product-link-card {
   max-width: 760px;
+}
+
+.feedback-card {
+  max-width: 860px;
+}
+
+.feedback-loading,
+.feedback-empty {
+  border: 1px solid #e5eadf;
+  border-radius: 8px;
+  background: #f7fbf2;
+  min-height: 150px;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding: 18px;
+  text-align: center;
+  color: #1f6f50;
+}
+
+.feedback-empty strong,
+.feedback-empty span {
+  display: block;
+}
+
+.feedback-empty strong {
+  color: #172018;
+}
+
+.feedback-empty span {
+  color: #60705f;
+}
+
+.feedback-product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.feedback-product {
+  border: 1px solid #e5eadf;
+  border-radius: 8px;
+  background: #fdfef9;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.feedback-product.active {
+  border-color: #1f6f50;
+  box-shadow: 0 0 0 2px rgba(31, 111, 80, 0.12);
+}
+
+.feedback-product button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  display: grid;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.feedback-product span,
+.feedback-product small {
+  color: #60705f;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.feedback-product strong {
+  color: #172018;
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.feedback-product a {
+  border-radius: 6px;
+  background: #e9f5eb;
+  color: #1f6f50;
+  padding: 8px 10px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
 }
 
 .student-card label {
@@ -3026,8 +3193,14 @@ button:disabled {
   .showcase-manage-row button,
   .showcase-manage-row a,
   .project-submission-row button,
-  .project-submission-row a {
+  .project-submission-row a,
+  .feedback-summary-card header a,
+  .feedback-product a {
     width: 100%;
+  }
+
+  .feedback-summary-card header {
+    display: grid;
   }
 
   .student-row,
