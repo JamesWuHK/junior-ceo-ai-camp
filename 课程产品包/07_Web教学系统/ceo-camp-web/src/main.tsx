@@ -845,6 +845,7 @@ function taskTypeForAction(action: string, page: DesignedLessonPage) {
   if (/选择今天能完成的路线|用户打开后第一步做什么|流程图检查/.test(page.title)) return "tech_route";
   if (/反馈进作品|改出 V2/.test(page.title)) return "iteration_plan";
   if (/帮别人少烦了什么|价值交换榜|定价三问|别人愿意交换/.test(page.title)) return "value_card";
+  if (/产品包装|产品海报|海报不是装饰|产品摊位预览|标语|卖点/.test(page.title)) return "product_packaging";
   if (/把作品讲成一个小故事|故事发布五步卡|问答预演/.test(page.title)) return "story_pitch";
   if (action === "进入评分") return "score";
   if (action === "发起互动") return "interaction";
@@ -862,8 +863,8 @@ function isProductLinkTask(camp: Camp | null) {
   const moduleId = camp?.active_task?.module_id || "";
   return (
     !isBlockerTask(camp) &&
-    (/作品链接|产品链接|真产品检查|作品页上线清单|产品原型|每组作品能打开|2 分钟 Demo|产品摊位预览/.test(title) ||
-    ["build-sprint", "demo-check", "product-packaging"].includes(moduleId)
+    (/作品链接|产品链接|真产品检查|作品页上线清单|产品原型|每组作品能打开|2 分钟 Demo/.test(title) ||
+    ["build-sprint", "demo-check"].includes(moduleId)
     )
   );
 }
@@ -985,6 +986,19 @@ function isValueCardTask(camp: Camp | null) {
     payloadType === "value_card" ||
     (moduleId === "value-experiment" && /帮别人少烦了什么|价值交换|定价三问|别人愿意交换|星星币/.test(title)) ||
     /价值卡|价值交换|星星币|愿意交换|帮别人少烦了什么/.test(title)
+  );
+}
+
+function isProductPackagingTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  const activityType = camp?.active_task?.activity_type || "";
+  const payloadType = asText(camp?.active_task?.payload?.task_type);
+  return (
+    activityType === "product_packaging" ||
+    payloadType === "product_packaging" ||
+    (moduleId === "product-packaging" && /产品包装|产品海报|海报不是装饰|产品摊位预览|标语|卖点/.test(title)) ||
+    /产品海报卡|产品包装|产品海报|海报不是装饰|产品摊位预览/.test(title)
   );
 }
 
@@ -1770,8 +1784,9 @@ function journeyItemRank(item: WallArtifact) {
     product_feedback: 9,
     iteration_plan: 10,
     value_card: 11,
-    story_pitch: 12,
-    mentor_comment: 13
+    product_packaging: 12,
+    story_pitch: 13,
+    mentor_comment: 14
   };
   return ranks[item.task_type] ?? 9;
 }
@@ -1830,12 +1845,15 @@ function PublicProjectDetail({
   const teamName = finalItem?.team_name || showcaseItem?.team_name || showcaseItem?.track || "项目团队";
   const teamId = finalItem?.team_id || showcaseItem?.team_id || null;
   const accessUrl = asText(finalItem?.payload.access_url) || showcaseItem?.access_url || "";
-  const screenshot = asText(finalItem?.payload.screenshot_url) || showcaseItem?.screenshot_url || "";
+  const baseScreenshot = asText(finalItem?.payload.screenshot_url) || showcaseItem?.screenshot_url || "";
   const scoreSummary = scoreSummaries.find(matchesProject(projectId, finalItem, productName, teamId, teamName)) || null;
   const projectAwards = awardResults.filter((award) => awardMatchesProject(award, projectId, finalItem, productName, teamId));
   const allProjectJourneyItems = sortProjectJourney(
     projectJourney.filter((item) => journeyItemMatchesProject(item, productName, teamId, teamName))
   );
+  const packagingItem = allProjectJourneyItems.find((item) => item.task_type === "product_packaging") || null;
+  const screenshot = baseScreenshot || asText(packagingItem?.payload.poster_url);
+  const heroLine = asText(finalItem?.payload.value_line) || showcaseItem?.one_liner || asText(packagingItem?.payload.slogan) || "这是一组正在被真实用户检验的 AI 产品原型。";
   const mentorComments = allProjectJourneyItems.filter((item) => item.task_type === "mentor_comment");
   const projectJourneyItems = allProjectJourneyItems.filter((item) => item.task_type !== "mentor_comment");
   const projectGrowthReflections = growthReflections.filter((reflection) => {
@@ -1868,7 +1886,7 @@ function PublicProjectDetail({
         <a href={window.location.pathname.startsWith("/parents") ? "/parents" : "/showcase"}>返回作品展</a>
         <span>{camp?.location || "少年CEO AI 创业营"} · {teamName}</span>
         <h1>{productName}</h1>
-        <p>{asText(finalItem?.payload.value_line) || showcaseItem?.one_liner || "这是一组正在被真实用户检验的 AI 产品原型。"}</p>
+        <p>{heroLine}</p>
         {accessUrl && (
           <a className="project-open-link" href={normalizeShowcaseUrl(accessUrl)} target="_blank" rel="noreferrer">
             <ExternalLink size={18} />
@@ -2053,6 +2071,7 @@ function journeyTitle(item: WallArtifact) {
   if (item.task_type === "product_feedback") return asText(item.payload.product_name) || "收到试用反馈";
   if (item.task_type === "iteration_plan") return asText(item.payload.v2_plan) || asText(item.payload.product_name) || "写出下一版计划";
   if (item.task_type === "value_card") return asText(item.payload.value_change) || asText(item.payload.product_name) || "写出价值交换卡";
+  if (item.task_type === "product_packaging") return asText(item.payload.slogan) || asText(item.payload.product_name) || "做出产品海报卡";
   if (item.task_type === "story_pitch") return asText(item.payload.story_hook) || asText(item.payload.product_name) || "写出故事发布五步卡";
   if (item.task_type === "mentor_comment") return asText(item.payload.product_name) || "导师点评";
   return item.title || "项目记录";
@@ -2071,6 +2090,7 @@ function journeyLabel(item: WallArtifact) {
     product_feedback: "收到反馈",
     iteration_plan: "迭代清单",
     value_card: "价值卡",
+    product_packaging: "产品海报",
     story_pitch: "故事发布",
     mentor_comment: "导师点评"
   };
@@ -2174,6 +2194,16 @@ function journeyCopy(item: WallArtifact) {
       ["愿意交换", [valueExchangeLabel(item.payload.exchange_choice), asText(item.payload.exchange_amount)].filter(Boolean).join(" ")],
       ["为什么值得", asText(item.payload.why_worth)],
       ["证据", asText(item.payload.evidence)]
+    ];
+  }
+  if (item.task_type === "product_packaging") {
+    return [
+      ["产品", asText(item.payload.product_name)],
+      ["标语", asText(item.payload.slogan)],
+      ["给谁看", asText(item.payload.target_user)],
+      ["卖点", asTextList(item.payload.selling_points).join(" / ") || asText(item.payload.selling_point_summary)],
+      ["作品入口", asText(item.payload.access_url)],
+      ["展示图", asText(item.payload.poster_url)]
     ];
   }
   if (item.task_type === "story_pitch") {
@@ -2571,6 +2601,7 @@ function TeacherApp({
         <TeacherPeerFeedback />
         <TeacherIterationPlans />
         <TeacherValueCards />
+        <TeacherProductPackaging />
         <TeacherStoryPitches />
         <TeacherFinalShowcase />
         <TeacherScoringCenter />
@@ -2674,6 +2705,7 @@ const progressMilestones = [
   { key: "product_feedback", label: "互测反馈", target: 2, unit: "条" },
   { key: "iteration_plan", label: "迭代清单", target: 1, unit: "张" },
   { key: "value_card", label: "价值卡", target: 1, unit: "张" },
+  { key: "product_packaging", label: "海报卡", target: 1, unit: "张" },
   { key: "story_pitch", label: "故事卡", target: 1, unit: "张" },
   { key: "final_showcase", label: "展示卡", target: 1, unit: "张" }
 ] as const;
@@ -2967,6 +2999,7 @@ function nextSupportAction(
   if (firstMissing.key === "product_feedback") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条互测反馈，安排别组打开作品试用。`;
   if (firstMissing.key === "iteration_plan") return "请小组把反馈分成必须改、建议改、暂不改，再定 V2 先改哪一处。";
   if (firstMissing.key === "value_card") return "请小组补一张价值卡：帮谁少烦了什么，别人愿意用什么交换。";
+  if (firstMissing.key === "product_packaging") return "请小组补一张产品海报卡：产品名、标语、三个卖点、展示图。";
   if (firstMissing.key === "story_pitch") return "请小组补一张故事发布五步卡：人物、麻烦、作品、证据、邀请。";
   if (firstMissing.key === "product_link") return "先确认作品链接能打开，再准备上台展示。";
   if (firstMissing.key === "final_showcase") return "请小组把最终展示卡补齐。";
@@ -3052,11 +3085,12 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
     const withTechRoute = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "tech_route")).length;
     const withIteration = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "iteration_plan")).length;
     const withValueCard = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "value_card")).length;
+    const withPackaging = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "product_packaging")).length;
     const withStoryPitch = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "story_pitch")).length;
     const interviewReady = teamSummaries.filter((item) => item.userVoiceCount >= 3).length;
     const feedbackReady = teamSummaries.filter((item) => item.feedbackCount >= 2).length;
     const needsSupport = teamSummaries.filter((item) => item.needsSupport).length;
-    return { activeBlockers, readyTeams, withScout, withProduct, withPrompt, withFeatureScope, withTechRoute, withIteration, withValueCard, withStoryPitch, interviewReady, feedbackReady, needsSupport };
+    return { activeBlockers, readyTeams, withScout, withProduct, withPrompt, withFeatureScope, withTechRoute, withIteration, withValueCard, withPackaging, withStoryPitch, interviewReady, feedbackReady, needsSupport };
   }, [teamSummaries]);
 
   const toggleBlocker = async (item: TaskSubmission) => {
@@ -3090,6 +3124,7 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
         <span>{totals.feedbackReady} 组收到互测反馈</span>
         <span>{totals.withIteration} 组有迭代清单</span>
         <span>{totals.withValueCard} 组有价值卡</span>
+        <span>{totals.withPackaging} 组有海报卡</span>
         <span>{totals.withStoryPitch} 组有故事卡</span>
         <span>{totals.needsSupport} 组需要跟进</span>
         <span>{totals.activeBlockers} 个卡点待支援</span>
@@ -4126,6 +4161,102 @@ function TeacherValueCards() {
           );
         })}
         {!items.length && <p className="empty">学生提交价值卡后，会出现在这里。</p>}
+      </div>
+    </section>
+  );
+}
+
+function TeacherProductPackaging() {
+  const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [message, setMessage] = useState("");
+  const [workingId, setWorkingId] = useState("");
+
+  const load = async () => {
+    try {
+      const result = await api.submissions();
+      setItems(result.task_submissions.filter((item) => item.task_type === "product_packaging"));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const groupedCount = useMemo(
+    () => new Set(items.map((item) => item.team_id || item.student_id || item.id)).size,
+    [items]
+  );
+
+  const toggleWall = async (item: TaskSubmission) => {
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.setTaskSubmissionStatus(item.id, item.status === "ON_WALL" ? "SUBMITTED" : "ON_WALL");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "操作失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
+
+  return (
+    <section className="panel product-packaging-panel">
+      <div className="panel-title">
+        <Image size={20} />
+        <h2>D3 产品海报卡</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{items.length} 张海报卡</span>
+        <span>{groupedCount} 个来源</span>
+        <span>{items.filter((item) => item.status === "ON_WALL").length} 张已上屏</span>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="d1-artifact-list">
+        {items.map((item) => {
+          const sellingPoints = asTextList(item.payload.selling_points);
+          const posterUrl = asText(item.payload.poster_url);
+          const accessUrl = asText(item.payload.access_url);
+          return (
+            <article
+              className={[
+                "d1-artifact-card",
+                "product-packaging",
+                item.status === "ON_WALL" ? "on-wall" : ""
+              ].filter(Boolean).join(" ")}
+              key={item.id}
+            >
+              <header>
+                <div>
+                  <span>产品海报卡</span>
+                  <strong>{asText(item.payload.slogan) || asText(item.payload.product_name) || "未命名作品"}</strong>
+                  <small>{item.team_name || item.student_name || "学生提交"}</small>
+                </div>
+                <button disabled={workingId === item.id} onClick={() => toggleWall(item)}>
+                  {item.status === "ON_WALL" ? "从大屏移开" : "放到大屏"}
+                </button>
+              </header>
+              {posterUrl && (
+                <div className="artifact-shot">
+                  <img src={normalizeShowcaseUrl(posterUrl)} alt={asText(item.payload.product_name) || "产品海报"} />
+                </div>
+              )}
+              <div className="artifact-lines">
+                <p><strong>产品：</strong>{asText(item.payload.product_name) || "还没写"}</p>
+                <p><strong>标语：</strong>{asText(item.payload.slogan) || "还没写"}</p>
+                <p><strong>给谁看：</strong>{asText(item.payload.target_user) || "还没写"}</p>
+                <p><strong>卖点：</strong>{sellingPoints.length ? sellingPoints.join(" / ") : asText(item.payload.selling_point_summary) || "还没写"}</p>
+                <p><strong>展示图：</strong>{posterUrl || "还没贴"}</p>
+                <p><strong>作品入口：</strong>{accessUrl || "还没贴"}</p>
+              </div>
+            </article>
+          );
+        })}
+        {!items.length && <p className="empty">学生提交产品海报卡后，会出现在这里。</p>}
       </div>
     </section>
   );
@@ -6468,6 +6599,7 @@ function StudentApp({
   const techRouteTask = isTechRouteTask(camp);
   const iterationPlanTask = isIterationPlanTask(camp);
   const valueCardTask = isValueCardTask(camp);
+  const productPackagingTask = isProductPackagingTask(camp);
   const storyPitchTask = isStoryPitchTask(camp);
   const productDefinitionTask = isProductDefinitionTask(camp);
   const blockerTask = isBlockerTask(camp);
@@ -6487,6 +6619,7 @@ function StudentApp({
     techRouteTask ||
     iterationPlanTask ||
     valueCardTask ||
+    productPackagingTask ||
     storyPitchTask ||
     productDefinitionTask ||
     blockerTask ||
@@ -6784,6 +6917,18 @@ function StudentApp({
   if (valueCardTask) {
     return (
       <StudentValueCardTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (productPackagingTask) {
+    return (
+      <StudentProductPackagingTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -9554,6 +9699,191 @@ function StudentValueCardTask({
   );
 }
 
+function StudentProductPackagingTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [productName, setProductName] = useState("");
+  const [slogan, setSlogan] = useState("");
+  const [targetUser, setTargetUser] = useState("");
+  const [sellingPoints, setSellingPoints] = useState("");
+  const [posterPlan, setPosterPlan] = useState("");
+  const [posterUrl, setPosterUrl] = useState("");
+  const [accessUrl, setAccessUrl] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+  const pointItems = useMemo(() => asTextList(sellingPoints).slice(0, 5), [sellingPoints]);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!productName.trim()) {
+      showMessage("error", "先写作品名。");
+      return;
+    }
+    if (!slogan.trim()) {
+      showMessage("error", "写一句让人记住的标语。");
+      return;
+    }
+    if (!targetUser.trim()) {
+      showMessage("error", "写清这张海报给谁看。");
+      return;
+    }
+    if (pointItems.length < 2) {
+      showMessage("error", "至少写两个卖点。");
+      return;
+    }
+    if (!posterPlan.trim()) {
+      showMessage("error", "写下海报第一眼要看到的画面。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "product_packaging",
+        title: taskTitle,
+        payload: {
+          product_name: productName.trim(),
+          slogan: slogan.trim(),
+          target_user: targetUser.trim(),
+          selling_points: pointItems,
+          selling_point_summary: pointItems.join(" / "),
+          poster_plan: posterPlan.trim(),
+          poster_url: posterUrl.trim() ? normalizeShowcaseUrl(posterUrl) : "",
+          access_url: accessUrl.trim() ? normalizeShowcaseUrl(accessUrl) : "",
+          team_id: student.team_id || "",
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。你们的产品摊位已经有了第一眼画面。");
+      setProductName("");
+      setSlogan("");
+      setTargetUser("");
+      setSellingPoints("");
+      setPosterPlan("");
+      setPosterUrl("");
+      setAccessUrl("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "产品海报卡"}</h1>
+        <p>让别人远远看一眼，就知道你们的作品帮谁、好在哪里。</p>
+        <div className="student-card product-packaging-form">
+          <div className="student-current">
+            <div>
+              <span>产品小组</span>
+              <strong>{student.team_name || student.nickname}</strong>
+              <small>{student.student_no ? `${student.nickname} · 学号 ${student.student_no}` : student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            作品名
+            <input
+              value={productName}
+              onChange={(event) => setProductName(event.target.value)}
+              placeholder="例如：午餐选择器"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            一句标语
+            <input
+              value={slogan}
+              onChange={(event) => setSlogan(event.target.value)}
+              placeholder="例如：10 秒找到今天最合适的午餐"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            这张海报给谁看
+            <input
+              value={targetUser}
+              onChange={(event) => setTargetUser(event.target.value)}
+              placeholder="例如：每天中午选择困难的同学"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            三个卖点
+            <textarea
+              value={sellingPoints}
+              onChange={(event) => setSellingPoints(event.target.value)}
+              placeholder={"例如：\n快速推荐\n给出理由\n可以按口味调整"}
+              rows={4}
+            />
+          </label>
+          <div className="packaging-point-grid" aria-label="卖点预览">
+            {(pointItems.length ? pointItems : ["卖点 1", "卖点 2", "卖点 3"]).slice(0, 3).map((point, index) => (
+              <span key={`${point}-${index}`}>{point}</span>
+            ))}
+          </div>
+          <label>
+            海报第一眼画面
+            <textarea
+              value={posterPlan}
+              onChange={(event) => setPosterPlan(event.target.value)}
+              placeholder="例如：一个同学站在食堂窗口前，手机上出现两个推荐选择"
+              rows={3}
+            />
+          </label>
+          <label>
+            海报或截图链接（可选）
+            <input
+              value={posterUrl}
+              onChange={(event) => setPosterUrl(event.target.value)}
+              placeholder="https://..."
+              inputMode="url"
+            />
+          </label>
+          <label>
+            作品链接（可选）
+            <input
+              value={accessUrl}
+              onChange={(event) => setAccessUrl(event.target.value)}
+              placeholder="https://..."
+              inputMode="url"
+              enterKeyHint="done"
+            />
+          </label>
+          <div className="packaging-preview" aria-label="产品海报预览">
+            <span>{productName.trim() || "作品名"}</span>
+            <strong>{slogan.trim() || "一句标语"}</strong>
+            <small>{posterPlan.trim() || "海报第一眼画面"}</small>
+          </div>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <Image size={18} />}
+            提交
+          </button>
+          <p className="hint">好的海报不是装饰，它会让别人一眼知道作品为什么值得打开。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
 function StudentStoryPitchTask({
   camp,
   student,
@@ -10215,6 +10545,7 @@ function ProblemVoteWall({ summaries }: { summaries: ProblemVoteSummary[] }) {
 function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   if (!artifacts.length) return null;
   const hasProduct = artifacts.some((item) => item.task_type === "product_definition");
+  const hasPackaging = artifacts.some((item) => item.task_type === "product_packaging");
   const hasPrompt = artifacts.some((item) => item.task_type === "prompt_card");
   const hasFeature = artifacts.some((item) => item.task_type === "feature_scope");
   const hasTech = artifacts.some((item) => item.task_type === "tech_route");
@@ -10226,8 +10557,8 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   return (
     <section className="wall-artifacts">
       <div className="wall-section-title">
-        <span className="eyebrow">{hasProduct ? "产品卡片" : hasStory ? "故事发布" : hasValue ? "价值交换" : hasIteration ? "迭代清单" : hasTech ? "路线流程" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
-        <h2>{hasProduct ? "从问题到产品" : hasStory ? "让大家听懂作品" : hasValue ? "作品为什么值得" : hasIteration ? "把反馈改成下一版" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
+        <span className="eyebrow">{hasProduct ? "产品卡片" : hasPackaging ? "产品海报" : hasStory ? "故事发布" : hasValue ? "价值交换" : hasIteration ? "迭代清单" : hasTech ? "路线流程" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
+        <h2>{hasProduct ? "从问题到产品" : hasPackaging ? "一眼看懂作品" : hasStory ? "让大家听懂作品" : hasValue ? "作品为什么值得" : hasIteration ? "把反馈改成下一版" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
       </div>
       <div className="wall-artifact-grid">
         {artifacts.map((item) => {
@@ -10235,6 +10566,7 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
           const isScout = item.task_type === "market_scout";
           const isValidation = item.task_type === "ai_validation";
           const isProduct = item.task_type === "product_definition";
+          const isPackaging = item.task_type === "product_packaging";
           const isPrompt = item.task_type === "prompt_card";
           const isFeature = item.task_type === "feature_scope";
           const isTech = item.task_type === "tech_route";
@@ -10246,6 +10578,8 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
               className={
                 isProduct
                   ? "wall-artifact-card product"
+                  : isPackaging
+                  ? "wall-artifact-card product-packaging"
                   : isStory
                   ? "wall-artifact-card story-pitch"
                   : isValue
@@ -10268,10 +10602,12 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
               }
               key={item.id}
             >
-              <span>{isProduct ? "产品卡" : isStory ? "故事发布卡" : isValue ? "价值卡" : isIteration ? "迭代清单" : isTech ? "路线流程卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
+              <span>{isProduct ? "产品卡" : isPackaging ? "产品海报卡" : isStory ? "故事发布卡" : isValue ? "价值卡" : isIteration ? "迭代清单" : isTech ? "路线流程卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
               <strong>
                 {isProduct
                   ? asText(item.payload.product_name) || "一个产品想法"
+                  : isPackaging
+                  ? asText(item.payload.slogan) || asText(item.payload.product_name) || "一张产品海报"
                   : isStory
                   ? asText(item.payload.story_hook) || asText(item.payload.product_name) || "让大家听懂作品"
                   : isValue
@@ -10298,6 +10634,19 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                   <p><b>问题</b>{asText(item.payload.core_problem) || "还没写"}</p>
                   <p><b>办法</b>{asText(item.payload.solution) || "还没写"}</p>
                   <p><b>一句话</b>{asText(item.payload.one_liner) || "还在打磨"}</p>
+                </>
+              ) : isPackaging ? (
+                <>
+                  {asText(item.payload.poster_url) && (
+                    <div className="wall-artifact-shot">
+                      <img src={normalizeShowcaseUrl(asText(item.payload.poster_url))} alt={asText(item.payload.product_name) || "产品海报"} />
+                    </div>
+                  )}
+                  <p><b>产品</b>{asText(item.payload.product_name) || "还没写"}</p>
+                  <p><b>给谁看</b>{asText(item.payload.target_user) || "还没写"}</p>
+                  <p><b>卖点</b>{asTextList(item.payload.selling_points).join(" / ") || asText(item.payload.selling_point_summary) || "还没写"}</p>
+                  <p><b>第一眼</b>{asText(item.payload.poster_plan) || "还没写"}</p>
+                  {asText(item.payload.access_url) && <p><b>作品入口</b>{asText(item.payload.access_url)}</p>}
                 </>
               ) : isStory ? (
                 <>

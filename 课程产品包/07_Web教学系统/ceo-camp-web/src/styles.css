@@ -2755,6 +2755,10 @@ button:disabled {
   border-left: 6px solid #d7a326;
 }
 
+.d1-artifact-card.product-packaging {
+  border-left: 6px solid #2f8f7a;
+}
+
 .d1-artifact-card.story-pitch {
   border-left: 6px solid #8f6ed5;
 }
@@ -2804,6 +2808,21 @@ button:disabled {
 
 .artifact-actions button {
   min-height: 40px;
+}
+
+.artifact-shot {
+  overflow: hidden;
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #f7fbf2;
+  aspect-ratio: 16 / 9;
+}
+
+.artifact-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .final-showcase-actions label {
@@ -3338,6 +3357,10 @@ button:disabled {
   max-width: 900px;
 }
 
+.product-packaging-form {
+  max-width: 920px;
+}
+
 .story-pitch-form {
   max-width: 940px;
 }
@@ -3524,6 +3547,48 @@ button:disabled {
   color: #172018;
   font-size: 18px;
   line-height: 1.35;
+}
+
+.packaging-point-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.packaging-point-grid span {
+  border: 1px solid #cde5dc;
+  border-radius: 8px;
+  background: #f1faf6;
+  color: #1f6f50;
+  padding: 12px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.packaging-preview {
+  border: 1px solid #cde5dc;
+  border-radius: 8px;
+  background: #f1faf6;
+  padding: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.packaging-preview span {
+  color: #1f6f50;
+  font-weight: 900;
+}
+
+.packaging-preview strong {
+  color: #172018;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.packaging-preview small {
+  color: #60705f;
+  font-weight: 900;
+  line-height: 1.4;
 }
 
 .story-step-grid {
@@ -4225,6 +4290,10 @@ button:disabled {
   border-top-color: #ef7d58;
 }
 
+.wall-artifact-card.product-packaging {
+  border-top-color: #2f8f7a;
+}
+
 .wall-artifact-card.prompt {
   border-top-color: #2f8f7a;
 }
@@ -4262,6 +4331,20 @@ button:disabled {
 .wall-artifact-card strong {
   font-size: clamp(24px, 2.2vw, 34px);
   line-height: 1.12;
+}
+
+.wall-artifact-shot {
+  overflow: hidden;
+  border-radius: 8px;
+  background: #eef7f1;
+  aspect-ratio: 16 / 9;
+}
+
+.wall-artifact-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .wall-artifact-card p {
