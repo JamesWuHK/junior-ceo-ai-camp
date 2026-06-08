@@ -2731,6 +2731,10 @@ button:disabled {
   border-left: 6px solid #78b7e8;
 }
 
+.d1-artifact-card.scout {
+  border-left: 6px solid #d9991f;
+}
+
 .d1-artifact-card header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -3288,6 +3292,10 @@ button:disabled {
 
 .interview-card {
   max-width: 880px;
+}
+
+.market-scout-card {
+  max-width: 900px;
 }
 
 .final-showcase-card {
@@ -3960,6 +3968,10 @@ button:disabled {
 
 .wall-artifact-card.voice {
   border-top-color: #78b7e8;
+}
+
+.wall-artifact-card.scout {
+  border-top-color: #d9991f;
 }
 
 .wall-artifact-card.product {
