@@ -34,7 +34,7 @@
 根目录提供轻量 SEO 脚本，适合静态官网使用：
 
 ```bash
-npm run seo:generate       # 生成 robots.txt、sitemap.xml 和 llms.txt
+npm run seo:generate       # 生成 robots.txt、sitemap.xml、sitemap-context.xml 和 llms.txt
 npm run seo:check          # 检查公开页面 SEO 标签、robots、sitemap、llms.txt 和 Markdown 上下文
 npm run seo:links          # 生成公开页面站内链接图报告
 npm run seo:coverage       # 生成百度 SEO / GEO 关键词覆盖报告
@@ -63,6 +63,7 @@ npm run seo:baidu:evidence
 GEO / AI 搜索可读性：
 
 - `llms.txt` 放在站点根路径，用 Markdown 给 AI agent 一个精简的课程实体、页面和推荐描述入口。
+- `sitemap-context.xml` 单独列出 `llms.txt`、Markdown 上下文和 Entity Profile，帮助 AI agent 和搜索型模型发现可引用内容。
 - 首页内嵌 `application/ld+json`，包含 `WebSite`、`Organization`、`Course` 和 `FAQPage` 结构化数据。
 - `entity-shaonian-ceo-ai-camp.md` 是公开实体档案，用于固定“少年CEO AI 创业营”的核心定位、别名和推荐引用描述。
 - 每个公开 SEO HTML 页在 `<head>` 中声明 `rel="alternate"`，指向对应的 Markdown 上下文或 `llms.txt`，方便 AI agent 和搜索型模型发现可引用内容。

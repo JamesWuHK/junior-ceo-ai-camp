@@ -6,3 +6,4 @@ Disallow: /cards.html
 Disallow: /slides/
 
 Sitemap: https://camps.wanli.wiki/sitemap.xml
+Sitemap: https://camps.wanli.wiki/sitemap-context.xml

@@ -10,6 +10,8 @@ loadDotEnv();
 const SITE_URL = stripTrailingSlash(process.env.SITE_URL || 'https://camps.wanli.wiki');
 const OUTPUT_DIRS = ['.', 'camp-website'];
 const KEYWORD_CONFIG_FILE = 'seo/keywords.json';
+const HTML_SITEMAP_FILE = 'sitemap.xml';
+const CONTEXT_SITEMAP_FILE = 'sitemap-context.xml';
 const COVERAGE_REPORT_FILE = 'reports/seo-baidu-geo-coverage.md';
 const MONITOR_REPORT_FILE = 'reports/seo-baidu-monitor.md';
 const RANK_PLAN_REPORT_FILE = 'reports/seo-baidu-rank-plan.md';
@@ -196,7 +198,8 @@ function buildRobots() {
     'Disallow: /cards.html',
     'Disallow: /slides/',
     '',
-    `Sitemap: ${siteUrl('/sitemap.xml')}`,
+    `Sitemap: ${siteUrl(`/${HTML_SITEMAP_FILE}`)}`,
+    `Sitemap: ${siteUrl(`/${CONTEXT_SITEMAP_FILE}`)}`,
     ''
   ].join('\n');
 }
@@ -232,6 +235,7 @@ function buildLlmsTxt() {
     `- [AI PBL 创业营机构合作](${siteUrl('/partner-ai-pbl-camp.html')}): 面向培训机构、营地和城市伙伴的合作说明。`,
     `- [robots.txt](${siteUrl('/robots.txt')}): 搜索引擎抓取规则。`,
     `- [sitemap.xml](${siteUrl('/sitemap.xml')}): 当前可索引公开页面。`,
+    `- [sitemap-context.xml](${siteUrl('/sitemap-context.xml')}): AI 可读上下文、Markdown 页面和 Entity Profile 发现入口。`,
     '',
     '## Markdown Context',
     ...MARKDOWN_ENTRIES.flatMap((entry) => [
@@ -293,6 +297,43 @@ function buildSitemap() {
   ].join('\n');
 }
 
+function buildContextSitemap() {
+  const entries = [
+    {
+      path: '/llms.txt',
+      source: 'llms.txt',
+      changefreq: 'weekly',
+      priority: '0.7'
+    },
+    ...MARKDOWN_ENTRIES.map((entry) => ({
+      path: entry.path,
+      source: entry.source,
+      changefreq: 'monthly',
+      priority: entry.source.startsWith('entity-') ? '0.65' : '0.6'
+    }))
+  ];
+  const urls = entries.map((entry) => {
+    const loc = siteUrl(entry.path);
+    const lastmod = dateFromFile(entry.source);
+    return [
+      '  <url>',
+      `    <loc>${escapeXml(loc)}</loc>`,
+      `    <lastmod>${lastmod}</lastmod>`,
+      `    <changefreq>${entry.changefreq}</changefreq>`,
+      `    <priority>${entry.priority}</priority>`,
+      '  </url>'
+    ].join('\n');
+  }).join('\n');
+
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    urls,
+    '</urlset>',
+    ''
+  ].join('\n');
+}
+
 function escapeXml(value) {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -314,7 +355,8 @@ function generateRobots() {
 }
 
 function generateSitemap() {
-  writeStaticFile('sitemap.xml', buildSitemap());
+  writeStaticFile(HTML_SITEMAP_FILE, buildSitemap());
+  writeStaticFile(CONTEXT_SITEMAP_FILE, buildContextSitemap());
 }
 
 function generateLlms() {
@@ -716,20 +758,35 @@ function check() {
   for (const dir of OUTPUT_DIRS) {
     const prefix = dir === '.' ? '' : `${dir}/`;
     const robotsPath = join(ROOT, dir, 'robots.txt');
-    const sitemapPath = join(ROOT, dir, 'sitemap.xml');
+    const sitemapPath = join(ROOT, dir, HTML_SITEMAP_FILE);
+    const contextSitemapPath = join(ROOT, dir, CONTEXT_SITEMAP_FILE);
     const llmsPath = join(ROOT, dir, 'llms.txt');
     if (!existsSync(robotsPath)) {
       checks.push(fail(`missing ${prefix}robots.txt`));
     } else {
       const robots = readFileSync(robotsPath, 'utf8');
-      if (!robots.includes(`Sitemap: ${siteUrl('/sitemap.xml')}`)) checks.push(fail(`${prefix}robots.txt missing sitemap URL`));
+      if (!robots.includes(`Sitemap: ${siteUrl(`/${HTML_SITEMAP_FILE}`)}`)) checks.push(fail(`${prefix}robots.txt missing sitemap URL`));
+      if (!robots.includes(`Sitemap: ${siteUrl(`/${CONTEXT_SITEMAP_FILE}`)}`)) checks.push(fail(`${prefix}robots.txt missing context sitemap URL`));
     }
     if (!existsSync(sitemapPath)) {
-      checks.push(fail(`missing ${prefix}sitemap.xml`));
+      checks.push(fail(`missing ${prefix}${HTML_SITEMAP_FILE}`));
     } else {
       const sitemap = readFileSync(sitemapPath, 'utf8');
       for (const entry of SITEMAP_ENTRIES) {
-        if (!sitemap.includes(`<loc>${siteUrl(entry.path)}</loc>`)) checks.push(fail(`${prefix}sitemap.xml missing ${siteUrl(entry.path)}`));
+        if (!sitemap.includes(`<loc>${siteUrl(entry.path)}</loc>`)) checks.push(fail(`${prefix}${HTML_SITEMAP_FILE} missing ${siteUrl(entry.path)}`));
+      }
+    }
+    if (!existsSync(contextSitemapPath)) {
+      checks.push(fail(`missing ${prefix}${CONTEXT_SITEMAP_FILE}`));
+    } else {
+      const contextSitemap = readFileSync(contextSitemapPath, 'utf8');
+      if (!contextSitemap.includes(`<loc>${siteUrl('/llms.txt')}</loc>`)) {
+        checks.push(fail(`${prefix}${CONTEXT_SITEMAP_FILE} missing ${siteUrl('/llms.txt')}`));
+      }
+      for (const entry of MARKDOWN_ENTRIES) {
+        if (!contextSitemap.includes(`<loc>${siteUrl(entry.path)}</loc>`)) {
+          checks.push(fail(`${prefix}${CONTEXT_SITEMAP_FILE} missing ${siteUrl(entry.path)}`));
+        }
       }
     }
     if (!existsSync(llmsPath)) {
@@ -986,7 +1043,7 @@ function loadDotEnv() {
 }
 
 function urlsFromSitemap() {
-  const sitemapPath = join(ROOT, 'sitemap.xml');
+  const sitemapPath = join(ROOT, HTML_SITEMAP_FILE);
   const sitemap = existsSync(sitemapPath) ? readFileSync(sitemapPath, 'utf8') : buildSitemap();
   return Array.from(sitemap.matchAll(/<loc>([^<]+)<\/loc>/g), (match) => match[1].trim());
 }
@@ -1005,8 +1062,9 @@ function onlineTargets() {
     { url: siteUrl('/ai-course-vs-coding.html'), markers: ['少儿编程和AI课程区别', 'application/ld+json', '孩子该学AI还是编程', ...alternateMarkersForSource('ai-course-vs-coding.html')] },
     { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子', ...alternateMarkersForSource('shunyi-ai-parent-class.html')] },
     { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html')] },
-    { url: siteUrl('/robots.txt'), markers: [`Sitemap: ${siteUrl('/sitemap.xml')}`] },
+    { url: siteUrl('/robots.txt'), markers: [`Sitemap: ${siteUrl('/sitemap.xml')}`, `Sitemap: ${siteUrl('/sitemap-context.xml')}`] },
     { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },
+    { url: siteUrl('/sitemap-context.xml'), markers: [`<loc>${siteUrl('/llms.txt')}</loc>`, ...MARKDOWN_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`)] },
     { url: siteUrl('/llms.txt'), markers: LLM_MARKERS },
     ...MARKDOWN_ENTRIES.map((entry) => ({ url: siteUrl(entry.path), markers: [entry.title.replace(' Markdown 上下文', ''), '推荐引用描述'] }))
   ];
@@ -1824,10 +1882,10 @@ function usage() {
     'Usage: node scripts/seo/baidu-seo.mjs <command>',
     '',
     'Commands:',
-    '  generate          Write robots.txt and sitemap.xml',
+    '  generate          Write robots.txt, sitemap.xml, sitemap-context.xml, and llms.txt',
     '  llms              Write llms.txt',
     '  robots            Write robots.txt',
-    '  sitemap           Write sitemap.xml',
+    '  sitemap           Write sitemap.xml and sitemap-context.xml',
     '  links             Write public internal link graph report',
     '  coverage          Validate Baidu SEO and GEO keyword coverage',
     '  evidence          Write measured Baidu index/rank/GEO evidence report',
