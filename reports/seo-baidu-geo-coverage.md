@@ -16,6 +16,7 @@ Status | Cluster | Page | Primary keyword | Primary locations | Secondary covera
 PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | yes | yes | n/a
 PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | ai-pbl-camp.md
 PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产品原型课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | ai-product-prototype-course.md
+PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | 北京顺义青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 8/8 | yes | yes | beijing-shunyi-youth-ai-course.md
 PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | youth-ai-course-guide.md
 PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | ai-course-vs-coding.md
 PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | shunyi-ai-parent-class.md
@@ -28,6 +29,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - https://camps.wanli.wiki/
 - https://camps.wanli.wiki/ai-pbl-camp.html
 - https://camps.wanli.wiki/ai-product-prototype-course.html
+- https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html
 - https://camps.wanli.wiki/youth-ai-course-guide.html
 - https://camps.wanli.wiki/ai-course-vs-coding.html
 - https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -85,6 +87,20 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Secondary matches measured: 7/7 (孩子做AI产品, AI原型课, 青少年AI课程, AI PBL创业营, 8-16岁AI课程, 提示词实践, 产品设计)
 - JSON-LD types measured: Article, FAQPage
 - AI query coverage targets: AI产品原型课程是什么 | 孩子做AI产品需要会编程吗 | AI产品原型课程和AI工具课有什么不同
+- Status: PASS
+- Failures: none
+- Warnings: none
+
+### beijing-shunyi-youth-ai-course
+
+- Audience layer: 家长公开展示
+- Target page: https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html
+- Source: beijing-shunyi-youth-ai-course.html
+- Primary keyword: 北京顺义青少年AI课程
+- Primary locations measured: title, description, keywords, h1, h2, body, jsonLd
+- Secondary matches measured: 8/8 (顺义AI课程, 北京顺义AI课程, 顺义儿童AI课程, 顺义AI夏令营, AI PBL创业营, AI产品原型课程, 少年CEO, 青少年AI教育)
+- JSON-LD types measured: Course, FAQPage
+- AI query coverage targets: 北京顺义青少年AI课程适合什么孩子 | 顺义AI课程和普通工具体验课有什么不同 | 顺义家长如何判断一门青少年AI课程
 - Status: PASS
 - Failures: none
 - Warnings: none
