@@ -461,7 +461,7 @@ function coverage() {
   const sitemap = existsSync(join(ROOT, 'sitemap.xml')) ? read('sitemap.xml') : '';
   const llms = existsSync(join(ROOT, 'llms.txt')) ? read('llms.txt') : '';
   const sitemapUrls = urlsFromSitemap();
-  const generatedAt = new Date().toISOString();
+  const generatedAt = config.version || new Date().toISOString().slice(0, 10);
 
   for (const cluster of config.clusters || []) {
     const source = cluster.source || (cluster.targetPage === '/' ? 'index.html' : cluster.targetPage.replace(/^\//, ''));

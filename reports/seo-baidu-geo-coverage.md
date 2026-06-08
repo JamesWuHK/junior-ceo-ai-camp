@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Coverage Report
 
-Generated: 2026-06-08T15:28:28.707Z
+Generated: 2026-06-08
 Overall status: PASS
 
 ## Inputs
