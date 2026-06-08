@@ -1,11 +1,60 @@
 {
   "generatedAt": "2026-06-09",
   "site": "https://camps.wanli.wiki",
-  "source": "Baidu Search Resource Platform export, compliant rank monitor, or manual site result evidence",
-  "measurementLabel": "Example only. Copy to seo/baidu-measurements.json and replace null values with measured evidence.",
+  "source": "Baidu Search Resource Platform export, compliant rank monitor, reproducible manual site result, or manual AI answer check",
+  "measurementLabel": "Template only. Copy to seo/baidu-measurements.json and replace null values with measured evidence.",
   "indexedUrls": [
     {
       "url": "https://camps.wanli.wiki/",
+      "indexed": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform or reproducible site: result",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/ai-pbl-camp.html",
+      "indexed": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform or reproducible site: result",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/ai-product-prototype-course.html",
+      "indexed": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform or reproducible site: result",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html",
+      "indexed": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform or reproducible site: result",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/youth-ai-course-guide.html",
+      "indexed": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform or reproducible site: result",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/ai-course-vs-coding.html",
+      "indexed": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform or reproducible site: result",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/shunyi-ai-parent-class.html",
+      "indexed": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform or reproducible site: result",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/partner-ai-pbl-camp.html",
       "indexed": null,
       "evidenceDate": null,
       "source": "Baidu Search Resource Platform or reproducible site: result",
@@ -15,6 +64,83 @@
   "urlMetrics": [
     {
       "url": "https://camps.wanli.wiki/",
+      "impressions": null,
+      "clicks": null,
+      "ctr": null,
+      "avgRank": null,
+      "crawlCount": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/ai-pbl-camp.html",
+      "impressions": null,
+      "clicks": null,
+      "ctr": null,
+      "avgRank": null,
+      "crawlCount": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/ai-product-prototype-course.html",
+      "impressions": null,
+      "clicks": null,
+      "ctr": null,
+      "avgRank": null,
+      "crawlCount": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html",
+      "impressions": null,
+      "clicks": null,
+      "ctr": null,
+      "avgRank": null,
+      "crawlCount": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/youth-ai-course-guide.html",
+      "impressions": null,
+      "clicks": null,
+      "ctr": null,
+      "avgRank": null,
+      "crawlCount": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/ai-course-vs-coding.html",
+      "impressions": null,
+      "clicks": null,
+      "ctr": null,
+      "avgRank": null,
+      "crawlCount": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/shunyi-ai-parent-class.html",
+      "impressions": null,
+      "clicks": null,
+      "ctr": null,
+      "avgRank": null,
+      "crawlCount": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/partner-ai-pbl-camp.html",
       "impressions": null,
       "clicks": null,
       "ctr": null,
@@ -36,12 +162,367 @@
       "evidenceDate": null,
       "source": "Baidu Search Resource Platform, compliant rank monitor, or manual result check",
       "notes": ""
+    },
+    {
+      "cluster": "ai-pbl-camp",
+      "query": "AI PBL 创业营",
+      "targetPage": "https://camps.wanli.wiki/ai-pbl-camp.html",
+      "rank": null,
+      "impressions": null,
+      "clicks": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform, compliant rank monitor, or manual result check",
+      "notes": ""
+    },
+    {
+      "cluster": "ai-product-prototype-course",
+      "query": "AI产品原型课程",
+      "targetPage": "https://camps.wanli.wiki/ai-product-prototype-course.html",
+      "rank": null,
+      "impressions": null,
+      "clicks": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform, compliant rank monitor, or manual result check",
+      "notes": ""
+    },
+    {
+      "cluster": "beijing-shunyi-youth-ai-course",
+      "query": "北京顺义青少年AI课程",
+      "targetPage": "https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html",
+      "rank": null,
+      "impressions": null,
+      "clicks": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform, compliant rank monitor, or manual result check",
+      "notes": ""
+    },
+    {
+      "cluster": "youth-ai-course-guide",
+      "query": "青少年AI课程",
+      "targetPage": "https://camps.wanli.wiki/youth-ai-course-guide.html",
+      "rank": null,
+      "impressions": null,
+      "clicks": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform, compliant rank monitor, or manual result check",
+      "notes": ""
+    },
+    {
+      "cluster": "ai-course-vs-coding",
+      "query": "少儿编程和AI课程区别",
+      "targetPage": "https://camps.wanli.wiki/ai-course-vs-coding.html",
+      "rank": null,
+      "impressions": null,
+      "clicks": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform, compliant rank monitor, or manual result check",
+      "notes": ""
+    },
+    {
+      "cluster": "shunyi-parent-class",
+      "query": "北京顺义 AI 家长公益课",
+      "targetPage": "https://camps.wanli.wiki/shunyi-ai-parent-class.html",
+      "rank": null,
+      "impressions": null,
+      "clicks": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform, compliant rank monitor, or manual result check",
+      "notes": ""
+    },
+    {
+      "cluster": "partner-cooperation",
+      "query": "AI PBL 创业营机构合作",
+      "targetPage": "https://camps.wanli.wiki/partner-ai-pbl-camp.html",
+      "rank": null,
+      "impressions": null,
+      "clicks": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform, compliant rank monitor, or manual result check",
+      "notes": ""
     }
   ],
   "geoAnswers": [
     {
       "cluster": "brand-home",
       "query": "少年CEO AI 创业营是什么",
+      "targetPage": "https://camps.wanli.wiki/",
+      "markdownUrl": "https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "brand-home",
+      "query": "适合8-16岁孩子的AI创业营",
+      "targetPage": "https://camps.wanli.wiki/",
+      "markdownUrl": "https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "brand-home",
+      "query": "北京顺义青少年AI课程推荐",
+      "targetPage": "https://camps.wanli.wiki/",
+      "markdownUrl": "https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "ai-pbl-camp",
+      "query": "AI PBL 创业营适合什么孩子",
+      "targetPage": "https://camps.wanli.wiki/ai-pbl-camp.html",
+      "markdownUrl": "https://camps.wanli.wiki/ai-pbl-camp.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "ai-pbl-camp",
+      "query": "孩子不懂编程能参加AI创业营吗",
+      "targetPage": "https://camps.wanli.wiki/ai-pbl-camp.html",
+      "markdownUrl": "https://camps.wanli.wiki/ai-pbl-camp.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "ai-pbl-camp",
+      "query": "青少年AI产品原型课程怎么上",
+      "targetPage": "https://camps.wanli.wiki/ai-pbl-camp.html",
+      "markdownUrl": "https://camps.wanli.wiki/ai-pbl-camp.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "ai-product-prototype-course",
+      "query": "AI产品原型课程是什么",
+      "targetPage": "https://camps.wanli.wiki/ai-product-prototype-course.html",
+      "markdownUrl": "https://camps.wanli.wiki/ai-product-prototype-course.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "ai-product-prototype-course",
+      "query": "孩子做AI产品需要会编程吗",
+      "targetPage": "https://camps.wanli.wiki/ai-product-prototype-course.html",
+      "markdownUrl": "https://camps.wanli.wiki/ai-product-prototype-course.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "ai-product-prototype-course",
+      "query": "AI产品原型课程和AI工具课有什么不同",
+      "targetPage": "https://camps.wanli.wiki/ai-product-prototype-course.html",
+      "markdownUrl": "https://camps.wanli.wiki/ai-product-prototype-course.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "beijing-shunyi-youth-ai-course",
+      "query": "北京顺义青少年AI课程适合什么孩子",
+      "targetPage": "https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html",
+      "markdownUrl": "https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "beijing-shunyi-youth-ai-course",
+      "query": "顺义AI课程和普通工具体验课有什么不同",
+      "targetPage": "https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html",
+      "markdownUrl": "https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "beijing-shunyi-youth-ai-course",
+      "query": "顺义家长如何判断一门青少年AI课程",
+      "targetPage": "https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html",
+      "markdownUrl": "https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "youth-ai-course-guide",
+      "query": "青少年AI课程怎么选",
+      "targetPage": "https://camps.wanli.wiki/youth-ai-course-guide.html",
+      "markdownUrl": "https://camps.wanli.wiki/youth-ai-course-guide.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "youth-ai-course-guide",
+      "query": "儿童AI课程只学工具够吗",
+      "targetPage": "https://camps.wanli.wiki/youth-ai-course-guide.html",
+      "markdownUrl": "https://camps.wanli.wiki/youth-ai-course-guide.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "youth-ai-course-guide",
+      "query": "AI PBL课程适合什么孩子",
+      "targetPage": "https://camps.wanli.wiki/youth-ai-course-guide.html",
+      "markdownUrl": "https://camps.wanli.wiki/youth-ai-course-guide.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "ai-course-vs-coding",
+      "query": "少儿编程和AI课程区别是什么",
+      "targetPage": "https://camps.wanli.wiki/ai-course-vs-coding.html",
+      "markdownUrl": "https://camps.wanli.wiki/ai-course-vs-coding.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "ai-course-vs-coding",
+      "query": "孩子该学AI还是编程",
+      "targetPage": "https://camps.wanli.wiki/ai-course-vs-coding.html",
+      "markdownUrl": "https://camps.wanli.wiki/ai-course-vs-coding.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "ai-course-vs-coding",
+      "query": "不会编程能学AI课程吗",
+      "targetPage": "https://camps.wanli.wiki/ai-course-vs-coding.html",
+      "markdownUrl": "https://camps.wanli.wiki/ai-course-vs-coding.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "shunyi-parent-class",
+      "query": "北京顺义AI家长公益课讲什么",
+      "targetPage": "https://camps.wanli.wiki/shunyi-ai-parent-class.html",
+      "markdownUrl": "https://camps.wanli.wiki/shunyi-ai-parent-class.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "shunyi-parent-class",
+      "query": "AI时代孩子需要什么能力",
+      "targetPage": "https://camps.wanli.wiki/shunyi-ai-parent-class.html",
+      "markdownUrl": "https://camps.wanli.wiki/shunyi-ai-parent-class.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "shunyi-parent-class",
+      "query": "顺义家长怎么理解孩子学AI",
+      "targetPage": "https://camps.wanli.wiki/shunyi-ai-parent-class.html",
+      "markdownUrl": "https://camps.wanli.wiki/shunyi-ai-parent-class.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "partner-cooperation",
+      "query": "培训机构如何合作开展AI PBL创业营",
+      "targetPage": "https://camps.wanli.wiki/partner-ai-pbl-camp.html",
+      "markdownUrl": "https://camps.wanli.wiki/partner-ai-pbl-camp.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "partner-cooperation",
+      "query": "青少年AI营地合作课程方案",
+      "targetPage": "https://camps.wanli.wiki/partner-ai-pbl-camp.html",
+      "markdownUrl": "https://camps.wanli.wiki/partner-ai-pbl-camp.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "partner-cooperation",
+      "query": "AI创业营机构合作支持什么",
+      "targetPage": "https://camps.wanli.wiki/partner-ai-pbl-camp.html",
+      "markdownUrl": "https://camps.wanli.wiki/partner-ai-pbl-camp.md",
       "mentionsProject": null,
       "usesTargetPage": null,
       "positioning": "unknown",
@@ -52,6 +533,8 @@
   ],
   "notes": [
     "Do not commit seo/baidu-measurements.json. It may contain private platform exports or manual evidence notes.",
-    "Use null when the value has not been measured. The evidence report will keep it as missing instead of guessing."
+    "Use null when the value has not been measured. The evidence report will keep it as missing instead of guessing.",
+    "A Baidu push response is discovery evidence, not indexed/ranking evidence. Record index/rank only from measured platform data or reproducible checks.",
+    "For GEO checks, record whether the AI answer mentions 少年CEO AI 创业营, uses the intended page, and keeps the course positioning accurate."
   ]
 }

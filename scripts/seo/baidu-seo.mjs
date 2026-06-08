@@ -945,6 +945,16 @@ function check() {
   for (const failure of linkSnapshot.failures) checks.push(fail(`internal links: ${failure}`));
   for (const warning of linkSnapshot.warnings) warnings.push(`internal links: ${warning}`);
 
+  const measurementExample = readJsonIfExists(BAIDU_MEASUREMENTS_EXAMPLE_FILE);
+  if (!measurementExample) {
+    checks.push(fail(`missing ${BAIDU_MEASUREMENTS_EXAMPLE_FILE}`));
+  } else {
+    const config = readJson(KEYWORD_CONFIG_FILE);
+    for (const failure of measurementTemplateCoverageFailures(measurementExample, config, urlsFromSitemap())) {
+      checks.push(fail(`measurement template: ${failure}`));
+    }
+  }
+
   if (warnings.length > 0) {
     console.log('Warnings:');
     for (const warning of warnings) console.log(`- ${warning}`);
@@ -1514,6 +1524,115 @@ function geoRecordMap(measurements) {
     if (key) map.set(key, record);
   }
   return map;
+}
+
+function urlRecordMap(records) {
+  const map = new Map();
+  for (const record of arrayFrom(records)) {
+    const key = normalizeUrlForCompare(record?.url);
+    if (key) map.set(key, record);
+  }
+  return map;
+}
+
+function buildMeasurementTemplate({ generatedAt, config, urls }) {
+  return {
+    generatedAt,
+    site: SITE_URL,
+    source: 'Baidu Search Resource Platform export, compliant rank monitor, reproducible manual site result, or manual AI answer check',
+    measurementLabel: `Template only. Copy to ${BAIDU_MEASUREMENTS_FILE} and replace null values with measured evidence.`,
+    indexedUrls: urls.map((url) => ({
+      url,
+      indexed: null,
+      evidenceDate: null,
+      source: 'Baidu Search Resource Platform or reproducible site: result',
+      notes: ''
+    })),
+    urlMetrics: urls.map((url) => ({
+      url,
+      impressions: null,
+      clicks: null,
+      ctr: null,
+      avgRank: null,
+      crawlCount: null,
+      evidenceDate: null,
+      source: 'Baidu Search Resource Platform',
+      notes: ''
+    })),
+    keywordRankings: rankQueryRows(config)
+      .filter((row) => row.type === 'primary')
+      .map((row) => ({
+        cluster: row.cluster,
+        query: row.query,
+        targetPage: row.pageUrl,
+        rank: null,
+        impressions: null,
+        clicks: null,
+        evidenceDate: null,
+        source: 'Baidu Search Resource Platform, compliant rank monitor, or manual result check',
+        notes: ''
+      })),
+    geoAnswers: geoQueryRows(config).map((row) => ({
+      cluster: row.cluster,
+      query: row.query,
+      targetPage: row.pageUrl,
+      markdownUrl: row.markdownUrl,
+      mentionsProject: null,
+      usesTargetPage: null,
+      positioning: 'unknown',
+      evidenceDate: null,
+      source: 'manual AI answer check',
+      notes: ''
+    })),
+    notes: [
+      `Do not commit ${BAIDU_MEASUREMENTS_FILE}. It may contain private platform exports or manual evidence notes.`,
+      'Use null when the value has not been measured. The evidence report will keep it as missing instead of guessing.',
+      'A Baidu push response is discovery evidence, not indexed/ranking evidence. Record index/rank only from measured platform data or reproducible checks.',
+      'For GEO checks, record whether the AI answer mentions 少年CEO AI 创业营, uses the intended page, and keeps the course positioning accurate.'
+    ]
+  };
+}
+
+function measurementTemplateCoverageFailures(measurements, config, urls) {
+  const failures = [];
+  const indexed = indexedRecordMap(measurements);
+  const urlMetrics = urlRecordMap(measurements.urlMetrics);
+  const keywordRecords = keywordRecordMap(measurements);
+  const geoRecords = geoRecordMap(measurements);
+
+  for (const url of urls) {
+    const normalized = normalizeUrlForCompare(url);
+    if (!indexed.has(normalized)) failures.push(`indexedUrls missing ${url}`);
+    if (!urlMetrics.has(normalized)) failures.push(`urlMetrics missing ${url}`);
+  }
+  for (const row of rankQueryRows(config).filter((item) => item.type === 'primary')) {
+    if (!keywordRecords.has(keywordRecordKey(row.cluster, row.query, row.pageUrl))) {
+      failures.push(`keywordRankings missing ${row.cluster} / ${row.query}`);
+    }
+  }
+  for (const row of geoQueryRows(config)) {
+    if (!geoRecords.has(geoRecordKey(row.cluster, row.query))) {
+      failures.push(`geoAnswers missing ${row.cluster} / ${row.query}`);
+    }
+  }
+
+  return failures;
+}
+
+function measurementTemplate() {
+  const config = readJson(KEYWORD_CONFIG_FILE);
+  const urls = urlsFromSitemap();
+  const template = buildMeasurementTemplate({
+    generatedAt: config.version || localDate(),
+    config,
+    urls
+  });
+  writeFileSync(join(ROOT, BAIDU_MEASUREMENTS_EXAMPLE_FILE), `${JSON.stringify(template, null, 2)}\n`, 'utf8');
+  console.log(`Baidu measurement template: ${BAIDU_MEASUREMENTS_EXAMPLE_FILE}`);
+  console.log(`Indexed URL templates: ${template.indexedUrls.length}`);
+  console.log(`URL metric templates: ${template.urlMetrics.length}`);
+  console.log(`Primary keyword templates: ${template.keywordRankings.length}`);
+  console.log(`GEO answer templates: ${template.geoAnswers.length}`);
 }
 
 function numberOrNull(value) {
@@ -2140,6 +2259,8 @@ function usage() {
     '  links             Write public internal link graph report',
     '  coverage          Validate Baidu SEO and GEO keyword coverage',
     '  evidence          Write measured Baidu index/rank/GEO evidence report',
+    '  measurements-template',
+    '                    Write a full private-measurement JSON template for all sitemap, keyword, and GEO targets',
     '  monitor           Write a Baidu SEO/GEO monitoring report',
     '  rank-plan         Write a Baidu ranking and GEO query tracking sheet',
     '  check             Validate homepage SEO files and tags',
@@ -2173,6 +2294,9 @@ async function main() {
       break;
     case 'evidence':
       baiduEvidence();
+      break;
+    case 'measurements-template':
+      measurementTemplate();
       break;
     case 'monitor':
       await monitor();

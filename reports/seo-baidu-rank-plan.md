@@ -1,6 +1,6 @@
 # Baidu Ranking / GEO Tracking Plan
 
-Generated: 2026-06-09T00:44:23+08:00
+Generated: 2026-06-09T01:43:43+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
 
@@ -126,9 +126,9 @@ partner-cooperation | secondary | 城市合作伙伴 | https://camps.wanli.wiki/
 
 Cluster | AI answer query | Target HTML page | Markdown context | Baidu check URL | Current AI citation status
 --- | --- | --- | --- | --- | ---
-brand-home | 少年CEO AI 创业营是什么 | https://camps.wanli.wiki/ | https://camps.wanli.wiki/llms.txt | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO+AI+%E5%88%9B%E4%B8%9A%E8%90%A5%E6%98%AF%E4%BB%80%E4%B9%88 | N/A
-brand-home | 适合8-16岁孩子的AI创业营 | https://camps.wanli.wiki/ | https://camps.wanli.wiki/llms.txt | https://www.baidu.com/s?wd=%E9%80%82%E5%90%888-16%E5%B2%81%E5%AD%A9%E5%AD%90%E7%9A%84AI%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A
-brand-home | 北京顺义青少年AI课程推荐 | https://camps.wanli.wiki/ | https://camps.wanli.wiki/llms.txt | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B%E6%8E%A8%E8%8D%90 | N/A
+brand-home | 少年CEO AI 创业营是什么 | https://camps.wanli.wiki/ | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO+AI+%E5%88%9B%E4%B8%9A%E8%90%A5%E6%98%AF%E4%BB%80%E4%B9%88 | N/A
+brand-home | 适合8-16岁孩子的AI创业营 | https://camps.wanli.wiki/ | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | https://www.baidu.com/s?wd=%E9%80%82%E5%90%888-16%E5%B2%81%E5%AD%A9%E5%AD%90%E7%9A%84AI%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A
+brand-home | 北京顺义青少年AI课程推荐 | https://camps.wanli.wiki/ | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B%E6%8E%A8%E8%8D%90 | N/A
 ai-pbl-camp | AI PBL 创业营适合什么孩子 | https://camps.wanli.wiki/ai-pbl-camp.html | https://camps.wanli.wiki/ai-pbl-camp.md | https://www.baidu.com/s?wd=AI+PBL+%E5%88%9B%E4%B8%9A%E8%90%A5%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%AD%A9%E5%AD%90 | N/A
 ai-pbl-camp | 孩子不懂编程能参加AI创业营吗 | https://camps.wanli.wiki/ai-pbl-camp.html | https://camps.wanli.wiki/ai-pbl-camp.md | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E4%B8%8D%E6%87%82%E7%BC%96%E7%A8%8B%E8%83%BD%E5%8F%82%E5%8A%A0AI%E5%88%9B%E4%B8%9A%E8%90%A5%E5%90%97 | N/A
 ai-pbl-camp | 青少年AI产品原型课程怎么上 | https://camps.wanli.wiki/ai-pbl-camp.html | https://camps.wanli.wiki/ai-pbl-camp.md | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E4%BA%A7%E5%93%81%E5%8E%9F%E5%9E%8B%E8%AF%BE%E7%A8%8B%E6%80%8E%E4%B9%88%E4%B8%8A | N/A
