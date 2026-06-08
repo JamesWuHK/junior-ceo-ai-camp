@@ -1,0 +1,57 @@
+{
+  "generatedAt": "2026-06-09",
+  "site": "https://camps.wanli.wiki",
+  "source": "Baidu Search Resource Platform export, compliant rank monitor, or manual site result evidence",
+  "measurementLabel": "Example only. Copy to seo/baidu-measurements.json and replace null values with measured evidence.",
+  "indexedUrls": [
+    {
+      "url": "https://camps.wanli.wiki/",
+      "indexed": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform or reproducible site: result",
+      "notes": ""
+    }
+  ],
+  "urlMetrics": [
+    {
+      "url": "https://camps.wanli.wiki/",
+      "impressions": null,
+      "clicks": null,
+      "ctr": null,
+      "avgRank": null,
+      "crawlCount": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform",
+      "notes": ""
+    }
+  ],
+  "keywordRankings": [
+    {
+      "cluster": "brand-home",
+      "query": "少年CEO AI 创业营",
+      "targetPage": "https://camps.wanli.wiki/",
+      "rank": null,
+      "impressions": null,
+      "clicks": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform, compliant rank monitor, or manual result check",
+      "notes": ""
+    }
+  ],
+  "geoAnswers": [
+    {
+      "cluster": "brand-home",
+      "query": "少年CEO AI 创业营是什么",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    }
+  ],
+  "notes": [
+    "Do not commit seo/baidu-measurements.json. It may contain private platform exports or manual evidence notes.",
+    "Use null when the value has not been measured. The evidence report will keep it as missing instead of guessing."
+  ]
+}

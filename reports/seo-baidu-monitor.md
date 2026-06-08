@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-09T00:38:30+08:00
+Generated: 2026-06-09T00:45:42+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -11,11 +11,13 @@ Site URL: https://camps.wanli.wiki
 - Baidu site parameter: https://camps.wanli.wiki
 - Baidu submit URL count: 8
 - Baidu push readiness: WAITING (BAIDU_TOKEN is not configured)
+- Baidu measured evidence: NEEDS_MEASURED_DATA
+- Baidu evidence file: seo/baidu-measurements.json missing
 
 ## Measurement Boundary
 
 - Measured now: local page metadata, sitemap membership, JSON-LD presence, public copy internal-term scan, live HTTP status, live marker presence, and Baidu push URL set.
-- Not measured here: Baidu index count, search impressions, clicks, crawler frequency, keyword ranking positions, or AI citation frequency. Those require Baidu Search Resource Platform exports and/or a rank/citation monitor.
+- Measured Baidu index count, search impressions, clicks, crawler frequency, keyword ranking positions, and AI citation frequency require `seo/baidu-measurements.json` populated from Baidu Search Resource Platform exports, a compliant rank monitor, reproducible manual checks, or manual AI answer checks.
 - Baidu URL submission helps Baidu discover URLs faster; it does not guarantee inclusion or ranking. Treat successful push as discovery support, not as proof of indexed status.
 
 ## Official Baidu References
@@ -150,6 +152,7 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 1808 | no
 ## Next Actions
 
 - Add `BAIDU_TOKEN` privately in `.env` or the shell, then run `npm run seo:submit:baidu`.
+- Copy seo/baidu-measurements.example.json to seo/baidu-measurements.json, fill measured data, then run `npm run seo:baidu:evidence`.
 - Confirm `https://camps.wanli.wiki/sitemap.xml` in Baidu Search Resource Platform ordinary inclusion/sitemap tools.
 - Record measured Baidu platform data weekly: indexed URLs, crawl frequency, search impressions, clicks, and keyword positions for each cluster.
 - Use `npm run seo:rank-plan` to generate the Baidu keyword and GEO query tracking sheet before weekly checks.

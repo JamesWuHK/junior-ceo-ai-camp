@@ -13,6 +13,9 @@ const KEYWORD_CONFIG_FILE = 'seo/keywords.json';
 const COVERAGE_REPORT_FILE = 'reports/seo-baidu-geo-coverage.md';
 const MONITOR_REPORT_FILE = 'reports/seo-baidu-monitor.md';
 const RANK_PLAN_REPORT_FILE = 'reports/seo-baidu-rank-plan.md';
+const BAIDU_EVIDENCE_REPORT_FILE = 'reports/seo-baidu-evidence.md';
+const BAIDU_MEASUREMENTS_FILE = 'seo/baidu-measurements.json';
+const BAIDU_MEASUREMENTS_EXAMPLE_FILE = 'seo/baidu-measurements.example.json';
 const SITEMAP_ENTRIES = [
   {
     path: '/',
@@ -296,6 +299,11 @@ function read(relativePath) {
 
 function readJson(relativePath) {
   return JSON.parse(read(relativePath));
+}
+
+function readJsonIfExists(relativePath) {
+  if (!existsSync(join(ROOT, relativePath))) return null;
+  return readJson(relativePath);
 }
 
 function getTitle(html) {
@@ -917,7 +925,300 @@ function keywordCoverageSnapshot() {
   };
 }
 
-function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, onlineStatus, onlineResults }) {
+function arrayFrom(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function normalizeUrlForCompare(value) {
+  if (!value) return '';
+  try {
+    const url = new URL(value, SITE_URL);
+    url.hash = '';
+    url.search = '';
+    const pathname = url.pathname === '/' ? '/' : url.pathname.replace(/\/+$/, '');
+    return `${url.origin}${pathname}`;
+  } catch {
+    return String(value).trim().replace(/\/+$/, '');
+  }
+}
+
+function measuredDataSource() {
+  const privateData = readJsonIfExists(BAIDU_MEASUREMENTS_FILE);
+  if (privateData) {
+    return {
+      status: 'PRIVATE_MEASUREMENTS_LOADED',
+      file: BAIDU_MEASUREMENTS_FILE,
+      data: privateData
+    };
+  }
+
+  return {
+    status: 'WAITING_FOR_PRIVATE_MEASUREMENTS',
+    file: BAIDU_MEASUREMENTS_FILE,
+    fallbackFile: BAIDU_MEASUREMENTS_EXAMPLE_FILE,
+    data: {}
+  };
+}
+
+function indexedRecordMap(measurements) {
+  const map = new Map();
+  for (const raw of arrayFrom(measurements.indexedUrls)) {
+    const record = typeof raw === 'string' ? { url: raw, indexed: true } : raw;
+    const key = normalizeUrlForCompare(record?.url);
+    if (key) map.set(key, record);
+  }
+  return map;
+}
+
+function keywordRecordKey(cluster, query, targetPage) {
+  return [
+    cluster || '',
+    normalizeForSearch(query || ''),
+    normalizeUrlForCompare(targetPage || '')
+  ].join('|');
+}
+
+function keywordRecordMap(measurements) {
+  const map = new Map();
+  for (const record of arrayFrom(measurements.keywordRankings)) {
+    const key = keywordRecordKey(record?.cluster, record?.query, record?.targetPage || record?.pageUrl);
+    if (key) map.set(key, record);
+  }
+  return map;
+}
+
+function geoRecordKey(cluster, query) {
+  return [cluster || '', normalizeForSearch(query || '')].join('|');
+}
+
+function geoRecordMap(measurements) {
+  const map = new Map();
+  for (const record of arrayFrom(measurements.geoAnswers)) {
+    const key = geoRecordKey(record?.cluster, record?.query);
+    if (key) map.set(key, record);
+  }
+  return map;
+}
+
+function numberOrNull(value) {
+  return Number.isFinite(Number(value)) ? Number(value) : null;
+}
+
+function baiduEvidenceSnapshot() {
+  const generatedAt = localTimestamp();
+  const source = measuredDataSource();
+  const measurements = source.data || {};
+  const config = readJson(KEYWORD_CONFIG_FILE);
+  const urls = urlsFromSitemap();
+  const indexed = indexedRecordMap(measurements);
+  const keywordRecords = keywordRecordMap(measurements);
+  const geoRecords = geoRecordMap(measurements);
+
+  const urlRows = urls.map((url) => {
+    const record = indexed.get(normalizeUrlForCompare(url));
+    const status = record
+      ? (record.indexed === true ? 'INDEXED' : record.indexed === false ? 'NOT_INDEXED' : 'MISSING_EVIDENCE')
+      : 'MISSING_EVIDENCE';
+    return {
+      url,
+      status,
+      evidenceDate: record?.evidenceDate || 'N/A',
+      source: record?.source || 'N/A',
+      notes: record?.notes || ''
+    };
+  });
+
+  const primaryKeywordRows = rankQueryRows(config)
+    .filter((row) => row.type === 'primary')
+    .map((row) => {
+      const record = keywordRecords.get(keywordRecordKey(row.cluster, row.query, row.pageUrl));
+      const rank = numberOrNull(record?.rank ?? record?.position ?? record?.baiduRank);
+      const status = record
+        ? (rank && rank > 0 ? 'RANKED' : 'MEASURED_NO_RANK')
+        : 'MISSING_EVIDENCE';
+      return {
+        cluster: row.cluster,
+        query: row.query,
+        targetPage: row.pageUrl,
+        status,
+        rank: rank || 'N/A',
+        impressions: numberOrNull(record?.impressions) ?? 'N/A',
+        clicks: numberOrNull(record?.clicks) ?? 'N/A',
+        evidenceDate: record?.evidenceDate || 'N/A',
+        source: record?.source || 'N/A',
+        notes: record?.notes || ''
+      };
+    });
+
+  const geoRows = geoQueryRows(config).map((row) => {
+    const record = geoRecords.get(geoRecordKey(row.cluster, row.query));
+    let status = 'MISSING_EVIDENCE';
+    if (record) {
+      status = record.mentionsProject === true && record.usesTargetPage === true ? 'PASS' : 'NEEDS_REPAIR';
+    }
+    return {
+      cluster: row.cluster,
+      query: row.query,
+      targetPage: row.pageUrl,
+      markdownUrl: row.markdownUrl,
+      status,
+      mentionsProject: record?.mentionsProject ?? 'N/A',
+      usesTargetPage: record?.usesTargetPage ?? 'N/A',
+      positioning: record?.positioning || 'N/A',
+      evidenceDate: record?.evidenceDate || 'N/A',
+      source: record?.source || 'N/A',
+      notes: record?.notes || ''
+    };
+  });
+
+  const indexedCount = urlRows.filter((row) => row.status === 'INDEXED').length;
+  const notIndexedCount = urlRows.filter((row) => row.status === 'NOT_INDEXED').length;
+  const missingUrlEvidenceCount = urlRows.filter((row) => row.status === 'MISSING_EVIDENCE').length;
+  const rankedCount = primaryKeywordRows.filter((row) => row.status === 'RANKED').length;
+  const measuredNoRankCount = primaryKeywordRows.filter((row) => row.status === 'MEASURED_NO_RANK').length;
+  const missingKeywordEvidenceCount = primaryKeywordRows.filter((row) => row.status === 'MISSING_EVIDENCE').length;
+  const geoPassCount = geoRows.filter((row) => row.status === 'PASS').length;
+  const geoRepairCount = geoRows.filter((row) => row.status === 'NEEDS_REPAIR').length;
+  const missingGeoEvidenceCount = geoRows.filter((row) => row.status === 'MISSING_EVIDENCE').length;
+  const overallStatus = source.status === 'WAITING_FOR_PRIVATE_MEASUREMENTS'
+    ? 'NEEDS_MEASURED_DATA'
+    : missingUrlEvidenceCount || missingKeywordEvidenceCount || missingGeoEvidenceCount || notIndexedCount || measuredNoRankCount || geoRepairCount
+      ? 'PARTIAL_EVIDENCE'
+      : 'MEASURED_PASS';
+
+  return {
+    generatedAt,
+    source,
+    measurements,
+    urls,
+    urlRows,
+    primaryKeywordRows,
+    geoRows,
+    summary: {
+      overallStatus,
+      indexedCount,
+      notIndexedCount,
+      missingUrlEvidenceCount,
+      targetUrlCount: urlRows.length,
+      rankedCount,
+      measuredNoRankCount,
+      missingKeywordEvidenceCount,
+      primaryKeywordCount: primaryKeywordRows.length,
+      geoPassCount,
+      geoRepairCount,
+      missingGeoEvidenceCount,
+      geoQueryCount: geoRows.length
+    }
+  };
+}
+
+function buildEvidenceReport(snapshot) {
+  const sourceLines = [
+    `- Measurement file expected: ${BAIDU_MEASUREMENTS_FILE}`,
+    `- Measurement source status: ${snapshot.source.status}`,
+    snapshot.source.fallbackFile ? `- Template used for missing-data shape: ${snapshot.source.fallbackFile}` : '',
+    `- Metrics label: ${snapshot.source.status === 'PRIVATE_MEASUREMENTS_LOADED' ? 'Measured from private Baidu/rank/GEO evidence file.' : 'N/A until seo/baidu-measurements.json is populated.'}`
+  ].filter(Boolean);
+
+  const urlRows = snapshot.urlRows.map((row) => [
+    row.status,
+    row.url,
+    row.evidenceDate,
+    row.source,
+    row.notes || '-'
+  ].map(escapeMarkdownCell).join(' | '));
+
+  const keywordRows = snapshot.primaryKeywordRows.map((row) => [
+    row.status,
+    row.cluster,
+    row.query,
+    row.targetPage,
+    row.rank,
+    row.impressions,
+    row.clicks,
+    row.evidenceDate,
+    row.source,
+    row.notes || '-'
+  ].map(escapeMarkdownCell).join(' | '));
+
+  const geoRows = snapshot.geoRows.map((row) => [
+    row.status,
+    row.cluster,
+    row.query,
+    row.targetPage,
+    row.markdownUrl,
+    String(row.mentionsProject),
+    String(row.usesTargetPage),
+    row.positioning,
+    row.evidenceDate,
+    row.source,
+    row.notes || '-'
+  ].map(escapeMarkdownCell).join(' | '));
+
+  return [
+    '# Baidu Measured Evidence Report',
+    '',
+    `Generated: ${snapshot.generatedAt}`,
+    `Site URL: ${SITE_URL}`,
+    `Overall status: ${snapshot.summary.overallStatus}`,
+    '',
+    '## Inputs',
+    '',
+    ...sourceLines,
+    '',
+    '## Summary',
+    '',
+    `- URL index evidence: ${snapshot.summary.indexedCount}/${snapshot.summary.targetUrlCount} indexed, ${snapshot.summary.notIndexedCount} measured not indexed, ${snapshot.summary.missingUrlEvidenceCount} missing evidence.`,
+    `- Primary keyword rank evidence: ${snapshot.summary.rankedCount}/${snapshot.summary.primaryKeywordCount} ranked, ${snapshot.summary.measuredNoRankCount} measured no rank, ${snapshot.summary.missingKeywordEvidenceCount} missing evidence.`,
+    `- GEO answer evidence: ${snapshot.summary.geoPassCount}/${snapshot.summary.geoQueryCount} pass, ${snapshot.summary.geoRepairCount} needs repair, ${snapshot.summary.missingGeoEvidenceCount} missing evidence.`,
+    '',
+    '## How To Use This File',
+    '',
+    `- Copy ${BAIDU_MEASUREMENTS_EXAMPLE_FILE} to ${BAIDU_MEASUREMENTS_FILE}.`,
+    '- Fill only measured values from Baidu Search Resource Platform, a compliant rank monitor, reproducible manual checks, or manual AI answer checks.',
+    '- Keep unknown values as `null`; this report will keep them as missing evidence instead of guessing.',
+    '- Do not commit the private measurements file.',
+    '',
+    '## URL Index Evidence',
+    '',
+    'Status | URL | Evidence date | Source | Notes',
+    '--- | --- | --- | --- | ---',
+    ...urlRows,
+    '',
+    '## Primary Keyword Rank Evidence',
+    '',
+    'Status | Cluster | Query | Target page | Rank | Impressions | Clicks | Evidence date | Source | Notes',
+    '--- | --- | --- | --- | --- | --- | --- | --- | --- | ---',
+    ...keywordRows,
+    '',
+    '## GEO Answer Evidence',
+    '',
+    'Status | Cluster | Query | Target HTML page | Markdown context | Mentions project | Uses target page | Positioning | Evidence date | Source | Notes',
+    '--- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---',
+    ...geoRows,
+    '',
+    '## Open Loops',
+    '',
+    '- Populate the private measurement file after Baidu Search Resource Platform has crawl/index/query data.',
+    '- Run `npm run seo:baidu:evidence` weekly after updating measurements.',
+    '- If any URL is measured as not indexed, check robots/canonical/HTTP status first, then resubmit the URL through Baidu tools.',
+    '- If a keyword has impressions but weak clicks, tune the target page title, description, and first answer block.',
+    '- If a GEO query misses the project or confuses the positioning, strengthen the matching HTML answer, Markdown context, and `llms.txt` canonical answer.',
+    ''
+  ].join('\n');
+}
+
+function baiduEvidence() {
+  const snapshot = baiduEvidenceSnapshot();
+  writeReport(BAIDU_EVIDENCE_REPORT_FILE, buildEvidenceReport(snapshot));
+  console.log(`Baidu measured evidence status: ${snapshot.summary.overallStatus}`);
+  console.log(`Report: ${BAIDU_EVIDENCE_REPORT_FILE}`);
+  console.log(`URL index evidence: ${snapshot.summary.indexedCount}/${snapshot.summary.targetUrlCount} indexed, ${snapshot.summary.missingUrlEvidenceCount} missing`);
+  console.log(`Primary keyword rank evidence: ${snapshot.summary.rankedCount}/${snapshot.summary.primaryKeywordCount} ranked, ${snapshot.summary.missingKeywordEvidenceCount} missing`);
+  console.log(`GEO answer evidence: ${snapshot.summary.geoPassCount}/${snapshot.summary.geoQueryCount} pass, ${snapshot.summary.missingGeoEvidenceCount} missing`);
+}
+
+function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, onlineStatus, onlineResults, evidenceSnapshot }) {
   const coverageRows = coverageSnapshot.rows.map((row) => [
     row.status,
     row.id,
@@ -956,11 +1257,13 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, online
     `- Baidu site parameter: ${baidu.site}`,
     `- Baidu submit URL count: ${urls.length}`,
     `- Baidu push readiness: ${baiduReadiness.length === 0 ? 'READY_TO_SUBMIT' : `WAITING (${baiduReadiness.join('; ')})`}`,
+    `- Baidu measured evidence: ${evidenceSnapshot.summary.overallStatus}`,
+    `- Baidu evidence file: ${evidenceSnapshot.source.status === 'PRIVATE_MEASUREMENTS_LOADED' ? BAIDU_MEASUREMENTS_FILE : `${BAIDU_MEASUREMENTS_FILE} missing`}`,
     '',
     '## Measurement Boundary',
     '',
     '- Measured now: local page metadata, sitemap membership, JSON-LD presence, public copy internal-term scan, live HTTP status, live marker presence, and Baidu push URL set.',
-    '- Not measured here: Baidu index count, search impressions, clicks, crawler frequency, keyword ranking positions, or AI citation frequency. Those require Baidu Search Resource Platform exports and/or a rank/citation monitor.',
+    '- Measured Baidu index count, search impressions, clicks, crawler frequency, keyword ranking positions, and AI citation frequency require `seo/baidu-measurements.json` populated from Baidu Search Resource Platform exports, a compliant rank monitor, reproducible manual checks, or manual AI answer checks.',
     '- Baidu URL submission helps Baidu discover URLs faster; it does not guarantee inclusion or ranking. Treat successful push as discovery support, not as proof of indexed status.',
     '',
     '## Official Baidu References',
@@ -1002,6 +1305,7 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, online
     '## Next Actions',
     '',
     '- Add `BAIDU_TOKEN` privately in `.env` or the shell, then run `npm run seo:submit:baidu`.',
+    `- Copy ${BAIDU_MEASUREMENTS_EXAMPLE_FILE} to ${BAIDU_MEASUREMENTS_FILE}, fill measured data, then run \`npm run seo:baidu:evidence\`.`,
     '- Confirm `https://camps.wanli.wiki/sitemap.xml` in Baidu Search Resource Platform ordinary inclusion/sitemap tools.',
     '- Record measured Baidu platform data weekly: indexed URLs, crawl frequency, search impressions, clicks, and keyword positions for each cluster.',
     '- Use `npm run seo:rank-plan` to generate the Baidu keyword and GEO query tracking sheet before weekly checks.',
@@ -1180,6 +1484,7 @@ async function monitor() {
   const generatedAt = localTimestamp();
   const urls = urlsFromSitemap();
   const coverageSnapshot = keywordCoverageSnapshot();
+  const evidenceSnapshot = baiduEvidenceSnapshot();
   const onlineResults = [];
 
   for (const target of onlineTargets()) {
@@ -1198,11 +1503,12 @@ async function monitor() {
     urls,
     coverageSnapshot,
     onlineStatus,
-    onlineResults
+    onlineResults,
+    evidenceSnapshot
   });
 
   writeReport(MONITOR_REPORT_FILE, report);
-  console.log(`Baidu SEO/GEO monitor: local=${coverageSnapshot.status}, online=${onlineStatus}, token=${baidu.tokenConfigured ? 'configured' : 'missing'}`);
+  console.log(`Baidu SEO/GEO monitor: local=${coverageSnapshot.status}, online=${onlineStatus}, token=${baidu.tokenConfigured ? 'configured' : 'missing'}, evidence=${evidenceSnapshot.summary.overallStatus}`);
   console.log(`Report: ${MONITOR_REPORT_FILE}`);
   for (const result of onlineResults) {
     console.log(`- ${result.ok ? 'PASS' : 'FAIL'} ${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
@@ -1297,6 +1603,7 @@ function usage() {
     '  robots            Write robots.txt',
     '  sitemap           Write sitemap.xml',
     '  coverage          Validate Baidu SEO and GEO keyword coverage',
+    '  evidence          Write measured Baidu index/rank/GEO evidence report',
     '  monitor           Write a Baidu SEO/GEO monitoring report',
     '  rank-plan         Write a Baidu ranking and GEO query tracking sheet',
     '  check             Validate homepage SEO files and tags',
@@ -1324,6 +1631,9 @@ async function main() {
       break;
     case 'coverage':
       coverage();
+      break;
+    case 'evidence':
+      baiduEvidence();
       break;
     case 'monitor':
       await monitor();

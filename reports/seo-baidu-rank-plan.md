@@ -1,6 +1,6 @@
 # Baidu Ranking / GEO Tracking Plan
 
-Generated: 2026-06-09T00:37:16+08:00
+Generated: 2026-06-09T00:44:23+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
 
