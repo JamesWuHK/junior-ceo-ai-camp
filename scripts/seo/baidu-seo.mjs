@@ -117,6 +117,33 @@ const MARKDOWN_ENTRIES = [
     note: '核心实体、别名、课程定位和推荐引用描述。'
   }
 ];
+const ALTERNATE_CONTEXT_BY_SOURCE = {
+  'index.html': [
+    { href: siteUrl('/llms.txt'), type: 'text/plain' },
+    { href: siteUrl('/entity-shaonian-ceo-ai-camp.md'), type: 'text/markdown' }
+  ],
+  'ai-pbl-camp.html': [
+    { href: siteUrl('/ai-pbl-camp.md'), type: 'text/markdown' }
+  ],
+  'ai-product-prototype-course.html': [
+    { href: siteUrl('/ai-product-prototype-course.md'), type: 'text/markdown' }
+  ],
+  'beijing-shunyi-youth-ai-course.html': [
+    { href: siteUrl('/beijing-shunyi-youth-ai-course.md'), type: 'text/markdown' }
+  ],
+  'youth-ai-course-guide.html': [
+    { href: siteUrl('/youth-ai-course-guide.md'), type: 'text/markdown' }
+  ],
+  'ai-course-vs-coding.html': [
+    { href: siteUrl('/ai-course-vs-coding.md'), type: 'text/markdown' }
+  ],
+  'shunyi-ai-parent-class.html': [
+    { href: siteUrl('/shunyi-ai-parent-class.md'), type: 'text/markdown' }
+  ],
+  'partner-ai-pbl-camp.html': [
+    { href: siteUrl('/partner-ai-pbl-camp.md'), type: 'text/markdown' }
+  ]
+};
 const LLM_MARKERS = [
   '少年CEO AI 创业营',
   '8-16 岁',
@@ -344,6 +371,17 @@ function getMeta(html, name) {
 function getCanonical(html) {
   const tag = html.match(/<link\s+[^>]*rel=["']canonical["'][^>]*>/i)?.[0];
   return tag?.match(/\shref=["']([^"']*)["']/i)?.[1]?.trim() || '';
+}
+
+function getAlternateLinks(html) {
+  return Array.from(html.matchAll(/<link\s+[^>]*rel=["']alternate["'][^>]*>/gi), (match) => {
+    const tag = match[0];
+    return {
+      href: tag.match(/\shref=["']([^"']*)["']/i)?.[1]?.trim() || '',
+      type: tag.match(/\stype=["']([^"']*)["']/i)?.[1]?.trim() || '',
+      title: tag.match(/\stitle=["']([^"']*)["']/i)?.[1]?.trim() || ''
+    };
+  });
 }
 
 function getJsonLd(html) {
@@ -633,6 +671,11 @@ function check() {
     if (!getMeta(page, 'og:title')) checks.push(fail(`${entry.source} missing og:title`));
     if (!getMeta(page, 'og:description')) checks.push(fail(`${entry.source} missing og:description`));
     if (!getJsonLd(page).length) checks.push(fail(`${entry.source} missing json-ld`));
+    const alternateLinks = getAlternateLinks(page);
+    for (const expected of ALTERNATE_CONTEXT_BY_SOURCE[entry.source] || []) {
+      const hasAlternate = alternateLinks.some((link) => link.href === expected.href && link.type === expected.type);
+      if (!hasAlternate) checks.push(fail(`${entry.source} missing alternate ${expected.type}: ${expected.href}`));
+    }
     if (entry.path !== '/') {
       try {
         if (!jsonLdTypes(page).has('BreadcrumbList')) checks.push(fail(`${entry.source} missing breadcrumb json-ld`));
@@ -948,16 +991,20 @@ function urlsFromSitemap() {
   return Array.from(sitemap.matchAll(/<loc>([^<]+)<\/loc>/g), (match) => match[1].trim());
 }
 
+function alternateMarkersForSource(source) {
+  return (ALTERNATE_CONTEXT_BY_SOURCE[source] || []).map((entry) => `href="${entry.href}"`);
+}
+
 function onlineTargets() {
   return [
-    { url: siteUrl('/'), markers: [`<link rel="canonical" href="${siteUrl('/')}">`, 'application/ld+json', '北京顺义AI课程'] },
-    { url: siteUrl('/ai-pbl-camp.html'), markers: ['AI PBL 创业营', 'application/ld+json', 'AI产品原型课程'] },
-    { url: siteUrl('/ai-product-prototype-course.html'), markers: ['AI产品原型课程', 'application/ld+json', '孩子做AI产品'] },
-    { url: siteUrl('/beijing-shunyi-youth-ai-course.html'), markers: ['北京顺义青少年AI课程', 'application/ld+json', '顺义AI课程'] },
-    { url: siteUrl('/youth-ai-course-guide.html'), markers: ['青少年AI课程怎么选', 'application/ld+json', 'AI PBL创业营'] },
-    { url: siteUrl('/ai-course-vs-coding.html'), markers: ['少儿编程和AI课程区别', 'application/ld+json', '孩子该学AI还是编程'] },
-    { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子'] },
-    { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构'] },
+    { url: siteUrl('/'), markers: [`<link rel="canonical" href="${siteUrl('/')}">`, 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('index.html')] },
+    { url: siteUrl('/ai-pbl-camp.html'), markers: ['AI PBL 创业营', 'application/ld+json', 'AI产品原型课程', ...alternateMarkersForSource('ai-pbl-camp.html')] },
+    { url: siteUrl('/ai-product-prototype-course.html'), markers: ['AI产品原型课程', 'application/ld+json', '孩子做AI产品', ...alternateMarkersForSource('ai-product-prototype-course.html')] },
+    { url: siteUrl('/beijing-shunyi-youth-ai-course.html'), markers: ['北京顺义青少年AI课程', 'application/ld+json', '顺义AI课程', ...alternateMarkersForSource('beijing-shunyi-youth-ai-course.html')] },
+    { url: siteUrl('/youth-ai-course-guide.html'), markers: ['青少年AI课程怎么选', 'application/ld+json', 'AI PBL创业营', ...alternateMarkersForSource('youth-ai-course-guide.html')] },
+    { url: siteUrl('/ai-course-vs-coding.html'), markers: ['少儿编程和AI课程区别', 'application/ld+json', '孩子该学AI还是编程', ...alternateMarkersForSource('ai-course-vs-coding.html')] },
+    { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子', ...alternateMarkersForSource('shunyi-ai-parent-class.html')] },
+    { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html')] },
     { url: siteUrl('/robots.txt'), markers: [`Sitemap: ${siteUrl('/sitemap.xml')}`] },
     { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },
     { url: siteUrl('/llms.txt'), markers: LLM_MARKERS },

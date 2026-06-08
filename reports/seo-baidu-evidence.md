@@ -1,6 +1,6 @@
 # Baidu Measured Evidence Report
 
-Generated: 2026-06-09T00:49:54+08:00
+Generated: 2026-06-09T00:55:33+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_MEASURED_DATA
 

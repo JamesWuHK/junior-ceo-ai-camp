@@ -65,6 +65,7 @@ GEO / AI 搜索可读性：
 - `llms.txt` 放在站点根路径，用 Markdown 给 AI agent 一个精简的课程实体、页面和推荐描述入口。
 - 首页内嵌 `application/ld+json`，包含 `WebSite`、`Organization`、`Course` 和 `FAQPage` 结构化数据。
 - `entity-shaonian-ceo-ai-camp.md` 是公开实体档案，用于固定“少年CEO AI 创业营”的核心定位、别名和推荐引用描述。
+- 每个公开 SEO HTML 页在 `<head>` 中声明 `rel="alternate"`，指向对应的 Markdown 上下文或 `llms.txt`，方便 AI agent 和搜索型模型发现可引用内容。
 - 修改公开页面或课程定位后，先运行 `npm run seo:generate && npm run seo:check && npm run seo:coverage`，部署后再运行 `npm run seo:check:online && npm run seo:monitor`。
 
 当前公开 SEO 页面：
