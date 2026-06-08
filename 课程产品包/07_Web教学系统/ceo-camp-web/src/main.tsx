@@ -57,6 +57,7 @@ import type {
   CourseModule,
   FuturePhotoSubmission,
   ObserverScoreBrief,
+  ProblemVoteSummary,
   ScoreDimension,
   ScoreSummary,
   ShowcaseItem,
@@ -859,7 +860,19 @@ function isBlockerTask(camp: Camp | null) {
   return activityType === "blocker_note" || (moduleId === "build-sprint" && /卡在哪里|卡点|需要帮/.test(title));
 }
 
+function isProblemVoteTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const activityType = camp?.active_task?.activity_type || "";
+  const payloadType = asText(camp?.active_task?.payload?.task_type);
+  return (
+    activityType === "problem_vote" ||
+    payloadType === "problem_vote" ||
+    /烦人墙投票|问题投票|最想继续调查|选出.*问题/.test(title)
+  );
+}
+
 function isProblemDiscoveryTask(camp: Camp | null) {
+  if (isProblemVoteTask(camp)) return false;
   const title = activeTaskTitle(camp);
   const moduleId = camp?.active_task?.module_id || "";
   return moduleId === "problem-wall" || /真实问题|生活中的问题|便利贴|小麻烦|烦恼|线索墙/.test(title);
@@ -903,6 +916,7 @@ function isPeerFeedbackTask(camp: Camp | null) {
 }
 
 function isObserverScoreTask(camp: Camp | null) {
+  if (isProblemVoteTask(camp)) return false;
   const title = activeTaskTitle(camp);
   const payloadType = asText(camp?.active_task?.payload?.task_type);
   return payloadType === "observer_score" || /评分|观察员投票|投票|给出下一步建议/.test(title);
@@ -939,6 +953,7 @@ function useInitialData(active: "student" | "wall") {
   const [showcaseItems, setShowcaseItems] = useState<ShowcaseItem[]>([]);
   const [wallArtifacts, setWallArtifacts] = useState<WallArtifact[]>([]);
   const [growthReflections, setGrowthReflections] = useState<WallArtifact[]>([]);
+  const [problemVoteSummaries, setProblemVoteSummaries] = useState<ProblemVoteSummary[]>([]);
   const [awardResults, setAwardResults] = useState<AwardResult[]>([]);
   const [scoreSummaries, setScoreSummaries] = useState<ScoreSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -953,17 +968,22 @@ function useInitialData(active: "student" | "wall") {
         ? Promise.resolve({ showcase_items: [] })
         : api.showcase().catch(() => ({ showcase_items: [] as ShowcaseItem[] })),
       active === "student"
-        ? Promise.resolve({ artifacts: [] as WallArtifact[] })
-        : api.wallArtifacts().catch(() => ({ artifacts: [] as WallArtifact[] })),
+        ? Promise.resolve({ artifacts: [] as WallArtifact[], problem_vote_summaries: [] as ProblemVoteSummary[] })
+        : api.wallArtifacts().catch(() => ({
+          artifacts: [] as WallArtifact[],
+          problem_vote_summaries: [] as ProblemVoteSummary[]
+        })),
       active === "student"
         ? Promise.resolve({
             award_results: [] as AwardResult[],
             growth_reflections: [] as WallArtifact[],
+            problem_vote_summaries: [] as ProblemVoteSummary[],
             score_summaries: [] as ScoreSummary[]
           })
         : api.publicFinalShowcase().catch(() => ({
           award_results: [] as AwardResult[],
           growth_reflections: [] as WallArtifact[],
+          problem_vote_summaries: [] as ProblemVoteSummary[],
           score_summaries: [] as ScoreSummary[]
         }))
     ]);
@@ -972,6 +992,7 @@ function useInitialData(active: "student" | "wall") {
     setStudents(wallResult.students);
     setShowcaseItems(showcaseResult.showcase_items);
     setWallArtifacts(artifactResult.artifacts);
+    setProblemVoteSummaries(artifactResult.problem_vote_summaries ?? publicResult.problem_vote_summaries ?? []);
     setGrowthReflections(publicResult.growth_reflections ?? []);
     setAwardResults(publicResult.award_results ?? []);
     setScoreSummaries(publicResult.score_summaries ?? []);
@@ -987,13 +1008,14 @@ function useInitialData(active: "student" | "wall") {
       setStudents(payload.wall);
       setShowcaseItems(payload.showcase_items ?? []);
       setWallArtifacts(payload.wall_artifacts ?? []);
+      setProblemVoteSummaries(payload.problem_vote_summaries ?? []);
       setGrowthReflections(payload.growth_reflections ?? []);
       setAwardResults(payload.award_results ?? []);
       setScoreSummaries(payload.score_summaries ?? []);
     });
   }, [active]);
 
-  return { camp, modules, students, showcaseItems, wallArtifacts, growthReflections, awardResults, scoreSummaries, loading, error, refresh };
+  return { camp, modules, students, showcaseItems, wallArtifacts, growthReflections, problemVoteSummaries, awardResults, scoreSummaries, loading, error, refresh };
 }
 
 function useTeacherData(enabled: boolean) {
@@ -1078,6 +1100,7 @@ function App() {
           showcaseItems={data.showcaseItems}
           artifacts={data.wallArtifacts}
           growthReflections={data.growthReflections}
+          problemVoteSummaries={data.problemVoteSummaries}
           awardResults={data.awardResults}
           scoreSummaries={data.scoreSummaries}
         />
@@ -2351,6 +2374,12 @@ function asNumber(value: unknown) {
   return Number.isFinite(numberValue) ? numberValue : 0;
 }
 
+function selectedProblemIds(payload: Record<string, unknown>) {
+  const raw = payload.selected_problem_ids;
+  if (!Array.isArray(raw)) return [];
+  return Array.from(new Set(raw.map((id) => String(id ?? "").trim()).filter(Boolean))).slice(0, 3);
+}
+
 function displayOrderFor(item: TaskSubmission | WallArtifact) {
   const order = asNumber(item.payload.display_order);
   return order > 0 ? order : 9999;
@@ -2862,13 +2891,18 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
 
 function TeacherD1Artifacts() {
   const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [voteSummaries, setVoteSummaries] = useState<ProblemVoteSummary[]>([]);
+  const [voteCount, setVoteCount] = useState(0);
   const [message, setMessage] = useState("");
   const [updatingId, setUpdatingId] = useState("");
+  const [startingVote, setStartingVote] = useState(false);
 
   const load = async () => {
     try {
-      const result = await api.submissions();
+      const [result, voteResult] = await Promise.all([api.submissions(), api.problemVotesManage()]);
       setItems(result.task_submissions.filter((item) => ["problem_card", "user_voice"].includes(item.task_type)));
+      setVoteSummaries(voteResult.summaries);
+      setVoteCount(voteResult.votes.length);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "加载失败");
     }
@@ -2900,6 +2934,29 @@ function TeacherD1Artifacts() {
     }
   };
 
+  const startProblemVote = async () => {
+    setStartingVote(true);
+    setMessage("");
+    try {
+      await api.setCurrentTask({
+        module_id: "problem-wall",
+        title: "烦人墙投票",
+        activity_type: "problem_vote",
+        payload: {
+          task_type: "problem_vote",
+          max_choices: 3,
+          summary: "选出最想继续调查的问题"
+        }
+      });
+      setMessage("投票已发到学生端。");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "投票发起失败");
+    } finally {
+      setStartingVote(false);
+    }
+  };
+
   return (
     <section className="panel d1-artifacts-panel">
       <div className="panel-title">
@@ -2910,7 +2967,16 @@ function TeacherD1Artifacts() {
         <span>{stats.problemCount} 张问题卡</span>
         <span>{stats.voiceCount} 条用户声音</span>
         <span>{stats.teamCount} 个来源</span>
+        <span>{voteCount} 张投票</span>
       </div>
+      <div className="d1-vote-toolbar">
+        <button disabled={startingVote || !stats.problemCount} onClick={startProblemVote}>
+          <CheckCircle2 size={16} />
+          发起烦人墙投票
+        </button>
+        <span>学生最多选 3 张问题卡，系统按票数排序。</span>
+      </div>
+      <ProblemVoteLeaderboard summaries={voteSummaries} compact />
       {message && <p className="hint">{message}</p>}
       <div className="d1-artifact-list">
         {items.map((item) => {
@@ -2948,6 +3014,36 @@ function TeacherD1Artifacts() {
         {!items.length && <p className="empty">学生提交问题卡或用户声音后，会出现在这里。</p>}
       </div>
     </section>
+  );
+}
+
+function ProblemVoteLeaderboard({
+  summaries,
+  compact = false
+}: {
+  summaries: ProblemVoteSummary[];
+  compact?: boolean;
+}) {
+  const visible = summaries
+    .filter((summary) => compact || summary.vote_count > 0)
+    .slice(0, compact ? 5 : 6);
+  if (!visible.length) return null;
+  const maxVotes = Math.max(...visible.map((summary) => summary.vote_count), 1);
+  return (
+    <div className={compact ? "problem-vote-leaderboard compact" : "problem-vote-leaderboard"}>
+      {visible.map((summary, index) => (
+        <article className="problem-vote-rank" key={summary.problem_id}>
+          <b>{index + 1}</b>
+          <div>
+            <span>{summary.team_name || summary.student_name || "问题卡"}</span>
+            <strong>{summary.problem_scene}</strong>
+            <small>{summary.target_user || "真实用户"} · {summary.trouble || "值得继续调查"}</small>
+            <i style={{ width: `${Math.max(8, (summary.vote_count / maxVotes) * 100)}%` }} />
+          </div>
+          <em>{summary.vote_count} 票</em>
+        </article>
+      ))}
+    </div>
   );
 }
 
@@ -5485,6 +5581,7 @@ function StudentApp({
   const speechRef = useRef<SpeechRecognitionLike | null>(null);
   const loadedSourcePhotoRef = useRef("");
   const taskTitle = camp?.active_task?.title || "未来照相馆";
+  const problemVoteTask = isProblemVoteTask(camp);
   const problemTask = isProblemDiscoveryTask(camp);
   const userVoiceTask = isUserVoiceTask(camp);
   const productDefinitionTask = isProductDefinitionTask(camp);
@@ -5495,6 +5592,7 @@ function StudentApp({
   const productLinkTask = isProductLinkTask(camp);
   const peerFeedbackTask = isPeerFeedbackTask(camp);
   const textTask =
+    problemVoteTask ||
     problemTask ||
     userVoiceTask ||
     productDefinitionTask ||
@@ -5694,6 +5792,18 @@ function StudentApp({
     );
   }
 
+  if (problemVoteTask) {
+    return (
+      <StudentProblemVoteTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
   if (userVoiceTask) {
     return (
       <StudentUserVoiceTask
@@ -5880,6 +5990,134 @@ function StudentApp({
             {checkingPhoto ? "正在看照片" : "提交"}
           </button>
           <p className="hint">提交后，未来照片会先被画出来；老师看过后，照片墙就会亮。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentProblemVoteTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [candidates, setCandidates] = useState<WallArtifact[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const result = await api.problemVoteBrief();
+      setCandidates(result.candidates);
+      setSelectedIds(selectedProblemIds(result.my_vote?.payload ?? {}));
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "问题卡暂时没出来，请稍后再试。");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const toggle = (id: string) => {
+    setMessage(null);
+    setSelectedIds((current) => {
+      if (current.includes(id)) return current.filter((item) => item !== id);
+      if (current.length >= 3) {
+        showMessage("hint", "最多选 3 张问题卡。");
+        return current;
+      }
+      return [...current, id];
+    });
+  };
+
+  const submit = async () => {
+    if (!selectedIds.length) {
+      showMessage("error", "先选 1 到 3 张问题卡。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitProblemVote({ problem_ids: selectedIds });
+      showMessage("success", "收到啦。大家的选择会帮全班看见最想继续调查的问题。");
+      await refresh();
+      await load();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "投票没成功，请再试一次。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "烦人墙投票"}</h1>
+        <p>选出你最想继续调查的问题，最多选 3 张。</p>
+        <div className="student-card problem-vote-card">
+          <div className="student-current">
+            <div>
+              <span>投票人</span>
+              <strong>{student.nickname}</strong>
+              <small>{student.team_name || student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          {loading ? (
+            <div className="feedback-loading">
+              <Loader2 className="spin" size={24} />
+              <span>正在找问题卡</span>
+            </div>
+          ) : candidates.length ? (
+            <>
+              <div className="problem-vote-grid">
+                {candidates.map((item) => {
+                  const active = selectedIds.includes(item.id);
+                  const title = asText(item.payload.problem_scene) || asText(item.payload.trouble) || "一个真实问题";
+                  return (
+                    <button className={active ? "problem-vote-option active" : "problem-vote-option"} key={item.id} onClick={() => toggle(item.id)}>
+                      <span>{item.team_name || item.student_name || "问题卡"}</span>
+                      <strong>{title}</strong>
+                      <small>{asText(item.payload.target_user) || "真实用户"}</small>
+                      <p>{asText(item.payload.trouble) || "等大家一起看一看"}</p>
+                    </button>
+                  );
+                })}
+              </div>
+              <button className="submit-button" disabled={submitting} onClick={submit}>
+                {submitting ? <Loader2 className="spin" size={18} /> : <CheckCircle2 size={18} />}
+                提交
+              </button>
+              <p className="hint">选中的问题不一定马上变成项目，但会帮大家看见最有调查价值的线索。</p>
+            </>
+          ) : (
+            <div className="feedback-empty">
+              <StickyNote size={28} />
+              <strong>问题卡还在路上</strong>
+              <span>等同学提交问题卡后，再回来投票。</span>
+              <button className="text-button" onClick={load}>刷新</button>
+            </div>
+          )}
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -7481,6 +7719,20 @@ function FinalShowcaseRun({ artifacts }: { artifacts: WallArtifact[] }) {
   );
 }
 
+function ProblemVoteWall({ summaries }: { summaries: ProblemVoteSummary[] }) {
+  const visible = summaries.filter((summary) => summary.vote_count > 0);
+  if (!visible.length) return null;
+  return (
+    <section className="wall-problem-votes">
+      <div className="wall-section-title">
+        <span className="eyebrow">班级选择</span>
+        <h2>最想继续调查的问题</h2>
+      </div>
+      <ProblemVoteLeaderboard summaries={visible} />
+    </section>
+  );
+}
+
 function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   if (!artifacts.length) return null;
   const hasProduct = artifacts.some((item) => item.task_type === "product_definition");
@@ -7597,6 +7849,7 @@ function WallApp({
   showcaseItems,
   artifacts,
   growthReflections,
+  problemVoteSummaries,
   awardResults,
   scoreSummaries
 }: {
@@ -7605,6 +7858,7 @@ function WallApp({
   showcaseItems: ShowcaseItem[];
   artifacts: WallArtifact[];
   growthReflections: WallArtifact[];
+  problemVoteSummaries: ProblemVoteSummary[];
   awardResults: AwardResult[];
   scoreSummaries: ScoreSummary[];
 }) {
@@ -7632,6 +7886,7 @@ function WallApp({
       </header>
       <CoursePhotoWall students={students} variant="wall" onOpenPhoto={setSelectedPhoto} />
       <FinalShowcaseRun artifacts={finalShowcaseArtifacts} />
+      <ProblemVoteWall summaries={problemVoteSummaries} />
       <WallAwards awards={awardResults} summaries={scoreSummaries} />
       <WallGrowthReflections reflections={growthReflections} />
       <ClassroomArtifactsWall artifacts={classroomArtifacts} />

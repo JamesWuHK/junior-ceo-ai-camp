@@ -115,6 +115,16 @@ type ScoreSummary = {
   highlights: string[];
   next_steps: string[];
 };
+type ProblemVoteSummary = {
+  problem_id: string;
+  vote_count: number;
+  problem_scene: string;
+  target_user: string;
+  trouble: string;
+  current_solution: string;
+  team_name?: string | null;
+  student_name?: string | null;
+};
 
 const scoreDimensions: ScoreDimension[] = [
   "user_realness",
@@ -514,6 +524,97 @@ function projectJourneyItems() {
   });
 }
 
+function textValue(value: unknown) {
+  return typeof value === "string" ? value : "";
+}
+
+function problemVoteCandidates() {
+  return rows<Record<string, any> & { payload?: string }>(
+    `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
+       FROM task_submissions ts
+       LEFT JOIN students s ON s.id = ts.student_id
+       LEFT JOIN teams t ON t.id = ts.team_id
+      WHERE ts.camp_id = ?
+        AND ts.task_type = 'problem_card'
+      ORDER BY ts.created_at DESC`,
+    campId()
+  ).map((artifact): TaskArtifact => {
+    const base = artifact as Record<string, any>;
+    return {
+      ...base,
+      task_type: "problem_card",
+      payload: jsonParse<TaskPayload>(base.payload, {})
+    };
+  });
+}
+
+function problemVoteActivityId() {
+  const activeTask = currentCamp().active_task as Record<string, any> | null;
+  if (!activeTask) return "";
+  const payload = activeTask.payload && typeof activeTask.payload === "object"
+    ? activeTask.payload as Record<string, unknown>
+    : {};
+  const payloadType = textValue(payload.task_type);
+  return activeTask.activity_type === "problem_vote" || payloadType === "problem_vote"
+    ? String(activeTask.id ?? "")
+    : "";
+}
+
+function problemVoteItems(activityId = "") {
+  return rows<Record<string, any> & { payload?: string }>(
+    `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
+       FROM task_submissions ts
+       LEFT JOIN students s ON s.id = ts.student_id
+       LEFT JOIN teams t ON t.id = ts.team_id
+      WHERE ts.camp_id = ?
+        AND ts.task_type = 'problem_vote'
+      ORDER BY ts.updated_at DESC, ts.created_at DESC`,
+    campId()
+  )
+    .map((artifact): TaskArtifact => {
+      const base = artifact as Record<string, any>;
+      return {
+        ...base,
+        task_type: "problem_vote",
+        payload: jsonParse<TaskPayload>(base.payload, {})
+      };
+    })
+    .filter((artifact) => !activityId || textValue(artifact.payload.activity_id) === activityId);
+}
+
+function selectedProblemIds(payload: TaskPayload) {
+  const raw = payload.selected_problem_ids;
+  if (!Array.isArray(raw)) return [];
+  return Array.from(new Set(raw.map((id) => String(id ?? "").trim()).filter(Boolean))).slice(0, 3);
+}
+
+function problemVoteSummaries(activityId = ""): ProblemVoteSummary[] {
+  const candidates = problemVoteCandidates();
+  const candidateMap = new Map(candidates.map((item) => [item.id, item]));
+  const counts = new Map<string, number>();
+  for (const vote of problemVoteItems(activityId)) {
+    for (const problemId of selectedProblemIds(vote.payload)) {
+      if (!candidateMap.has(problemId)) continue;
+      counts.set(problemId, (counts.get(problemId) ?? 0) + 1);
+    }
+  }
+  return candidates
+    .map((candidate) => ({
+      problem_id: candidate.id,
+      vote_count: counts.get(candidate.id) ?? 0,
+      problem_scene: textValue(candidate.payload.problem_scene) || textValue(candidate.payload.trouble) || "一个真实问题",
+      target_user: textValue(candidate.payload.target_user),
+      trouble: textValue(candidate.payload.trouble),
+      current_solution: textValue(candidate.payload.current_solution),
+      team_name: candidate.team_name ?? textValue(candidate.payload.team_name) ?? null,
+      student_name: candidate.student_name ?? null
+    }))
+    .sort((a, b) => {
+      if (b.vote_count !== a.vote_count) return b.vote_count - a.vote_count;
+      return a.problem_scene.localeCompare(b.problem_scene, "zh-Hans-CN");
+    });
+}
+
 function mentorCommentItems(includeAll = false) {
   const statusClause = includeAll ? "" : "AND ts.status = 'ON_WALL'";
   return rows<Record<string, any> & { payload?: string }>(
@@ -659,6 +760,7 @@ function emitState(event = "state.changed") {
     wall_artifacts: wallTaskArtifacts(),
     growth_reflections: growthReflectionItems(),
     project_journey: projectJourneyItems(),
+    problem_vote_summaries: problemVoteSummaries(problemVoteActivityId()),
     award_results: awardResults(false),
     score_summaries: scoreSummaries()
   });
@@ -1465,6 +1567,86 @@ app.post("/task-submissions", async (request, reply) => {
   };
 });
 
+app.get("/problem-votes/brief", async (request, reply) => {
+  const student = requireStudent(request);
+  if (!student) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const activityId = problemVoteActivityId();
+  const votes = problemVoteItems(activityId);
+  const myVote = votes.find((vote) => vote.student_id === student.id) || null;
+  return {
+    candidates: problemVoteCandidates(),
+    summaries: problemVoteSummaries(activityId),
+    my_vote: myVote
+  };
+});
+
+app.post("/problem-votes", async (request, reply) => {
+  const principal = requireStudent(request);
+  if (!principal) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const body = request.body as Record<string, unknown>;
+  const selectedIds = Array.isArray(body.problem_ids)
+    ? Array.from(new Set(body.problem_ids.map((id) => String(id ?? "").trim()).filter(Boolean))).slice(0, 3)
+    : [];
+  if (!selectedIds.length || selectedIds.length > 3) return reply.code(400).send({ error: "PROBLEM_VOTE_REQUIRED" });
+  const candidates = problemVoteCandidates();
+  const candidateMap = new Map(candidates.map((item) => [item.id, item]));
+  if (selectedIds.some((id) => !candidateMap.has(id))) return reply.code(400).send({ error: "PROBLEM_VOTE_INVALID" });
+  const student = row<{ id: string; nickname: string; team_id?: string | null; team_name?: string | null }>(
+    `SELECT s.id, s.nickname, s.team_id, t.name AS team_name
+       FROM students s
+       LEFT JOIN teams t ON t.id = s.team_id
+      WHERE s.id = ?
+        AND s.camp_id = ?`,
+    [principal.id, campId()]
+  );
+  if (!student) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const activeTask = currentCamp().active_task as Record<string, any> | null;
+  const activityId = problemVoteActivityId() || String(activeTask?.id ?? "current");
+  const selectedProblems = selectedIds.map((id) => candidateMap.get(id)).filter(Boolean) as TaskArtifact[];
+  const payload: TaskPayload = {
+    activity_id: activityId,
+    selected_problem_ids: selectedIds,
+    selected_problem_titles: selectedProblems.map((item) =>
+      textValue(item.payload.problem_scene) || textValue(item.payload.trouble) || "一个真实问题"
+    ),
+    team_name: student.team_name ?? ""
+  };
+  const record = {
+    id: `problem-vote-${activityId}-${student.id}`,
+    camp_id: campId(),
+    student_id: student.id,
+    team_id: student.team_id ?? null,
+    task_type: "problem_vote",
+    title: String(activeTask?.title ?? "烦人墙投票"),
+    payload: JSON.stringify(payload),
+    status: "SUBMITTED",
+    updated_at: nowSql()
+  };
+  db.prepare(
+    `INSERT INTO task_submissions
+      (id, camp_id, student_id, team_id, task_type, title, payload, status, updated_at)
+     VALUES
+      (@id, @camp_id, @student_id, @team_id, @task_type, @title, @payload, @status, @updated_at)
+     ON CONFLICT(id) DO UPDATE SET
+      team_id = excluded.team_id,
+      title = excluded.title,
+      payload = excluded.payload,
+      status = excluded.status,
+      updated_at = excluded.updated_at`
+  ).run(record);
+  audit("problem_vote.submit", "task_submissions", record.id, { selected_problem_ids: selectedIds }, `student:${student.id}`);
+  emitState("problem_vote.submitted");
+  return {
+    submission: {
+      ...record,
+      student_name: student.nickname,
+      team_name: student.team_name ?? null,
+      payload
+    },
+    summaries: problemVoteSummaries(activityId)
+  };
+});
+
 app.post("/task-submissions/:id/status", async (request, reply) => {
   if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
   const { id } = request.params as { id: string };
@@ -1602,7 +1784,8 @@ app.get("/wall/future-photo", async () => ({
 }));
 
 app.get("/wall/artifacts", async () => ({
-  artifacts: wallTaskArtifacts()
+  artifacts: wallTaskArtifacts(),
+  problem_vote_summaries: problemVoteSummaries(problemVoteActivityId())
 }));
 
 app.get("/showcase", async () => ({
@@ -1624,6 +1807,7 @@ app.get("/public/final-showcase", async () => {
     showcase_items: showcaseItems(false),
     growth_reflections: growthReflectionItems(),
     project_journey: projectJourneyItems(),
+    problem_vote_summaries: problemVoteSummaries(),
     score_summaries: scoreSummaries(),
     award_results: awardResults(false)
   };
@@ -1853,6 +2037,7 @@ app.get("/events", async (request, reply) => {
     wall_artifacts: wallTaskArtifacts(),
     growth_reflections: growthReflectionItems(),
     project_journey: projectJourneyItems(),
+    problem_vote_summaries: problemVoteSummaries(problemVoteActivityId()),
     award_results: awardResults(false),
     score_summaries: scoreSummaries()
   });
@@ -1911,6 +2096,16 @@ app.get("/submissions", async (request, reply) => {
         ...submission,
         payload: jsonParse(submission.payload, {})
       }))
+  };
+});
+
+app.get("/problem-votes/manage", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const activityId = problemVoteActivityId();
+  return {
+    candidates: problemVoteCandidates(),
+    votes: problemVoteItems(activityId),
+    summaries: problemVoteSummaries(activityId)
   };
 });
 

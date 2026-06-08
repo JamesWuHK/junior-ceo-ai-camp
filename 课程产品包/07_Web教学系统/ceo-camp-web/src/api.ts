@@ -4,6 +4,7 @@ import type {
   CourseModule,
   FuturePhotoSubmission,
   ObserverScoreBrief,
+  ProblemVoteSummary,
   ScoreSummary,
   ShowcaseItem,
   SourcePhoto,
@@ -88,6 +89,8 @@ function friendlyErrorMessage(raw: unknown, status: number) {
   if (text === "SCORE_REQUIRED") return "五组星星都点一下。";
   if (text === "SCORE_NOTE_REQUIRED") return "亮点和下一步建议都写一下。";
   if (text === "MENTOR_COMMENT_REQUIRED") return "先写一段导师点评。";
+  if (text === "PROBLEM_VOTE_REQUIRED") return "先选 1 到 3 张问题卡。";
+  if (text === "PROBLEM_VOTE_INVALID") return "有一张问题卡不在这轮投票里，请重新选。";
   if (text === "SOURCE_PHOTO_REQUIRED") return "先上传照片，再提交。";
   if (text === "INVALID_UPLOAD_KEY" || text === "INVALID_UPLOAD_BODY") return "照片没有传好，请重新选择一次。";
   if (text === "QINGYUN_MODEL_NOT_CONFIGURED") return "出图服务还没准备好，请联系现场老师。";
@@ -205,7 +208,7 @@ export const api = {
       body: JSON.stringify({ action })
     }),
   wall: () => request<{ students: Student[] }>("/wall/future-photo"),
-  wallArtifacts: () => request<{ artifacts: WallArtifact[] }>("/wall/artifacts"),
+  wallArtifacts: () => request<{ artifacts: WallArtifact[]; problem_vote_summaries?: ProblemVoteSummary[] }>("/wall/artifacts"),
   showcase: () => request<{ showcase_items: ShowcaseItem[] }>("/showcase"),
   publicFinalShowcase: () =>
     request<{
@@ -214,9 +217,24 @@ export const api = {
       showcase_items: ShowcaseItem[];
       growth_reflections: WallArtifact[];
       project_journey: WallArtifact[];
+      problem_vote_summaries?: ProblemVoteSummary[];
       score_summaries: ScoreSummary[];
       award_results: AwardResult[];
     }>("/public/final-showcase"),
+  problemVoteBrief: () =>
+    request<{ candidates: WallArtifact[]; summaries: ProblemVoteSummary[]; my_vote: TaskSubmission | null }>("/problem-votes/brief", {
+      headers: studentHeaders(true)
+    }),
+  submitProblemVote: (payload: { problem_ids: string[] }) =>
+    request<{ submission: TaskSubmission; summaries: ProblemVoteSummary[] }>("/problem-votes", {
+      method: "POST",
+      headers: studentHeaders(true),
+      body: JSON.stringify(payload)
+    }),
+  problemVotesManage: () =>
+    request<{ candidates: WallArtifact[]; votes: TaskSubmission[]; summaries: ProblemVoteSummary[] }>("/problem-votes/manage", {
+      headers: headers(true)
+    }),
   manageShowcase: () => request<{ showcase_items: ShowcaseItem[] }>("/showcase/manage", { headers: headers(true) }),
   publishShowcase: (payload: Partial<ShowcaseItem>) =>
     request<{ showcase_item: ShowcaseItem }>("/publish/showcase", {
@@ -320,6 +338,7 @@ export function connectEvents(onState: (payload: StatePayload) => void) {
   source.addEventListener("score.submitted", handler);
   source.addEventListener("publish.changed", handler);
   source.addEventListener("mentor_comment.changed", handler);
+  source.addEventListener("problem_vote.submitted", handler);
   return () => source.close();
 }
 

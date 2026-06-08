@@ -143,6 +143,17 @@ export interface ObserverScoreBrief {
   showcase_items: ShowcaseItem[];
 }
 
+export interface ProblemVoteSummary {
+  problem_id: string;
+  vote_count: number;
+  problem_scene: string;
+  target_user: string;
+  trouble: string;
+  current_solution: string;
+  team_name?: string | null;
+  student_name?: string | null;
+}
+
 export interface TaskSubmission {
   id: string;
   student_id?: string | null;
@@ -191,6 +202,7 @@ export interface StatePayload {
   wall_artifacts?: WallArtifact[];
   growth_reflections?: WallArtifact[];
   project_journey?: WallArtifact[];
+  problem_vote_summaries?: ProblemVoteSummary[];
   award_results?: AwardResult[];
   score_summaries?: ScoreSummary[];
 }
