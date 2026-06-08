@@ -66,6 +66,7 @@ button:disabled {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);
+  min-width: 0;
 }
 
 .teacher-login-page {
@@ -119,6 +120,7 @@ button:disabled {
   color: #fff;
   padding: 24px 18px;
   overflow-y: auto;
+  min-width: 0;
 }
 
 .brand {
@@ -182,8 +184,10 @@ button:disabled {
 .teacher-main {
   padding: 24px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   align-content: start;
+  min-width: 0;
 }
 
 .teacher-header,
@@ -193,6 +197,7 @@ button:disabled {
   border: 1px solid #e2dfd2;
   border-radius: 8px;
   box-shadow: 0 12px 30px rgba(24, 31, 22, 0.06);
+  min-width: 0;
 }
 
 .teacher-header {
@@ -2140,6 +2145,154 @@ button:disabled {
   gap: 12px;
 }
 
+.progress-board-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.progress-board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.progress-team-card {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fffdf6;
+  padding: 13px;
+  display: grid;
+  gap: 12px;
+}
+
+.progress-team-card.needs-help {
+  border-color: #ef7d58;
+  box-shadow: 0 0 0 2px rgba(239, 125, 88, 0.1);
+}
+
+.progress-team-card header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.progress-team-card header span,
+.progress-team-card header small {
+  color: #60705f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.progress-team-card header strong {
+  display: block;
+  color: #172018;
+  font-size: 21px;
+  line-height: 1.14;
+  margin: 4px 0;
+}
+
+.progress-team-card header em {
+  border-radius: 999px;
+  background: #edf6e8;
+  color: #1f6f50;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+  padding: 6px 9px;
+  white-space: nowrap;
+}
+
+.progress-team-card.needs-help header em {
+  background: #fff0ea;
+  color: #9b3d1c;
+}
+
+.progress-milestones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.progress-milestones span {
+  border: 1px solid #e5eadf;
+  border-radius: 999px;
+  color: #748072;
+  background: #fff;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.progress-milestones span.done {
+  border-color: #cde4c5;
+  background: #edf6e8;
+  color: #1f6f50;
+}
+
+.progress-card-foot {
+  display: grid;
+  gap: 9px;
+}
+
+.progress-card-foot p {
+  margin: 0;
+  color: #536151;
+  line-height: 1.45;
+}
+
+.progress-card-foot p b,
+.blocker-note b {
+  display: block;
+  color: #172018;
+  margin-bottom: 3px;
+}
+
+.blocker-note {
+  border: 1px solid #f2d2c7;
+  border-radius: 8px;
+  background: #fff8f4;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.blocker-note.resolved {
+  border-color: #d9e8d6;
+  background: #f7fbf2;
+}
+
+.blocker-note span,
+.blocker-note small {
+  display: block;
+  color: #536151;
+  line-height: 1.45;
+}
+
+.blocker-note small {
+  color: #9b3d1c;
+  font-weight: 900;
+  margin-top: 3px;
+}
+
+.blocker-note.resolved small {
+  color: #1f6f50;
+}
+
+.blocker-note button {
+  border: 0;
+  border-radius: 6px;
+  background: #172018;
+  color: #fffdf6;
+  padding: 9px 11px;
+  font-weight: 900;
+}
+
 .artifact-stats {
   display: flex;
   flex-wrap: wrap;
@@ -2692,13 +2845,19 @@ button:disabled {
   max-width: 860px;
 }
 
-.ability-picker {
+.blocker-card {
+  max-width: 820px;
+}
+
+.ability-picker,
+.help-choice-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(142px, 1fr));
   gap: 10px;
 }
 
-.ability-picker button {
+.ability-picker button,
+.help-choice-grid button {
   border: 1px solid #e5eadf;
   border-radius: 8px;
   background: #f7fbf2;
@@ -2709,7 +2868,16 @@ button:disabled {
   cursor: pointer;
 }
 
-.ability-picker button.active {
+.help-choice-grid button {
+  min-height: 48px;
+  align-content: center;
+  color: #172018;
+  font-weight: 900;
+  text-align: center;
+}
+
+.ability-picker button.active,
+.help-choice-grid button.active {
   border-color: #1f6f50;
   background: #e9f5eb;
   box-shadow: 0 0 0 2px rgba(31, 111, 80, 0.12);
@@ -4228,16 +4396,28 @@ button:disabled {
   .showcase-form,
   .lesson-canvas,
   .teacher-grid,
+  .progress-board-grid,
   .career-grid {
     grid-template-columns: 1fr 1fr;
   }
 
   .lesson-canvas {
     grid-template-columns: 1fr;
+    aspect-ratio: auto;
+    min-height: 0;
   }
 
   .studio-cover-image .studio-copy {
     max-width: min(720px, 88vw);
+  }
+
+  .studio-cover-image {
+    grid-template-columns: 1fr;
+  }
+
+  .studio-door-sign {
+    justify-self: start;
+    width: min(200px, 42vw);
   }
 
   .studio-story,
@@ -4368,6 +4548,9 @@ button:disabled {
   .award-manage-row,
   .project-submission-row,
   .feedback-note,
+  .progress-board-grid,
+  .progress-team-card header,
+  .blocker-note,
   .project-journey-card,
   .teacher-grid,
   .career-grid,
@@ -4388,6 +4571,7 @@ button:disabled {
   .project-submission-row a,
   .feedback-summary-card header a,
   .feedback-note button,
+  .blocker-note button,
   .feedback-product a {
     width: 100%;
   }

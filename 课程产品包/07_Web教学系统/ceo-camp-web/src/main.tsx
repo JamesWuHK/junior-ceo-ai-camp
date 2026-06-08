@@ -844,9 +844,18 @@ function isProductLinkTask(camp: Camp | null) {
   const title = activeTaskTitle(camp);
   const moduleId = camp?.active_task?.module_id || "";
   return (
-    /作品链接|产品链接|真产品检查|作品页上线清单|产品原型|每组作品能打开|2 分钟 Demo|产品摊位预览/.test(title) ||
+    !isBlockerTask(camp) &&
+    (/作品链接|产品链接|真产品检查|作品页上线清单|产品原型|每组作品能打开|2 分钟 Demo|产品摊位预览/.test(title) ||
     ["build-sprint", "demo-check", "product-packaging"].includes(moduleId)
+    )
   );
+}
+
+function isBlockerTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  const activityType = camp?.active_task?.activity_type || "";
+  return activityType === "blocker_note" || (moduleId === "build-sprint" && /卡在哪里|卡点|需要帮/.test(title));
 }
 
 function isProblemDiscoveryTask(camp: Camp | null) {
@@ -2047,6 +2056,7 @@ function TeacherApp({
             />
           )}
         </section>
+        <TeacherProgressBoard students={students} />
         <section className="teacher-grid">
           <TeacherStudents students={students} refresh={refresh} />
           <FuturePhotoReview refresh={refresh} />
@@ -2095,6 +2105,187 @@ function sortByDisplayOrder<T extends TaskSubmission | WallArtifact>(items: T[])
     if (byOrder !== 0) return byOrder;
     return String(a.created_at || "").localeCompare(String(b.created_at || ""));
   });
+}
+
+const progressMilestones = [
+  { key: "problem_card", label: "问题卡" },
+  { key: "user_voice", label: "用户声音" },
+  { key: "product_definition", label: "产品一句话" },
+  { key: "product_link", label: "作品链接" },
+  { key: "product_feedback", label: "互测反馈" },
+  { key: "final_showcase", label: "展示卡" }
+] as const;
+
+function submissionTeamId(item: TaskSubmission) {
+  return item.team_id || asText(item.payload.team_id);
+}
+
+function submissionTeamName(item: TaskSubmission) {
+  return item.team_name || asText(item.payload.team_name);
+}
+
+function submissionMatchesTeam(item: TaskSubmission, team: Team) {
+  const itemTeamId = item.task_type === "product_feedback"
+    ? asText(item.payload.team_id) || item.team_id || ""
+    : submissionTeamId(item);
+  const itemTeamName = item.task_type === "product_feedback"
+    ? asText(item.payload.team_name) || item.team_name || ""
+    : submissionTeamName(item);
+  return itemTeamId === team.id || (!!itemTeamName && itemTeamName === team.name);
+}
+
+function taskUpdatedAt(item: TaskSubmission) {
+  return item.updated_at || item.created_at || "";
+}
+
+function latestTask(items: TaskSubmission[]) {
+  return [...items].sort((a, b) => taskUpdatedAt(b).localeCompare(taskUpdatedAt(a)))[0];
+}
+
+function TeacherProgressBoard({ students }: { students: Student[] }) {
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [submissions, setSubmissions] = useState<TaskSubmission[]>([]);
+  const [message, setMessage] = useState("");
+  const [workingId, setWorkingId] = useState("");
+
+  const load = async () => {
+    try {
+      const [teamResult, submissionResult] = await Promise.all([api.teams(), api.submissions()]);
+      setTeams(teamResult.teams);
+      setSubmissions(submissionResult.task_submissions);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "进度看板加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const teamSummaries = useMemo(() => {
+    return teams.map((team) => {
+      const teamMembers = students.filter((student) => student.team_id === team.id || student.team_name === team.name);
+      const teamSubmissions = submissions.filter((item) => submissionMatchesTeam(item, team));
+      const done = progressMilestones.filter((milestone) => {
+        if (milestone.key === "product_link") {
+          return teamSubmissions.some((item) =>
+            ["product_link", "final_showcase"].includes(item.task_type) && Boolean(asText(item.payload.access_url))
+          );
+        }
+        return teamSubmissions.some((item) => item.task_type === milestone.key);
+      });
+      const blockers = teamSubmissions
+        .filter((item) => item.task_type === "blocker_note")
+        .sort((a, b) => taskUpdatedAt(b).localeCompare(taskUpdatedAt(a)));
+      const activeBlockers = blockers.filter((item) => item.status !== "ON_WALL");
+      const latest = latestTask(teamSubmissions.filter((item) => item.task_type !== "blocker_note"));
+      const readyForDemo = done.some((item) => item.key === "product_link") || done.some((item) => item.key === "final_showcase");
+      return {
+        team,
+        members: teamMembers,
+        submissions: teamSubmissions,
+        done,
+        blockers,
+        activeBlockers,
+        latest,
+        readyForDemo
+      };
+    });
+  }, [students, submissions, teams]);
+
+  const totals = useMemo(() => {
+    const activeBlockers = teamSummaries.reduce((total, item) => total + item.activeBlockers.length, 0);
+    const readyTeams = teamSummaries.filter((item) => item.readyForDemo).length;
+    const withProduct = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "product_definition")).length;
+    return { activeBlockers, readyTeams, withProduct };
+  }, [teamSummaries]);
+
+  const toggleBlocker = async (item: TaskSubmission) => {
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.setTaskSubmissionStatus(item.id, item.status === "ON_WALL" ? "SUBMITTED" : "ON_WALL");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
+
+  return (
+    <section className="panel progress-board-panel">
+      <div className="panel-title">
+        <ClipboardCheck size={20} />
+        <h2>团队进度看板</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{teamSummaries.length} 个团队</span>
+        <span>{totals.withProduct} 组已有产品一句话</span>
+        <span>{totals.readyTeams} 组已有作品入口</span>
+        <span>{totals.activeBlockers} 个卡点待支援</span>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="progress-board-grid">
+        {teamSummaries.map((summary) => {
+          const completion = `${summary.done.length}/${progressMilestones.length}`;
+          const latestBlocker = summary.activeBlockers[0] || summary.blockers[0];
+          return (
+            <article
+              className={summary.activeBlockers.length ? "progress-team-card needs-help" : "progress-team-card"}
+              key={summary.team.id}
+            >
+              <header>
+                <div>
+                  <span>{summary.team.table_no ? `${summary.team.table_no} 号桌` : `第 ${summary.team.group_no} 组`}</span>
+                  <strong>{summary.team.name}</strong>
+                  <small>{summary.members.length} 名学生 · 完成 {completion}</small>
+                </div>
+                <em>{summary.activeBlockers.length ? "需要支援" : summary.readyForDemo ? "可演示" : "进行中"}</em>
+              </header>
+              <div className="progress-milestones">
+                {progressMilestones.map((milestone) => {
+                  const active = summary.done.some((item) => item.key === milestone.key);
+                  return (
+                    <span key={milestone.key} className={active ? "done" : ""}>
+                      {active && <CheckCircle2 size={13} />}
+                      {milestone.label}
+                    </span>
+                  );
+                })}
+              </div>
+              <div className="progress-card-foot">
+                <p>
+                  <b>最近进展</b>
+                  {summary.latest ? `${summary.latest.student_name || "学生"}提交了${summary.latest.title}` : "还没有提交记录"}
+                </p>
+                {latestBlocker ? (
+                  <div className={latestBlocker.status === "ON_WALL" ? "blocker-note resolved" : "blocker-note"}>
+                    <div>
+                      <b>{latestBlocker.status === "ON_WALL" ? "已处理卡点" : "当前卡点"}</b>
+                      <span>{asText(latestBlocker.payload.where_stuck) || "还没写清楚"}</span>
+                      <small>{asText(latestBlocker.payload.help_needed) || "需要现场看一下"}</small>
+                    </div>
+                    <button disabled={workingId === latestBlocker.id} onClick={() => toggleBlocker(latestBlocker)}>
+                      {latestBlocker.status === "ON_WALL" ? "重新打开" : "标为已处理"}
+                    </button>
+                  </div>
+                ) : (
+                  <p>
+                    <b>当前卡点</b>
+                    暂时没有记录
+                  </p>
+                )}
+              </div>
+            </article>
+          );
+        })}
+        {!teamSummaries.length && <p className="empty">创建小组后，这里会出现团队进度。</p>}
+      </div>
+    </section>
+  );
 }
 
 function TeacherD1Artifacts() {
@@ -4502,6 +4693,7 @@ function StudentApp({
   const problemTask = isProblemDiscoveryTask(camp);
   const userVoiceTask = isUserVoiceTask(camp);
   const productDefinitionTask = isProductDefinitionTask(camp);
+  const blockerTask = isBlockerTask(camp);
   const observerScoreTask = isObserverScoreTask(camp);
   const growthReflectionTask = isGrowthReflectionTask(camp);
   const finalShowcaseTask = isFinalShowcaseTask(camp);
@@ -4511,6 +4703,7 @@ function StudentApp({
     problemTask ||
     userVoiceTask ||
     productDefinitionTask ||
+    blockerTask ||
     observerScoreTask ||
     growthReflectionTask ||
     finalShowcaseTask ||
@@ -4721,6 +4914,18 @@ function StudentApp({
   if (productDefinitionTask) {
     return (
       <StudentProductDefinitionTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (blockerTask) {
+    return (
+      <StudentBlockerTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -5269,6 +5474,133 @@ function StudentProductDefinitionTask({
             提交
           </button>
           <p className="hint">先说清楚帮谁，再说怎么帮，产品就会更像真的。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentBlockerTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [whereStuck, setWhereStuck] = useState("");
+  const [tried, setTried] = useState("");
+  const [helpNeeded, setHelpNeeded] = useState("看一下产品链接");
+  const [nextTry, setNextTry] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+  const helpChoices = ["看一下产品链接", "一起改提示词", "帮我理流程", "听我演示一次"];
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!whereStuck.trim()) {
+      showMessage("error", "先写清楚现在卡在哪一步。");
+      return;
+    }
+    if (!tried.trim()) {
+      showMessage("error", "写一写你们已经试过什么。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "blocker_note",
+        title: taskTitle,
+        payload: {
+          where_stuck: whereStuck.trim(),
+          tried: tried.trim(),
+          help_needed: helpNeeded,
+          next_try: nextTry.trim(),
+          team_id: student.team_id || "",
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。老师会更快知道该从哪里帮你们。");
+      setWhereStuck("");
+      setTried("");
+      setNextTry("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "卡在哪里，写清楚"}</h1>
+        <p>把现在最影响作品前进的一步写出来，让帮助更快到位。</p>
+        <div className="student-card blocker-card">
+          <div className="student-current">
+            <div>
+              <span>制作小组</span>
+              <strong>{student.team_name || student.nickname}</strong>
+              <small>{student.student_no ? `${student.nickname} · 学号 ${student.student_no}` : student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            现在卡在哪一步
+            <textarea
+              value={whereStuck}
+              onChange={(event) => setWhereStuck(event.target.value)}
+              placeholder="例如：作品能打开，但按钮点了没有反应"
+              rows={3}
+            />
+          </label>
+          <label>
+            我们已经试过
+            <textarea
+              value={tried}
+              onChange={(event) => setTried(event.target.value)}
+              placeholder="例如：换了提示词，也检查了链接"
+              rows={3}
+            />
+          </label>
+          <div className="help-choice-grid" role="group" aria-label="选择想要的帮助">
+            {helpChoices.map((choice) => (
+              <button
+                key={choice}
+                type="button"
+                className={helpNeeded === choice ? "active" : ""}
+                onClick={() => setHelpNeeded(choice)}
+              >
+                {choice}
+              </button>
+            ))}
+          </div>
+          <label>
+            下一步想先试试（可选）
+            <input
+              value={nextTry}
+              onChange={(event) => setNextTry(event.target.value)}
+              placeholder="例如：先做一个只保留核心按钮的版本"
+              inputMode="text"
+            />
+          </label>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <Hammer size={18} />}
+            提交
+          </button>
+          <p className="hint">把卡住的地方说清楚，本身就是把作品往前推了一步。</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
