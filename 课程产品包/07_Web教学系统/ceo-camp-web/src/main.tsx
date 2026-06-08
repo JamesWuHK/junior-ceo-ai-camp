@@ -109,6 +109,13 @@ const growthAbilityHints: Record<(typeof growthAbilityTags)[number], string> = {
   领导力: "带着团队把作品推出去"
 };
 
+const techRouteOptions = [
+  { value: "standard", label: "标准路线", hint: "用课堂推荐工具做出来" },
+  { value: "light", label: "轻量路线", hint: "先做成可点击页面或表单" },
+  { value: "advanced", label: "进阶路线", hint: "加一点更难但有用的能力" },
+  { value: "fallback", label: "兜底路线", hint: "用截图和流程也能演示" }
+] as const;
+
 type SpeechRecognitionAlternative = {
   transcript: string;
 };
@@ -835,6 +842,7 @@ function taskTypeForAction(action: string, page: DesignedLessonPage) {
   if (/把候选问题改清楚|AI 市场侦察卡|竞品观察三格/.test(page.title)) return "market_scout";
   if (/五句提示词卡|改一版再试|对 AI 说：不对，再改/.test(page.title)) return "prompt_card";
   if (/功能先发散|只留下一个核心动作|最小可行产品|明天要做出的第一版/.test(page.title)) return "feature_scope";
+  if (/选择今天能完成的路线|用户打开后第一步做什么|流程图检查/.test(page.title)) return "tech_route";
   if (action === "进入评分") return "score";
   if (action === "发起互动") return "interaction";
   if (action === "打开看板") return "board";
@@ -937,6 +945,19 @@ function isFeatureScopeTask(camp: Camp | null) {
     payloadType === "feature_scope" ||
     moduleId === "product-prototype" ||
     /功能先发散|功能清单|核心动作|最小可行产品|明天要做出的第一版/.test(title)
+  );
+}
+
+function isTechRouteTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  const activityType = camp?.active_task?.activity_type || "";
+  const payloadType = asText(camp?.active_task?.payload?.task_type);
+  return (
+    activityType === "tech_route" ||
+    payloadType === "tech_route" ||
+    moduleId === "tech-route" ||
+    /技术路线|路线卡|用户流程|流程图|今天能完成的路线|用户打开后第一步/.test(title)
   );
 }
 
@@ -1705,8 +1726,9 @@ function journeyItemRank(item: WallArtifact) {
     product_definition: 5,
     prompt_card: 6,
     feature_scope: 7,
-    product_feedback: 8,
-    mentor_comment: 9
+    tech_route: 8,
+    product_feedback: 9,
+    mentor_comment: 10
   };
   return ranks[item.task_type] ?? 9;
 }
@@ -1984,6 +2006,7 @@ function journeyTitle(item: WallArtifact) {
   if (item.task_type === "product_definition") return asText(item.payload.product_name) || "写出产品一句话";
   if (item.task_type === "prompt_card") return asText(item.payload.goal) || "写出五句提示词";
   if (item.task_type === "feature_scope") return asText(item.payload.core_action) || "留下核心动作";
+  if (item.task_type === "tech_route") return techRouteLabel(item.payload.route_choice);
   if (item.task_type === "product_feedback") return asText(item.payload.product_name) || "收到试用反馈";
   if (item.task_type === "mentor_comment") return asText(item.payload.product_name) || "导师点评";
   return item.title || "项目记录";
@@ -1998,6 +2021,7 @@ function journeyLabel(item: WallArtifact) {
     product_definition: "产品一句话",
     prompt_card: "提示词卡",
     feature_scope: "核心动作",
+    tech_route: "路线流程",
     product_feedback: "收到反馈",
     mentor_comment: "导师点评"
   };
@@ -2065,6 +2089,16 @@ function journeyCopy(item: WallArtifact) {
       ["第一版", asText(item.payload.first_version)],
       ["先不做", asText(item.payload.not_now)],
       ["看到结果", asText(item.payload.success_signal)]
+    ];
+  }
+  if (item.task_type === "tech_route") {
+    return [
+      ["路线", techRouteLabel(item.payload.route_choice)],
+      ["准备用", asText(item.payload.tool_plan)],
+      ["用户流程", userFlowSummary(item.payload)],
+      ["第一屏", asText(item.payload.first_screen)],
+      ["结果", asText(item.payload.result_screen)],
+      ["兜底办法", asText(item.payload.fallback_plan)]
     ];
   }
   if (item.task_type === "product_feedback") {
@@ -2453,6 +2487,7 @@ function TeacherApp({
         <TeacherProductDefinitions />
         <TeacherPromptCards />
         <TeacherFeatureScopes />
+        <TeacherTechRoutes />
         <TeacherProjectSubmissions />
         <TeacherPeerFeedback />
         <TeacherFinalShowcase />
@@ -2495,6 +2530,16 @@ function featureSummary(payload: Record<string, unknown>, limit = 4) {
   return ideas.slice(0, limit).join(" / ") || asText(payload.feature_summary);
 }
 
+function techRouteLabel(value: unknown) {
+  const route = asText(value);
+  return techRouteOptions.find((option) => option.value === route)?.label || route || "还没选路线";
+}
+
+function userFlowSummary(payload: Record<string, unknown>, limit = 5) {
+  const steps = asTextList(payload.user_flow_steps);
+  return steps.slice(0, limit).join(" → ") || asText(payload.user_flow_summary);
+}
+
 function asNumber(value: unknown) {
   const numberValue = Number(value);
   return Number.isFinite(numberValue) ? numberValue : 0;
@@ -2526,6 +2571,7 @@ const progressMilestones = [
   { key: "product_definition", label: "产品一句话", target: 1, unit: "条" },
   { key: "prompt_card", label: "提示词卡", target: 1, unit: "张" },
   { key: "feature_scope", label: "核心动作", target: 1, unit: "张" },
+  { key: "tech_route", label: "路线流程", target: 1, unit: "张" },
   { key: "product_link", label: "作品入口", target: 1, unit: "个" },
   { key: "product_feedback", label: "互测反馈", target: 2, unit: "条" },
   { key: "final_showcase", label: "展示卡", target: 1, unit: "张" }
@@ -2823,6 +2869,7 @@ function nextSupportAction(
   if (firstMissing.key === "product_definition") return "先把产品一句话写清楚：帮谁、解决什么、怎么解决。";
   if (firstMissing.key === "prompt_card") return "请小组补一张五句提示词卡：目标、用户、材料、限制、格式。";
   if (firstMissing.key === "feature_scope") return "请小组补一张核心动作卡：功能清单、核心动作、第一版。";
+  if (firstMissing.key === "tech_route") return "请小组补一张路线流程卡：路线、工具、3 到 5 步流程。";
   return "先补一张真实问题卡。";
 }
 
@@ -2898,10 +2945,11 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
     const withProduct = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "product_definition")).length;
     const withPrompt = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "prompt_card")).length;
     const withFeatureScope = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "feature_scope")).length;
+    const withTechRoute = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "tech_route")).length;
     const interviewReady = teamSummaries.filter((item) => item.userVoiceCount >= 3).length;
     const feedbackReady = teamSummaries.filter((item) => item.feedbackCount >= 2).length;
     const needsSupport = teamSummaries.filter((item) => item.needsSupport).length;
-    return { activeBlockers, readyTeams, withScout, withProduct, withPrompt, withFeatureScope, interviewReady, feedbackReady, needsSupport };
+    return { activeBlockers, readyTeams, withScout, withProduct, withPrompt, withFeatureScope, withTechRoute, interviewReady, feedbackReady, needsSupport };
   }, [teamSummaries]);
 
   const toggleBlocker = async (item: TaskSubmission) => {
@@ -2930,6 +2978,7 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
         <span>{totals.withProduct} 组已有产品一句话</span>
         <span>{totals.withPrompt} 组已有提示词卡</span>
         <span>{totals.withFeatureScope} 组已有核心动作</span>
+        <span>{totals.withTechRoute} 组已有路线流程</span>
         <span>{totals.readyTeams} 组已有作品入口</span>
         <span>{totals.feedbackReady} 组收到互测反馈</span>
         <span>{totals.needsSupport} 组需要跟进</span>
@@ -3519,6 +3568,95 @@ function TeacherFeatureScopes() {
           );
         })}
         {!items.length && <p className="empty">学生提交核心动作卡后，会出现在这里。</p>}
+      </div>
+    </section>
+  );
+}
+
+function TeacherTechRoutes() {
+  const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [message, setMessage] = useState("");
+  const [workingId, setWorkingId] = useState("");
+
+  const load = async () => {
+    try {
+      const result = await api.submissions();
+      setItems(result.task_submissions.filter((item) => item.task_type === "tech_route"));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const groupedCount = useMemo(
+    () => new Set(items.map((item) => item.team_id || item.student_id || item.id)).size,
+    [items]
+  );
+
+  const toggleWall = async (item: TaskSubmission) => {
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.setTaskSubmissionStatus(item.id, item.status === "ON_WALL" ? "SUBMITTED" : "ON_WALL");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "操作失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
+
+  return (
+    <section className="panel tech-route-panel">
+      <div className="panel-title">
+        <Route size={20} />
+        <h2>D2 技术路线与用户流程</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{items.length} 张路线流程卡</span>
+        <span>{groupedCount} 个来源</span>
+        <span>{items.filter((item) => item.status === "ON_WALL").length} 张已上屏</span>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="d1-artifact-list">
+        {items.map((item) => {
+          const flow = asTextList(item.payload.user_flow_steps);
+          return (
+            <article
+              className={[
+                "d1-artifact-card",
+                "tech-route",
+                item.status === "ON_WALL" ? "on-wall" : ""
+              ].filter(Boolean).join(" ")}
+              key={item.id}
+            >
+              <header>
+                <div>
+                  <span>路线流程卡</span>
+                  <strong>{techRouteLabel(item.payload.route_choice)}</strong>
+                  <small>{item.team_name || item.student_name || "学生提交"}</small>
+                </div>
+                <button disabled={workingId === item.id} onClick={() => toggleWall(item)}>
+                  {item.status === "ON_WALL" ? "从大屏移开" : "放到大屏"}
+                </button>
+              </header>
+              <div className="artifact-lines">
+                <p><strong>产品：</strong>{asText(item.payload.product_name) || "还没写"}</p>
+                <p><strong>准备用：</strong>{asText(item.payload.tool_plan) || "还没写"}</p>
+                <p><strong>用户流程：</strong>{flow.length ? flow.join(" → ") : "还没写"}</p>
+                <p><strong>第一屏：</strong>{asText(item.payload.first_screen) || "还没写"}</p>
+                <p><strong>结果：</strong>{asText(item.payload.result_screen) || "还没写"}</p>
+                <p><strong>兜底办法：</strong>{asText(item.payload.fallback_plan) || "还没写"}</p>
+              </div>
+            </article>
+          );
+        })}
+        {!items.length && <p className="empty">学生提交路线流程卡后，会出现在这里。</p>}
       </div>
     </section>
   );
@@ -5951,6 +6089,7 @@ function StudentApp({
   const marketScoutTask = isMarketScoutTask(camp);
   const promptCardTask = isPromptCardTask(camp);
   const featureScopeTask = isFeatureScopeTask(camp);
+  const techRouteTask = isTechRouteTask(camp);
   const productDefinitionTask = isProductDefinitionTask(camp);
   const blockerTask = isBlockerTask(camp);
   const observerScoreTask = isObserverScoreTask(camp);
@@ -5966,6 +6105,7 @@ function StudentApp({
     marketScoutTask ||
     promptCardTask ||
     featureScopeTask ||
+    techRouteTask ||
     productDefinitionTask ||
     blockerTask ||
     observerScoreTask ||
@@ -6226,6 +6366,18 @@ function StudentApp({
   if (featureScopeTask) {
     return (
       <StudentFeatureScopeTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (techRouteTask) {
+    return (
+      <StudentTechRouteTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -7534,6 +7686,195 @@ function StudentFeatureScopeTask({
             提交
           </button>
           <p className="hint">好的原型不是功能最多，而是先让一个真实动作跑起来。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentTechRouteTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [productName, setProductName] = useState("");
+  const [routeChoice, setRouteChoice] = useState<(typeof techRouteOptions)[number]["value"]>("standard");
+  const [toolPlan, setToolPlan] = useState("");
+  const [userFlow, setUserFlow] = useState("");
+  const [firstScreen, setFirstScreen] = useState("");
+  const [resultScreen, setResultScreen] = useState("");
+  const [fallbackPlan, setFallbackPlan] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+  const flowSteps = useMemo(() => asTextList(userFlow), [userFlow]);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!productName.trim()) {
+      showMessage("error", "先写下你们的产品名。");
+      return;
+    }
+    if (!toolPlan.trim()) {
+      showMessage("error", "写下准备用什么工具或页面做出来。");
+      return;
+    }
+    if (flowSteps.length < 3) {
+      showMessage("error", "把用户流程写成 3 到 5 步。");
+      return;
+    }
+    if (flowSteps.length > 5) {
+      showMessage("hint", "流程有点长，先收成 3 到 5 步。");
+      return;
+    }
+    if (!firstScreen.trim()) {
+      showMessage("error", "写下用户打开后第一眼看到什么。");
+      return;
+    }
+    if (!resultScreen.trim()) {
+      showMessage("error", "写下用户用完后看到什么结果。");
+      return;
+    }
+    if (!fallbackPlan.trim()) {
+      showMessage("error", "写下工具卡住时，照样能展示的办法。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "tech_route",
+        title: taskTitle,
+        payload: {
+          product_name: productName.trim(),
+          route_choice: routeChoice,
+          route_label: techRouteLabel(routeChoice),
+          tool_plan: toolPlan.trim(),
+          user_flow_steps: flowSteps,
+          user_flow_summary: flowSteps.join(" → "),
+          first_screen: firstScreen.trim(),
+          result_screen: resultScreen.trim(),
+          fallback_plan: fallbackPlan.trim(),
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。现在别人可以顺着这条流程看懂你们的作品。");
+      setProductName("");
+      setRouteChoice("standard");
+      setToolPlan("");
+      setUserFlow("");
+      setFirstScreen("");
+      setResultScreen("");
+      setFallbackPlan("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "路线与流程卡"}</h1>
+        <p>选今天能完成的路线，再把用户使用流程写成 3 到 5 步。</p>
+        <div className="student-card d1-task-card tech-route-form">
+          <div className="student-current">
+            <div>
+              <span>路线小组</span>
+              <strong>{student.team_name || student.nickname}</strong>
+              <small>{student.student_no ? `${student.nickname} · 学号 ${student.student_no}` : student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            产品名
+            <input
+              value={productName}
+              onChange={(event) => setProductName(event.target.value)}
+              placeholder="例如：午餐选择器"
+              inputMode="text"
+            />
+          </label>
+          <div className="route-choice-grid">
+            {techRouteOptions.map((option) => (
+              <button
+                className={routeChoice === option.value ? "active" : ""}
+                key={option.value}
+                onClick={() => setRouteChoice(option.value)}
+              >
+                <strong>{option.label}</strong>
+                <span>{option.hint}</span>
+              </button>
+            ))}
+          </div>
+          <label>
+            准备用什么做出来
+            <textarea
+              value={toolPlan}
+              onChange={(event) => setToolPlan(event.target.value)}
+              placeholder="例如：用浏览器页面做选择按钮，再让 AI 帮我们写推荐文案"
+              rows={3}
+            />
+          </label>
+          <label>
+            用户使用流程
+            <textarea
+              value={userFlow}
+              onChange={(event) => setUserFlow(event.target.value)}
+              placeholder={"例如：\n打开页面\n选择口味\n选择排队时间\n看到两个推荐\n点一个今天要吃的"}
+              rows={5}
+            />
+          </label>
+          <div className={flowSteps.length > 5 ? "feature-count too-many" : flowSteps.length >= 3 ? "feature-count ready" : "feature-count"}>
+            <span>{flowSteps.length}/5 步流程</span>
+            <strong>{flowSteps.length > 5 ? "先收短一点" : flowSteps.length >= 3 ? "流程能看懂" : "继续补步骤"}</strong>
+          </div>
+          <label>
+            用户打开后第一眼看到
+            <textarea
+              value={firstScreen}
+              onChange={(event) => setFirstScreen(event.target.value)}
+              placeholder="例如：两个问题和一个开始按钮"
+              rows={2}
+            />
+          </label>
+          <label>
+            用户用完后看到
+            <textarea
+              value={resultScreen}
+              onChange={(event) => setResultScreen(event.target.value)}
+              placeholder="例如：两个午餐推荐和一句为什么适合他"
+              rows={2}
+            />
+          </label>
+          <label>
+            如果工具卡住，照样能展示
+            <textarea
+              value={fallbackPlan}
+              onChange={(event) => setFallbackPlan(event.target.value)}
+              placeholder="例如：用 3 张截图演示打开、选择、看到结果"
+              rows={2}
+            />
+          </label>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <Route size={18} />}
+            提交
+          </button>
+          <p className="hint">好的流程会让别人 30 秒内看懂：打开、做什么、看到什么。</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -8905,13 +9246,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   const hasProduct = artifacts.some((item) => item.task_type === "product_definition");
   const hasPrompt = artifacts.some((item) => item.task_type === "prompt_card");
   const hasFeature = artifacts.some((item) => item.task_type === "feature_scope");
+  const hasTech = artifacts.some((item) => item.task_type === "tech_route");
   const hasValidation = artifacts.some((item) => item.task_type === "ai_validation");
   const hasScout = artifacts.some((item) => item.task_type === "market_scout");
   return (
     <section className="wall-artifacts">
       <div className="wall-section-title">
-        <span className="eyebrow">{hasProduct ? "产品卡片" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
-        <h2>{hasProduct ? "从问题到产品" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
+        <span className="eyebrow">{hasProduct ? "产品卡片" : hasTech ? "路线流程" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
+        <h2>{hasProduct ? "从问题到产品" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
       </div>
       <div className="wall-artifact-grid">
         {artifacts.map((item) => {
@@ -8921,11 +9263,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
           const isProduct = item.task_type === "product_definition";
           const isPrompt = item.task_type === "prompt_card";
           const isFeature = item.task_type === "feature_scope";
+          const isTech = item.task_type === "tech_route";
           return (
             <article
               className={
                 isProduct
                   ? "wall-artifact-card product"
+                  : isTech
+                  ? "wall-artifact-card tech-route"
                   : isFeature
                   ? "wall-artifact-card feature-scope"
                   : isPrompt
@@ -8940,10 +9285,12 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
               }
               key={item.id}
             >
-              <span>{isProduct ? "产品卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
+              <span>{isProduct ? "产品卡" : isTech ? "路线流程卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
               <strong>
                 {isProduct
                   ? asText(item.payload.product_name) || "一个产品想法"
+                  : isTech
+                  ? techRouteLabel(item.payload.route_choice)
                   : isFeature
                   ? asText(item.payload.core_action) || asText(item.payload.product_name) || "今天先跑通的一步"
                   : isPrompt
@@ -8962,6 +9309,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                   <p><b>问题</b>{asText(item.payload.core_problem) || "还没写"}</p>
                   <p><b>办法</b>{asText(item.payload.solution) || "还没写"}</p>
                   <p><b>一句话</b>{asText(item.payload.one_liner) || "还在打磨"}</p>
+                </>
+              ) : isTech ? (
+                <>
+                  <p><b>准备用</b>{asText(item.payload.tool_plan) || "还没写"}</p>
+                  <p><b>用户流程</b>{userFlowSummary(item.payload) || "还没写"}</p>
+                  <p><b>第一屏</b>{asText(item.payload.first_screen) || "还没写"}</p>
+                  <p><b>看到结果</b>{asText(item.payload.result_screen) || "还没写"}</p>
+                  <p><b>兜底办法</b>{asText(item.payload.fallback_plan) || "还没写"}</p>
                 </>
               ) : isFeature ? (
                 <>
