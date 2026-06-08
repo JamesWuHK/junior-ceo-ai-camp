@@ -452,6 +452,13 @@ function check() {
     if (!getMeta(page, 'og:title')) checks.push(fail(`${entry.source} missing og:title`));
     if (!getMeta(page, 'og:description')) checks.push(fail(`${entry.source} missing og:description`));
     if (!getJsonLd(page).length) checks.push(fail(`${entry.source} missing json-ld`));
+    if (entry.path !== '/') {
+      try {
+        if (!jsonLdTypes(page).has('BreadcrumbList')) checks.push(fail(`${entry.source} missing breadcrumb json-ld`));
+      } catch (error) {
+        checks.push(fail(`${entry.source} invalid json-ld: ${error.message}`));
+      }
+    }
   }
 
   const requiredMeta = [

@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-09T00:25:24+08:00
+Generated: 2026-06-09T00:31:13+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -41,26 +41,26 @@ Run `npm run seo:submit:baidu -- --dry-run` to print this same URL set without s
 Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | JSON-LD types
 --- | --- | --- | --- | --- | --- | ---
 PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | Course, FAQPage, Organization, WebSite
-PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | Course, FAQPage
-PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产品原型课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | Article, FAQPage
-PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | 北京顺义青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 8/8 | Course, FAQPage
-PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | Article, FAQPage
-PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | Article, FAQPage
-PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | Article, FAQPage
-PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | FAQPage, Service
+PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | BreadcrumbList, Course, FAQPage
+PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产品原型课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | Article, BreadcrumbList, FAQPage
+PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | 北京顺义青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 8/8 | BreadcrumbList, Course, FAQPage
+PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | Article, BreadcrumbList, FAQPage
+PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | Article, BreadcrumbList, FAQPage
+PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | Article, BreadcrumbList, FAQPage
+PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | BreadcrumbList, FAQPage, Service
 
 ## Online Targets
 
 Status | URL | HTTP | Bytes | Missing markers / error
 --- | --- | --- | --- | ---
 PASS | https://camps.wanli.wiki/ | 200 | 47254 | none
-PASS | https://camps.wanli.wiki/ai-pbl-camp.html | 200 | 8208 | none
-PASS | https://camps.wanli.wiki/ai-product-prototype-course.html | 200 | 9276 | none
-PASS | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | 200 | 9394 | none
-PASS | https://camps.wanli.wiki/youth-ai-course-guide.html | 200 | 9294 | none
-PASS | https://camps.wanli.wiki/ai-course-vs-coding.html | 200 | 8317 | none
-PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.html | 200 | 6827 | none
-PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.html | 200 | 7560 | none
+PASS | https://camps.wanli.wiki/ai-pbl-camp.html | 200 | 8694 | none
+PASS | https://camps.wanli.wiki/ai-product-prototype-course.html | 200 | 9792 | none
+PASS | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | 200 | 9919 | none
+PASS | https://camps.wanli.wiki/youth-ai-course-guide.html | 200 | 9799 | none
+PASS | https://camps.wanli.wiki/ai-course-vs-coding.html | 200 | 8816 | none
+PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.html | 200 | 7336 | none
+PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.html | 200 | 8066 | none
 PASS | https://camps.wanli.wiki/robots.txt | 200 | 159 | none
 PASS | https://camps.wanli.wiki/sitemap.xml | 200 | 1561 | none
 PASS | https://camps.wanli.wiki/llms.txt | 200 | 3464 | none
