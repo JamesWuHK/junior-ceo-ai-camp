@@ -410,11 +410,29 @@ function showcaseItems(includeAll = false) {
   }));
 }
 
+function wallTaskArtifacts() {
+  return rows(
+    `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
+       FROM task_submissions ts
+       LEFT JOIN students s ON s.id = ts.student_id
+       LEFT JOIN teams t ON t.id = ts.team_id
+      WHERE ts.camp_id = ?
+        AND ts.status = 'ON_WALL'
+        AND ts.task_type IN ('problem_card', 'user_voice')
+      ORDER BY ts.updated_at DESC, ts.created_at DESC`,
+    campId()
+  ).map((artifact) => ({
+    ...artifact,
+    payload: jsonParse(artifact.payload, {})
+  }));
+}
+
 function emitState(event = "state.changed") {
   broadcast(event, {
     camp: currentCamp(),
     wall: wallData(),
-    showcase_items: showcaseItems(false)
+    showcase_items: showcaseItems(false),
+    wall_artifacts: wallTaskArtifacts()
   });
 }
 
@@ -1189,6 +1207,43 @@ app.post("/task-submissions", async (request, reply) => {
   };
 });
 
+app.post("/task-submissions/:id/status", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const { id } = request.params as { id: string };
+  const body = request.body as Record<string, unknown>;
+  const nextStatus = String(body.status ?? "SUBMITTED");
+  if (!["SUBMITTED", "ON_WALL"].includes(nextStatus)) {
+    return reply.code(400).send({ error: "INVALID_STATUS" });
+  }
+  const item = row("SELECT * FROM task_submissions WHERE id = ? AND camp_id = ?", [id, campId()]);
+  if (!item) return reply.code(404).send({ error: "NOT_FOUND" });
+  db.prepare("UPDATE task_submissions SET status = ?, updated_at = ? WHERE id = ? AND camp_id = ?").run(
+    nextStatus,
+    nowSql(),
+    id,
+    campId()
+  );
+  audit("task.status", "task_submissions", id, { status: nextStatus });
+  emitState("task.display.changed");
+  const updated = row(
+    `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
+       FROM task_submissions ts
+       LEFT JOIN students s ON s.id = ts.student_id
+       LEFT JOIN teams t ON t.id = ts.team_id
+      WHERE ts.id = ?
+        AND ts.camp_id = ?`,
+    [id, campId()]
+  );
+  return {
+    submission: updated
+      ? {
+          ...updated,
+          payload: jsonParse(updated.payload, {})
+        }
+      : null
+  };
+});
+
 app.post("/future-photo/:id/generate", async (request, reply) => {
   if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
   const { id } = request.params as { id: string };
@@ -1281,6 +1336,10 @@ app.get("/wall/future-photo", async () => ({
   students: wallData()
 }));
 
+app.get("/wall/artifacts", async () => ({
+  artifacts: wallTaskArtifacts()
+}));
+
 app.get("/showcase", async () => ({
   showcase_items: showcaseItems(false)
 }));
@@ -1326,7 +1385,13 @@ app.get("/events", async (request, reply) => {
     write,
     close: () => reply.raw.end()
   });
-  write("connected", { id, camp: currentCamp(), wall: wallData(), showcase_items: showcaseItems(false) });
+  write("connected", {
+    id,
+    camp: currentCamp(),
+    wall: wallData(),
+    showcase_items: showcaseItems(false),
+    wall_artifacts: wallTaskArtifacts()
+  });
   const keepAlive = setInterval(() => write("ping", { time: new Date().toISOString() }), 25000);
   request.raw.on("close", () => {
     clearInterval(keepAlive);

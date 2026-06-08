@@ -10,7 +10,8 @@ import type {
   TaskSubmission,
   TeacherAccount,
   Team,
-  UploadTarget
+  UploadTarget,
+  WallArtifact
 } from "./types";
 
 const configuredBase = import.meta.env.VITE_API_BASE as string | undefined;
@@ -184,6 +185,7 @@ export const api = {
       body: JSON.stringify({ action })
     }),
   wall: () => request<{ students: Student[] }>("/wall/future-photo"),
+  wallArtifacts: () => request<{ artifacts: WallArtifact[] }>("/wall/artifacts"),
   showcase: () => request<{ showcase_items: ShowcaseItem[] }>("/showcase"),
   manageShowcase: () => request<{ showcase_items: ShowcaseItem[] }>("/showcase/manage", { headers: headers(true) }),
   publishShowcase: (payload: Partial<ShowcaseItem>) =>
@@ -204,6 +206,12 @@ export const api = {
       method: "POST",
       headers: studentHeaders(true),
       body: JSON.stringify(payload)
+    }),
+  setTaskSubmissionStatus: (id: string, status: "SUBMITTED" | "ON_WALL") =>
+    request<{ submission: TaskSubmission | null }>(`/task-submissions/${encodeURIComponent(id)}/status`, {
+      method: "POST",
+      headers: headers(true),
+      body: JSON.stringify({ status })
     }),
   setCurrentTask: (payload: { module_id?: string; title: string; activity_type: string; payload?: Record<string, unknown> }) =>
     request<{ task: unknown }>("/tasks/current", {
@@ -228,6 +236,7 @@ export function connectEvents(onState: (payload: StatePayload) => void) {
   source.addEventListener("future_photo.reviewed", handler);
   source.addEventListener("task.changed", handler);
   source.addEventListener("task.submitted", handler);
+  source.addEventListener("task.display.changed", handler);
   source.addEventListener("publish.changed", handler);
   return () => source.close();
 }

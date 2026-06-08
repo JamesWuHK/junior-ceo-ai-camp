@@ -119,6 +119,10 @@ export interface TaskSubmission {
   updated_at?: string;
 }
 
+export interface WallArtifact extends TaskSubmission {
+  task_type: "problem_card" | "user_voice" | string;
+}
+
 export interface Activity {
   id: string;
   module_id?: string | null;
@@ -146,4 +150,5 @@ export interface StatePayload {
   camp: Camp;
   wall: Student[];
   showcase_items?: ShowcaseItem[];
+  wall_artifacts?: WallArtifact[];
 }

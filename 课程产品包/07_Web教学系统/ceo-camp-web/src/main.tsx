@@ -60,7 +60,8 @@ import type {
   StudentAccount,
   TaskSubmission,
   Team,
-  TeacherAccount
+  TeacherAccount,
+  WallArtifact
 } from "./types";
 import "./styles.css";
 
@@ -819,10 +820,22 @@ function isProductLinkTask(camp: Camp | null) {
   );
 }
 
+function isProblemDiscoveryTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  return moduleId === "problem-wall" || /真实问题|生活中的问题|便利贴|小麻烦|烦恼|线索墙/.test(title);
+}
+
+function isUserVoiceTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  return moduleId === "user-interview" || /采访|用户声音|真实反馈|三个好问题|绿灯黄灯红灯/.test(title);
+}
+
 function isPeerFeedbackTask(camp: Camp | null) {
   const title = activeTaskTitle(camp);
   const moduleId = camp?.active_task?.module_id || "";
-  return /试玩|试用|互测|反馈/.test(title) || moduleId === "user-testing";
+  return /试玩|试用|互测|反馈进作品|改出 V2/.test(title) || moduleId === "user-testing";
 }
 
 function futurePhotoHint(item: FuturePhotoSubmission) {
@@ -854,22 +867,27 @@ function useInitialData(active: "student" | "wall") {
   const [modules, setModules] = useState<CourseModule[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [showcaseItems, setShowcaseItems] = useState<ShowcaseItem[]>([]);
+  const [wallArtifacts, setWallArtifacts] = useState<WallArtifact[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const refresh = async () => {
-    const [campResult, moduleResult, wallResult, showcaseResult] = await Promise.all([
+    const [campResult, moduleResult, wallResult, showcaseResult, artifactResult] = await Promise.all([
       api.currentCamp(),
       Promise.resolve({ modules: [] }),
       active === "student" ? Promise.resolve({ students: [] }) : api.wall(),
       active === "student"
         ? Promise.resolve({ showcase_items: [] })
-        : api.showcase().catch(() => ({ showcase_items: [] as ShowcaseItem[] }))
+        : api.showcase().catch(() => ({ showcase_items: [] as ShowcaseItem[] })),
+      active === "student"
+        ? Promise.resolve({ artifacts: [] as WallArtifact[] })
+        : api.wallArtifacts().catch(() => ({ artifacts: [] as WallArtifact[] }))
     ]);
     setCamp(campResult);
     setModules(moduleResult.modules);
     setStudents(wallResult.students);
     setShowcaseItems(showcaseResult.showcase_items);
+    setWallArtifacts(artifactResult.artifacts);
   };
 
   useEffect(() => {
@@ -881,10 +899,11 @@ function useInitialData(active: "student" | "wall") {
       setCamp(payload.camp);
       setStudents(payload.wall);
       setShowcaseItems(payload.showcase_items ?? []);
+      setWallArtifacts(payload.wall_artifacts ?? []);
     });
   }, [active]);
 
-  return { camp, modules, students, showcaseItems, loading, error, refresh };
+  return { camp, modules, students, showcaseItems, wallArtifacts, loading, error, refresh };
 }
 
 function useTeacherData(enabled: boolean) {
@@ -955,7 +974,14 @@ function App() {
   return (
     <>
       {active === "student" && <StudentApp camp={data.camp} refresh={data.refresh} />}
-      {active === "wall" && <WallApp camp={data.camp} students={data.students} showcaseItems={data.showcaseItems} />}
+      {active === "wall" && (
+        <WallApp
+          camp={data.camp}
+          students={data.students}
+          showcaseItems={data.showcaseItems}
+          artifacts={data.wallArtifacts}
+        />
+      )}
     </>
   );
 }
@@ -1296,6 +1322,7 @@ function TeacherApp({
           <TeacherStudents students={students} refresh={refresh} />
           <FuturePhotoReview refresh={refresh} />
         </section>
+        <TeacherD1Artifacts />
         <TeacherProjectSubmissions />
         <TeacherPeerFeedback />
         <TeacherShowcase />
@@ -1317,6 +1344,97 @@ function TeacherApp({
 
 function asText(value: unknown) {
   return typeof value === "string" ? value : "";
+}
+
+function TeacherD1Artifacts() {
+  const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [message, setMessage] = useState("");
+  const [updatingId, setUpdatingId] = useState("");
+
+  const load = async () => {
+    try {
+      const result = await api.submissions();
+      setItems(result.task_submissions.filter((item) => ["problem_card", "user_voice"].includes(item.task_type)));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const stats = useMemo(() => {
+    const problemCount = items.filter((item) => item.task_type === "problem_card").length;
+    const voiceCount = items.filter((item) => item.task_type === "user_voice").length;
+    const teamCount = new Set(items.map((item) => item.team_id || item.student_id || item.id)).size;
+    return { problemCount, voiceCount, teamCount };
+  }, [items]);
+
+  const toggleWall = async (item: TaskSubmission) => {
+    setUpdatingId(item.id);
+    setMessage("");
+    try {
+      await api.setTaskSubmissionStatus(item.id, item.status === "ON_WALL" ? "SUBMITTED" : "ON_WALL");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "操作失败");
+    } finally {
+      setUpdatingId("");
+    }
+  };
+
+  return (
+    <section className="panel d1-artifacts-panel">
+      <div className="panel-title">
+        <StickyNote size={20} />
+        <h2>D1 问题和用户声音</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{stats.problemCount} 张问题卡</span>
+        <span>{stats.voiceCount} 条用户声音</span>
+        <span>{stats.teamCount} 个来源</span>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="d1-artifact-list">
+        {items.map((item) => {
+          const isProblem = item.task_type === "problem_card";
+          const title = isProblem
+            ? asText(item.payload.problem_scene) || asText(item.payload.trouble) || "未命名问题"
+            : asText(item.payload.interviewee) || "用户声音";
+          return (
+            <article className={item.status === "ON_WALL" ? "d1-artifact-card on-wall" : "d1-artifact-card"} key={item.id}>
+              <header>
+                <div>
+                  <span>{isProblem ? "问题卡" : "用户声音"}</span>
+                  <strong>{title}</strong>
+                  <small>{item.team_name || item.student_name || "学生提交"}</small>
+                </div>
+                <button disabled={updatingId === item.id} onClick={() => toggleWall(item)}>
+                  {item.status === "ON_WALL" ? "从大屏移开" : "放到大屏"}
+                </button>
+              </header>
+              {isProblem ? (
+                <div className="artifact-lines">
+                  <p><strong>用户：</strong>{asText(item.payload.target_user) || "还没写"}</p>
+                  <p><strong>麻烦：</strong>{asText(item.payload.trouble) || "还没写"}</p>
+                  <p><strong>现在办法：</strong>{asText(item.payload.current_solution) || "还没写"}</p>
+                </div>
+              ) : (
+                <div className="artifact-lines">
+                  <p><strong>听到：</strong>{asText(item.payload.quote) || "还没写"}</p>
+                  <p><strong>发现：</strong>{asText(item.payload.finding) || "还没写"}</p>
+                </div>
+              )}
+            </article>
+          );
+        })}
+        {!items.length && <p className="empty">学生提交问题卡或用户声音后，会出现在这里。</p>}
+      </div>
+    </section>
+  );
 }
 
 function TeacherProjectSubmissions() {
@@ -3097,8 +3215,11 @@ function StudentApp({
   const speechRef = useRef<SpeechRecognitionLike | null>(null);
   const loadedSourcePhotoRef = useRef("");
   const taskTitle = camp?.active_task?.title || "未来照相馆";
+  const problemTask = isProblemDiscoveryTask(camp);
+  const userVoiceTask = isUserVoiceTask(camp);
   const productLinkTask = isProductLinkTask(camp);
   const peerFeedbackTask = isPeerFeedbackTask(camp);
+  const textTask = problemTask || userVoiceTask || productLinkTask || peerFeedbackTask;
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
@@ -3177,18 +3298,18 @@ function StudentApp({
   };
 
   useEffect(() => {
-    if (!loggedIn || !student || productLinkTask || peerFeedbackTask) return;
+    if (!loggedIn || !student || textTask) return;
     void createMobileUploadLink();
     void loadSourcePhoto(false);
-  }, [loggedIn, student?.id, productLinkTask, peerFeedbackTask]);
+  }, [loggedIn, student?.id, textTask]);
 
   useEffect(() => {
-    if (!loggedIn || !student || photoKey || productLinkTask || peerFeedbackTask) return undefined;
+    if (!loggedIn || !student || photoKey || textTask) return undefined;
     const timer = window.setInterval(() => {
       void loadSourcePhoto(true);
     }, 2200);
     return () => window.clearInterval(timer);
-  }, [loggedIn, student?.id, photoKey, productLinkTask, peerFeedbackTask]);
+  }, [loggedIn, student?.id, photoKey, textTask]);
 
   const startVoiceInput = () => {
     setMessage(null);
@@ -3275,6 +3396,30 @@ function StudentApp({
       setStudent(account);
       setLoggedIn(true);
     }} />;
+  }
+
+  if (problemTask) {
+    return (
+      <StudentProblemCardTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (userVoiceTask) {
+    return (
+      <StudentUserVoiceTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
   }
 
   if (productLinkTask) {
@@ -3391,6 +3536,255 @@ function StudentApp({
             {checkingPhoto ? "正在看照片" : "提交"}
           </button>
           <p className="hint">提交后，未来照片会先被画出来；老师看过后，照片墙就会亮。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentProblemCardTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [problemScene, setProblemScene] = useState("");
+  const [targetUser, setTargetUser] = useState("");
+  const [trouble, setTrouble] = useState("");
+  const [currentSolution, setCurrentSolution] = useState("");
+  const [teamChoice, setTeamChoice] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!problemScene.trim()) {
+      showMessage("error", "先写一个生活里的小麻烦。");
+      return;
+    }
+    if (!targetUser.trim()) {
+      showMessage("error", "再写清楚这个问题发生在谁身上。");
+      return;
+    }
+    if (!trouble.trim()) {
+      showMessage("error", "把最卡住的地方写出来。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "problem_card",
+        title: taskTitle,
+        payload: {
+          problem_scene: problemScene.trim(),
+          target_user: targetUser.trim(),
+          trouble: trouble.trim(),
+          current_solution: currentSolution.trim(),
+          team_choice: teamChoice,
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。这张问题卡可以带回小组继续研究。");
+      setProblemScene("");
+      setTargetUser("");
+      setTrouble("");
+      setCurrentSolution("");
+      setTeamChoice(false);
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "发现一个真实问题"}</h1>
+        <p>把生活里的一个小麻烦，写成可以继续研究的问题。</p>
+        <div className="student-card d1-task-card">
+          <div className="student-current">
+            <div>
+              <span>记录人</span>
+              <strong>{student.team_name || student.nickname}</strong>
+              <small>{student.student_no ? `${student.nickname} · 学号 ${student.student_no}` : student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            我看到的小麻烦
+            <input
+              value={problemScene}
+              onChange={(event) => setProblemScene(event.target.value)}
+              placeholder="例如：午饭不知道选什么"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            这个问题发生在谁身上
+            <input
+              value={targetUser}
+              onChange={(event) => setTargetUser(event.target.value)}
+              placeholder="例如：每天在食堂排队的同学"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            最卡住的地方
+            <textarea
+              value={trouble}
+              onChange={(event) => setTrouble(event.target.value)}
+              placeholder="例如：选择太多，后面的人又在等"
+              rows={3}
+            />
+          </label>
+          <label>
+            现在大家通常怎么解决
+            <input
+              value={currentSolution}
+              onChange={(event) => setCurrentSolution(event.target.value)}
+              placeholder="例如：随便选一个，或者问朋友"
+              inputMode="text"
+            />
+          </label>
+          <label className="student-check">
+            <input
+              type="checkbox"
+              checked={teamChoice}
+              onChange={(event) => setTeamChoice(event.target.checked)}
+            />
+            我想把这个问题带回小组继续研究
+          </label>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <StickyNote size={18} />}
+            提交
+          </button>
+          <p className="hint">好问题通常来自真实场景，而不是脑袋里硬想出来。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentUserVoiceTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [interviewee, setInterviewee] = useState("");
+  const [quote, setQuote] = useState("");
+  const [finding, setFinding] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!interviewee.trim()) {
+      showMessage("error", "先写你采访了谁。");
+      return;
+    }
+    if (!quote.trim()) {
+      showMessage("error", "记下一句对方的原话。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "user_voice",
+        title: taskTitle,
+        payload: {
+          interviewee: interviewee.trim(),
+          quote: quote.trim(),
+          finding: finding.trim(),
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。这条用户声音会帮你们判断问题是不是真的。");
+      setInterviewee("");
+      setQuote("");
+      setFinding("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "记录一个真实声音"}</h1>
+        <p>问一个真实的人，记下一句原话，再写下你发现了什么。</p>
+        <div className="student-card d1-task-card">
+          <div className="student-current">
+            <div>
+              <span>采访员</span>
+              <strong>{student.nickname}</strong>
+              <small>{student.team_name || student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            我采访了
+            <input
+              value={interviewee}
+              onChange={(event) => setInterviewee(event.target.value)}
+              placeholder="例如：同桌、家长、老师"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            对方的一句原话
+            <textarea
+              value={quote}
+              onChange={(event) => setQuote(event.target.value)}
+              placeholder="例如：我最烦的是每次都要重新想一遍"
+              rows={3}
+            />
+          </label>
+          <label>
+            我发现
+            <textarea
+              value={finding}
+              onChange={(event) => setFinding(event.target.value)}
+              placeholder="例如：这个麻烦发生得很频繁，而且会浪费时间"
+              rows={3}
+            />
+          </label>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <MessageSquareText size={18} />}
+            提交
+          </button>
+          <p className="hint">真实声音会告诉我们：这个问题值不值得继续做。</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -3854,14 +4248,56 @@ function StudentLogin({ camp, onLoggedIn }: { camp: Camp | null; onLoggedIn: (st
   );
 }
 
+function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
+  if (!artifacts.length) return null;
+  return (
+    <section className="wall-artifacts">
+      <div className="wall-section-title">
+        <span className="eyebrow">真实线索</span>
+        <h2>问题和用户声音</h2>
+      </div>
+      <div className="wall-artifact-grid">
+        {artifacts.map((item) => {
+          const isProblem = item.task_type === "problem_card";
+          return (
+            <article className={isProblem ? "wall-artifact-card problem" : "wall-artifact-card voice"} key={item.id}>
+              <span>{isProblem ? "问题卡" : "用户声音"}</span>
+              <strong>
+                {isProblem
+                  ? asText(item.payload.problem_scene) || asText(item.payload.trouble) || "一个真实问题"
+                  : asText(item.payload.interviewee) || "一次真实采访"}
+              </strong>
+              {isProblem ? (
+                <>
+                  <p><b>用户</b>{asText(item.payload.target_user) || "还没写"}</p>
+                  <p><b>麻烦</b>{asText(item.payload.trouble) || "还没写"}</p>
+                  <p><b>现在办法</b>{asText(item.payload.current_solution) || "还没写"}</p>
+                </>
+              ) : (
+                <>
+                  <p><b>听到</b>{asText(item.payload.quote) || "还没写"}</p>
+                  <p><b>发现</b>{asText(item.payload.finding) || "还在整理"}</p>
+                </>
+              )}
+              <footer>{item.team_name || item.student_name || "课堂线索"}</footer>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function WallApp({
   camp,
   students,
-  showcaseItems
+  showcaseItems,
+  artifacts
 }: {
   camp: Camp | null;
   students: Student[];
   showcaseItems: ShowcaseItem[];
+  artifacts: WallArtifact[];
 }) {
   const [selectedPhoto, setSelectedPhoto] = useState<Student | null>(null);
 
@@ -3878,6 +4314,7 @@ function WallApp({
         </div>
       </header>
       <CoursePhotoWall students={students} variant="wall" onOpenPhoto={setSelectedPhoto} />
+      <ClassroomArtifactsWall artifacts={artifacts} />
       <section className="wall-showcase">
         <div className="wall-section-title">
           <span className="eyebrow">作品发布会</span>
