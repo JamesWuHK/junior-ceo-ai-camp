@@ -138,6 +138,11 @@ export interface ScoreSummary {
   next_steps: string[];
 }
 
+export interface ObserverScoreBrief {
+  camp: Pick<Camp, "id" | "name" | "city" | "location"> & { starts_on?: string; ends_on?: string };
+  showcase_items: ShowcaseItem[];
+}
+
 export interface TaskSubmission {
   id: string;
   student_id?: string | null;

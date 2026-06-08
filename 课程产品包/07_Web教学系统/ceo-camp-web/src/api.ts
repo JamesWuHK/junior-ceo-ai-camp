@@ -3,6 +3,7 @@ import type {
   Camp,
   CourseModule,
   FuturePhotoSubmission,
+  ObserverScoreBrief,
   ScoreSummary,
   ShowcaseItem,
   SourcePhoto,
@@ -82,6 +83,10 @@ function friendlyErrorMessage(raw: unknown, status: number) {
   const text = String(raw || `HTTP ${status}`);
   if (text === "INVALID_CREDENTIALS") return "账号或密码不对，请再试一次。";
   if (text === "UNAUTHORIZED") return "登录已过期，请重新进入。";
+  if (text === "OBSERVER_CODE_REQUIRED") return "观察码不对，请找现场老师换一个链接。";
+  if (text === "SHOWCASE_ITEM_NOT_FOUND") return "这个作品暂时不能评分，请换一个作品。";
+  if (text === "SCORE_REQUIRED") return "五组星星都点一下。";
+  if (text === "SCORE_NOTE_REQUIRED") return "亮点和下一步建议都写一下。";
   if (text === "SOURCE_PHOTO_REQUIRED") return "先上传照片，再提交。";
   if (text === "INVALID_UPLOAD_KEY" || text === "INVALID_UPLOAD_BODY") return "照片没有传好，请重新选择一次。";
   if (text === "QINGYUN_MODEL_NOT_CONFIGURED") return "出图服务还没准备好，请联系现场老师。";
@@ -222,6 +227,24 @@ export const api = {
     request<{ score_summaries: ScoreSummary[]; score_submissions: TaskSubmission[] }>("/scores/summary", {
       headers: headers(true)
     }),
+  observerScoreAccess: () =>
+    request<{ code: string; path: string }>("/observer-score/access", {
+      headers: headers(true)
+    }),
+  observerScoreBrief: (code: string) =>
+    request<ObserverScoreBrief>(`/observer-score/brief?code=${encodeURIComponent(code)}`),
+  submitObserverScore: (payload: {
+    code: string;
+    observer_name?: string;
+    showcase_item_id: string;
+    highlight: string;
+    next_step: string;
+  } & Record<string, unknown>) =>
+    request<{ submission: TaskSubmission }>("/observer-score/submissions", {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify(payload)
+    }),
   manageAwards: () => request<{ award_results: AwardResult[] }>("/awards/manage", { headers: headers(true) }),
   saveAward: (payload: Partial<AwardResult>) =>
     request<{ award_result: AwardResult }>("/awards", {
@@ -272,6 +295,7 @@ export function connectEvents(onState: (payload: StatePayload) => void) {
   source.addEventListener("task.changed", handler);
   source.addEventListener("task.submitted", handler);
   source.addEventListener("task.display.changed", handler);
+  source.addEventListener("score.submitted", handler);
   source.addEventListener("publish.changed", handler);
   return () => source.close();
 }

@@ -24,6 +24,7 @@ export const config = {
     displayName: process.env.TEACHER_SEED_DISPLAY_NAME ?? "主讲老师"
   },
   studentDefaultPassword: process.env.STUDENT_DEFAULT_PASSWORD ?? "camp2026",
+  observerScoreCode: process.env.OBSERVER_SCORE_CODE ?? "observer2026",
   databasePath: process.env.DATABASE_PATH ?? "./data/camp.db",
   publicApiBase: process.env.PUBLIC_API_BASE ?? "http://localhost:7001",
   localUploadEnabled:

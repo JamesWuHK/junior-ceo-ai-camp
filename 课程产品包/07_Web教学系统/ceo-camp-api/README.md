@@ -61,6 +61,9 @@
 - `POST /tasks/current`
 - `GET /submissions`
 - `POST /publish/showcase`
+- `GET /observer-score/access`
+- `GET /observer-score/brief`
+- `POST /observer-score/submissions`
 
 教师写接口需要先调用 `POST /auth/teacher/login` 登录，再携带返回的 `Authorization: Bearer <token>`。
 
@@ -82,6 +85,14 @@ STUDENT_DEFAULT_PASSWORD=camp2026
 ```
 
 学生在 PC 学生端登录后，系统会生成绑定该学生的短期拍照二维码。手机扫码后不需要再次登录，只能完成本人照片上传；二维码链接中带学生 id 和短期签名，后端会校验两者匹配后才登记照片。提交“未来职业”仍由 PC 学生端用学生登录 token 完成。
+
+家长观察员评分使用受控链接或现场短码。老师登录后可从评分中心复制 `/parents?score=1&code=...` 链接；后端用以下环境变量校验短码：
+
+```text
+OBSERVER_SCORE_CODE=observer2026
+```
+
+观察员只能读取已发布作品并提交路演评分，不能读取学生未公开资料。
 
 ## 本地开发
 

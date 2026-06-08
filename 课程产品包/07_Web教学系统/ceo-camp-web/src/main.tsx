@@ -56,6 +56,7 @@ import type {
   Camp,
   CourseModule,
   FuturePhotoSubmission,
+  ObserverScoreBrief,
   ScoreDimension,
   ScoreSummary,
   ShowcaseItem,
@@ -1186,6 +1187,14 @@ function TeacherRoute() {
 }
 
 function PublicShowcaseRoute() {
+  const searchParams = new URLSearchParams(window.location.search);
+  const parentScoreMode = window.location.pathname.startsWith("/parents") && searchParams.get("score");
+  const observerCode = searchParams.get("code") || "";
+
+  if (parentScoreMode) {
+    return <ParentObserverScoreRoute initialCode={observerCode} />;
+  }
+
   const [camp, setCamp] = useState<{ name: string; location: string; starts_on?: string; ends_on?: string } | null>(null);
   const [finalItems, setFinalItems] = useState<WallArtifact[]>([]);
   const [showcaseItems, setShowcaseItems] = useState<ShowcaseItem[]>([]);
@@ -1195,7 +1204,6 @@ function PublicShowcaseRoute() {
   const [awardResults, setAwardResults] = useState<AwardResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const searchParams = new URLSearchParams(window.location.search);
   const selectedProjectId = searchParams.get("project") || "";
 
   useEffect(() => {
@@ -1342,6 +1350,207 @@ function PublicShowcaseRoute() {
           <h2>奖项与能力标签</h2>
         </div>
         <AwardGallery awards={awardResults} />
+      </section>
+    </main>
+  );
+}
+
+function emptyScoreValues() {
+  return scoreDimensionLabels.reduce<Record<ScoreDimension, number>>((acc, dimension) => {
+    acc[dimension.key] = 0;
+    return acc;
+  }, {} as Record<ScoreDimension, number>);
+}
+
+function ParentObserverScoreRoute({ initialCode }: { initialCode: string }) {
+  const [code, setCode] = useState(initialCode);
+  const [brief, setBrief] = useState<ObserverScoreBrief | null>(null);
+  const [selectedId, setSelectedId] = useState("");
+  const [observerName, setObserverName] = useState("");
+  const [scores, setScores] = useState<Record<ScoreDimension, number>>(emptyScoreValues);
+  const [highlight, setHighlight] = useState("");
+  const [nextStep, setNextStep] = useState("");
+  const [loading, setLoading] = useState(Boolean(initialCode));
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+  const items = brief?.showcase_items ?? [];
+  const selectedItem = items.find((item) => item.id === selectedId) || null;
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => setMessage({ tone, text });
+
+  const loadBrief = async (nextCode = code) => {
+    const trimmed = nextCode.trim();
+    if (!trimmed) {
+      showMessage("error", "请输入现场给你的观察码。");
+      return;
+    }
+    setLoading(true);
+    setMessage(null);
+    try {
+      const result = await api.observerScoreBrief(trimmed);
+      setBrief(result);
+      setCode(trimmed);
+      setSelectedId((current) => current || result.showcase_items[0]?.id || "");
+    } catch (err) {
+      setBrief(null);
+      showMessage("error", err instanceof Error ? err.message : "这条评分入口暂时不能使用，请找现场老师换一个链接。");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (initialCode) void loadBrief(initialCode);
+  }, [initialCode]);
+
+  const updateScore = (key: ScoreDimension, value: number) => {
+    setScores((current) => ({ ...current, [key]: value }));
+  };
+
+  const submit = async () => {
+    if (!selectedItem) {
+      showMessage("error", "先选一个你刚看过的作品。");
+      return;
+    }
+    if (scoreDimensionLabels.some((dimension) => !scores[dimension.key])) {
+      showMessage("error", "五组星星都点一下。");
+      return;
+    }
+    if (!highlight.trim()) {
+      showMessage("error", "写一句你看见的亮点。");
+      return;
+    }
+    if (!nextStep.trim()) {
+      showMessage("error", "再写一句下一步建议。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitObserverScore({
+        code,
+        observer_name: observerName.trim(),
+        showcase_item_id: selectedItem.id,
+        highlight: highlight.trim(),
+        next_step: nextStep.trim(),
+        ...scores
+      });
+      showMessage("success", "收到啦。你的星星和建议会放进作品秀汇总。");
+      setScores(emptyScoreValues());
+      setHighlight("");
+      setNextStep("");
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请找现场老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="observer-score-page">
+      <header className="observer-score-hero">
+        <span>{brief?.camp.location || "少年CEO AI 创业营"}</span>
+        <h1>看完作品，留下星星和建议</h1>
+        <p>选一个作品，点亮五组星星，再写下你看见的亮点和下一步建议。</p>
+      </header>
+      <section className="observer-score-card">
+        <div className="observer-code-form">
+          <label>
+            观察码
+            <input
+              value={code}
+              onChange={(event) => setCode(event.target.value)}
+              placeholder="现场老师给你的观察码"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+            />
+          </label>
+          <button disabled={loading} onClick={() => void loadBrief()}>
+            {loading ? <Loader2 className="spin" size={18} /> : <Search size={18} />}
+            打开评分
+          </button>
+        </div>
+        {loading ? (
+          <div className="feedback-loading">
+            <Loader2 className="spin" size={24} />
+            <span>正在打开作品卡</span>
+          </div>
+        ) : items.length ? (
+          <>
+            <label>
+              你的名字
+              <input
+                value={observerName}
+                onChange={(event) => setObserverName(event.target.value)}
+                placeholder="可不填"
+                inputMode="text"
+              />
+            </label>
+            <div className="feedback-product-grid observer-product-grid">
+              {items.map((item) => {
+                const active = item.id === selectedId;
+                const href = item.access_url ? normalizeShowcaseUrl(item.access_url) : "";
+                return (
+                  <article className={active ? "feedback-product active" : "feedback-product"} key={item.id}>
+                    <button onClick={() => setSelectedId(item.id)}>
+                      <span>{item.team_name || item.track || "作品"}</span>
+                      <strong>{item.product_name}</strong>
+                      <small>{item.one_liner || "看看它帮用户完成了什么。"}</small>
+                    </button>
+                    {href && (
+                      <a href={href} target="_blank" rel="noreferrer">
+                        <ExternalLink size={15} />
+                        打开作品
+                      </a>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+            <div className="score-dimension-list">
+              {scoreDimensionLabels.map((dimension) => (
+                <div className="score-dimension" key={dimension.key}>
+                  <div>
+                    <strong>{dimension.label}</strong>
+                    <span>{dimension.hint}</span>
+                  </div>
+                  <ScoreRating value={scores[dimension.key]} onChange={(value) => updateScore(dimension.key, value)} />
+                </div>
+              ))}
+            </div>
+            <label>
+              我看见的亮点
+              <input
+                value={highlight}
+                onChange={(event) => setHighlight(event.target.value)}
+                placeholder="例如：用户一打开就知道怎么选"
+                inputMode="text"
+              />
+            </label>
+            <label>
+              我给下一版的建议
+              <input
+                value={nextStep}
+                onChange={(event) => setNextStep(event.target.value)}
+                placeholder="例如：可以加一个更明显的开始按钮"
+                inputMode="text"
+                enterKeyHint="done"
+              />
+            </label>
+            <button className="submit-button observer-submit" disabled={submitting} onClick={submit}>
+              {submitting ? <Loader2 className="spin" size={18} /> : <Star size={18} />}
+              提交评分
+            </button>
+          </>
+        ) : (
+          <article className="public-empty observer-empty">
+            <Package size={34} />
+            <strong>作品卡出现后，这里会开放评分</strong>
+            <span>可以先等现场作品秀开始。</span>
+          </article>
+        )}
+        {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
       </section>
     </main>
   );
@@ -3169,16 +3378,22 @@ function topScoreSummary(summaries: ScoreSummary[], dimension?: ScoreDimension) 
 function TeacherScoringCenter() {
   const [summaries, setSummaries] = useState<ScoreSummary[]>([]);
   const [awards, setAwards] = useState<AwardResult[]>([]);
+  const [observerAccess, setObserverAccess] = useState<{ code: string; path: string } | null>(null);
   const [submissionCount, setSubmissionCount] = useState(0);
   const [message, setMessage] = useState("");
   const [working, setWorking] = useState(false);
 
   const load = async () => {
     try {
-      const [scoreResult, awardResult] = await Promise.all([api.scoreSummary(), api.manageAwards()]);
+      const [scoreResult, awardResult, observerResult] = await Promise.all([
+        api.scoreSummary(),
+        api.manageAwards(),
+        api.observerScoreAccess()
+      ]);
       setSummaries(scoreResult.score_summaries);
       setSubmissionCount(scoreResult.score_submissions.length);
       setAwards(awardResult.award_results);
+      setObserverAccess(observerResult);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "加载失败");
     }
@@ -3256,6 +3471,21 @@ function TeacherScoringCenter() {
           生成奖项建议
         </button>
       </div>
+      {observerAccess && (
+        <div className="observer-link-box">
+          <div>
+            <span>家长评分链接</span>
+            <strong>观察码：{observerAccess.code}</strong>
+          </div>
+          <input
+            readOnly
+            value={`${window.location.origin}${observerAccess.path}`}
+            onFocus={(event) => event.currentTarget.select()}
+            aria-label="家长评分链接"
+          />
+          <a href={observerAccess.path} target="_blank" rel="noreferrer">打开评分页</a>
+        </div>
+      )}
       {message && <p className="hint">{message}</p>}
       <div className="score-summary-list">
         {summaries.map((summary) => (

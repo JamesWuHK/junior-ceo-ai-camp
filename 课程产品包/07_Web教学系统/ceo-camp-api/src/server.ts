@@ -520,6 +520,11 @@ function scoreValue(value: unknown) {
   return Math.min(5, Math.max(1, Math.round(numeric)));
 }
 
+function hasObserverScoreAccess(code: unknown) {
+  const expected = config.observerScoreCode.trim();
+  return Boolean(expected && String(code ?? "").trim() === expected);
+}
+
 function roundedScore(value: number) {
   if (!Number.isFinite(value) || value <= 0) return 0;
   return Math.round(value * 10) / 10;
@@ -1598,6 +1603,100 @@ app.get("/public/final-showcase", async () => {
     project_journey: projectJourneyItems(),
     score_summaries: scoreSummaries(),
     award_results: awardResults(false)
+  };
+});
+
+app.get("/observer-score/access", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  return {
+    code: config.observerScoreCode,
+    path: `/parents?score=1&code=${encodeURIComponent(config.observerScoreCode)}`
+  };
+});
+
+app.get("/observer-score/brief", async (request, reply) => {
+  const query = request.query as { code?: string };
+  if (!hasObserverScoreAccess(query.code)) return reply.code(401).send({ error: "OBSERVER_CODE_REQUIRED" });
+  const camp = currentCamp() as Record<string, any>;
+  return {
+    camp: {
+      id: camp.id,
+      name: camp.name,
+      city: camp.city,
+      location: camp.location,
+      starts_on: camp.starts_on,
+      ends_on: camp.ends_on
+    },
+    showcase_items: showcaseItems(false)
+  };
+});
+
+app.post("/observer-score/submissions", async (request, reply) => {
+  const body = (request.body ?? {}) as Record<string, unknown>;
+  if (!hasObserverScoreAccess(body.code)) return reply.code(401).send({ error: "OBSERVER_CODE_REQUIRED" });
+  const showcaseItemId = String(body.showcase_item_id ?? "").trim();
+  const item = row(
+    `SELECT s.*, t.name AS team_name
+       FROM showcase_items s
+       LEFT JOIN teams t ON t.id = s.team_id
+      WHERE s.id = ?
+        AND s.camp_id = ?
+        AND s.publish_status = 'PUBLISHED'`,
+    [showcaseItemId, campId()]
+  );
+  if (!item) return reply.code(404).send({ error: "SHOWCASE_ITEM_NOT_FOUND" });
+  for (const dimension of scoreDimensions) {
+    const rawScore = Number(body[dimension]);
+    if (!Number.isFinite(rawScore) || rawScore < 1) return reply.code(400).send({ error: "SCORE_REQUIRED" });
+  }
+  const highlight = String(body.highlight ?? "").trim();
+  const nextStep = String(body.next_step ?? "").trim();
+  if (!highlight || !nextStep) return reply.code(400).send({ error: "SCORE_NOTE_REQUIRED" });
+  const observerName = String(body.observer_name ?? "").trim().slice(0, 40) || "家长观察员";
+  const id = randomUUID();
+  const payload: TaskPayload = {
+    showcase_item_id: item.id,
+    product_name: item.product_name,
+    team_id: item.team_id ?? "",
+    team_name: item.team_name || item.track || "",
+    access_url: item.access_url || "",
+    observer_name: observerName,
+    observer_role: "parent_observer",
+    highlight,
+    next_step: nextStep
+  };
+  for (const dimension of scoreDimensions) {
+    payload[dimension] = scoreValue(Number(body[dimension]));
+  }
+  const record = {
+    id,
+    camp_id: campId(),
+    student_id: null,
+    team_id: item.team_id ?? null,
+    task_type: "observer_score",
+    title: "家长观察员评分",
+    payload: JSON.stringify(payload),
+    status: "SUBMITTED",
+    updated_at: nowSql()
+  };
+  db.prepare(
+    `INSERT INTO task_submissions
+      (id, camp_id, student_id, team_id, task_type, title, payload, status, updated_at)
+     VALUES
+      (@id, @camp_id, @student_id, @team_id, @task_type, @title, @payload, @status, @updated_at)`
+  ).run(record);
+  audit("observer.score.submit", "task_submissions", id, {
+    showcase_item_id: item.id,
+    observer_name: observerName
+  }, "observer");
+  emitState("score.submitted");
+  return {
+    submission: {
+      ...record,
+      student_name: observerName,
+      team_name: item.team_name ?? null,
+      payload
+    }
   };
 });
 
