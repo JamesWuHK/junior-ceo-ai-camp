@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-09T01:51:38+08:00
+Generated: 2026-06-09T01:59:03+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -189,6 +189,7 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 2007 | no
 
 - Add `BAIDU_TOKEN` privately in `.env` or the shell, then run `npm run seo:submit:baidu`.
 - Copy seo/baidu-measurements.example.json to seo/baidu-measurements.json, fill measured data, then run `npm run seo:baidu:evidence`.
+- Or fill reports/seo-baidu-measurement-checklist.csv, run `npm run seo:measurements:import`, then run `npm run seo:baidu:evidence`.
 - Confirm `https://camps.wanli.wiki/sitemap.xml` in Baidu Search Resource Platform ordinary inclusion/sitemap tools.
 - Record measured Baidu platform data weekly: indexed URLs, crawl frequency, search impressions, clicks, and keyword positions for each cluster.
 - Use `npm run seo:rank-plan` to generate the Baidu keyword and GEO query tracking sheet before weekly checks.

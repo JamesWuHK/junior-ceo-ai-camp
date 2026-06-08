@@ -1,6 +1,6 @@
 # Baidu Measured Evidence Report
 
-Generated: 2026-06-09T01:51:24+08:00
+Generated: 2026-06-09T01:58:51+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_MEASURED_DATA
 
@@ -14,6 +14,7 @@ Overall status: NEEDS_MEASURED_DATA
 ## Summary
 
 - URL index evidence: 0/8 indexed, 0 measured not indexed, 8 missing evidence.
+- URL metric evidence: 0/8 measured, 8 missing evidence.
 - Primary keyword rank evidence: 0/8 ranked, 0 measured no rank, 8 missing evidence.
 - Tracked keyword rank evidence: 0/83 ranked, 0 measured no rank, 83 missing evidence.
 - GEO answer evidence: 0/24 pass, 0 needs repair, 24 missing evidence.
@@ -21,6 +22,7 @@ Overall status: NEEDS_MEASURED_DATA
 ## How To Use This File
 
 - Copy seo/baidu-measurements.example.json to seo/baidu-measurements.json.
+- Or fill reports/seo-baidu-measurement-checklist.csv, then run `npm run seo:measurements:import` to write seo/baidu-measurements.json.
 - Fill only measured values from Baidu Search Resource Platform, a compliant rank monitor, reproducible manual checks, or manual AI answer checks.
 - Keep unknown values as `null`; this report will keep them as missing evidence instead of guessing.
 - Do not commit the private measurements file.
@@ -37,6 +39,19 @@ MISSING_EVIDENCE | https://camps.wanli.wiki/youth-ai-course-guide.html | N/A | N
 MISSING_EVIDENCE | https://camps.wanli.wiki/ai-course-vs-coding.html | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/shunyi-ai-parent-class.html | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/partner-ai-pbl-camp.html | N/A | N/A | -
+
+## URL Metric Evidence
+
+Status | URL | Impressions | Clicks | CTR | Average rank | Crawl count | Evidence date | Source | Notes
+--- | --- | --- | --- | --- | --- | --- | --- | --- | ---
+MISSING_EVIDENCE | https://camps.wanli.wiki/ | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | https://camps.wanli.wiki/ai-pbl-camp.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | https://camps.wanli.wiki/ai-product-prototype-course.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | https://camps.wanli.wiki/youth-ai-course-guide.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | https://camps.wanli.wiki/ai-course-vs-coding.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | https://camps.wanli.wiki/shunyi-ai-parent-class.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | https://camps.wanli.wiki/partner-ai-pbl-camp.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
 
 ## Primary Keyword Rank Evidence
 
