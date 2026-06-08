@@ -14,8 +14,8 @@ Overall status: PASS
 Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | Sitemap | llms.txt | Markdown context
 --- | --- | --- | --- | --- | --- | --- | --- | ---
 PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | yes | yes | n/a
-PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, body, jsonLd | 7/7 | yes | yes | ai-pbl-camp.md
-PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, body, jsonLd | 7/7 | yes | yes | shunyi-ai-parent-class.md
+PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | ai-pbl-camp.md
+PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | shunyi-ai-parent-class.md
 PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | yes | yes | partner-ai-pbl-camp.md
 
 ## Baidu Submission Set
@@ -61,9 +61,9 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Target page: https://camps.wanli.wiki/ai-pbl-camp.html
 - Source: ai-pbl-camp.html
 - Primary keyword: AI PBL 创业营
-- Primary locations measured: title, description, keywords, h1, body, jsonLd
+- Primary locations measured: title, description, keywords, h1, h2, body, jsonLd
 - Secondary matches measured: 7/7 (青少年AI课程, AI产品原型课程, 少年CEO, AI创业营, 8-16岁AI课程, PBL项目制学习, 提示词实践)
-- JSON-LD types measured: Course
+- JSON-LD types measured: Course, FAQPage
 - AI query coverage targets: AI PBL 创业营适合什么孩子 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上
 - Status: PASS
 - Failures: none
@@ -75,9 +75,9 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Target page: https://camps.wanli.wiki/shunyi-ai-parent-class.html
 - Source: shunyi-ai-parent-class.html
 - Primary keyword: 北京顺义 AI 家长公益课
-- Primary locations measured: title, description, keywords, h1, body, jsonLd
+- Primary locations measured: title, description, keywords, h1, h2, body, jsonLd
 - Secondary matches measured: 7/7 (北京.顺义 AI 家长公益课, 顺义AI课程, AI家长课, 少年CEO, 青少年AI教育, AI时代孩子能力, LIA公益社区)
-- JSON-LD types measured: Article
+- JSON-LD types measured: Article, FAQPage
 - AI query coverage targets: 北京顺义AI家长公益课讲什么 | AI时代孩子需要什么能力 | 顺义家长怎么理解孩子学AI
 - Status: PASS
 - Failures: none
@@ -91,7 +91,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Primary keyword: AI PBL 创业营机构合作
 - Primary locations measured: title, description, keywords, h1, body, jsonLd
 - Secondary matches measured: 8/8 (培训机构AI课程合作, 青少年AI营地合作, 少年CEO, AI创业营合作, 培训机构, 营地, 学校社群, 城市合作伙伴)
-- JSON-LD types measured: Service
+- JSON-LD types measured: FAQPage, Service
 - AI query coverage targets: 培训机构如何合作开展AI PBL创业营 | 青少年AI营地合作课程方案 | AI创业营机构合作支持什么
 - Status: PASS
 - Failures: none
