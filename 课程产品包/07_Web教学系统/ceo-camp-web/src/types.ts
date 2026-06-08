@@ -184,6 +184,7 @@ export interface StatePayload {
   wall: Student[];
   showcase_items?: ShowcaseItem[];
   wall_artifacts?: WallArtifact[];
+  growth_reflections?: WallArtifact[];
   award_results?: AwardResult[];
   score_summaries?: ScoreSummary[];
 }

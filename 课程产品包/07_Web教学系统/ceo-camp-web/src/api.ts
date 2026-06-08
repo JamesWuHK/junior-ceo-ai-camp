@@ -194,6 +194,7 @@ export const api = {
       camp: Pick<Camp, "id" | "name" | "city" | "location"> & { starts_on?: string; ends_on?: string };
       final_showcase: WallArtifact[];
       showcase_items: ShowcaseItem[];
+      growth_reflections: WallArtifact[];
       score_summaries: ScoreSummary[];
       award_results: AwardResult[];
     }>("/public/final-showcase"),

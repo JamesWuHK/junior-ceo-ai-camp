@@ -97,6 +97,16 @@ const scoreDimensionLabels: Array<{ key: ScoreDimension; label: string; hint: st
   { key: "team_pitch", label: "展示有力", hint: "看见结果，也知道下一步" }
 ];
 
+const growthAbilityTags = ["共情力", "提问力", "创造力", "判断力", "领导力"] as const;
+
+const growthAbilityHints: Record<(typeof growthAbilityTags)[number], string> = {
+  共情力: "听见真实的人和需要",
+  提问力: "把问题问得更清楚",
+  创造力: "把想法变成新方案",
+  判断力: "用证据修改 AI 的答案",
+  领导力: "带着团队把作品推出去"
+};
+
 type SpeechRecognitionAlternative = {
   transcript: string;
 };
@@ -596,6 +606,11 @@ const fallbackLessonPages: Record<string, LessonPageSeed[]> = {
     { page_no: 1, title: "作品秀开场", page_type: "story", content_summary: "这是互相借好方法的作品秀" },
     { page_no: 2, title: "每组上场", page_type: "showcase", content_summary: "让大家看到用户怎么用、结果是什么" },
     { page_no: 3, title: "观察员投票", page_type: "showcase", content_summary: "看见亮点，给出下一步建议" }
+  ],
+  "awards-reflection": [
+    { page_no: 1, title: "五力证书", page_type: "showcase", content_summary: "共情力、提问力、创造力、判断力、领导力都有证据" },
+    { page_no: 2, title: "给贡献一个名字", page_type: "showcase", content_summary: "看见每个人在团队里的真实贡献" },
+    { page_no: 3, title: "下一次我怎么指挥 AI", page_type: "activity", content_summary: "写下下一次想继续练习的方法" }
   ]
 };
 
@@ -785,7 +800,8 @@ function expectedOutputForPage(page: DesignedLessonPage) {
     "定价三问": "每组说清谁会用、付出什么、为什么值得",
     "作品页上线清单": "作品名、链接、截图、用户故事准备好",
     "家长观察员提问": "每组准备回答一个真实追问",
-    "五力证书": "每个孩子有一条可被看见的贡献证据"
+    "五力证书": "每个孩子有一条可被看见的贡献证据",
+    "下一次我怎么指挥 AI": "每个孩子写下一张成长卡"
   };
   if (outputs[page.title]) return outputs[page.title];
   if (page.page_type === "activity") return "孩子完成一个可展示的小结果";
@@ -812,6 +828,7 @@ function formatTimer(seconds: number) {
 }
 
 function taskTypeForAction(action: string, page: DesignedLessonPage) {
+  if (page.title.includes("下一次我怎么指挥 AI")) return "growth_reflection";
   if (action === "进入评分") return "score";
   if (action === "发起互动") return "interaction";
   if (action === "打开看板") return "board";
@@ -856,6 +873,19 @@ function isFinalShowcaseTask(camp: Camp | null) {
   return (moduleId === "final-showcase" || /路演|作品展|最终展示|故事发布|每组上场/.test(title)) && !isObserverScoreTask(camp);
 }
 
+function isGrowthReflectionTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  const activityType = camp?.active_task?.activity_type || "";
+  const payloadType = asText(camp?.active_task?.payload?.task_type);
+  return (
+    activityType === "growth_reflection" ||
+    payloadType === "growth_reflection" ||
+    moduleId === "awards-reflection" ||
+    /下一次我怎么指挥 AI|结营反思|五力证书|给贡献一个名字|写反思/.test(title)
+  );
+}
+
 function isPeerFeedbackTask(camp: Camp | null) {
   const title = activeTaskTitle(camp);
   const moduleId = camp?.active_task?.module_id || "";
@@ -898,6 +928,7 @@ function useInitialData(active: "student" | "wall") {
   const [students, setStudents] = useState<Student[]>([]);
   const [showcaseItems, setShowcaseItems] = useState<ShowcaseItem[]>([]);
   const [wallArtifacts, setWallArtifacts] = useState<WallArtifact[]>([]);
+  const [growthReflections, setGrowthReflections] = useState<WallArtifact[]>([]);
   const [awardResults, setAwardResults] = useState<AwardResult[]>([]);
   const [scoreSummaries, setScoreSummaries] = useState<ScoreSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -915,17 +946,23 @@ function useInitialData(active: "student" | "wall") {
         ? Promise.resolve({ artifacts: [] as WallArtifact[] })
         : api.wallArtifacts().catch(() => ({ artifacts: [] as WallArtifact[] })),
       active === "student"
-        ? Promise.resolve({ award_results: [] as AwardResult[], score_summaries: [] as ScoreSummary[] })
-        : api.publicFinalShowcase().catch(() => ({
+        ? Promise.resolve({
             award_results: [] as AwardResult[],
+            growth_reflections: [] as WallArtifact[],
             score_summaries: [] as ScoreSummary[]
-          }))
+          })
+        : api.publicFinalShowcase().catch(() => ({
+          award_results: [] as AwardResult[],
+          growth_reflections: [] as WallArtifact[],
+          score_summaries: [] as ScoreSummary[]
+        }))
     ]);
     setCamp(campResult);
     setModules(moduleResult.modules);
     setStudents(wallResult.students);
     setShowcaseItems(showcaseResult.showcase_items);
     setWallArtifacts(artifactResult.artifacts);
+    setGrowthReflections(publicResult.growth_reflections ?? []);
     setAwardResults(publicResult.award_results ?? []);
     setScoreSummaries(publicResult.score_summaries ?? []);
   };
@@ -940,12 +977,13 @@ function useInitialData(active: "student" | "wall") {
       setStudents(payload.wall);
       setShowcaseItems(payload.showcase_items ?? []);
       setWallArtifacts(payload.wall_artifacts ?? []);
+      setGrowthReflections(payload.growth_reflections ?? []);
       setAwardResults(payload.award_results ?? []);
       setScoreSummaries(payload.score_summaries ?? []);
     });
   }, [active]);
 
-  return { camp, modules, students, showcaseItems, wallArtifacts, awardResults, scoreSummaries, loading, error, refresh };
+  return { camp, modules, students, showcaseItems, wallArtifacts, growthReflections, awardResults, scoreSummaries, loading, error, refresh };
 }
 
 function useTeacherData(enabled: boolean) {
@@ -1029,6 +1067,7 @@ function App() {
           students={data.students}
           showcaseItems={data.showcaseItems}
           artifacts={data.wallArtifacts}
+          growthReflections={data.growthReflections}
           awardResults={data.awardResults}
           scoreSummaries={data.scoreSummaries}
         />
@@ -1141,6 +1180,7 @@ function PublicShowcaseRoute() {
   const [camp, setCamp] = useState<{ name: string; location: string; starts_on?: string; ends_on?: string } | null>(null);
   const [finalItems, setFinalItems] = useState<WallArtifact[]>([]);
   const [showcaseItems, setShowcaseItems] = useState<ShowcaseItem[]>([]);
+  const [growthReflections, setGrowthReflections] = useState<WallArtifact[]>([]);
   const [scoreSummaries, setScoreSummaries] = useState<ScoreSummary[]>([]);
   const [awardResults, setAwardResults] = useState<AwardResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1154,6 +1194,7 @@ function PublicShowcaseRoute() {
         setCamp(result.camp);
         setFinalItems(sortByDisplayOrder(result.final_showcase));
         setShowcaseItems(result.showcase_items);
+        setGrowthReflections(result.growth_reflections ?? []);
         setScoreSummaries(result.score_summaries ?? []);
         setAwardResults(result.award_results ?? []);
       })
@@ -1186,6 +1227,7 @@ function PublicShowcaseRoute() {
         camp={camp}
         finalItems={finalItems}
         showcaseItems={showcaseItems}
+        growthReflections={growthReflections}
         scoreSummaries={scoreSummaries}
         awardResults={awardResults}
       />
@@ -1277,6 +1319,13 @@ function PublicShowcaseRoute() {
       </section>
       <section className="public-section">
         <div className="public-section-title">
+          <span>成长卡</span>
+          <h2>下一次我怎么指挥 AI</h2>
+        </div>
+        <GrowthReflectionGallery reflections={growthReflections} />
+      </section>
+      <section className="public-section">
+        <div className="public-section-title">
           <span>结营证书</span>
           <h2>奖项与能力标签</h2>
         </div>
@@ -1352,6 +1401,7 @@ function PublicProjectDetail({
   camp,
   finalItems,
   showcaseItems,
+  growthReflections,
   scoreSummaries,
   awardResults
 }: {
@@ -1359,6 +1409,7 @@ function PublicProjectDetail({
   camp: { name: string; location: string; starts_on?: string; ends_on?: string } | null;
   finalItems: WallArtifact[];
   showcaseItems: ShowcaseItem[];
+  growthReflections: WallArtifact[];
   scoreSummaries: ScoreSummary[];
   awardResults: AwardResult[];
 }) {
@@ -1377,6 +1428,15 @@ function PublicProjectDetail({
   const screenshot = asText(finalItem?.payload.screenshot_url) || showcaseItem?.screenshot_url || "";
   const scoreSummary = scoreSummaries.find(matchesProject(projectId, finalItem, productName, teamId, teamName)) || null;
   const projectAwards = awardResults.filter((award) => awardMatchesProject(award, projectId, finalItem, productName, teamId));
+  const projectGrowthReflections = growthReflections.filter((reflection) => {
+    const reflectionTeamId = reflection.team_id || asText(reflection.payload.team_id);
+    const reflectionTeamName = reflection.team_name || asText(reflection.payload.team_name);
+    return (
+      (!!teamId && reflectionTeamId === teamId) ||
+      (!!teamName && reflectionTeamName === teamName) ||
+      (!!finalItem?.team_id && reflectionTeamId === finalItem.team_id)
+    );
+  });
   const certificates = contributionCards(finalItem, projectAwards);
 
   if (!finalItem && !showcaseItem) {
@@ -1469,12 +1529,63 @@ function PublicProjectDetail({
 
       <section className="project-section">
         <div className="public-section-title">
+          <span>成长卡</span>
+          <h2>下一次我怎么指挥 AI</h2>
+        </div>
+        <GrowthReflectionGallery reflections={projectGrowthReflections} />
+      </section>
+
+      <section className="project-section">
+        <div className="public-section-title">
           <span>奖项</span>
           <h2>被看见的能力标签</h2>
         </div>
         <AwardGallery awards={projectAwards} />
       </section>
     </main>
+  );
+}
+
+function GrowthReflectionGallery({ reflections }: { reflections: WallArtifact[] }) {
+  if (!reflections.length) {
+    return (
+      <article className="public-empty growth-empty">
+        <Brain size={34} />
+        <strong>成长卡会出现在这里</strong>
+        <span>孩子写下下一次怎样指挥 AI 后，这里会慢慢点亮。</span>
+      </article>
+    );
+  }
+
+  return (
+    <div className="growth-reflection-grid">
+      {reflections.map((reflection) => {
+        const ability = asText(reflection.payload.ability_tag) || "能力标签";
+        return (
+          <article className="growth-reflection-card" key={reflection.id}>
+            <header>
+              <span>{ability}</span>
+              <strong>{reflection.student_name || "一位少年 CEO"}</strong>
+              <small>{reflection.team_name || asText(reflection.payload.team_name) || "项目团队"}</small>
+            </header>
+            <dl>
+              <div>
+                <dt>AI 帮我的一步</dt>
+                <dd>{asText(reflection.payload.ai_job) || "还在整理"}</dd>
+              </div>
+              <div>
+                <dt>我做的判断</dt>
+                <dd>{asText(reflection.payload.human_decision) || "还在整理"}</dd>
+              </div>
+              <div>
+                <dt>下一次想练</dt>
+                <dd>{asText(reflection.payload.next_practice) || growthAbilityHints[ability as keyof typeof growthAbilityHints] || "继续练习指挥 AI"}</dd>
+              </div>
+            </dl>
+          </article>
+        );
+      })}
+    </div>
   );
 }
 
@@ -1805,6 +1916,7 @@ function TeacherApp({
         <TeacherPeerFeedback />
         <TeacherFinalShowcase />
         <TeacherScoringCenter />
+        <TeacherGrowthReflections />
         <TeacherShowcase />
       </section>
       {presenting && selectedModule && (
@@ -2341,6 +2453,82 @@ function TeacherFinalShowcase() {
           );
         })}
         {!items.length && <p className="empty">学生提交最终展示卡后，会出现在这里。</p>}
+      </div>
+    </section>
+  );
+}
+
+function TeacherGrowthReflections() {
+  const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [message, setMessage] = useState("");
+  const [workingId, setWorkingId] = useState("");
+
+  const load = async () => {
+    try {
+      const result = await api.submissions();
+      setItems(result.task_submissions.filter((item) => item.task_type === "growth_reflection"));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const toggleDisplay = async (item: TaskSubmission) => {
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.setTaskSubmissionStatus(item.id, item.status === "ON_WALL" ? "SUBMITTED" : "ON_WALL");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "操作失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
+
+  return (
+    <section className="panel growth-manage-panel">
+      <div className="panel-title">
+        <Brain size={20} />
+        <h2>个人成长卡</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{items.length} 张已提交</span>
+        <span>{items.filter((item) => item.status === "ON_WALL").length} 张在成果页</span>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="d1-artifact-list growth-manage-list">
+        {items.map((item) => {
+          const ability = asText(item.payload.ability_tag) || "能力标签";
+          return (
+            <article className={item.status === "ON_WALL" ? "d1-artifact-card on-wall" : "d1-artifact-card"} key={item.id}>
+              <header>
+                <div>
+                  <span>{ability}</span>
+                  <strong>{item.student_name || "学生"}</strong>
+                  <small>{item.team_name || asText(item.payload.team_name) || "项目团队"}</small>
+                </div>
+                <div className="artifact-actions">
+                  <button disabled={workingId === item.id} onClick={() => toggleDisplay(item)}>
+                    {item.status === "ON_WALL" ? "从成果页移开" : "放到成果页"}
+                  </button>
+                </div>
+              </header>
+              <div className="artifact-lines">
+                <p><strong>AI 帮的一步：</strong>{asText(item.payload.ai_job) || "还没写"}</p>
+                <p><strong>孩子的判断：</strong>{asText(item.payload.human_decision) || "还没写"}</p>
+                <p><strong>证据：</strong>{asText(item.payload.evidence) || "还没写"}</p>
+                <p><strong>下一次想练：</strong>{asText(item.payload.next_practice) || "还没写"}</p>
+              </div>
+            </article>
+          );
+        })}
+        {!items.length && <p className="empty">学生写下成长卡后，会出现在这里。</p>}
       </div>
     </section>
   );
@@ -4155,6 +4343,7 @@ function StudentApp({
   const userVoiceTask = isUserVoiceTask(camp);
   const productDefinitionTask = isProductDefinitionTask(camp);
   const observerScoreTask = isObserverScoreTask(camp);
+  const growthReflectionTask = isGrowthReflectionTask(camp);
   const finalShowcaseTask = isFinalShowcaseTask(camp);
   const productLinkTask = isProductLinkTask(camp);
   const peerFeedbackTask = isPeerFeedbackTask(camp);
@@ -4163,6 +4352,7 @@ function StudentApp({
     userVoiceTask ||
     productDefinitionTask ||
     observerScoreTask ||
+    growthReflectionTask ||
     finalShowcaseTask ||
     productLinkTask ||
     peerFeedbackTask;
@@ -4383,6 +4573,18 @@ function StudentApp({
   if (observerScoreTask) {
     return (
       <StudentObserverScoreTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (growthReflectionTask) {
+    return (
+      <StudentGrowthReflectionTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -4907,6 +5109,150 @@ function StudentProductDefinitionTask({
             提交
           </button>
           <p className="hint">先说清楚帮谁，再说怎么帮，产品就会更像真的。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentGrowthReflectionTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [abilityTag, setAbilityTag] = useState<(typeof growthAbilityTags)[number]>("判断力");
+  const [aiJob, setAiJob] = useState("");
+  const [humanDecision, setHumanDecision] = useState("");
+  const [evidence, setEvidence] = useState("");
+  const [nextPractice, setNextPractice] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!aiJob.trim()) {
+      showMessage("error", "先写 AI 帮你做的一步。");
+      return;
+    }
+    if (!humanDecision.trim()) {
+      showMessage("error", "再写你做了什么判断或修改。");
+      return;
+    }
+    if (!nextPractice.trim()) {
+      showMessage("error", "写下下一次想练的方法。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "growth_reflection",
+        title: taskTitle,
+        payload: {
+          ability_tag: abilityTag,
+          ability_hint: growthAbilityHints[abilityTag],
+          ai_job: aiJob.trim(),
+          human_decision: humanDecision.trim(),
+          evidence: evidence.trim(),
+          next_practice: nextPractice.trim(),
+          team_id: student.team_id || "",
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。这张成长卡可以放进你的结营作品集。");
+      setAiJob("");
+      setHumanDecision("");
+      setEvidence("");
+      setNextPractice("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "下一次我怎么指挥 AI"}</h1>
+        <p>回想这三天：AI 帮了哪一步？你又做了什么判断？</p>
+        <div className="student-card growth-reflection-form">
+          <div className="student-current">
+            <div>
+              <span>成长卡</span>
+              <strong>{student.nickname}</strong>
+              <small>{student.team_name || student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <div className="ability-picker" role="group" aria-label="选择能力标签">
+            {growthAbilityTags.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                className={abilityTag === tag ? "active" : ""}
+                onClick={() => setAbilityTag(tag)}
+              >
+                <strong>{tag}</strong>
+                <span>{growthAbilityHints[tag]}</span>
+              </button>
+            ))}
+          </div>
+          <label>
+            AI 帮我的一步
+            <input
+              value={aiJob}
+              onChange={(event) => setAiJob(event.target.value)}
+              placeholder="例如：帮我把采访记录整理成三个重点"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            我做的判断或修改
+            <textarea
+              value={humanDecision}
+              onChange={(event) => setHumanDecision(event.target.value)}
+              placeholder="例如：我发现第二条不符合采访结果，所以改成了用户真正说过的话"
+              rows={3}
+            />
+          </label>
+          <label>
+            我看到的证据（可选）
+            <input
+              value={evidence}
+              onChange={(event) => setEvidence(event.target.value)}
+              placeholder="例如：三个同学都提到了同一个卡点"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            下一次我想这样练
+            <textarea
+              value={nextPractice}
+              onChange={(event) => setNextPractice(event.target.value)}
+              placeholder="例如：先写清目标用户，再让 AI 给三个版本，最后用证据选一个"
+              rows={3}
+            />
+          </label>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <Brain size={18} />}
+            提交
+          </button>
+          <p className="hint">这张卡写的是你和 AI 一起完成作品时，真正做出的判断。</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -5935,11 +6281,34 @@ function WallAwards({ awards, summaries }: { awards: AwardResult[]; summaries: S
   );
 }
 
+function WallGrowthReflections({ reflections }: { reflections: WallArtifact[] }) {
+  if (!reflections.length) return null;
+  return (
+    <section className="wall-growth">
+      <div className="wall-section-title">
+        <span className="eyebrow">成长卡</span>
+        <h2>下一次我怎么指挥 AI</h2>
+      </div>
+      <div className="wall-growth-grid">
+        {reflections.slice(0, 8).map((reflection) => (
+          <article className="wall-growth-card" key={reflection.id}>
+            <span>{asText(reflection.payload.ability_tag) || "能力标签"}</span>
+            <strong>{reflection.student_name || "少年 CEO"}</strong>
+            <p>{asText(reflection.payload.next_practice) || asText(reflection.payload.human_decision) || "继续练习指挥 AI。"}</p>
+            <small>{reflection.team_name || asText(reflection.payload.team_name) || "项目团队"}</small>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function WallApp({
   camp,
   students,
   showcaseItems,
   artifacts,
+  growthReflections,
   awardResults,
   scoreSummaries
 }: {
@@ -5947,6 +6316,7 @@ function WallApp({
   students: Student[];
   showcaseItems: ShowcaseItem[];
   artifacts: WallArtifact[];
+  growthReflections: WallArtifact[];
   awardResults: AwardResult[];
   scoreSummaries: ScoreSummary[];
 }) {
@@ -5975,6 +6345,7 @@ function WallApp({
       <CoursePhotoWall students={students} variant="wall" onOpenPhoto={setSelectedPhoto} />
       <FinalShowcaseRun artifacts={finalShowcaseArtifacts} />
       <WallAwards awards={awardResults} summaries={scoreSummaries} />
+      <WallGrowthReflections reflections={growthReflections} />
       <ClassroomArtifactsWall artifacts={classroomArtifacts} />
       <section className="wall-showcase">
         <div className="wall-section-title">
