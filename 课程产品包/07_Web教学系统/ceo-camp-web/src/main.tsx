@@ -834,6 +834,7 @@ function taskTypeForAction(action: string, page: DesignedLessonPage) {
   if (/AI 给答案，先看证据|真假侦探实验|证据比声音更有力/.test(page.title)) return "ai_validation";
   if (/把候选问题改清楚|AI 市场侦察卡|竞品观察三格/.test(page.title)) return "market_scout";
   if (/五句提示词卡|改一版再试|对 AI 说：不对，再改/.test(page.title)) return "prompt_card";
+  if (/功能先发散|只留下一个核心动作|最小可行产品|明天要做出的第一版/.test(page.title)) return "feature_scope";
   if (action === "进入评分") return "score";
   if (action === "发起互动") return "interaction";
   if (action === "打开看板") return "board";
@@ -923,6 +924,19 @@ function isPromptCardTask(camp: Camp | null) {
     payloadType === "prompt_card" ||
     (moduleId === "ai-lab" && /五句提示词|提示词卡|改一版|再改|AI 初稿/.test(title)) ||
     /五句提示词|提示词卡|改一版|再改|AI 初稿/.test(title)
+  );
+}
+
+function isFeatureScopeTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  const activityType = camp?.active_task?.activity_type || "";
+  const payloadType = asText(camp?.active_task?.payload?.task_type);
+  return (
+    activityType === "feature_scope" ||
+    payloadType === "feature_scope" ||
+    moduleId === "product-prototype" ||
+    /功能先发散|功能清单|核心动作|最小可行产品|明天要做出的第一版/.test(title)
   );
 }
 
@@ -1690,8 +1704,9 @@ function journeyItemRank(item: WallArtifact) {
     user_voice: 4,
     product_definition: 5,
     prompt_card: 6,
-    product_feedback: 7,
-    mentor_comment: 8
+    feature_scope: 7,
+    product_feedback: 8,
+    mentor_comment: 9
   };
   return ranks[item.task_type] ?? 9;
 }
@@ -1968,6 +1983,7 @@ function journeyTitle(item: WallArtifact) {
   if (item.task_type === "ai_validation") return asText(item.payload.doubt) || "用证据检查 AI";
   if (item.task_type === "product_definition") return asText(item.payload.product_name) || "写出产品一句话";
   if (item.task_type === "prompt_card") return asText(item.payload.goal) || "写出五句提示词";
+  if (item.task_type === "feature_scope") return asText(item.payload.core_action) || "留下核心动作";
   if (item.task_type === "product_feedback") return asText(item.payload.product_name) || "收到试用反馈";
   if (item.task_type === "mentor_comment") return asText(item.payload.product_name) || "导师点评";
   return item.title || "项目记录";
@@ -1981,6 +1997,7 @@ function journeyLabel(item: WallArtifact) {
     ai_validation: "检查 AI",
     product_definition: "产品一句话",
     prompt_card: "提示词卡",
+    feature_scope: "核心动作",
     product_feedback: "收到反馈",
     mentor_comment: "导师点评"
   };
@@ -2039,6 +2056,15 @@ function journeyCopy(item: WallArtifact) {
       ["限制", asText(item.payload.constraints)],
       ["格式", asText(item.payload.output_format)],
       ["再改一句", asText(item.payload.revision_request)]
+    ];
+  }
+  if (item.task_type === "feature_scope") {
+    return [
+      ["功能清单", featureSummary(item.payload)],
+      ["核心动作", asText(item.payload.core_action)],
+      ["第一版", asText(item.payload.first_version)],
+      ["先不做", asText(item.payload.not_now)],
+      ["看到结果", asText(item.payload.success_signal)]
     ];
   }
   if (item.task_type === "product_feedback") {
@@ -2426,6 +2452,7 @@ function TeacherApp({
         <TeacherD1Artifacts />
         <TeacherProductDefinitions />
         <TeacherPromptCards />
+        <TeacherFeatureScopes />
         <TeacherProjectSubmissions />
         <TeacherPeerFeedback />
         <TeacherFinalShowcase />
@@ -2451,6 +2478,21 @@ function TeacherApp({
 
 function asText(value: unknown) {
   return typeof value === "string" ? value : "";
+}
+
+function asTextList(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item ?? "").trim()).filter(Boolean);
+  }
+  return asText(value)
+    .split(/\n|；|;|、/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function featureSummary(payload: Record<string, unknown>, limit = 4) {
+  const ideas = asTextList(payload.feature_ideas);
+  return ideas.slice(0, limit).join(" / ") || asText(payload.feature_summary);
 }
 
 function asNumber(value: unknown) {
@@ -2483,6 +2525,7 @@ const progressMilestones = [
   { key: "user_voice", label: "用户声音", target: 3, unit: "条" },
   { key: "product_definition", label: "产品一句话", target: 1, unit: "条" },
   { key: "prompt_card", label: "提示词卡", target: 1, unit: "张" },
+  { key: "feature_scope", label: "核心动作", target: 1, unit: "张" },
   { key: "product_link", label: "作品入口", target: 1, unit: "个" },
   { key: "product_feedback", label: "互测反馈", target: 2, unit: "条" },
   { key: "final_showcase", label: "展示卡", target: 1, unit: "张" }
@@ -2779,6 +2822,7 @@ function nextSupportAction(
   if (firstMissing.key === "final_showcase") return "请小组把最终展示卡补齐。";
   if (firstMissing.key === "product_definition") return "先把产品一句话写清楚：帮谁、解决什么、怎么解决。";
   if (firstMissing.key === "prompt_card") return "请小组补一张五句提示词卡：目标、用户、材料、限制、格式。";
+  if (firstMissing.key === "feature_scope") return "请小组补一张核心动作卡：功能清单、核心动作、第一版。";
   return "先补一张真实问题卡。";
 }
 
@@ -2853,10 +2897,11 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
     const withScout = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "market_scout")).length;
     const withProduct = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "product_definition")).length;
     const withPrompt = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "prompt_card")).length;
+    const withFeatureScope = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "feature_scope")).length;
     const interviewReady = teamSummaries.filter((item) => item.userVoiceCount >= 3).length;
     const feedbackReady = teamSummaries.filter((item) => item.feedbackCount >= 2).length;
     const needsSupport = teamSummaries.filter((item) => item.needsSupport).length;
-    return { activeBlockers, readyTeams, withScout, withProduct, withPrompt, interviewReady, feedbackReady, needsSupport };
+    return { activeBlockers, readyTeams, withScout, withProduct, withPrompt, withFeatureScope, interviewReady, feedbackReady, needsSupport };
   }, [teamSummaries]);
 
   const toggleBlocker = async (item: TaskSubmission) => {
@@ -2884,6 +2929,7 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
         <span>{totals.interviewReady}/{teamSummaries.length} 组采访达标</span>
         <span>{totals.withProduct} 组已有产品一句话</span>
         <span>{totals.withPrompt} 组已有提示词卡</span>
+        <span>{totals.withFeatureScope} 组已有核心动作</span>
         <span>{totals.readyTeams} 组已有作品入口</span>
         <span>{totals.feedbackReady} 组收到互测反馈</span>
         <span>{totals.needsSupport} 组需要跟进</span>
@@ -3384,6 +3430,95 @@ function TeacherPromptCards() {
           );
         })}
         {!items.length && <p className="empty">学生提交五句提示词卡后，会出现在这里。</p>}
+      </div>
+    </section>
+  );
+}
+
+function TeacherFeatureScopes() {
+  const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [message, setMessage] = useState("");
+  const [workingId, setWorkingId] = useState("");
+
+  const load = async () => {
+    try {
+      const result = await api.submissions();
+      setItems(result.task_submissions.filter((item) => item.task_type === "feature_scope"));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const groupedCount = useMemo(
+    () => new Set(items.map((item) => item.team_id || item.student_id || item.id)).size,
+    [items]
+  );
+
+  const toggleWall = async (item: TaskSubmission) => {
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.setTaskSubmissionStatus(item.id, item.status === "ON_WALL" ? "SUBMITTED" : "ON_WALL");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "操作失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
+
+  return (
+    <section className="panel feature-scope-panel">
+      <div className="panel-title">
+        <Hammer size={20} />
+        <h2>D2 功能清单与核心动作</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{items.length} 张核心动作卡</span>
+        <span>{groupedCount} 个来源</span>
+        <span>{items.filter((item) => item.status === "ON_WALL").length} 张已上屏</span>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="d1-artifact-list">
+        {items.map((item) => {
+          const coreAction = asText(item.payload.core_action) || "还没留下核心动作";
+          const ideas = asTextList(item.payload.feature_ideas);
+          return (
+            <article
+              className={[
+                "d1-artifact-card",
+                "feature-scope",
+                item.status === "ON_WALL" ? "on-wall" : ""
+              ].filter(Boolean).join(" ")}
+              key={item.id}
+            >
+              <header>
+                <div>
+                  <span>核心动作卡</span>
+                  <strong>{coreAction}</strong>
+                  <small>{item.team_name || item.student_name || "学生提交"}</small>
+                </div>
+                <button disabled={workingId === item.id} onClick={() => toggleWall(item)}>
+                  {item.status === "ON_WALL" ? "从大屏移开" : "放到大屏"}
+                </button>
+              </header>
+              <div className="artifact-lines">
+                <p><strong>产品：</strong>{asText(item.payload.product_name) || "还没写"}</p>
+                <p><strong>功能清单：</strong>{ideas.length ? ideas.join(" / ") : "还没写"}</p>
+                <p><strong>第一版：</strong>{asText(item.payload.first_version) || "还没写"}</p>
+                <p><strong>先不做：</strong>{asText(item.payload.not_now) || "还没写"}</p>
+                <p><strong>看到结果：</strong>{asText(item.payload.success_signal) || "还没写"}</p>
+              </div>
+            </article>
+          );
+        })}
+        {!items.length && <p className="empty">学生提交核心动作卡后，会出现在这里。</p>}
       </div>
     </section>
   );
@@ -5815,6 +5950,7 @@ function StudentApp({
   const aiValidationTask = isAiValidationTask(camp);
   const marketScoutTask = isMarketScoutTask(camp);
   const promptCardTask = isPromptCardTask(camp);
+  const featureScopeTask = isFeatureScopeTask(camp);
   const productDefinitionTask = isProductDefinitionTask(camp);
   const blockerTask = isBlockerTask(camp);
   const observerScoreTask = isObserverScoreTask(camp);
@@ -5829,6 +5965,7 @@ function StudentApp({
     aiValidationTask ||
     marketScoutTask ||
     promptCardTask ||
+    featureScopeTask ||
     productDefinitionTask ||
     blockerTask ||
     observerScoreTask ||
@@ -6077,6 +6214,18 @@ function StudentApp({
   if (promptCardTask) {
     return (
       <StudentPromptCardTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (featureScopeTask) {
+    return (
+      <StudentFeatureScopeTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -7216,6 +7365,175 @@ function StudentPromptCardTask({
             提交
           </button>
           <p className="hint">好的提示词会把“我要什么”和“为什么这样做”一起说清楚。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentFeatureScopeTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [productName, setProductName] = useState("");
+  const [featureIdeas, setFeatureIdeas] = useState("");
+  const [coreAction, setCoreAction] = useState("");
+  const [firstVersion, setFirstVersion] = useState("");
+  const [notNow, setNotNow] = useState("");
+  const [successSignal, setSuccessSignal] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+  const ideas = useMemo(() => asTextList(featureIdeas), [featureIdeas]);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!productName.trim()) {
+      showMessage("error", "先写下你们的产品名。");
+      return;
+    }
+    if (ideas.length < 5) {
+      showMessage("error", "先列出至少 5 个可能的功能。");
+      return;
+    }
+    if (ideas.length > 8) {
+      showMessage("hint", "功能已经很多了，先留下 5 到 8 个最重要的。");
+      return;
+    }
+    if (!coreAction.trim()) {
+      showMessage("error", "从清单里圈出今天最先跑通的一步。");
+      return;
+    }
+    if (!firstVersion.trim()) {
+      showMessage("error", "写清楚第一版要做成什么样子。");
+      return;
+    }
+    if (!successSignal.trim()) {
+      showMessage("error", "写下别人用完后能看到什么结果。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "feature_scope",
+        title: taskTitle,
+        payload: {
+          product_name: productName.trim(),
+          feature_ideas: ideas,
+          feature_summary: ideas.join(" / "),
+          core_action: coreAction.trim(),
+          first_version: firstVersion.trim(),
+          not_now: notNow.trim(),
+          success_signal: successSignal.trim(),
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。现在小组有了可以先做出来的一步。");
+      setProductName("");
+      setFeatureIdeas("");
+      setCoreAction("");
+      setFirstVersion("");
+      setNotNow("");
+      setSuccessSignal("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "核心动作卡"}</h1>
+        <p>先把功能想法放出来，再留下今天最值得跑通的一步。</p>
+        <div className="student-card d1-task-card feature-scope-form">
+          <div className="student-current">
+            <div>
+              <span>原型小组</span>
+              <strong>{student.team_name || student.nickname}</strong>
+              <small>{student.student_no ? `${student.nickname} · 学号 ${student.student_no}` : student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            产品名
+            <input
+              value={productName}
+              onChange={(event) => setProductName(event.target.value)}
+              placeholder="例如：午餐选择器"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            可能的功能
+            <textarea
+              value={featureIdeas}
+              onChange={(event) => setFeatureIdeas(event.target.value)}
+              placeholder={"例如：\n按口味推荐\n显示排队时间\n避开不爱吃的菜\n给两个备选\n保存今天选择"}
+              rows={6}
+            />
+          </label>
+          <div className={ideas.length > 8 ? "feature-count too-many" : ideas.length >= 5 ? "feature-count ready" : "feature-count"}>
+            <span>{ideas.length}/8 个功能</span>
+            <strong>{ideas.length > 8 ? "先砍掉一些" : ideas.length >= 5 ? "可以开始收束" : "继续多想几个"}</strong>
+          </div>
+          <label>
+            今天先跑通的核心动作
+            <textarea
+              value={coreAction}
+              onChange={(event) => setCoreAction(event.target.value)}
+              placeholder="例如：同学回答 2 个问题后，马上得到 2 个午餐选择"
+              rows={3}
+            />
+          </label>
+          <label>
+            第一版做成什么样
+            <textarea
+              value={firstVersion}
+              onChange={(event) => setFirstVersion(event.target.value)}
+              placeholder="例如：一个浏览器页面，有两个选择按钮和一个推荐结果"
+              rows={3}
+            />
+          </label>
+          <label>
+            这一版先不做
+            <textarea
+              value={notNow}
+              onChange={(event) => setNotNow(event.target.value)}
+              placeholder="例如：先不做登录、历史记录和复杂动画"
+              rows={2}
+            />
+          </label>
+          <label>
+            别人用完后能看到
+            <textarea
+              value={successSignal}
+              onChange={(event) => setSuccessSignal(event.target.value)}
+              placeholder="例如：他能在 10 秒内选出今天吃什么"
+              rows={2}
+            />
+          </label>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <Hammer size={18} />}
+            提交
+          </button>
+          <p className="hint">好的原型不是功能最多，而是先让一个真实动作跑起来。</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -8586,13 +8904,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   if (!artifacts.length) return null;
   const hasProduct = artifacts.some((item) => item.task_type === "product_definition");
   const hasPrompt = artifacts.some((item) => item.task_type === "prompt_card");
+  const hasFeature = artifacts.some((item) => item.task_type === "feature_scope");
   const hasValidation = artifacts.some((item) => item.task_type === "ai_validation");
   const hasScout = artifacts.some((item) => item.task_type === "market_scout");
   return (
     <section className="wall-artifacts">
       <div className="wall-section-title">
-        <span className="eyebrow">{hasProduct ? "产品卡片" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
-        <h2>{hasProduct ? "从问题到产品" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
+        <span className="eyebrow">{hasProduct ? "产品卡片" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
+        <h2>{hasProduct ? "从问题到产品" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
       </div>
       <div className="wall-artifact-grid">
         {artifacts.map((item) => {
@@ -8601,11 +8920,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
           const isValidation = item.task_type === "ai_validation";
           const isProduct = item.task_type === "product_definition";
           const isPrompt = item.task_type === "prompt_card";
+          const isFeature = item.task_type === "feature_scope";
           return (
             <article
               className={
                 isProduct
                   ? "wall-artifact-card product"
+                  : isFeature
+                  ? "wall-artifact-card feature-scope"
                   : isPrompt
                   ? "wall-artifact-card prompt"
                   : isScout
@@ -8618,10 +8940,12 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
               }
               key={item.id}
             >
-              <span>{isProduct ? "产品卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
+              <span>{isProduct ? "产品卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
               <strong>
                 {isProduct
                   ? asText(item.payload.product_name) || "一个产品想法"
+                  : isFeature
+                  ? asText(item.payload.core_action) || asText(item.payload.product_name) || "今天先跑通的一步"
                   : isPrompt
                   ? asText(item.payload.goal) || "一张五句提示词卡"
                   : isScout
@@ -8638,6 +8962,13 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                   <p><b>问题</b>{asText(item.payload.core_problem) || "还没写"}</p>
                   <p><b>办法</b>{asText(item.payload.solution) || "还没写"}</p>
                   <p><b>一句话</b>{asText(item.payload.one_liner) || "还在打磨"}</p>
+                </>
+              ) : isFeature ? (
+                <>
+                  <p><b>功能清单</b>{featureSummary(item.payload) || "还没写"}</p>
+                  <p><b>第一版</b>{asText(item.payload.first_version) || "还没写"}</p>
+                  <p><b>先不做</b>{asText(item.payload.not_now) || "还在收束"}</p>
+                  <p><b>看到结果</b>{asText(item.payload.success_signal) || "还没写"}</p>
                 </>
               ) : isPrompt ? (
                 <>
