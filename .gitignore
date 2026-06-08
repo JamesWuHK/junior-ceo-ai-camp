@@ -4,3 +4,4 @@
 .env.local
 .env.*.local
 seo/baidu-measurements.json
+seo/baidu-submit-history.json

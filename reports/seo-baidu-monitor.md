@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-09T01:59:03+08:00
+Generated: 2026-06-09T02:03:49+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -14,6 +14,8 @@ Site URL: https://camps.wanli.wiki
 - Baidu push readiness: WAITING (BAIDU_TOKEN is not configured)
 - Baidu measured evidence: NEEDS_MEASURED_DATA
 - Baidu evidence file: seo/baidu-measurements.json missing
+- Baidu discovery push history: NO_PUSH_RECORDED
+- Baidu submission history file: seo/baidu-submit-history.json missing
 
 ## Measurement Boundary
 
@@ -21,6 +23,7 @@ Site URL: https://camps.wanli.wiki
 - Internal link graph checks verify that public sitemap pages are reachable from the homepage and connected with descriptive links to related topic pages.
 - Measured Baidu index count, search impressions, clicks, crawler frequency, keyword ranking positions, and AI citation frequency require `seo/baidu-measurements.json` populated from Baidu Search Resource Platform exports, a compliant rank monitor, reproducible manual checks, or manual AI answer checks.
 - Baidu URL submission helps Baidu discover URLs faster; it does not guarantee inclusion or ranking. Treat successful push as discovery support, not as proof of indexed status.
+- Baidu submission history is tracked separately from measured index/rank/GEO evidence so discovery support does not get mistaken for ranking proof.
 
 ## Official Baidu References
 
@@ -188,6 +191,7 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 2007 | no
 ## Next Actions
 
 - Add `BAIDU_TOKEN` privately in `.env` or the shell, then run `npm run seo:submit:baidu`.
+- Run `npm run seo:baidu:submission` after real push submission to refresh discovery push history.
 - Copy seo/baidu-measurements.example.json to seo/baidu-measurements.json, fill measured data, then run `npm run seo:baidu:evidence`.
 - Or fill reports/seo-baidu-measurement-checklist.csv, run `npm run seo:measurements:import`, then run `npm run seo:baidu:evidence`.
 - Confirm `https://camps.wanli.wiki/sitemap.xml` in Baidu Search Resource Platform ordinary inclusion/sitemap tools.

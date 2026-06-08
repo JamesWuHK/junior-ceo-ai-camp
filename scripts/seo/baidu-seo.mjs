@@ -17,10 +17,12 @@ const COVERAGE_REPORT_FILE = 'reports/seo-baidu-geo-coverage.md';
 const MONITOR_REPORT_FILE = 'reports/seo-baidu-monitor.md';
 const RANK_PLAN_REPORT_FILE = 'reports/seo-baidu-rank-plan.md';
 const BAIDU_EVIDENCE_REPORT_FILE = 'reports/seo-baidu-evidence.md';
+const BAIDU_SUBMISSION_REPORT_FILE = 'reports/seo-baidu-submission.md';
 const INTERNAL_LINK_REPORT_FILE = 'reports/seo-internal-links.md';
 const MEASUREMENT_CHECKLIST_CSV_FILE = 'reports/seo-baidu-measurement-checklist.csv';
 const BAIDU_MEASUREMENTS_FILE = 'seo/baidu-measurements.json';
 const BAIDU_MEASUREMENTS_EXAMPLE_FILE = 'seo/baidu-measurements.example.json';
+const BAIDU_SUBMISSION_HISTORY_FILE = 'seo/baidu-submit-history.json';
 const SITEMAP_ENTRIES = [
   {
     path: '/',
@@ -1980,7 +1982,7 @@ function baiduEvidence() {
   console.log(`GEO answer evidence: ${snapshot.summary.geoPassCount}/${snapshot.summary.geoQueryCount} pass, ${snapshot.summary.missingGeoEvidenceCount} missing`);
 }
 
-function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSnapshot, onlineStatus, onlineResults, evidenceSnapshot }) {
+function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSnapshot, onlineStatus, onlineResults, evidenceSnapshot, submissionSnapshot }) {
   const coverageRows = coverageSnapshot.rows.map((row) => [
     row.status,
     row.id,
@@ -2025,6 +2027,8 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     `- Baidu push readiness: ${baiduReadiness.length === 0 ? 'READY_TO_SUBMIT' : `WAITING (${baiduReadiness.join('; ')})`}`,
     `- Baidu measured evidence: ${evidenceSnapshot.summary.overallStatus}`,
     `- Baidu evidence file: ${evidenceSnapshot.source.status === 'PRIVATE_MEASUREMENTS_LOADED' ? BAIDU_MEASUREMENTS_FILE : `${BAIDU_MEASUREMENTS_FILE} missing`}`,
+    `- Baidu discovery push history: ${submissionSnapshot.summary.latestStatus}`,
+    `- Baidu submission history file: ${submissionSnapshot.historyStatus === 'PRIVATE_HISTORY_LOADED' ? BAIDU_SUBMISSION_HISTORY_FILE : `${BAIDU_SUBMISSION_HISTORY_FILE} missing`}`,
     '',
     '## Measurement Boundary',
     '',
@@ -2032,6 +2036,7 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     '- Internal link graph checks verify that public sitemap pages are reachable from the homepage and connected with descriptive links to related topic pages.',
     '- Measured Baidu index count, search impressions, clicks, crawler frequency, keyword ranking positions, and AI citation frequency require `seo/baidu-measurements.json` populated from Baidu Search Resource Platform exports, a compliant rank monitor, reproducible manual checks, or manual AI answer checks.',
     '- Baidu URL submission helps Baidu discover URLs faster; it does not guarantee inclusion or ranking. Treat successful push as discovery support, not as proof of indexed status.',
+    '- Baidu submission history is tracked separately from measured index/rank/GEO evidence so discovery support does not get mistaken for ranking proof.',
     '',
     '## Official Baidu References',
     '',
@@ -2083,6 +2088,7 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     '## Next Actions',
     '',
     '- Add `BAIDU_TOKEN` privately in `.env` or the shell, then run `npm run seo:submit:baidu`.',
+    '- Run `npm run seo:baidu:submission` after real push submission to refresh discovery push history.',
     `- Copy ${BAIDU_MEASUREMENTS_EXAMPLE_FILE} to ${BAIDU_MEASUREMENTS_FILE}, fill measured data, then run \`npm run seo:baidu:evidence\`.`,
     `- Or fill ${MEASUREMENT_CHECKLIST_CSV_FILE}, run \`npm run seo:measurements:import\`, then run \`npm run seo:baidu:evidence\`.`,
     '- Confirm `https://camps.wanli.wiki/sitemap.xml` in Baidu Search Resource Platform ordinary inclusion/sitemap tools.',
@@ -2098,6 +2104,108 @@ function baiduSearchUrl(query) {
   const url = new URL('https://www.baidu.com/s');
   url.searchParams.set('wd', query);
   return url.toString();
+}
+
+function baiduSubmissionSnapshot() {
+  const generatedAt = localTimestamp();
+  const history = readJsonIfExists(BAIDU_SUBMISSION_HISTORY_FILE);
+  const submissions = arrayFrom(history?.submissions);
+  const latest = submissions.at(-1) || null;
+  const successful = submissions.filter((item) => item?.ok === true).length;
+  return {
+    generatedAt,
+    historyStatus: history ? 'PRIVATE_HISTORY_LOADED' : 'WAITING_FOR_PRIVATE_SUBMISSION_HISTORY',
+    historyFile: BAIDU_SUBMISSION_HISTORY_FILE,
+    reportFile: BAIDU_SUBMISSION_REPORT_FILE,
+    submissions,
+    latest,
+    summary: {
+      total: submissions.length,
+      successful,
+      failed: submissions.length - successful,
+      latestStatus: latest ? (latest.ok ? 'DISCOVERY_PUSH_RECORDED' : 'LATEST_PUSH_FAILED') : 'NO_PUSH_RECORDED',
+      latestSubmittedAt: latest?.submittedAt || 'N/A',
+      latestUrlCount: latest?.urls?.length || 0,
+      latestHttpStatus: latest?.httpStatus || 'N/A'
+    }
+  };
+}
+
+function buildSubmissionReport(snapshot) {
+  const rows = snapshot.submissions.slice(-10).map((item) => [
+    item.ok ? 'PASS' : 'FAIL',
+    item.submittedAt || 'N/A',
+    item.site || 'N/A',
+    item.httpStatus || 'N/A',
+    arrayFrom(item.urls).length,
+    item.response?.success ?? item.response?.success_batch ?? item.response?.remain ?? 'N/A',
+    item.response?.not_same_site?.length || 0,
+    item.response?.not_valid?.length || 0,
+    item.notes || '-'
+  ].map(escapeMarkdownCell).join(' | '));
+
+  return [
+    '# Baidu Submission History Report',
+    '',
+    `Generated: ${snapshot.generatedAt}`,
+    `Site URL: ${SITE_URL}`,
+    `Overall status: ${snapshot.summary.latestStatus}`,
+    '',
+    '## Scope',
+    '',
+    '- This report tracks Baidu URL push submission history as discovery evidence only.',
+    '- A successful push can help Baidu discover URLs faster, but it is not proof of indexation, ranking, impressions, clicks, or GEO citation.',
+    `- Private history file: ${snapshot.historyFile}`,
+    '',
+    '## Summary',
+    '',
+    `- Submission history status: ${snapshot.historyStatus}`,
+    `- Total recorded submissions: ${snapshot.summary.total}`,
+    `- Successful submissions: ${snapshot.summary.successful}`,
+    `- Failed submissions: ${snapshot.summary.failed}`,
+    `- Latest submitted at: ${snapshot.summary.latestSubmittedAt}`,
+    `- Latest URL count: ${snapshot.summary.latestUrlCount}`,
+    `- Latest HTTP status: ${snapshot.summary.latestHttpStatus}`,
+    '',
+    '## Recent Submissions',
+    '',
+    'Status | Submitted at | Site | HTTP | URL count | Response success/remain | Not same site | Not valid | Notes',
+    '--- | --- | --- | --- | --- | --- | --- | --- | ---',
+    ...(rows.length > 0 ? rows : ['NO_DATA | N/A | N/A | N/A | 0 | N/A | 0 | 0 | No private Baidu submission history found.']),
+    '',
+    '## Next Actions',
+    '',
+    '- Add `BAIDU_TOKEN` privately in `.env` or shell, then run `npm run seo:submit:baidu` for real URL push.',
+    '- After push, run `npm run seo:baidu:submission` to refresh this report.',
+    '- After Baidu Search Resource Platform has crawl/index/query data, fill the measurement checklist and run `npm run seo:measurements:import` plus `npm run seo:baidu:evidence`.',
+    ''
+  ].join('\n');
+}
+
+function writeSubmissionReport() {
+  const snapshot = baiduSubmissionSnapshot();
+  writeReport(BAIDU_SUBMISSION_REPORT_FILE, buildSubmissionReport(snapshot));
+  console.log(`Baidu submission history status: ${snapshot.summary.latestStatus}`);
+  console.log(`Report: ${BAIDU_SUBMISSION_REPORT_FILE}`);
+  console.log(`Recorded submissions: ${snapshot.summary.total}`);
+  console.log(`Successful submissions: ${snapshot.summary.successful}`);
+  console.log(`Latest URL count: ${snapshot.summary.latestUrlCount}`);
+}
+
+function appendBaiduSubmissionHistory(record) {
+  const history = readJsonIfExists(BAIDU_SUBMISSION_HISTORY_FILE) || {
+    site: SITE_URL,
+    submissions: [],
+    notes: [
+      'Private Baidu URL push submission history.',
+      'Do not commit this file. It may contain platform response details.',
+      'Submission history is discovery evidence only, not indexation or ranking evidence.'
+    ]
+  };
+  history.site = SITE_URL;
+  history.updatedAt = localTimestamp();
+  history.submissions = [...arrayFrom(history.submissions), record];
+  writeFileSync(join(ROOT, BAIDU_SUBMISSION_HISTORY_FILE), `${JSON.stringify(history, null, 2)}\n`, 'utf8');
 }
 
 function rankQueryRows(config) {
@@ -2555,6 +2663,7 @@ async function monitor() {
   const coverageSnapshot = keywordCoverageSnapshot();
   const linkSnapshot = internalLinkSnapshot();
   const evidenceSnapshot = baiduEvidenceSnapshot();
+  const submissionSnapshot = baiduSubmissionSnapshot();
   const onlineResults = [];
 
   for (const target of onlineTargets()) {
@@ -2575,12 +2684,14 @@ async function monitor() {
     linkSnapshot,
     onlineStatus,
     onlineResults,
-    evidenceSnapshot
+    evidenceSnapshot,
+    submissionSnapshot
   });
 
   writeReport(INTERNAL_LINK_REPORT_FILE, buildInternalLinkReport(linkSnapshot));
+  writeReport(BAIDU_SUBMISSION_REPORT_FILE, buildSubmissionReport(submissionSnapshot));
   writeReport(MONITOR_REPORT_FILE, report);
-  console.log(`Baidu SEO/GEO monitor: local=${coverageSnapshot.status}, links=${linkSnapshot.status}, online=${onlineStatus}, token=${baidu.tokenConfigured ? 'configured' : 'missing'}, evidence=${evidenceSnapshot.summary.overallStatus}`);
+  console.log(`Baidu SEO/GEO monitor: local=${coverageSnapshot.status}, links=${linkSnapshot.status}, online=${onlineStatus}, token=${baidu.tokenConfigured ? 'configured' : 'missing'}, evidence=${evidenceSnapshot.summary.overallStatus}, submission=${submissionSnapshot.summary.latestStatus}`);
   console.log(`Report: ${MONITOR_REPORT_FILE}`);
   for (const result of onlineResults) {
     console.log(`- ${result.ok ? 'PASS' : 'FAIL'} ${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
@@ -2655,6 +2766,17 @@ async function submitToBaidu(args) {
   console.log(`Submitted ${urls.length} URL(s) to Baidu for site ${site}.`);
   console.log(`HTTP ${response.status}`);
   console.log(JSON.stringify(body, null, 2));
+  appendBaiduSubmissionHistory({
+    submittedAt: localTimestamp(),
+    site,
+    urlCount: urls.length,
+    urls,
+    httpStatus: response.status,
+    ok: response.ok && !body?.error,
+    response: body,
+    notes: 'Baidu URL push submission response. Discovery evidence only; not index/rank proof.'
+  });
+  writeSubmissionReport();
   if (!response.ok || body?.error) process.exitCode = 1;
 }
 
@@ -2685,6 +2807,7 @@ function usage() {
     '                    Import the filled CSV checklist into private seo/baidu-measurements.json',
     '  monitor           Write a Baidu SEO/GEO monitoring report',
     '  rank-plan         Write a Baidu ranking and GEO query tracking sheet',
+    '  submission        Write Baidu URL push submission history report',
     '  check             Validate homepage SEO files and tags',
     '  check-online      Validate live homepage, robots, sitemaps, and llms.txt',
     '  submit [--dry-run] Submit sitemap URLs to Baidu Search Resource Platform'
@@ -2731,6 +2854,9 @@ async function main() {
       break;
     case 'rank-plan':
       rankPlan();
+      break;
+    case 'submission':
+      writeSubmissionReport();
       break;
     case 'check':
       check();

@@ -25,6 +25,8 @@
     "seo:rank-plan": "node scripts/seo/baidu-seo.mjs rank-plan",
     "seo:baidu:rank-plan": "node scripts/seo/baidu-seo.mjs rank-plan",
     "seo:geo:queries": "node scripts/seo/baidu-seo.mjs rank-plan",
+    "seo:submission": "node scripts/seo/baidu-seo.mjs submission",
+    "seo:baidu:submission": "node scripts/seo/baidu-seo.mjs submission",
     "seo:baidu:submit": "node scripts/seo/baidu-seo.mjs submit",
     "seo:submit:baidu": "node scripts/seo/baidu-seo.mjs submit"
   }
