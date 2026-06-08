@@ -325,6 +325,7 @@ export function initializeDatabase() {
       one_liner TEXT,
       access_url TEXT,
       screenshot_key TEXT,
+      screenshot_url TEXT,
       publish_status TEXT NOT NULL DEFAULT 'DRAFT',
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -372,6 +373,7 @@ export function initializeDatabase() {
 
   migrateStudentAccounts();
   migrateFuturePhotoJobs();
+  migrateShowcaseItems();
   seedDefaultCamp();
 }
 
@@ -394,6 +396,12 @@ function migrateFuturePhotoJobs() {
     CREATE INDEX IF NOT EXISTS idx_future_photo_jobs_submission
       ON future_photo_jobs(submission_id, created_at);
   `);
+}
+
+function migrateShowcaseItems() {
+  const columns = db.prepare("PRAGMA table_info(showcase_items)").all() as { name: string }[];
+  const hasColumn = (name: string) => columns.some((column) => column.name === name);
+  if (!hasColumn("screenshot_url")) db.exec("ALTER TABLE showcase_items ADD COLUMN screenshot_url TEXT");
 }
 
 function seedDefaultCamp() {

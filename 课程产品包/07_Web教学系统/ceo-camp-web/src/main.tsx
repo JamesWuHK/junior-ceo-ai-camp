@@ -1423,21 +1423,31 @@ function PublicShowcaseRoute() {
         <div className="public-final-grid">
           {finalItems.map((item, index) => {
             const href = asText(item.payload.access_url);
-            const screenshot = asText(item.payload.screenshot_url);
+            const productName = asText(item.payload.product_name);
+            const packagingItem = projectJourney.find((journeyItem) =>
+              journeyItem.task_type === "product_packaging" &&
+              journeyItemMatchesProject(journeyItem, productName, item.team_id, item.team_name)
+            );
+            const storyItem = projectJourney.find((journeyItem) =>
+              journeyItem.task_type === "story_pitch" &&
+              journeyItemMatchesProject(journeyItem, productName, item.team_id, item.team_name)
+            );
+            const screenshot = asText(item.payload.screenshot_url) || asText(packagingItem?.payload.poster_url);
+            const cardLine = asText(item.payload.value_line) || asText(packagingItem?.payload.slogan) || asText(storyItem?.payload.story_hook) || "这组作品正在整理介绍。";
             const projectHref = publicProjectUrl(item.id);
             return (
               <article className="public-final-card" key={item.id}>
                 <div className="public-final-shot">
                   {screenshot ? (
-                    <img src={normalizeShowcaseUrl(screenshot)} alt={asText(item.payload.product_name) || "作品展示图"} />
+                    <img src={normalizeShowcaseUrl(screenshot)} alt={productName || "作品展示图"} />
                   ) : (
                     <Trophy size={42} />
                   )}
                 </div>
                 <div>
                   <span>第 {displayOrderFor(item) === 9999 ? index + 1 : displayOrderFor(item)} 组 · {item.team_name || "项目团队"}</span>
-                  <strong>{asText(item.payload.product_name) || "未命名作品"}</strong>
-                  <p>{asText(item.payload.value_line) || "这组作品正在整理介绍。"}</p>
+                  <strong>{productName || "未命名作品"}</strong>
+                  <p>{cardLine}</p>
                 </div>
                 <dl>
                   <div>
@@ -1844,16 +1854,21 @@ function PublicProjectDetail({
   const productName = asText(finalItem?.payload.product_name) || showcaseItem?.product_name || "未命名作品";
   const teamName = finalItem?.team_name || showcaseItem?.team_name || showcaseItem?.track || "项目团队";
   const teamId = finalItem?.team_id || showcaseItem?.team_id || null;
-  const accessUrl = asText(finalItem?.payload.access_url) || showcaseItem?.access_url || "";
+  const baseAccessUrl = asText(finalItem?.payload.access_url) || showcaseItem?.access_url || "";
   const baseScreenshot = asText(finalItem?.payload.screenshot_url) || showcaseItem?.screenshot_url || "";
   const scoreSummary = scoreSummaries.find(matchesProject(projectId, finalItem, productName, teamId, teamName)) || null;
   const projectAwards = awardResults.filter((award) => awardMatchesProject(award, projectId, finalItem, productName, teamId));
   const allProjectJourneyItems = sortProjectJourney(
     projectJourney.filter((item) => journeyItemMatchesProject(item, productName, teamId, teamName))
   );
+  const definitionItem = allProjectJourneyItems.find((item) => item.task_type === "product_definition") || null;
   const packagingItem = allProjectJourneyItems.find((item) => item.task_type === "product_packaging") || null;
+  const storyItem = allProjectJourneyItems.find((item) => item.task_type === "story_pitch") || null;
+  const accessUrl = baseAccessUrl || asText(packagingItem?.payload.access_url);
   const screenshot = baseScreenshot || asText(packagingItem?.payload.poster_url);
   const heroLine = asText(finalItem?.payload.value_line) || showcaseItem?.one_liner || asText(packagingItem?.payload.slogan) || "这是一组正在被真实用户检验的 AI 产品原型。";
+  const targetUser = asText(finalItem?.payload.target_user) || asText(definitionItem?.payload.target_user) || asText(packagingItem?.payload.target_user) || "真实用户";
+  const coreProblem = asText(finalItem?.payload.core_problem) || asText(definitionItem?.payload.core_problem) || asText(storyItem?.payload.user_scene) || "一个值得继续研究的问题";
   const mentorComments = allProjectJourneyItems.filter((item) => item.task_type === "mentor_comment");
   const projectJourneyItems = allProjectJourneyItems.filter((item) => item.task_type !== "mentor_comment");
   const projectGrowthReflections = growthReflections.filter((reflection) => {
@@ -1904,11 +1919,11 @@ function PublicProjectDetail({
           <dl>
             <div>
               <dt>目标用户</dt>
-              <dd>{asText(finalItem?.payload.target_user) || "真实用户"}</dd>
+              <dd>{targetUser}</dd>
             </div>
             <div>
               <dt>解决的问题</dt>
-              <dd>{asText(finalItem?.payload.core_problem) || "一个值得继续研究的问题"}</dd>
+              <dd>{coreProblem}</dd>
             </div>
             <div>
               <dt>团队成员</dt>
@@ -2954,6 +2969,26 @@ function submissionMatchesTeam(item: TaskSubmission, team: Team) {
     ? asText(item.payload.team_name) || item.team_name || ""
     : submissionTeamName(item);
   return itemTeamId === team.id || (!!itemTeamName && itemTeamName === team.name);
+}
+
+function submissionMatchesProjectIdentity(
+  item: TaskSubmission,
+  productName: string,
+  teamId?: string | null,
+  teamName?: string | null
+) {
+  const itemTeamId = item.task_type === "product_feedback"
+    ? asText(item.payload.team_id) || item.team_id || ""
+    : item.team_id || asText(item.payload.team_id);
+  const itemTeamName = item.task_type === "product_feedback"
+    ? asText(item.payload.team_name) || item.team_name || ""
+    : item.team_name || asText(item.payload.team_name);
+  const itemProductName = asText(item.payload.product_name);
+  return (
+    (!!teamId && itemTeamId === teamId) ||
+    (!!teamName && itemTeamName === teamName) ||
+    (!!productName && itemProductName === productName)
+  );
 }
 
 function taskUpdatedAt(item: TaskSubmission) {
@@ -4350,6 +4385,7 @@ function TeacherStoryPitches() {
 
 function TeacherFinalShowcase() {
   const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [allSubmissions, setAllSubmissions] = useState<TaskSubmission[]>([]);
   const [message, setMessage] = useState("");
   const [workingId, setWorkingId] = useState("");
   const [orderDrafts, setOrderDrafts] = useState<Record<string, string>>({});
@@ -4357,7 +4393,9 @@ function TeacherFinalShowcase() {
   const load = async () => {
     try {
       const result = await api.submissions();
-      const nextItems = sortByDisplayOrder(result.task_submissions.filter((item) => item.task_type === "final_showcase"));
+      const allItems = result.task_submissions;
+      const nextItems = sortByDisplayOrder(allItems.filter((item) => item.task_type === "final_showcase"));
+      setAllSubmissions(allItems);
       setItems(nextItems);
       setOrderDrafts((current) => {
         const next = { ...current };
@@ -4395,6 +4433,17 @@ function TeacherFinalShowcase() {
     const productName = asText(item.payload.product_name).trim();
     const valueLine = asText(item.payload.value_line).trim();
     const accessUrl = asText(item.payload.access_url).trim();
+    const teamName = item.team_name || asText(item.payload.team_name);
+    const relatedItems = allSubmissions.filter((candidate) =>
+      candidate.id !== item.id && submissionMatchesProjectIdentity(candidate, productName, item.team_id, teamName)
+    );
+    const packaging = latestTask(relatedItems.filter((candidate) => candidate.task_type === "product_packaging"));
+    const story = latestTask(relatedItems.filter((candidate) => candidate.task_type === "story_pitch"));
+    const screenshotUrl = asText(item.payload.screenshot_url).trim() || asText(packaging?.payload.poster_url).trim();
+    const oneLiner =
+      valueLine ||
+      asText(packaging?.payload.slogan).trim() ||
+      asText(story?.payload.story_hook).trim();
     if (!productName || !accessUrl) {
       setMessage("这张展示卡缺少产品名称或作品链接。");
       return;
@@ -4406,12 +4455,13 @@ function TeacherFinalShowcase() {
         id: `final-${item.id}`,
         team_id: item.team_id || undefined,
         product_name: productName,
-        track: item.team_name || item.student_name || undefined,
-        one_liner: valueLine || undefined,
+        track: teamName || item.student_name || asText(packaging?.payload.target_user) || undefined,
+        one_liner: oneLiner || undefined,
         access_url: normalizeShowcaseUrl(accessUrl),
+        screenshot_url: screenshotUrl ? normalizeShowcaseUrl(screenshotUrl) : undefined,
         publish_status: "PUBLISHED"
       });
-      setMessage("已生成公开作品卡。");
+      setMessage("已生成公开作品卡，海报和故事线索已合并。");
       await load();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "保存失败");
@@ -5280,11 +5330,12 @@ function ShowcaseGallery({ items, variant = "panel" }: { items: ShowcaseItem[]; 
     <div className={`showcase-gallery ${variant}`}>
       {visibleItems.map((item) => {
         const href = item.access_url ? normalizeShowcaseUrl(item.access_url) : "";
+        const screenshot = item.screenshot_url ? normalizeShowcaseUrl(item.screenshot_url) : "";
         const card = (
           <article className="showcase-card">
             <div className="showcase-shot">
-              {item.screenshot_url ? (
-                <img src={item.screenshot_url} alt={item.product_name} />
+              {screenshot ? (
+                <img src={screenshot} alt={item.product_name} />
               ) : (
                 <Package size={34} />
               )}
@@ -5335,6 +5386,7 @@ function TeacherShowcase() {
   const [track, setTrack] = useState("");
   const [oneLiner, setOneLiner] = useState("");
   const [accessUrl, setAccessUrl] = useState("");
+  const [screenshotUrl, setScreenshotUrl] = useState("");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -5359,6 +5411,7 @@ function TeacherShowcase() {
     setTrack("");
     setOneLiner("");
     setAccessUrl("");
+    setScreenshotUrl("");
   };
 
   const editItem = (item: ShowcaseItem) => {
@@ -5368,6 +5421,7 @@ function TeacherShowcase() {
     setTrack(item.track || "");
     setOneLiner(item.one_liner || "");
     setAccessUrl(item.access_url || "");
+    setScreenshotUrl(item.screenshot_url || "");
     setMessage("正在编辑这张作品卡。");
   };
 
@@ -5390,6 +5444,7 @@ function TeacherShowcase() {
         track: track.trim() || undefined,
         one_liner: oneLiner.trim() || undefined,
         access_url: normalizeShowcaseUrl(accessUrl),
+        screenshot_url: screenshotUrl.trim() ? normalizeShowcaseUrl(screenshotUrl) : undefined,
         publish_status: publishStatus
       });
       resetForm();
@@ -5414,6 +5469,7 @@ function TeacherShowcase() {
         one_liner: item.one_liner || undefined,
         access_url: item.access_url ? normalizeShowcaseUrl(item.access_url) : undefined,
         screenshot_key: item.screenshot_key || undefined,
+        screenshot_url: item.screenshot_url ? normalizeShowcaseUrl(item.screenshot_url) : undefined,
         publish_status: publishStatus
       });
       setMessage(publishStatus === "PUBLISHED" ? "作品卡已放进展示区。" : "作品卡已撤回草稿。");
@@ -5444,6 +5500,7 @@ function TeacherShowcase() {
         <input value={track} onChange={(event) => setTrack(event.target.value)} placeholder="赛道或标签" />
         <input value={oneLiner} onChange={(event) => setOneLiner(event.target.value)} placeholder="一句话介绍" />
         <input value={accessUrl} onChange={(event) => setAccessUrl(event.target.value)} placeholder="作品链接" />
+        <input value={screenshotUrl} onChange={(event) => setScreenshotUrl(event.target.value)} placeholder="展示图链接" />
         <div className="showcase-actions">
           <button className="secondary" disabled={saving} onClick={() => save("DRAFT")}>
             <ClipboardCheck size={16} />

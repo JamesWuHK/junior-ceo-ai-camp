@@ -443,7 +443,7 @@ function showcaseItems(includeAll = false) {
     screenshot_key: item.screenshot_key,
     screenshot_url: item.screenshot_key
       ? `${config.publicApiBase}/media/object?key=${encodeURIComponent(String(item.screenshot_key))}`
-      : null,
+      : item.screenshot_url ?? null,
     publish_status: item.publish_status,
     created_at: item.created_at,
     updated_at: item.updated_at
@@ -2176,14 +2176,15 @@ app.post("/publish/showcase", async (request, reply) => {
     one_liner: body.one_liner ? String(body.one_liner) : null,
     access_url: body.access_url ? String(body.access_url) : null,
     screenshot_key: body.screenshot_key ? String(body.screenshot_key) : null,
+    screenshot_url: body.screenshot_url ? String(body.screenshot_url) : null,
     publish_status: String(body.publish_status ?? "DRAFT"),
     updated_at: nowSql()
   };
   db.prepare(
     `INSERT INTO showcase_items
-      (id, camp_id, team_id, product_name, track, one_liner, access_url, screenshot_key, publish_status, updated_at)
+      (id, camp_id, team_id, product_name, track, one_liner, access_url, screenshot_key, screenshot_url, publish_status, updated_at)
      VALUES
-      (@id, @camp_id, @team_id, @product_name, @track, @one_liner, @access_url, @screenshot_key, @publish_status, @updated_at)
+      (@id, @camp_id, @team_id, @product_name, @track, @one_liner, @access_url, @screenshot_key, @screenshot_url, @publish_status, @updated_at)
      ON CONFLICT(id) DO UPDATE SET
       team_id = excluded.team_id,
       product_name = excluded.product_name,
@@ -2191,6 +2192,7 @@ app.post("/publish/showcase", async (request, reply) => {
       one_liner = excluded.one_liner,
       access_url = excluded.access_url,
       screenshot_key = excluded.screenshot_key,
+      screenshot_url = excluded.screenshot_url,
       publish_status = excluded.publish_status,
       updated_at = excluded.updated_at`
   ).run(record);
