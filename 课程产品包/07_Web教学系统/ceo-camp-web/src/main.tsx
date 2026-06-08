@@ -52,9 +52,12 @@ import {
   setTeacherToken
 } from "./api";
 import type {
+  AwardResult,
   Camp,
   CourseModule,
   FuturePhotoSubmission,
+  ScoreDimension,
+  ScoreSummary,
   ShowcaseItem,
   Student,
   StudentAccount,
@@ -84,6 +87,15 @@ type StudentMessage = {
   tone: "hint" | "success" | "error";
   text: string;
 };
+
+const scoreScale = [1, 2, 3, 4, 5];
+const scoreDimensionLabels: Array<{ key: ScoreDimension; label: string; hint: string }> = [
+  { key: "user_realness", label: "用户真实", hint: "听见了真实人的问题" },
+  { key: "mvp_completion", label: "原型能用", hint: "别人能完成一个动作" },
+  { key: "ai_collaboration", label: "AI 协作", hint: "AI 帮上了关键忙" },
+  { key: "story_expression", label: "故事清楚", hint: "知道谁遇到什么问题" },
+  { key: "team_pitch", label: "展示有力", hint: "看见结果，也知道下一步" }
+];
 
 type SpeechRecognitionAlternative = {
   transcript: string;
@@ -841,13 +853,19 @@ function isProductDefinitionTask(camp: Camp | null) {
 function isFinalShowcaseTask(camp: Camp | null) {
   const title = activeTaskTitle(camp);
   const moduleId = camp?.active_task?.module_id || "";
-  return moduleId === "final-showcase" || /路演|作品展|最终展示|故事发布|每组上场/.test(title);
+  return (moduleId === "final-showcase" || /路演|作品展|最终展示|故事发布|每组上场/.test(title)) && !isObserverScoreTask(camp);
 }
 
 function isPeerFeedbackTask(camp: Camp | null) {
   const title = activeTaskTitle(camp);
   const moduleId = camp?.active_task?.module_id || "";
   return /试玩|试用|互测|反馈进作品|改出 V2/.test(title) || moduleId === "user-testing";
+}
+
+function isObserverScoreTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const payloadType = asText(camp?.active_task?.payload?.task_type);
+  return payloadType === "observer_score" || /评分|观察员投票|投票|给出下一步建议/.test(title);
 }
 
 function futurePhotoHint(item: FuturePhotoSubmission) {
@@ -880,11 +898,13 @@ function useInitialData(active: "student" | "wall") {
   const [students, setStudents] = useState<Student[]>([]);
   const [showcaseItems, setShowcaseItems] = useState<ShowcaseItem[]>([]);
   const [wallArtifacts, setWallArtifacts] = useState<WallArtifact[]>([]);
+  const [awardResults, setAwardResults] = useState<AwardResult[]>([]);
+  const [scoreSummaries, setScoreSummaries] = useState<ScoreSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const refresh = async () => {
-    const [campResult, moduleResult, wallResult, showcaseResult, artifactResult] = await Promise.all([
+    const [campResult, moduleResult, wallResult, showcaseResult, artifactResult, publicResult] = await Promise.all([
       api.currentCamp(),
       Promise.resolve({ modules: [] }),
       active === "student" ? Promise.resolve({ students: [] }) : api.wall(),
@@ -893,13 +913,21 @@ function useInitialData(active: "student" | "wall") {
         : api.showcase().catch(() => ({ showcase_items: [] as ShowcaseItem[] })),
       active === "student"
         ? Promise.resolve({ artifacts: [] as WallArtifact[] })
-        : api.wallArtifacts().catch(() => ({ artifacts: [] as WallArtifact[] }))
+        : api.wallArtifacts().catch(() => ({ artifacts: [] as WallArtifact[] })),
+      active === "student"
+        ? Promise.resolve({ award_results: [] as AwardResult[], score_summaries: [] as ScoreSummary[] })
+        : api.publicFinalShowcase().catch(() => ({
+            award_results: [] as AwardResult[],
+            score_summaries: [] as ScoreSummary[]
+          }))
     ]);
     setCamp(campResult);
     setModules(moduleResult.modules);
     setStudents(wallResult.students);
     setShowcaseItems(showcaseResult.showcase_items);
     setWallArtifacts(artifactResult.artifacts);
+    setAwardResults(publicResult.award_results ?? []);
+    setScoreSummaries(publicResult.score_summaries ?? []);
   };
 
   useEffect(() => {
@@ -912,10 +940,12 @@ function useInitialData(active: "student" | "wall") {
       setStudents(payload.wall);
       setShowcaseItems(payload.showcase_items ?? []);
       setWallArtifacts(payload.wall_artifacts ?? []);
+      setAwardResults(payload.award_results ?? []);
+      setScoreSummaries(payload.score_summaries ?? []);
     });
   }, [active]);
 
-  return { camp, modules, students, showcaseItems, wallArtifacts, loading, error, refresh };
+  return { camp, modules, students, showcaseItems, wallArtifacts, awardResults, scoreSummaries, loading, error, refresh };
 }
 
 function useTeacherData(enabled: boolean) {
@@ -999,6 +1029,8 @@ function App() {
           students={data.students}
           showcaseItems={data.showcaseItems}
           artifacts={data.wallArtifacts}
+          awardResults={data.awardResults}
+          scoreSummaries={data.scoreSummaries}
         />
       )}
     </>
@@ -1109,6 +1141,8 @@ function PublicShowcaseRoute() {
   const [camp, setCamp] = useState<{ name: string; location: string; starts_on?: string; ends_on?: string } | null>(null);
   const [finalItems, setFinalItems] = useState<WallArtifact[]>([]);
   const [showcaseItems, setShowcaseItems] = useState<ShowcaseItem[]>([]);
+  const [scoreSummaries, setScoreSummaries] = useState<ScoreSummary[]>([]);
+  const [awardResults, setAwardResults] = useState<AwardResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -1118,6 +1152,8 @@ function PublicShowcaseRoute() {
         setCamp(result.camp);
         setFinalItems(sortByDisplayOrder(result.final_showcase));
         setShowcaseItems(result.showcase_items);
+        setScoreSummaries(result.score_summaries ?? []);
+        setAwardResults(result.award_results ?? []);
       })
       .catch((err) => setError(err instanceof Error ? err.message : "页面暂时没有打开"))
       .finally(() => setLoading(false));
@@ -1210,7 +1246,106 @@ function PublicShowcaseRoute() {
         </div>
         <ShowcaseGallery items={showcaseItems} />
       </section>
+      <section className="public-section">
+        <div className="public-section-title">
+          <span>观察员看见了什么</span>
+          <h2>亮点和下一步</h2>
+        </div>
+        <ScoreSummaryGallery summaries={scoreSummaries} />
+      </section>
+      <section className="public-section">
+        <div className="public-section-title">
+          <span>结营证书</span>
+          <h2>奖项与能力标签</h2>
+        </div>
+        <AwardGallery awards={awardResults} />
+      </section>
     </main>
+  );
+}
+
+function ScoreStars({ value }: { value: number }) {
+  const rounded = Math.round(value);
+  return (
+    <span className="score-stars" aria-label={`${value || 0} 星`}>
+      {scoreScale.map((score) => (
+        <Star key={score} size={15} fill={score <= rounded ? "currentColor" : "none"} />
+      ))}
+    </span>
+  );
+}
+
+function ScoreSummaryGallery({ summaries }: { summaries: ScoreSummary[] }) {
+  if (!summaries.length) {
+    return (
+      <article className="public-empty score-empty">
+        <Star size={34} />
+        <strong>观察员记录会出现在这里</strong>
+        <span>作品秀开始后，亮点和下一步建议会慢慢长出来。</span>
+      </article>
+    );
+  }
+
+  return (
+    <div className="score-summary-grid">
+      {summaries.map((summary) => (
+        <article className="score-summary-card" key={summary.key}>
+          <header>
+            <div>
+              <span>{summary.team_name || "项目团队"}</span>
+              <strong>{summary.product_name}</strong>
+            </div>
+            <div className="score-total">
+              <ScoreStars value={summary.average_total} />
+              <b>{summary.average_total || "-"}</b>
+            </div>
+          </header>
+          <div className="score-bars">
+            {scoreDimensionLabels.map((dimension) => (
+              <div className="score-bar" key={dimension.key}>
+                <span>{dimension.label}</span>
+                <div><i style={{ width: `${Math.max(0, Math.min(100, (summary.scores[dimension.key] / 5) * 100))}%` }} /></div>
+                <b>{summary.scores[dimension.key] || "-"}</b>
+              </div>
+            ))}
+          </div>
+          <dl className="score-notes">
+            <div>
+              <dt>亮点</dt>
+              <dd>{summary.highlights[0] || "等待观察员写下亮点"}</dd>
+            </div>
+            <div>
+              <dt>下一步</dt>
+              <dd>{summary.next_steps[0] || "等待观察员给出建议"}</dd>
+            </div>
+          </dl>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function AwardGallery({ awards }: { awards: AwardResult[] }) {
+  if (!awards.length) {
+    return (
+      <article className="public-empty award-empty">
+        <Trophy size={34} />
+        <strong>奖项会在结营时点亮</strong>
+        <span>每一个奖项都会对应一条真实贡献。</span>
+      </article>
+    );
+  }
+
+  return (
+    <div className="award-grid">
+      {awards.map((award) => (
+        <article className="award-card" key={award.id}>
+          <span>{award.award_type}</span>
+          <strong>{award.winner_name}</strong>
+          <p>{award.reason || "这份贡献被大家看见了。"}</p>
+        </article>
+      ))}
+    </div>
   );
 }
 
@@ -1455,6 +1590,7 @@ function TeacherApp({
         <TeacherProjectSubmissions />
         <TeacherPeerFeedback />
         <TeacherFinalShowcase />
+        <TeacherScoringCenter />
         <TeacherShowcase />
       </section>
       {presenting && selectedModule && (
@@ -1990,6 +2126,193 @@ function TeacherFinalShowcase() {
           );
         })}
         {!items.length && <p className="empty">学生提交最终展示卡后，会出现在这里。</p>}
+      </div>
+    </section>
+  );
+}
+
+const awardTemplates: Array<{
+  id: string;
+  awardType: string;
+  label: string;
+  dimension?: ScoreDimension;
+  reason: (summary: ScoreSummary) => string;
+}> = [
+  {
+    id: "user-realness",
+    awardType: "最懂用户奖",
+    label: "共情力",
+    dimension: "user_realness",
+    reason: (summary) => `能力标签：共情力。观察员看见了：${summary.highlights[0] || "他们能从真实用户的问题出发。"}`
+  },
+  {
+    id: "mvp-completion",
+    awardType: "原型完成奖",
+    label: "创造力",
+    dimension: "mvp_completion",
+    reason: (summary) => `能力标签：创造力。作品已经能让别人完成一个真实动作，平均 ${summary.scores.mvp_completion || "-"} 星。`
+  },
+  {
+    id: "ai-collaboration",
+    awardType: "AI 协作奖",
+    label: "判断力",
+    dimension: "ai_collaboration",
+    reason: (summary) => `能力标签：判断力。团队把 AI 用在关键步骤上，也能继续判断结果。`
+  },
+  {
+    id: "story-expression",
+    awardType: "故事表达奖",
+    label: "表达力",
+    dimension: "story_expression",
+    reason: (summary) => `能力标签：表达力。大家能听懂用户是谁、遇到什么问题、作品怎么帮忙。`
+  },
+  {
+    id: "next-version",
+    awardType: "下一版最期待奖",
+    label: "领导力",
+    reason: (summary) => `能力标签：领导力。下一步建议：${summary.next_steps[0] || "继续邀请用户试用，再改出下一版。"}`
+  }
+];
+
+function topScoreSummary(summaries: ScoreSummary[], dimension?: ScoreDimension) {
+  return [...summaries].sort((a, b) => {
+    const aScore = dimension ? a.scores[dimension] : a.average_total;
+    const bScore = dimension ? b.scores[dimension] : b.average_total;
+    if (bScore !== aScore) return bScore - aScore;
+    return b.score_count - a.score_count;
+  })[0];
+}
+
+function TeacherScoringCenter() {
+  const [summaries, setSummaries] = useState<ScoreSummary[]>([]);
+  const [awards, setAwards] = useState<AwardResult[]>([]);
+  const [submissionCount, setSubmissionCount] = useState(0);
+  const [message, setMessage] = useState("");
+  const [working, setWorking] = useState(false);
+
+  const load = async () => {
+    try {
+      const [scoreResult, awardResult] = await Promise.all([api.scoreSummary(), api.manageAwards()]);
+      setSummaries(scoreResult.score_summaries);
+      setSubmissionCount(scoreResult.score_submissions.length);
+      setAwards(awardResult.award_results);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const saveAward = async (template: (typeof awardTemplates)[number], summary: ScoreSummary, publishStatus = "PUBLISHED") => {
+    await api.saveAward({
+      id: `award-${template.id}`,
+      award_type: template.awardType,
+      winner_type: "team",
+      winner_id: summary.team_id || summary.showcase_item_id || summary.key,
+      winner_name: summary.team_name ? `${summary.team_name} · ${summary.product_name}` : summary.product_name,
+      reason: template.reason(summary),
+      publish_status: publishStatus
+    });
+  };
+
+  const generateAwards = async () => {
+    if (!summaries.length) {
+      setMessage("还没有观察员评分。");
+      return;
+    }
+    setWorking(true);
+    setMessage("");
+    try {
+      for (const template of awardTemplates) {
+        const summary = topScoreSummary(summaries, template.dimension);
+        if (summary) await saveAward(template, summary);
+      }
+      setMessage("奖项建议已生成，并放到成果页。");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "生成奖项失败");
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const toggleAward = async (award: AwardResult) => {
+    setWorking(true);
+    setMessage("");
+    try {
+      await api.saveAward({
+        ...award,
+        publish_status: award.publish_status === "PUBLISHED" ? "DRAFT" : "PUBLISHED"
+      });
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  return (
+    <section className="panel scoring-panel">
+      <div className="panel-title">
+        <Star size={20} />
+        <h2>评分中心与奖项</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{submissionCount} 张观察员评分卡</span>
+        <span>{summaries.length} 个作品有评分</span>
+        <span>{awards.filter((award) => award.publish_status === "PUBLISHED").length} 个奖项已发布</span>
+      </div>
+      <div className="scoring-actions">
+        <button disabled={working || !summaries.length} onClick={generateAwards}>
+          <Trophy size={16} />
+          生成奖项建议
+        </button>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="score-summary-list">
+        {summaries.map((summary) => (
+          <article className="score-summary-row" key={summary.key}>
+            <header>
+              <div>
+                <span>{summary.team_name || "项目团队"}</span>
+                <strong>{summary.product_name}</strong>
+                <small>{summary.score_count} 张评分卡 · 平均 {summary.average_total || "-"} 星</small>
+              </div>
+              <ScoreStars value={summary.average_total} />
+            </header>
+            <div className="score-pills">
+              {scoreDimensionLabels.map((dimension) => (
+                <span key={dimension.key}>{dimension.label} {summary.scores[dimension.key] || "-"}</span>
+              ))}
+            </div>
+            <div className="artifact-lines">
+              <p><strong>亮点：</strong>{summary.highlights[0] || "还没有亮点记录"}</p>
+              <p><strong>下一步：</strong>{summary.next_steps[0] || "还没有下一步建议"}</p>
+            </div>
+          </article>
+        ))}
+        {!summaries.length && <p className="empty">观察员提交评分卡后，会出现在这里。</p>}
+      </div>
+      <div className="award-manage-list">
+        {awards.map((award) => (
+          <article className="award-manage-row" key={award.id}>
+            <div>
+              <span className={award.publish_status === "PUBLISHED" ? "showcase-status live" : "showcase-status draft"}>
+                {award.publish_status === "PUBLISHED" ? "成果页展示" : "草稿"}
+              </span>
+              <strong>{award.award_type} · {award.winner_name}</strong>
+              <small>{award.reason || "还没有写获奖理由。"}</small>
+            </div>
+            <button disabled={working} onClick={() => toggleAward(award)}>
+              {award.publish_status === "PUBLISHED" ? "撤回草稿" : "放到成果页"}
+            </button>
+          </article>
+        ))}
       </div>
     </section>
   );
@@ -3616,10 +3939,18 @@ function StudentApp({
   const problemTask = isProblemDiscoveryTask(camp);
   const userVoiceTask = isUserVoiceTask(camp);
   const productDefinitionTask = isProductDefinitionTask(camp);
+  const observerScoreTask = isObserverScoreTask(camp);
   const finalShowcaseTask = isFinalShowcaseTask(camp);
   const productLinkTask = isProductLinkTask(camp);
   const peerFeedbackTask = isPeerFeedbackTask(camp);
-  const textTask = problemTask || userVoiceTask || productDefinitionTask || finalShowcaseTask || productLinkTask || peerFeedbackTask;
+  const textTask =
+    problemTask ||
+    userVoiceTask ||
+    productDefinitionTask ||
+    observerScoreTask ||
+    finalShowcaseTask ||
+    productLinkTask ||
+    peerFeedbackTask;
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
@@ -3825,6 +4156,18 @@ function StudentApp({
   if (productDefinitionTask) {
     return (
       <StudentProductDefinitionTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (observerScoreTask) {
+    return (
+      <StudentObserverScoreTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -4816,6 +5159,229 @@ function StudentPeerFeedbackTask({
   );
 }
 
+function ScoreRating({
+  value,
+  onChange
+}: {
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <div className="score-rating">
+      {scoreScale.map((score) => (
+        <button
+          key={score}
+          type="button"
+          className={score <= value ? "active" : ""}
+          onClick={() => onChange(score)}
+          aria-label={`${score} 星`}
+        >
+          <Star size={17} fill={score <= value ? "currentColor" : "none"} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function StudentObserverScoreTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const emptyScores = scoreDimensionLabels.reduce<Record<ScoreDimension, number>>((acc, dimension) => {
+    acc[dimension.key] = 0;
+    return acc;
+  }, {} as Record<ScoreDimension, number>);
+  const [items, setItems] = useState<ShowcaseItem[]>([]);
+  const [selectedId, setSelectedId] = useState("");
+  const [scores, setScores] = useState<Record<ScoreDimension, number>>(emptyScores);
+  const [highlight, setHighlight] = useState("");
+  const [nextStep, setNextStep] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+  const visibleItems = useMemo(
+    () => items.filter((item) => !student.team_id || item.team_id !== student.team_id),
+    [items, student.team_id]
+  );
+  const selectedItem = visibleItems.find((item) => item.id === selectedId) || null;
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    api.showcase()
+      .then((result) => {
+        if (!alive) return;
+        const published = result.showcase_items.filter((item) => item.publish_status === "PUBLISHED");
+        setItems(published);
+        const nextVisible = published.filter((item) => !student.team_id || item.team_id !== student.team_id);
+        setSelectedId((current) => current || nextVisible[0]?.id || "");
+      })
+      .catch(() => showMessage("hint", "作品卡还没出来，可以等一下再刷新。"))
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [student.team_id]);
+
+  const updateScore = (key: ScoreDimension, value: number) => {
+    setScores((current) => ({ ...current, [key]: value }));
+  };
+
+  const submit = async () => {
+    if (!selectedItem) {
+      showMessage("error", "先选一个你刚看过的作品。");
+      return;
+    }
+    if (scoreDimensionLabels.some((dimension) => !scores[dimension.key])) {
+      showMessage("error", "五个星星都点一下。");
+      return;
+    }
+    if (!highlight.trim()) {
+      showMessage("error", "写一句你看见的亮点。");
+      return;
+    }
+    if (!nextStep.trim()) {
+      showMessage("error", "再写一句下一步建议。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "observer_score",
+        title: taskTitle,
+        payload: {
+          showcase_item_id: selectedItem.id,
+          product_name: selectedItem.product_name,
+          team_id: selectedItem.team_id || "",
+          team_name: selectedItem.team_name || selectedItem.track || "",
+          access_url: selectedItem.access_url || "",
+          ...scores,
+          highlight: highlight.trim(),
+          next_step: nextStep.trim()
+        }
+      });
+      showMessage("success", "收到啦。你的星星和建议会帮这组作品继续升级。");
+      setScores(emptyScores);
+      setHighlight("");
+      setNextStep("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "观察员投票"}</h1>
+        <p>选一个作品，点亮五组星星，再写下你看见的亮点和下一步建议。</p>
+        <div className="student-card observer-score-card">
+          <div className="student-current">
+            <div>
+              <span>观察员</span>
+              <strong>{student.nickname}</strong>
+              <small>{student.team_name || student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          {loading ? (
+            <div className="feedback-loading">
+              <Loader2 className="spin" size={24} />
+              <span>正在找作品卡</span>
+            </div>
+          ) : visibleItems.length ? (
+            <>
+              <div className="feedback-product-grid">
+                {visibleItems.map((item) => {
+                  const active = item.id === selectedId;
+                  const href = item.access_url ? normalizeShowcaseUrl(item.access_url) : "";
+                  return (
+                    <article className={active ? "feedback-product active" : "feedback-product"} key={item.id}>
+                      <button onClick={() => setSelectedId(item.id)}>
+                        <span>{item.team_name || item.track || "作品"}</span>
+                        <strong>{item.product_name}</strong>
+                        <small>{item.one_liner || "看看它帮用户完成了什么。"}</small>
+                      </button>
+                      {href && (
+                        <a href={href} target="_blank" rel="noreferrer">
+                          <ExternalLink size={15} />
+                          打开作品
+                        </a>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+              <div className="score-dimension-list">
+                {scoreDimensionLabels.map((dimension) => (
+                  <div className="score-dimension" key={dimension.key}>
+                    <div>
+                      <strong>{dimension.label}</strong>
+                      <span>{dimension.hint}</span>
+                    </div>
+                    <ScoreRating value={scores[dimension.key]} onChange={(value) => updateScore(dimension.key, value)} />
+                  </div>
+                ))}
+              </div>
+              <label>
+                我看见的亮点
+                <input
+                  value={highlight}
+                  onChange={(event) => setHighlight(event.target.value)}
+                  placeholder="例如：用户一打开就知道怎么选"
+                  inputMode="text"
+                />
+              </label>
+              <label>
+                我给下一版的建议
+                <input
+                  value={nextStep}
+                  onChange={(event) => setNextStep(event.target.value)}
+                  placeholder="例如：可以加一个更明显的开始按钮"
+                  inputMode="text"
+                  enterKeyHint="done"
+                />
+              </label>
+              <button className="submit-button" disabled={submitting} onClick={submit}>
+                {submitting ? <Loader2 className="spin" size={18} /> : <Star size={18} />}
+                提交
+              </button>
+              <p className="hint">好的观察会让作品更接近真实用户。</p>
+            </>
+          ) : (
+            <div className="feedback-empty">
+              <Package size={28} />
+              <strong>还没有可以投票的作品</strong>
+              <span>等作品卡出现后，再回来点亮星星。</span>
+              <button className="text-button" onClick={() => window.location.reload()}>刷新</button>
+            </div>
+          )}
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
 function StudentPhotoUploadApp({ camp }: { camp: Camp | null }) {
   const searchParams = new URLSearchParams(window.location.search);
   const studentId = searchParams.get("sid") || "";
@@ -5108,16 +5674,54 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   );
 }
 
+function WallAwards({ awards, summaries }: { awards: AwardResult[]; summaries: ScoreSummary[] }) {
+  if (!awards.length && !summaries.length) return null;
+  return (
+    <section className="wall-awards">
+      <div className="wall-section-title">
+        <span className="eyebrow">结营证书</span>
+        <h2>贡献被看见了</h2>
+      </div>
+      {awards.length ? (
+        <div className="wall-award-grid">
+          {awards.map((award) => (
+            <article className="wall-award-card" key={award.id}>
+              <span>{award.award_type}</span>
+              <strong>{award.winner_name}</strong>
+              <p>{award.reason || "这份贡献被大家看见了。"}</p>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="wall-score-grid">
+          {summaries.slice(0, 4).map((summary) => (
+            <article className="wall-score-card" key={summary.key}>
+              <span>{summary.team_name || "项目团队"}</span>
+              <strong>{summary.product_name}</strong>
+              <p>{summary.highlights[0] || "观察员正在写下亮点。"}</p>
+              <ScoreStars value={summary.average_total} />
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function WallApp({
   camp,
   students,
   showcaseItems,
-  artifacts
+  artifacts,
+  awardResults,
+  scoreSummaries
 }: {
   camp: Camp | null;
   students: Student[];
   showcaseItems: ShowcaseItem[];
   artifacts: WallArtifact[];
+  awardResults: AwardResult[];
+  scoreSummaries: ScoreSummary[];
 }) {
   const [selectedPhoto, setSelectedPhoto] = useState<Student | null>(null);
   const finalShowcaseArtifacts = useMemo(
@@ -5143,6 +5747,7 @@ function WallApp({
       </header>
       <CoursePhotoWall students={students} variant="wall" onOpenPhoto={setSelectedPhoto} />
       <FinalShowcaseRun artifacts={finalShowcaseArtifacts} />
+      <WallAwards awards={awardResults} summaries={scoreSummaries} />
       <ClassroomArtifactsWall artifacts={classroomArtifacts} />
       <section className="wall-showcase">
         <div className="wall-section-title">

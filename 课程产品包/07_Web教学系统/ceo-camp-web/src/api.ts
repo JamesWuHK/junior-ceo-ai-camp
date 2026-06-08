@@ -1,7 +1,9 @@
 import type {
+  AwardResult,
   Camp,
   CourseModule,
   FuturePhotoSubmission,
+  ScoreSummary,
   ShowcaseItem,
   SourcePhoto,
   StatePayload,
@@ -192,10 +194,23 @@ export const api = {
       camp: Pick<Camp, "id" | "name" | "city" | "location"> & { starts_on?: string; ends_on?: string };
       final_showcase: WallArtifact[];
       showcase_items: ShowcaseItem[];
+      score_summaries: ScoreSummary[];
+      award_results: AwardResult[];
     }>("/public/final-showcase"),
   manageShowcase: () => request<{ showcase_items: ShowcaseItem[] }>("/showcase/manage", { headers: headers(true) }),
   publishShowcase: (payload: Partial<ShowcaseItem>) =>
     request<{ showcase_item: ShowcaseItem }>("/publish/showcase", {
+      method: "POST",
+      headers: headers(true),
+      body: JSON.stringify(payload)
+    }),
+  scoreSummary: () =>
+    request<{ score_summaries: ScoreSummary[]; score_submissions: TaskSubmission[] }>("/scores/summary", {
+      headers: headers(true)
+    }),
+  manageAwards: () => request<{ award_results: AwardResult[] }>("/awards/manage", { headers: headers(true) }),
+  saveAward: (payload: Partial<AwardResult>) =>
+    request<{ award_result: AwardResult }>("/awards", {
       method: "POST",
       headers: headers(true),
       body: JSON.stringify(payload)

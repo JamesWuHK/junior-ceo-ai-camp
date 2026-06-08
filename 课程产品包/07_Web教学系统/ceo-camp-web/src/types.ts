@@ -105,6 +105,39 @@ export interface ShowcaseItem {
   updated_at?: string;
 }
 
+export interface AwardResult {
+  id: string;
+  award_type: string;
+  winner_type: string;
+  winner_id?: string | null;
+  winner_name: string;
+  reason?: string | null;
+  publish_status: "DRAFT" | "PUBLISHED" | string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type ScoreDimension =
+  | "user_realness"
+  | "mvp_completion"
+  | "ai_collaboration"
+  | "story_expression"
+  | "team_pitch";
+
+export interface ScoreSummary {
+  key: string;
+  showcase_item_id?: string | null;
+  team_id?: string | null;
+  team_name?: string | null;
+  product_name: string;
+  access_url?: string | null;
+  score_count: number;
+  average_total: number;
+  scores: Record<ScoreDimension, number>;
+  highlights: string[];
+  next_steps: string[];
+}
+
 export interface TaskSubmission {
   id: string;
   student_id?: string | null;
@@ -151,4 +184,6 @@ export interface StatePayload {
   wall: Student[];
   showcase_items?: ShowcaseItem[];
   wall_artifacts?: WallArtifact[];
+  award_results?: AwardResult[];
+  score_summaries?: ScoreSummary[];
 }

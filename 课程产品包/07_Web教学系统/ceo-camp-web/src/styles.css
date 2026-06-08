@@ -2387,6 +2387,96 @@ button:disabled {
   color: #172018;
 }
 
+.scoring-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.scoring-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.scoring-actions button,
+.award-manage-row button {
+  border: 0;
+  border-radius: 6px;
+  background: #172018;
+  color: #fffdf6;
+  padding: 10px 14px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.scoring-actions button:disabled,
+.award-manage-row button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.score-summary-list,
+.award-manage-list {
+  display: grid;
+  gap: 10px;
+}
+
+.score-summary-row,
+.award-manage-row {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fffdf6;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.award-manage-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.score-summary-row header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.score-summary-row header span,
+.score-summary-row header small,
+.award-manage-row small {
+  color: #60705f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.score-summary-row header strong,
+.award-manage-row strong {
+  display: block;
+  color: #172018;
+  font-size: 20px;
+  line-height: 1.15;
+  margin-top: 4px;
+}
+
+.score-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.score-pills span {
+  border-radius: 999px;
+  background: #edf6e8;
+  color: #1f6f50;
+  padding: 6px 9px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
 .showcase-manage-row {
   border: 1px solid #e7e2d2;
   border-radius: 8px;
@@ -2684,6 +2774,67 @@ button:disabled {
   justify-content: center;
   gap: 6px;
   text-decoration: none;
+}
+
+.observer-score-card {
+  max-width: 900px;
+}
+
+.score-dimension-list {
+  display: grid;
+  gap: 10px;
+}
+
+.score-dimension {
+  border: 1px solid #e5eadf;
+  border-radius: 8px;
+  background: #f7fbf2;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.score-dimension strong,
+.score-dimension span {
+  display: block;
+}
+
+.score-dimension strong {
+  color: #172018;
+}
+
+.score-dimension span {
+  color: #60705f;
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+.score-rating,
+.score-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #d9991f;
+}
+
+.score-rating button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e6d7b2;
+  border-radius: 6px;
+  background: #fffaf0;
+  color: #b37a16;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.score-rating button.active {
+  background: #f7d66d;
+  border-color: #d9991f;
+  color: #6f4b09;
 }
 
 .student-card label {
@@ -3546,6 +3697,153 @@ button:disabled {
   color: #60705f;
 }
 
+.score-summary-grid,
+.award-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.score-summary-card,
+.award-card {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fffdf6;
+  padding: 14px;
+  display: grid;
+  gap: 14px;
+}
+
+.score-summary-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.score-summary-card header span,
+.award-card span {
+  color: #1f6f50;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.score-summary-card header strong,
+.award-card strong {
+  display: block;
+  color: #172018;
+  font-size: 26px;
+  line-height: 1.1;
+  margin-top: 4px;
+}
+
+.score-total {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  color: #d9991f;
+  font-weight: 900;
+}
+
+.score-bars {
+  display: grid;
+  gap: 8px;
+}
+
+.score-bar {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr) 32px;
+  gap: 8px;
+  align-items: center;
+  color: #60705f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.score-bar div {
+  height: 8px;
+  border-radius: 999px;
+  background: #eef2e7;
+  overflow: hidden;
+}
+
+.score-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #1f6f50;
+}
+
+.score-notes {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.score-notes dt {
+  color: #60705f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.score-notes dd,
+.award-card p {
+  margin: 3px 0 0;
+  color: #536151;
+  line-height: 1.5;
+}
+
+.wall-awards {
+  display: grid;
+  gap: 18px;
+  margin-top: 30px;
+}
+
+.wall-award-grid,
+.wall-score-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.wall-award-card,
+.wall-score-card {
+  min-height: 250px;
+  border-radius: 8px;
+  background: #fffdf6;
+  color: #172018;
+  padding: 20px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  border-top: 8px solid #f7d66d;
+}
+
+.wall-score-card {
+  border-top-color: #78b7e8;
+}
+
+.wall-award-card span,
+.wall-score-card span {
+  color: #1f6f50;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.wall-award-card strong,
+.wall-score-card strong {
+  font-size: clamp(24px, 2.4vw, 38px);
+  line-height: 1.1;
+}
+
+.wall-award-card p,
+.wall-score-card p {
+  margin: 0;
+  color: #536151;
+  font-size: clamp(18px, 1.5vw, 24px);
+  line-height: 1.35;
+}
+
 @media (max-width: 980px) {
   .teacher-layout {
     grid-template-columns: 1fr;
@@ -3700,7 +3998,9 @@ button:disabled {
   .lesson-page-nav,
   .lesson-operator,
   .showcase-form,
+  .score-dimension,
   .showcase-manage-row,
+  .award-manage-row,
   .project-submission-row,
   .teacher-grid,
   .career-grid,
@@ -3715,6 +4015,7 @@ button:disabled {
 
   .showcase-actions button,
   .showcase-manage-row button,
+  .award-manage-row button,
   .showcase-manage-row a,
   .project-submission-row button,
   .project-submission-row a,

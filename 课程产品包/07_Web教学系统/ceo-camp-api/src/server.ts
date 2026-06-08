@@ -101,6 +101,28 @@ type TaskArtifact = Record<string, any> & {
   created_at?: string;
   updated_at?: string;
 };
+type ScoreDimension = "user_realness" | "mvp_completion" | "ai_collaboration" | "story_expression" | "team_pitch";
+type ScoreSummary = {
+  key: string;
+  showcase_item_id?: string | null;
+  team_id?: string | null;
+  team_name?: string | null;
+  product_name: string;
+  access_url?: string | null;
+  score_count: number;
+  average_total: number;
+  scores: Record<ScoreDimension, number>;
+  highlights: string[];
+  next_steps: string[];
+};
+
+const scoreDimensions: ScoreDimension[] = [
+  "user_realness",
+  "mvp_completion",
+  "ai_collaboration",
+  "story_expression",
+  "team_pitch"
+];
 
 function requireTeacher(request: { headers: Record<string, unknown> }): TeacherPrincipal | null {
   const header = request.headers.authorization;
@@ -450,12 +472,124 @@ function finalShowcaseItems() {
     });
 }
 
+function scoreValue(value: unknown) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 0;
+  return Math.min(5, Math.max(1, Math.round(numeric)));
+}
+
+function roundedScore(value: number) {
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  return Math.round(value * 10) / 10;
+}
+
+function observerScoreSubmissions(): Array<Record<string, any> & { payload: TaskPayload }> {
+  return rows<Record<string, any> & { payload?: string }>(
+    `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
+       FROM task_submissions ts
+       LEFT JOIN students s ON s.id = ts.student_id
+       LEFT JOIN teams t ON t.id = ts.team_id
+      WHERE ts.camp_id = ?
+        AND ts.task_type = 'observer_score'
+      ORDER BY ts.created_at DESC`,
+    campId()
+  ).map((submission) => ({
+    ...submission,
+    payload: jsonParse<TaskPayload>(submission.payload, {})
+  }));
+}
+
+function scoreSummaries(): ScoreSummary[] {
+  const summaries = new Map<string, ScoreSummary & { scoreTotals: Record<ScoreDimension, number> }>();
+  for (const submission of observerScoreSubmissions()) {
+    const payload = submission.payload ?? {};
+    const showcaseItemId = String(payload.showcase_item_id ?? "");
+    const teamId = String(payload.team_id ?? submission.team_id ?? "");
+    const productName = String(payload.product_name ?? "").trim() || "未命名作品";
+    const key = showcaseItemId || teamId || productName;
+    const current =
+      summaries.get(key) ??
+      {
+        key,
+        showcase_item_id: showcaseItemId || null,
+        team_id: teamId || null,
+        team_name: String(payload.team_name ?? submission.team_name ?? "").trim() || null,
+        product_name: productName,
+        access_url: String(payload.access_url ?? "").trim() || null,
+        score_count: 0,
+        average_total: 0,
+        scores: {
+          user_realness: 0,
+          mvp_completion: 0,
+          ai_collaboration: 0,
+          story_expression: 0,
+          team_pitch: 0
+        },
+        scoreTotals: {
+          user_realness: 0,
+          mvp_completion: 0,
+          ai_collaboration: 0,
+          story_expression: 0,
+          team_pitch: 0
+        },
+        highlights: [],
+        next_steps: []
+      };
+
+    current.score_count += 1;
+    for (const dimension of scoreDimensions) {
+      current.scoreTotals[dimension] += scoreValue(payload[dimension]);
+    }
+    const highlight = String(payload.highlight ?? "").trim();
+    const nextStep = String(payload.next_step ?? "").trim();
+    if (highlight && !current.highlights.includes(highlight)) current.highlights.push(highlight);
+    if (nextStep && !current.next_steps.includes(nextStep)) current.next_steps.push(nextStep);
+    summaries.set(key, current);
+  }
+
+  return Array.from(summaries.values())
+    .map((summary) => {
+      const scores = scoreDimensions.reduce<Record<ScoreDimension, number>>((acc, dimension) => {
+        acc[dimension] = roundedScore(summary.scoreTotals[dimension] / summary.score_count);
+        return acc;
+      }, {} as Record<ScoreDimension, number>);
+      const averageTotal =
+        scoreDimensions.reduce((total, dimension) => total + scores[dimension], 0) / scoreDimensions.length;
+      const { scoreTotals: _scoreTotals, ...publicSummary } = summary;
+      return {
+        ...publicSummary,
+        scores,
+        average_total: roundedScore(averageTotal),
+        highlights: publicSummary.highlights.slice(0, 5),
+        next_steps: publicSummary.next_steps.slice(0, 5)
+      };
+    })
+    .sort((a, b) => {
+      if (b.average_total !== a.average_total) return b.average_total - a.average_total;
+      return b.score_count - a.score_count;
+    });
+}
+
+function awardResults(includeAll = false) {
+  const statusClause = includeAll ? "" : "AND publish_status = 'PUBLISHED'";
+  return rows(
+    `SELECT *
+       FROM award_results
+      WHERE camp_id = ?
+        ${statusClause}
+      ORDER BY updated_at DESC, created_at DESC`,
+    campId()
+  );
+}
+
 function emitState(event = "state.changed") {
   broadcast(event, {
     camp: currentCamp(),
     wall: wallData(),
     showcase_items: showcaseItems(false),
-    wall_artifacts: wallTaskArtifacts()
+    wall_artifacts: wallTaskArtifacts(),
+    award_results: awardResults(false),
+    score_summaries: scoreSummaries()
   });
 }
 
@@ -1386,7 +1520,9 @@ app.get("/public/final-showcase", async () => {
       ends_on: camp.ends_on
     },
     final_showcase: finalShowcaseItems(),
-    showcase_items: showcaseItems(false)
+    showcase_items: showcaseItems(false),
+    score_summaries: scoreSummaries(),
+    award_results: awardResults(false)
   };
 });
 
@@ -1436,7 +1572,9 @@ app.get("/events", async (request, reply) => {
     camp: currentCamp(),
     wall: wallData(),
     showcase_items: showcaseItems(false),
-    wall_artifacts: wallTaskArtifacts()
+    wall_artifacts: wallTaskArtifacts(),
+    award_results: awardResults(false),
+    score_summaries: scoreSummaries()
   });
   const keepAlive = setInterval(() => write("ping", { time: new Date().toISOString() }), 25000);
   request.raw.on("close", () => {
@@ -1494,6 +1632,60 @@ app.get("/submissions", async (request, reply) => {
         payload: jsonParse(submission.payload, {})
       }))
   };
+});
+
+app.get("/scores/summary", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  return {
+    score_summaries: scoreSummaries(),
+    score_submissions: observerScoreSubmissions()
+  };
+});
+
+app.get("/awards/manage", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  return {
+    award_results: awardResults(true)
+  };
+});
+
+app.post("/awards", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const body = request.body as Record<string, unknown>;
+  const winnerName = String(body.winner_name ?? "").trim();
+  const awardType = String(body.award_type ?? "").trim();
+  if (!winnerName || !awardType) {
+    return reply.code(400).send({ error: "AWARD_REQUIRED" });
+  }
+  const id = String(body.id ?? randomUUID());
+  const record = {
+    id,
+    camp_id: campId(),
+    award_type: awardType,
+    winner_type: String(body.winner_type ?? "team"),
+    winner_id: body.winner_id ? String(body.winner_id) : null,
+    winner_name: winnerName,
+    reason: body.reason ? String(body.reason) : null,
+    publish_status: String(body.publish_status ?? "DRAFT"),
+    updated_at: nowSql()
+  };
+  db.prepare(
+    `INSERT INTO award_results
+      (id, camp_id, award_type, winner_type, winner_id, winner_name, reason, publish_status, updated_at)
+     VALUES
+      (@id, @camp_id, @award_type, @winner_type, @winner_id, @winner_name, @reason, @publish_status, @updated_at)
+     ON CONFLICT(id) DO UPDATE SET
+      award_type = excluded.award_type,
+      winner_type = excluded.winner_type,
+      winner_id = excluded.winner_id,
+      winner_name = excluded.winner_name,
+      reason = excluded.reason,
+      publish_status = excluded.publish_status,
+      updated_at = excluded.updated_at`
+  ).run(record);
+  audit("award.save", "award_results", id, record);
+  emitState("award.changed");
+  return { award_result: record };
 });
 
 app.post("/publish/showcase", async (request, reply) => {
