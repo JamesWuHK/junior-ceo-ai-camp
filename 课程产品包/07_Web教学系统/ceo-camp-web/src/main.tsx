@@ -2249,7 +2249,7 @@ function journeyCopy(item: WallArtifact) {
       ["作品", asText(item.payload.product_demo)],
       ["证据", asText(item.payload.proof_line)],
       ["邀请", asText(item.payload.invite_line)],
-      ["预演问题", asText(item.payload.rehearsal_question)]
+      ["问答预演", storyQaSummary(item.payload)]
     ];
   }
   if (item.task_type === "mentor_comment") {
@@ -2703,6 +2703,32 @@ function userFlowSummary(payload: Record<string, unknown>, limit = 5) {
 
 function iterationListSummary(value: unknown, fallback?: unknown, limit = 3) {
   return asTextList(value).slice(0, limit).join(" / ") || asText(fallback);
+}
+
+function storyQaPairs(payload: Record<string, unknown>) {
+  const rawPairs = payload.rehearsal_qa;
+  if (Array.isArray(rawPairs)) {
+    return rawPairs
+      .map((item) => {
+        if (!item || typeof item !== "object") return null;
+        const source = item as Record<string, unknown>;
+        const question = asText(source.question).trim();
+        const answer = asText(source.answer).trim();
+        return question || answer ? { question, answer } : null;
+      })
+      .filter((item): item is { question: string; answer: string } => Boolean(item));
+  }
+  const question = asText(payload.rehearsal_question).trim();
+  const answer = asText(payload.rehearsal_answer).trim();
+  return question || answer ? [{ question, answer }] : [];
+}
+
+function storyQaSummary(payload: Record<string, unknown>, limit = 3) {
+  return storyQaPairs(payload)
+    .slice(0, limit)
+    .map((item) => item.question && item.answer ? `${item.question}：${item.answer}` : item.question || item.answer)
+    .filter(Boolean)
+    .join(" / ");
 }
 
 function asNumber(value: unknown) {
@@ -4393,35 +4419,46 @@ function TeacherStoryPitches() {
       </div>
       {message && <p className="hint">{message}</p>}
       <div className="d1-artifact-list">
-        {items.map((item) => (
-          <article
-            className={[
-              "d1-artifact-card",
-              "story-pitch",
-              item.status === "ON_WALL" ? "on-wall" : ""
-            ].filter(Boolean).join(" ")}
-            key={item.id}
-          >
-            <header>
-              <div>
-                <span>故事发布五步卡</span>
-                <strong>{asText(item.payload.product_name) || "未命名作品"}</strong>
-                <small>{item.team_name || item.student_name || "学生提交"}</small>
+        {items.map((item) => {
+          const qaPairs = storyQaPairs(item.payload);
+          return (
+            <article
+              className={[
+                "d1-artifact-card",
+                "story-pitch",
+                item.status === "ON_WALL" ? "on-wall" : ""
+              ].filter(Boolean).join(" ")}
+              key={item.id}
+            >
+              <header>
+                <div>
+                  <span>故事发布五步卡</span>
+                  <strong>{asText(item.payload.product_name) || "未命名作品"}</strong>
+                  <small>{item.team_name || item.student_name || "学生提交"}</small>
+                </div>
+                <button disabled={workingId === item.id} onClick={() => toggleWall(item)}>
+                  {item.status === "ON_WALL" ? "从大屏移开" : "放到大屏"}
+                </button>
+              </header>
+              <div className="artifact-lines">
+                <p><strong>开头：</strong>{asText(item.payload.story_hook) || "还没写"}</p>
+                <p><strong>人物：</strong>{asText(item.payload.user_scene) || "还没写"}</p>
+                <p><strong>作品：</strong>{asText(item.payload.product_demo) || "还没写"}</p>
+                <p><strong>证据：</strong>{asText(item.payload.proof_line) || "还没写"}</p>
+                <p><strong>邀请：</strong>{asText(item.payload.invite_line) || "还没写"}</p>
               </div>
-              <button disabled={workingId === item.id} onClick={() => toggleWall(item)}>
-                {item.status === "ON_WALL" ? "从大屏移开" : "放到大屏"}
-              </button>
-            </header>
-            <div className="artifact-lines">
-              <p><strong>开头：</strong>{asText(item.payload.story_hook) || "还没写"}</p>
-              <p><strong>人物：</strong>{asText(item.payload.user_scene) || "还没写"}</p>
-              <p><strong>作品：</strong>{asText(item.payload.product_demo) || "还没写"}</p>
-              <p><strong>证据：</strong>{asText(item.payload.proof_line) || "还没写"}</p>
-              <p><strong>邀请：</strong>{asText(item.payload.invite_line) || "还没写"}</p>
-              <p><strong>预演问题：</strong>{asText(item.payload.rehearsal_question) || "还没写"}</p>
-            </div>
-          </article>
-        ))}
+              <div className="story-qa-review">
+                <strong>问答预演</strong>
+                {qaPairs.length ? qaPairs.map((pair, index) => (
+                  <p key={`${item.id}-qa-${index}`}>
+                    <b>问 {index + 1}：</b>{pair.question}
+                    <span>{pair.answer}</span>
+                  </p>
+                )) : <p>还没写</p>}
+              </div>
+            </article>
+          );
+        })}
         {!items.length && <p className="empty">学生提交故事发布五步卡后，会出现在这里。</p>}
       </div>
     </section>
@@ -10155,12 +10192,29 @@ function StudentStoryPitchTask({
   const [productDemo, setProductDemo] = useState("");
   const [proofLine, setProofLine] = useState("");
   const [inviteLine, setInviteLine] = useState("");
-  const [rehearsalQuestion, setRehearsalQuestion] = useState("");
+  const [rehearsalQa, setRehearsalQa] = useState(() => [
+    { question: "", answer: "" },
+    { question: "", answer: "" },
+    { question: "", answer: "" }
+  ]);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
+  const isRehearsalMode = /问答预演|预演问题|追问/.test(taskTitle);
+  const filledRehearsalQa = useMemo(
+    () => rehearsalQa
+      .map((item) => ({ question: item.question.trim(), answer: item.answer.trim() }))
+      .filter((item) => item.question || item.answer),
+    [rehearsalQa]
+  );
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
+  };
+
+  const updateRehearsalQa = (index: number, field: "question" | "answer", value: string) => {
+    setRehearsalQa((current) => current.map((item, itemIndex) => (
+      itemIndex === index ? { ...item, [field]: value } : item
+    )));
   };
 
   const submit = async () => {
@@ -10188,6 +10242,14 @@ function StudentStoryPitchTask({
       showMessage("error", "最后写一句邀请大家做什么。");
       return;
     }
+    if (filledRehearsalQa.some((item) => !item.question || !item.answer)) {
+      showMessage("error", "有一条问答还差问题或回答。");
+      return;
+    }
+    if (isRehearsalMode && filledRehearsalQa.length < 3) {
+      showMessage("error", "先准备 3 个问题和回答。");
+      return;
+    }
     setSubmitting(true);
     setMessage(null);
     try {
@@ -10201,7 +10263,10 @@ function StudentStoryPitchTask({
           product_demo: productDemo.trim(),
           proof_line: proofLine.trim(),
           invite_line: inviteLine.trim(),
-          rehearsal_question: rehearsalQuestion.trim(),
+          rehearsal_question: filledRehearsalQa[0]?.question || "",
+          rehearsal_answer: filledRehearsalQa[0]?.answer || "",
+          rehearsal_qa: filledRehearsalQa,
+          rehearsal_question_summary: filledRehearsalQa.map((item) => item.question).join(" / "),
           team_id: student.team_id || "",
           team_name: student.team_name || ""
         }
@@ -10213,7 +10278,11 @@ function StudentStoryPitchTask({
       setProductDemo("");
       setProofLine("");
       setInviteLine("");
-      setRehearsalQuestion("");
+      setRehearsalQa([
+        { question: "", answer: "" },
+        { question: "", answer: "" },
+        { question: "", answer: "" }
+      ]);
       await refresh();
     } catch (err) {
       showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
@@ -10293,13 +10362,26 @@ function StudentStoryPitchTask({
               />
             </label>
             <label>
-              可能被问到的问题（可选）
-              <textarea
-                value={rehearsalQuestion}
-                onChange={(event) => setRehearsalQuestion(event.target.value)}
-                placeholder="例如：如果推荐结果不喜欢，可以怎么改？"
-                rows={3}
-              />
+              问答预演
+              <div className="story-qa-list">
+                {rehearsalQa.map((item, index) => (
+                  <article className="story-qa-card" key={index}>
+                    <span>第 {index + 1} 个问题</span>
+                    <textarea
+                      value={item.question}
+                      onChange={(event) => updateRehearsalQa(index, "question", event.target.value)}
+                      placeholder={index === 0 ? "例如：如果推荐结果不喜欢，可以怎么改？" : "例如：这个作品下一版先加什么？"}
+                      rows={2}
+                    />
+                    <textarea
+                      value={item.answer}
+                      onChange={(event) => updateRehearsalQa(index, "answer", event.target.value)}
+                      placeholder="用证据回答一句"
+                      rows={2}
+                    />
+                  </article>
+                ))}
+              </div>
             </label>
           </div>
           <div className="story-pitch-preview" aria-label="故事发布预览">
@@ -10825,6 +10907,7 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
           const isIteration = item.task_type === "iteration_plan";
           const isValue = item.task_type === "value_card";
           const isStory = item.task_type === "story_pitch";
+          const qaPairs = isStory ? storyQaPairs(item.payload) : [];
           return (
             <article
               className={
@@ -10907,6 +10990,9 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                   <p><b>作品</b>{asText(item.payload.product_demo) || "还没写"}</p>
                   <p><b>证据</b>{asText(item.payload.proof_line) || "还没写"}</p>
                   <p><b>邀请</b>{asText(item.payload.invite_line) || "还没写"}</p>
+                  {qaPairs.length > 0 && (
+                    <p><b>问答预演</b>{storyQaSummary(item.payload)}</p>
+                  )}
                 </>
               ) : isValue ? (
                 <>

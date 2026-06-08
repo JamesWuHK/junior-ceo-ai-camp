@@ -3667,6 +3667,62 @@ button:disabled {
   gap: 10px;
 }
 
+.story-qa-list {
+  display: grid;
+  gap: 10px;
+}
+
+.story-qa-card {
+  border: 1px solid #e5eadf;
+  border-radius: 8px;
+  background: #fffef8;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.story-qa-card span {
+  color: #5d3d9e;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.story-qa-card textarea {
+  min-height: 70px;
+}
+
+.story-qa-review {
+  border: 1px solid #e1d8f8;
+  border-radius: 8px;
+  background: #faf7ff;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.story-qa-review > strong {
+  color: #5d3d9e;
+  font-size: 14px;
+}
+
+.story-qa-review p {
+  margin: 0;
+  color: #536151;
+  line-height: 1.45;
+}
+
+.story-qa-review b {
+  color: #1f6f50;
+  margin-right: 6px;
+}
+
+.story-qa-review span {
+  display: block;
+  color: #172018;
+  font-weight: 800;
+  margin-top: 3px;
+}
+
 .story-pitch-preview {
   border: 1px solid #d8cef5;
   border-radius: 8px;
