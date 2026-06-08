@@ -235,6 +235,10 @@ export const api = {
     request<{ candidates: WallArtifact[]; votes: TaskSubmission[]; summaries: ProblemVoteSummary[] }>("/problem-votes/manage", {
       headers: headers(true)
     }),
+  teamFeedbackBrief: () =>
+    request<{ feedback_items: TaskSubmission[] }>("/team-feedback/brief", {
+      headers: studentHeaders(true)
+    }),
   manageShowcase: () => request<{ showcase_items: ShowcaseItem[] }>("/showcase/manage", { headers: headers(true) }),
   publishShowcase: (payload: Partial<ShowcaseItem>) =>
     request<{ showcase_item: ShowcaseItem }>("/publish/showcase", {

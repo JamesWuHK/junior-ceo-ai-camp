@@ -1647,6 +1647,47 @@ app.post("/problem-votes", async (request, reply) => {
   };
 });
 
+app.get("/team-feedback/brief", async (request, reply) => {
+  const principal = requireStudent(request);
+  if (!principal) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const student = row<{ id: string; team_id?: string | null; team_name?: string | null }>(
+    `SELECT s.id, s.team_id, t.name AS team_name
+       FROM students s
+       LEFT JOIN teams t ON t.id = s.team_id
+      WHERE s.id = ?
+        AND s.camp_id = ?`,
+    [principal.id, campId()]
+  );
+  if (!student) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const feedbackItems = rows<Record<string, any> & { payload?: string }>(
+    `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
+       FROM task_submissions ts
+       LEFT JOIN students s ON s.id = ts.student_id
+       LEFT JOIN teams t ON t.id = ts.team_id
+      WHERE ts.camp_id = ?
+        AND ts.task_type = 'product_feedback'
+      ORDER BY ts.updated_at DESC, ts.created_at DESC`,
+    campId()
+  )
+    .map((item): TaskArtifact => {
+      const base = item as Record<string, any>;
+      return {
+        ...base,
+        task_type: "product_feedback",
+        payload: jsonParse<TaskPayload>(base.payload, {})
+      };
+    })
+    .filter((item) => {
+      const targetTeamId = textValue(item.payload.team_id);
+      const targetTeamName = textValue(item.payload.team_name);
+      return (
+        (!!student.team_id && targetTeamId === student.team_id) ||
+        (!!student.team_name && targetTeamName === student.team_name)
+      );
+    });
+  return { feedback_items: feedbackItems };
+});
+
 app.post("/task-submissions/:id/status", async (request, reply) => {
   if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
   const { id } = request.params as { id: string };

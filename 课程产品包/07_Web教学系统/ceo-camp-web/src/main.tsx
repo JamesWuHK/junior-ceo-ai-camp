@@ -2218,7 +2218,8 @@ function journeyCopy(item: WallArtifact) {
       ["建议改", iterationListSummary(item.payload.should_change_items, item.payload.should_change_summary)],
       ["暂不改", iterationListSummary(item.payload.later_items, item.payload.later_summary)],
       ["V2 先改", asText(item.payload.v2_plan)],
-      ["再试一次", asText(item.payload.test_again)]
+      ["再试一次", asText(item.payload.test_again)],
+      ["来自反馈", asTextList(item.payload.source_feedback_summaries).join(" / ")]
     ];
   }
   if (item.task_type === "value_card") {
@@ -4143,6 +4144,9 @@ function TeacherIterationPlans() {
                 <p><strong>暂不改：</strong>{later || "还没写"}</p>
                 <p><strong>V2 先改：</strong>{asText(item.payload.v2_plan) || "还没写"}</p>
                 <p><strong>再试一次：</strong>{asText(item.payload.test_again) || "还没写"}</p>
+                {asTextList(item.payload.source_feedback_summaries).length > 0 && (
+                  <p><strong>来自反馈：</strong>{asTextList(item.payload.source_feedback_summaries).join(" / ")}</p>
+                )}
               </div>
             </article>
           );
@@ -9521,14 +9525,64 @@ function StudentIterationPlanTask({
   const [later, setLater] = useState("");
   const [v2Plan, setV2Plan] = useState("");
   const [testAgain, setTestAgain] = useState("");
+  const [feedbackItems, setFeedbackItems] = useState<TaskSubmission[]>([]);
+  const [selectedFeedbackIds, setSelectedFeedbackIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
   const mustChangeItems = useMemo(() => asTextList(mustChange), [mustChange]);
   const shouldChangeItems = useMemo(() => asTextList(shouldChange), [shouldChange]);
   const laterItems = useMemo(() => asTextList(later), [later]);
+  const selectedFeedbackSummaries = useMemo(
+    () => feedbackItems
+      .filter((item) => selectedFeedbackIds.includes(item.id))
+      .map((item) => asText(item.payload.suggestion) || asText(item.payload.most_useful))
+      .filter(Boolean),
+    [feedbackItems, selectedFeedbackIds]
+  );
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
+  };
+
+  useEffect(() => {
+    let alive = true;
+    api.teamFeedbackBrief()
+      .then((result) => {
+        if (!alive) return;
+        setFeedbackItems(result.feedback_items);
+        const firstProduct = result.feedback_items.find((item) => asText(item.payload.product_name));
+        if (firstProduct) setProductName((current) => current || asText(firstProduct.payload.product_name));
+      })
+      .catch(() => {
+        if (alive) setFeedbackItems([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const appendLine = (current: string, nextLine: string) => {
+    const line = nextLine.trim();
+    if (!line) return current;
+    const lines = asTextList(current);
+    if (lines.includes(line)) return current;
+    return [...lines, line].join("\n");
+  };
+
+  const useFeedback = (item: TaskSubmission, bucket: "must" | "should") => {
+    const suggestion = asText(item.payload.suggestion);
+    const useful = asText(item.payload.most_useful);
+    const line = suggestion || useful;
+    if (!line) return;
+    if (!productName.trim()) setProductName(asText(item.payload.product_name));
+    if (bucket === "must") setMustChange((current) => appendLine(current, line));
+    if (bucket === "should") setShouldChange((current) => appendLine(current, line));
+    setSelectedFeedbackIds((current) => current.includes(item.id) ? current : [...current, item.id]);
+    if (!v2Plan.trim()) setV2Plan(line);
+    if (!testAgain.trim()) {
+      const source = item.student_name || item.team_name || "";
+      setTestAgain(source ? `请${source}再打开一次` : "请刚才试用过的同学再打开一次");
+    }
   };
 
   const submit = async () => {
@@ -9568,6 +9622,8 @@ function StudentIterationPlanTask({
           later_summary: laterItems.join(" / "),
           v2_plan: v2Plan.trim(),
           test_again: testAgain.trim(),
+          source_feedback_ids: selectedFeedbackIds,
+          source_feedback_summaries: selectedFeedbackSummaries,
           team_id: student.team_id || "",
           team_name: student.team_name || ""
         }
@@ -9579,6 +9635,7 @@ function StudentIterationPlanTask({
       setLater("");
       setV2Plan("");
       setTestAgain("");
+      setSelectedFeedbackIds([]);
       await refresh();
     } catch (err) {
       showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
@@ -9602,6 +9659,28 @@ function StudentIterationPlanTask({
             </div>
             <button className="text-button" onClick={onLogout}>退出</button>
           </div>
+          {feedbackItems.length > 0 && (
+            <div className="iteration-feedback-panel">
+              <span>收到的试用反馈</span>
+              <div className="iteration-feedback-options">
+                {feedbackItems.slice(0, 6).map((item) => {
+                  const active = selectedFeedbackIds.includes(item.id);
+                  return (
+                    <article className={active ? "iteration-feedback-card active" : "iteration-feedback-card"} key={item.id}>
+                      <small>{item.student_name || item.team_name || "同学反馈"}</small>
+                      <strong>{asText(item.payload.product_name) || "作品"}</strong>
+                      <p><b>有用</b>{asText(item.payload.most_useful) || "还没写"}</p>
+                      <p><b>建议</b>{asText(item.payload.suggestion) || "还没写"}</p>
+                      <div className="iteration-feedback-actions">
+                        <button onClick={() => useFeedback(item, "must")}>放进必须改</button>
+                        <button onClick={() => useFeedback(item, "should")}>放进建议改</button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <label>
             作品名
             <input
@@ -10845,6 +10924,9 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                   <p><b>建议改</b>{iterationListSummary(item.payload.should_change_items, item.payload.should_change_summary) || "还没写"}</p>
                   <p><b>暂不改</b>{iterationListSummary(item.payload.later_items, item.payload.later_summary) || "还没写"}</p>
                   <p><b>再试一次</b>{asText(item.payload.test_again) || "还没写"}</p>
+                  {asTextList(item.payload.source_feedback_summaries).length > 0 && (
+                    <p><b>来自反馈</b>{asTextList(item.payload.source_feedback_summaries).join(" / ")}</p>
+                  )}
                 </>
               ) : isTech ? (
                 <>
