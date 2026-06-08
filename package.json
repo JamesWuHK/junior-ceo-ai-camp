@@ -10,6 +10,8 @@
     "seo:robots": "node scripts/seo/baidu-seo.mjs robots",
     "seo:sitemap": "node scripts/seo/baidu-seo.mjs sitemap",
     "seo:coverage": "node scripts/seo/baidu-seo.mjs coverage",
+    "seo:monitor": "node scripts/seo/baidu-seo.mjs monitor",
+    "seo:baidu:monitor": "node scripts/seo/baidu-seo.mjs monitor",
     "seo:baidu:submit": "node scripts/seo/baidu-seo.mjs submit",
     "seo:submit:baidu": "node scripts/seo/baidu-seo.mjs submit"
   }

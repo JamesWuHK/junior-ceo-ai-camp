@@ -11,6 +11,7 @@ const SITE_URL = stripTrailingSlash(process.env.SITE_URL || 'https://camps.wanli
 const OUTPUT_DIRS = ['.', 'camp-website'];
 const KEYWORD_CONFIG_FILE = 'seo/keywords.json';
 const COVERAGE_REPORT_FILE = 'reports/seo-baidu-geo-coverage.md';
+const MONITOR_REPORT_FILE = 'reports/seo-baidu-monitor.md';
 const SITEMAP_ENTRIES = [
   {
     path: '/',
@@ -709,8 +710,8 @@ function urlsFromSitemap() {
   return Array.from(sitemap.matchAll(/<loc>([^<]+)<\/loc>/g), (match) => match[1].trim());
 }
 
-async function checkOnline() {
-  const targets = [
+function onlineTargets() {
+  return [
     { url: siteUrl('/'), markers: [`<link rel="canonical" href="${siteUrl('/')}">`, 'application/ld+json', '北京顺义AI课程'] },
     { url: siteUrl('/ai-pbl-camp.html'), markers: ['AI PBL 创业营', 'application/ld+json', 'AI产品原型课程'] },
     { url: siteUrl('/youth-ai-course-guide.html'), markers: ['青少年AI课程怎么选', 'application/ld+json', 'AI PBL创业营'] },
@@ -722,19 +723,269 @@ async function checkOnline() {
     { url: siteUrl('/llms.txt'), markers: LLM_MARKERS },
     ...MARKDOWN_ENTRIES.map((entry) => ({ url: siteUrl(entry.path), markers: [entry.title.replace(' Markdown 上下文', ''), '推荐引用描述'] }))
   ];
+}
+
+async function fetchOnlineTarget(target) {
+  try {
+    const response = await fetch(target.url, { redirect: 'follow' });
+    const body = await response.text();
+    const missingMarkers = target.markers.filter((marker) => !body.includes(marker));
+    const ok = response.ok && missingMarkers.length === 0;
+    return {
+      url: target.url,
+      status: response.status,
+      bytes: body.length,
+      missingMarkers,
+      ok,
+      error: ''
+    };
+  } catch (error) {
+    return {
+      url: target.url,
+      status: 0,
+      bytes: 0,
+      missingMarkers: target.markers,
+      ok: false,
+      error: error.message
+    };
+  }
+}
+
+function isConfiguredSecret(value) {
+  return Boolean(value && !/replace_with|example|your_|token_here/i.test(String(value)));
+}
+
+function keywordCoverageSnapshot() {
+  const rows = [];
+  const config = readJson(KEYWORD_CONFIG_FILE);
+  const defaults = config.defaults || {};
+  const sitemap = existsSync(join(ROOT, 'sitemap.xml')) ? read('sitemap.xml') : '';
+  const llms = existsSync(join(ROOT, 'llms.txt')) ? read('llms.txt') : '';
+
+  for (const cluster of config.clusters || []) {
+    const source = cluster.source || (cluster.targetPage === '/' ? 'index.html' : cluster.targetPage.replace(/^\//, ''));
+    const pageUrl = siteUrl(cluster.targetPage || '/');
+    const requiredPrimaryLocations = cluster.requiredPrimaryLocations || defaults.requiredPrimaryLocations || ['title', 'description', 'h1', 'body', 'jsonLd'];
+    const minimumSecondaryMatches = Number.isFinite(cluster.minimumSecondaryMatches)
+      ? cluster.minimumSecondaryMatches
+      : Number(defaults.minimumSecondaryMatches || 0);
+    const markdownSource = markdownSourceForCluster(cluster);
+    const failures = [];
+    const warnings = [];
+    let primaryLocations = [];
+    let secondaryMatches = [];
+    let secondaryMissing = cluster.secondary || [];
+    let jsonLdTypeList = [];
+
+    if (!existsSync(join(ROOT, source))) {
+      failures.push(`missing source file: ${source}`);
+    } else {
+      const html = read(source);
+      const fields = pageSearchFields(html);
+      primaryLocations = coverageLocations(fields, cluster.primary);
+      const missingPrimaryLocations = requiredPrimaryLocations.filter((location) => !includesPhrase(fields[location], cluster.primary));
+      secondaryMatches = (cluster.secondary || []).filter((keyword) => includesPhrase(fields.all, keyword));
+      secondaryMissing = (cluster.secondary || []).filter((keyword) => !includesPhrase(fields.all, keyword));
+      const publicInternalTerms = PUBLIC_INTERNAL_TERMS.filter((term) => includesPhrase(fields.body, term));
+
+      if (missingPrimaryLocations.length > 0) {
+        failures.push(`primary keyword missing in: ${missingPrimaryLocations.join(', ')}`);
+      }
+      if (secondaryMatches.length < minimumSecondaryMatches) {
+        failures.push(`secondary keyword coverage ${secondaryMatches.length}/${minimumSecondaryMatches}`);
+      }
+      if (getCanonical(html) !== pageUrl) {
+        failures.push(`canonical mismatch: ${getCanonical(html) || 'missing'}`);
+      }
+      try {
+        jsonLdTypeList = Array.from(jsonLdTypes(html)).sort();
+        if (jsonLdTypeList.length === 0) failures.push('missing json-ld type');
+      } catch (error) {
+        failures.push(`invalid json-ld: ${error.message}`);
+      }
+      if (publicInternalTerms.length > 0) {
+        failures.push(`public visible copy contains internal terms: ${publicInternalTerms.join(', ')}`);
+      }
+    }
+
+    if (!sitemap.includes(`<loc>${pageUrl}</loc>`)) {
+      failures.push('sitemap missing page URL');
+    }
+    if (!llms || (!llms.includes(pageUrl) && !includesPhrase(llms, cluster.primary))) {
+      warnings.push('llms.txt does not mention page URL or primary keyword');
+    }
+    if (markdownSource) {
+      if (!existsSync(join(ROOT, markdownSource))) {
+        failures.push(`missing markdown context: ${markdownSource}`);
+      } else {
+        const markdown = read(markdownSource);
+        if (!includesPhrase(markdown, cluster.primary)) failures.push(`${markdownSource} missing primary keyword`);
+        const markdownSecondaryMatches = (cluster.secondary || []).filter((keyword) => includesPhrase(markdown, keyword));
+        if (markdownSecondaryMatches.length === 0) warnings.push(`${markdownSource} has no secondary keyword coverage`);
+      }
+    }
+
+    rows.push({
+      id: cluster.id,
+      page: cluster.targetPage,
+      pageUrl,
+      primary: cluster.primary,
+      aiQueries: cluster.aiQueries || [],
+      primaryLocations,
+      secondaryMatches,
+      secondaryTotal: (cluster.secondary || []).length,
+      jsonLdTypes: jsonLdTypeList,
+      status: statusLabel(failures.length, warnings.length),
+      failures,
+      warnings
+    });
+  }
+
+  const failedRows = rows.filter((row) => row.status === 'FAIL');
+  const warningRows = rows.filter((row) => row.status === 'WARN');
+  return {
+    rows,
+    status: statusLabel(failedRows.length, warningRows.length),
+    failedRows,
+    warningRows
+  };
+}
+
+function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, onlineStatus, onlineResults }) {
+  const coverageRows = coverageSnapshot.rows.map((row) => [
+    row.status,
+    row.id,
+    row.page,
+    row.primary,
+    row.primaryLocations.join(', ') || 'none',
+    `${row.secondaryMatches.length}/${row.secondaryTotal}`,
+    row.jsonLdTypes.join(', ') || 'none'
+  ].map(escapeMarkdownCell).join(' | '));
+
+  const onlineRows = onlineResults.map((result) => [
+    result.ok ? 'PASS' : 'FAIL',
+    result.url,
+    result.status || 'n/a',
+    result.bytes,
+    result.error || (result.missingMarkers.length > 0 ? result.missingMarkers.join(', ') : 'none')
+  ].map(escapeMarkdownCell).join(' | '));
+
+  const baiduReadiness = [
+    coverageSnapshot.status === 'FAIL' ? 'local SEO/GEO checks have failures' : '',
+    onlineStatus === 'FAIL' ? 'online checks have failures' : '',
+    baidu.tokenConfigured ? '' : 'BAIDU_TOKEN is not configured'
+  ].filter(Boolean);
+
+  return [
+    '# Baidu SEO / GEO Monitor',
+    '',
+    `Generated: ${generatedAt}`,
+    `Site URL: ${SITE_URL}`,
+    '',
+    '## Status Summary',
+    '',
+    `- Local SEO/GEO coverage: ${coverageSnapshot.status}`,
+    `- Online crawl target check: ${onlineStatus}`,
+    `- Baidu push token configured: ${baidu.tokenConfigured ? 'yes' : 'no'}`,
+    `- Baidu site parameter: ${baidu.site}`,
+    `- Baidu submit URL count: ${urls.length}`,
+    `- Baidu push readiness: ${baiduReadiness.length === 0 ? 'READY_TO_SUBMIT' : `WAITING (${baiduReadiness.join('; ')})`}`,
+    '',
+    '## Measurement Boundary',
+    '',
+    '- Measured now: local page metadata, sitemap membership, JSON-LD presence, public copy internal-term scan, live HTTP status, live marker presence, and Baidu push URL set.',
+    '- Not measured here: Baidu index count, search impressions, clicks, crawler frequency, keyword ranking positions, or AI citation frequency. Those require Baidu Search Resource Platform exports and/or a rank/citation monitor.',
+    '- Baidu URL submission helps Baidu discover URLs faster; it does not guarantee inclusion or ranking. Treat successful push as discovery support, not as proof of indexed status.',
+    '',
+    '## Baidu Submission Set',
+    '',
+    'Run `npm run seo:submit:baidu -- --dry-run` to print this same URL set without submitting. After privately setting `BAIDU_TOKEN`, run `npm run seo:submit:baidu` for real push submission.',
+    '',
+    ...urls.map((url) => `- ${url}`),
+    '',
+    '## Keyword / GEO Coverage',
+    '',
+    'Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | JSON-LD types',
+    '--- | --- | --- | --- | --- | --- | ---',
+    ...coverageRows,
+    '',
+    '## Online Targets',
+    '',
+    'Status | URL | HTTP | Bytes | Missing markers / error',
+    '--- | --- | --- | --- | ---',
+    ...onlineRows,
+    '',
+    '## AI Query Targets',
+    '',
+    ...coverageSnapshot.rows.flatMap((row) => [
+      `### ${row.id}`,
+      '',
+      `- Page: ${row.pageUrl}`,
+      `- Primary keyword: ${row.primary}`,
+      `- Target answer queries: ${row.aiQueries.join(' | ') || 'n/a'}`,
+      `- Status: ${row.status}`,
+      row.failures.length > 0 ? `- Failures: ${row.failures.join(' | ')}` : '- Failures: none',
+      row.warnings.length > 0 ? `- Warnings: ${row.warnings.join(' | ')}` : '- Warnings: none',
+      ''
+    ]),
+    '## Next Actions',
+    '',
+    '- Add `BAIDU_TOKEN` privately in `.env` or the shell, then run `npm run seo:submit:baidu`.',
+    '- Confirm `https://camps.wanli.wiki/sitemap.xml` in Baidu Search Resource Platform ordinary inclusion/sitemap tools.',
+    '- Record measured Baidu platform data weekly: indexed URLs, crawl frequency, search impressions, clicks, and keyword positions for each cluster.',
+    '- For GEO, run this monitor after each content change and keep every target query backed by a visible HTML answer, FAQ/schema match, Markdown context, and `llms.txt` link.',
+    ''
+  ].join('\n');
+}
+
+async function monitor() {
+  loadDotEnv();
+  const generatedAt = new Date().toISOString();
+  const urls = urlsFromSitemap();
+  const coverageSnapshot = keywordCoverageSnapshot();
+  const onlineResults = [];
+
+  for (const target of onlineTargets()) {
+    onlineResults.push(await fetchOnlineTarget(target));
+  }
+
+  const onlineFailures = onlineResults.filter((result) => !result.ok);
+  const onlineStatus = statusLabel(onlineFailures.length, 0);
+  const baidu = {
+    site: process.env.BAIDU_SITE || SITE_URL,
+    tokenConfigured: isConfiguredSecret(process.env.BAIDU_TOKEN)
+  };
+  const report = buildMonitorReport({
+    generatedAt,
+    baidu,
+    urls,
+    coverageSnapshot,
+    onlineStatus,
+    onlineResults
+  });
+
+  writeReport(MONITOR_REPORT_FILE, report);
+  console.log(`Baidu SEO/GEO monitor: local=${coverageSnapshot.status}, online=${onlineStatus}, token=${baidu.tokenConfigured ? 'configured' : 'missing'}`);
+  console.log(`Report: ${MONITOR_REPORT_FILE}`);
+  for (const result of onlineResults) {
+    console.log(`- ${result.ok ? 'PASS' : 'FAIL'} ${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
+  }
+
+  if (coverageSnapshot.status === 'FAIL' || onlineStatus === 'FAIL') {
+    process.exitCode = 1;
+  }
+}
+
+async function checkOnline() {
   const failures = [];
 
-  for (const target of targets) {
-    try {
-      const response = await fetch(target.url, { redirect: 'follow' });
-      const body = await response.text();
-      console.log(`${target.url}: HTTP ${response.status}, bytes=${body.length}`);
-      if (!response.ok) failures.push(`${target.url} returned HTTP ${response.status}`);
-      for (const marker of target.markers) {
-        if (!body.includes(marker)) failures.push(`${target.url} missing marker: ${marker}`);
-      }
-    } catch (error) {
-      failures.push(`${target.url} fetch failed: ${error.message}`);
+  for (const target of onlineTargets()) {
+    const result = await fetchOnlineTarget(target);
+    console.log(`${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
+    if (result.error) failures.push(`${result.url} fetch failed: ${result.error}`);
+    if (result.status && result.status >= 400) failures.push(`${result.url} returned HTTP ${result.status}`);
+    for (const marker of result.missingMarkers) {
+      failures.push(`${result.url} missing marker: ${marker}`);
     }
   }
 
@@ -809,6 +1060,7 @@ function usage() {
     '  robots            Write robots.txt',
     '  sitemap           Write sitemap.xml',
     '  coverage          Validate Baidu SEO and GEO keyword coverage',
+    '  monitor           Write a Baidu SEO/GEO monitoring report',
     '  check             Validate homepage SEO files and tags',
     '  check-online      Validate live homepage, robots, sitemap, and llms.txt',
     '  submit [--dry-run] Submit sitemap URLs to Baidu Search Resource Platform'
@@ -834,6 +1086,9 @@ async function main() {
       break;
     case 'coverage':
       coverage();
+      break;
+    case 'monitor':
+      await monitor();
       break;
     case 'check':
       check();
