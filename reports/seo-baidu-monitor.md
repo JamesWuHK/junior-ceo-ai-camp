@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-08T16:03:41.923Z
+Generated: 2026-06-08T16:05:32.758Z
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -17,6 +17,11 @@ Site URL: https://camps.wanli.wiki
 - Measured now: local page metadata, sitemap membership, JSON-LD presence, public copy internal-term scan, live HTTP status, live marker presence, and Baidu push URL set.
 - Not measured here: Baidu index count, search impressions, clicks, crawler frequency, keyword ranking positions, or AI citation frequency. Those require Baidu Search Resource Platform exports and/or a rank/citation monitor.
 - Baidu URL submission helps Baidu discover URLs faster; it does not guarantee inclusion or ranking. Treat successful push as discovery support, not as proof of indexed status.
+
+## Official Baidu References
+
+- [普通收录](https://ziyuan.baidu.com/linksubmit/index): Baidu describes ordinary inclusion as active URL submission that can shorten crawler discovery time, while stating that submitted links are not guaranteed to be included.
+- [快速收录](https://ziyuan.baidu.com/dailysubmit/index): Baidu describes fast inclusion as active resource push for time-sensitive URLs, while also stating that submitted links are not guaranteed to be included.
 
 ## Baidu Submission Set
 
