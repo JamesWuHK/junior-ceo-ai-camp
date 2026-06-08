@@ -47,6 +47,30 @@ tailwind.config = {
   .card-hover { transition: transform 0.3s ease, border-color 0.3s ease; }
   .card-hover:hover { transform: translateY(-4px); border-color: rgba(240,180,41,0.3); }
 
+  /* Contact QR fallback */
+  .qr-fallback {
+    display: none;
+    place-items: center;
+    aspect-ratio: 1 / 1;
+    border-radius: 0.75rem;
+    background:
+      linear-gradient(90deg, rgba(10,10,20,0.12) 1px, transparent 1px) 0 0 / 24px 24px,
+      linear-gradient(rgba(10,10,20,0.12) 1px, transparent 1px) 0 0 / 24px 24px,
+      #ffffff;
+    color: #0a0a14;
+    text-align: center;
+  }
+  .qr-fallback span {
+    display: inline-block;
+    max-width: 9rem;
+    border: 1px solid rgba(10,10,20,0.12);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.92);
+    padding: 0.45rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0a0a14; } ::-webkit-scrollbar-thumb { background: #2a2a44; border-radius: 3px; }
 </style>
@@ -57,17 +81,19 @@ tailwind.config = {
 <nav class="fixed top-0 inset-x-0 z-50 border-b border-white/5 glass">
   <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
     <a href="#" class="text-lg font-bold tracking-tight"><span class="text-amber">少年CEO</span> AI创业营</a>
-    <div class="hidden md:flex gap-8 text-sm text-white/60">
+    <div class="hidden xl:flex gap-7 text-sm text-white/60">
       <a href="#what" class="hover:text-amber transition-colors">课程介绍</a>
       <a href="#process" class="hover:text-amber transition-colors">3天流程</a>
       <a href="#showcase" class="hover:text-amber transition-colors">作品展示</a>
       <a href="#awards" class="hover:text-amber transition-colors">荣誉殿堂</a>
       <a href="#highlights" class="hover:text-amber transition-colors">高光时刻</a>
       <a href="#story" class="hover:text-amber transition-colors">活动回顾</a>
+      <a href="#partners" class="hover:text-amber transition-colors">机构合作</a>
       <a href="#faq" class="hover:text-amber transition-colors">常见问题</a>
     </div>
     <div class="flex items-center gap-3">
-      <a href="teacher.html" class="text-white/30 hover:text-amber text-xs transition-colors">教师入口</a>
+      <a href="teacher.html?authfix=20260608" class="text-white/30 hover:text-amber text-xs transition-colors">教师入口</a>
+      <a href="student.html?authfix=20260608" class="text-white/30 hover:text-amber text-xs transition-colors">学生入口</a>
       <a href="#cta" class="bg-amber text-ink px-5 py-2 rounded-full text-sm font-semibold hover:bg-amber-light transition-colors">立即报名</a>
     </div>
   </div>
@@ -96,6 +122,9 @@ tailwind.config = {
       <a href="#cta" class="bg-amber text-ink px-8 py-3.5 rounded-full font-semibold text-lg hover:bg-amber-light transition-colors">预约名额</a>
       <a href="#what" class="border border-white/20 text-white/70 px-8 py-3.5 rounded-full text-lg hover:border-amber/30 hover:text-amber transition-colors">了解更多</a>
     </div>
+    <p class="mt-5 text-sm text-white/35">
+      培训机构想合作开展营期？<a href="#partners" class="text-amber/80 hover:text-amber transition-colors">查看机构合作方式</a>
+    </p>
     <div class="mt-16 flex gap-8 justify-center text-sm text-white/30">
       <span>📍 北京顺义</span><span>📅 2026年暑假</span><span>👥 仅限30人</span>
     </div>
@@ -151,7 +180,7 @@ tailwind.config = {
             <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">发现一个真实的问题（不是假想题）</p></div>
             <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">用 AI 做市场调研和竞品分析</p></div>
             <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">采访真实用户，验证需求</p></div>
-            <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">组建创业团队，选 CEO</p></div>
+            <div class="flex gap-3"><div class="timeline-dot"></div><p class="text-sm text-white/50">组建创业团队，选项目协调人（每人都是自己AI的CEO）</p></div>
           </div>
           <div class="mt-6 pt-4 border-t border-white/5">
             <span class="text-xs text-white/30">学：创业认知 + AI基础 + 需求调研</span>
@@ -480,8 +509,20 @@ tailwind.config = {
   <div class="max-w-4xl mx-auto">
     <div class="text-center mb-16">
       <div class="inline-block px-3 py-1 border border-amber/20 rounded-full text-xs text-amber/70 mb-4">活动回顾</div>
-      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">给 30 个家长演示了一遍 AI</h2>
+      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">和 30 个家长一起重新看 AI</h2>
       <p class="text-white/40 max-w-xl mx-auto">顺义 LIA 公益社区 · 2026年5月</p>
+    </div>
+
+    <!-- Workshop photos -->
+    <div class="grid md:grid-cols-[0.82fr_1.18fr] gap-4 mb-6">
+      <figure class="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+        <img src="assets/story/lia-ai-demo.jpg" alt="顺义 LIA 公益社区 AI 分享会现场，老师正在进行主题分享" class="w-full aspect-[3/4] object-cover">
+        <figcaption class="px-5 py-4 text-xs text-white/45 leading-relaxed">现场讨论：AI 时代，孩子需要哪些新能力？</figcaption>
+      </figure>
+      <figure class="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+        <img src="assets/story/lia-parent-workshop.jpg" alt="顺义 LIA 公益社区 AI 分享会现场，家长正在听讲并动手实操" class="w-full aspect-[4/3] object-cover">
+        <figcaption class="px-5 py-4 text-xs text-white/45 leading-relaxed">现场体验：家长自己输入问题、观察结果、再修改问法。</figcaption>
+      </figure>
     </div>
 
     <!-- Demo story -->
@@ -498,17 +539,17 @@ tailwind.config = {
     <!-- Key moment -->
     <div class="glass rounded-2xl p-8 mb-6">
       <p class="text-sm text-white/50 leading-relaxed mb-4">
-        那天下午，没有讲"AI 是什么"。武宁老师投屏打开电脑，直接打开一个空白页面，一句指令下去，AI 根据老师的一句话自动输出一篇完整的微信公众号文章——标题、正文、配图全了。台下瞬间骚动。
+        那天下午，武宁老师围绕"AI 时代，孩子需要哪些新能力？"展开分享。现场没有把 AI 当成神奇按钮来演示，而是从家长关心的真实问题出发，讨论提问、判断和领导力这些能力为什么会变得更重要。
       </p>
       <p class="text-sm text-white/50 leading-relaxed">
-        然后每个家长都在自己的电脑上动了手。不是看——是自己敲键盘、自己下指令、自己看 AI 在面前产出东西。那几秒的沉默，全场都安静了。
+        随后进入体验环节。家长们在自己的电脑上动手尝试，不是只看别人操作，而是自己输入、观察结果、追问和修改。那几秒的沉默，全场都安静了。
       </p>
     </div>
 
     <!-- 10x insight -->
     <div class="glass rounded-2xl p-8 mb-6 border-l-2 border-amber/30">
       <p class="text-amber font-semibold mb-2 text-sm">现场最触动家长的一句话</p>
-      <p class="text-white/60 text-sm leading-relaxed">"AI 工具是能力放大器，善用AI的人就像是拥有了超能力，但不同能力的人用AI，产出的差距会比原先更大出十倍。"</p>
+      <p class="text-white/60 text-sm leading-relaxed">"同一个 AI 工具，不同的提问和判断，结果会差很多。真正重要的，是人能不能把问题说清楚。"</p>
     </div>
 
     <!-- Parent demands -->
@@ -540,6 +581,92 @@ tailwind.config = {
   </div>
 </section>
 
+<!-- ====== PARTNERS ====== -->
+<section id="partners" class="py-24 px-6 bg-ink-light/30">
+  <div class="max-w-6xl mx-auto">
+    <div class="grid lg:grid-cols-[0.95fr_1.05fr] gap-8 items-stretch">
+      <div class="glass rounded-2xl p-8 md:p-10 h-full">
+        <div class="inline-block px-3 py-1 border border-amber/20 rounded-full text-xs text-amber/70 mb-5">机构合作</div>
+        <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-5">一起把 PBL 创业营<br>带到更多孩子身边</h2>
+        <p class="text-white/45 leading-relaxed mb-8">
+          我们欢迎培训机构、营地、学校社群与城市合伙人合作开展少年CEO AI 创业营。你负责连接本地孩子和家庭，我们提供课程方案、教师培训、课堂系统与作品展示支持。
+        </p>
+
+        <div class="grid sm:grid-cols-3 gap-4 mb-8">
+          <div class="border-t border-amber/30 pt-4">
+            <div class="text-amber font-bold mb-1">课程包</div>
+            <p class="text-xs text-white/35 leading-relaxed">3天 PBL 流程、任务卡、课件和展示结构。</p>
+          </div>
+          <div class="border-t border-amber/30 pt-4">
+            <div class="text-amber font-bold mb-1">师训支持</div>
+            <p class="text-xs text-white/35 leading-relaxed">帮助老师理解课堂节奏、活动组织和作品产出。</p>
+          </div>
+          <div class="border-t border-amber/30 pt-4">
+            <div class="text-amber font-bold mb-1">系统支持</div>
+            <p class="text-xs text-white/35 leading-relaxed">教师入口、学生任务、作品展厅和结营展示。</p>
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-[160px_1fr] gap-5 items-center rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <div class="rounded-2xl bg-white p-3">
+            <img src="assets/wechat-contact-qr.png" alt="武宁老师微信二维码" class="w-full aspect-square object-contain rounded-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+            <div class="qr-fallback">
+              <span>微信二维码</span>
+            </div>
+          </div>
+          <div>
+            <p class="text-sm text-white/60 font-semibold mb-2">扫码加微信，直接聊合作</p>
+            <p class="text-xs text-white/35 leading-relaxed">
+              可以先发一句：机构合作 + 城市 + 机构名称。我们会一起确认适合的营期形式、师资准备和落地节奏。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-8 md:p-10 h-full">
+        <div class="mb-8">
+          <h3 class="text-2xl font-bold tracking-tight mb-3">留下合作联系方式</h3>
+          <p class="text-white/40 text-sm leading-relaxed">适合想在本地开展 AI PBL 创业营、暑期营或周末工作坊的机构伙伴。</p>
+        </div>
+
+        <form id="partner-form" class="space-y-5" onsubmit="return false;">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-xs text-white/40 mb-2">机构名称 <span class="text-amber">*</span></label>
+              <input type="text" name="org_name" required class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors" placeholder="机构 / 营地 / 社群名称">
+            </div>
+            <div>
+              <label class="block text-xs text-white/40 mb-2">所在城市 <span class="text-amber">*</span></label>
+              <input type="text" name="city" required class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors" placeholder="例如：北京 / 上海 / 成都">
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-xs text-white/40 mb-2">联系人 <span class="text-amber">*</span></label>
+              <input type="text" name="contact_name" required class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors" placeholder="你的名字">
+            </div>
+            <div>
+              <label class="block text-xs text-white/40 mb-2">手机 / 微信 <span class="text-amber">*</span></label>
+              <input type="text" name="contact_method" required class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors" placeholder="方便联系的号码或微信">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs text-white/40 mb-2">你想怎么合作？（选填）</label>
+            <textarea name="partner_notes" rows="4" class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/15 focus:outline-none focus:border-amber/40 transition-colors resize-none" placeholder="比如：暑期营、周末营、学校社群活动、城市合作等。"></textarea>
+          </div>
+
+          <button type="submit" id="partner-submit-btn" class="w-full bg-white text-ink py-4 rounded-xl font-bold text-lg hover:bg-amber-light transition-colors active:scale-[0.98]">
+            提交合作意向
+          </button>
+          <p id="partner-form-msg" class="text-center text-sm hidden"></p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ====== FAQ ====== -->
 <section id="faq" class="py-24 px-6 bg-ink-light/30">
   <div class="max-w-3xl mx-auto">
@@ -553,6 +680,10 @@ tailwind.config = {
         <p class="text-sm text-white/40">不需要。所有产品用自然语言（打字或语音）跟 AI 对话就能做出来。关键是"想"而不是"写代码"。</p>
       </div>
       <div class="glass rounded-2xl p-6">
+        <h4 class="font-semibold mb-2">孩子完全不会打字怎么办？</h4>
+        <p class="text-sm text-white/40">低龄孩子可以用语音输入，也可以先口述给组员或助教记录。课程看重的是想法、表达和判断，不是打字速度。</p>
+      </div>
+      <div class="glass rounded-2xl p-6">
         <h4 class="font-semibold mb-2">8岁到16岁的孩子能在一起吗？</h4>
         <p class="text-sm text-white/40">能。混龄分组，大孩子学领导力（怎么带人），小孩子学表达（怎么被听见）。每个人有不同角色。</p>
       </div>
@@ -561,8 +692,28 @@ tailwind.config = {
         <p class="text-sm text-white/40">一个真正能跑的网页 / 聊天机器人 / 故事生成器。不是 PPT，是一个可以在浏览器打开的产品。结营后会部署到线上，永久可访问。</p>
       </div>
       <div class="glass rounded-2xl p-6">
+        <h4 class="font-semibold mb-2">如果有的组产品没完全做出来怎么办？</h4>
+        <p class="text-sm text-white/40">没关系。一个不完整但思路清楚的原型，比一个看起来完整却说不清用户和问题的作品更有价值。路演时，孩子也会讲清楚他们遇到的问题和下一步想怎么改。</p>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h4 class="font-semibold mb-2">这3天孩子到底学了什么？</h4>
+        <p class="text-sm text-white/40">不是只学几个 AI 工具，而是学习三件事：怎么发现真实问题，怎么跟 AI 协作而不是被 AI 牵着走，怎么站在别人面前把自己的想法说清楚。</p>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h4 class="font-semibold mb-2">营结束后作品还能继续用吗？</h4>
+        <p class="text-sm text-white/40">可以。每个团队的作品会整理成可访问链接或作品页，孩子也可以带回家继续修改、找更多人试用。</p>
+      </div>
+      <div class="glass rounded-2xl p-6">
         <h4 class="font-semibold mb-2">家长怎么参与？</h4>
         <p class="text-sm text-white/40">第三天下午3点，请来当"投资人"。不是来围观——是真的要提问、打分、投票。每个孩子都会站在你面前路演。</p>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h4 class="font-semibold mb-2">五力证书和评奖怎么保证真实？</h4>
+        <p class="text-sm text-white/40">不是只看最后谁讲得最好。老师和助教会在 3 天里观察孩子的具体行为：提问、共情、创造、判断和带团队把事情做成。证书和奖项来自这些真实表现。</p>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h4 class="font-semibold mb-2">开场未来职业照会用孩子照片吗？</h4>
+        <p class="text-sm text-white/40">会提前征得家长授权。可选择使用本人照片、使用卡通/背影替代，或完全不使用本人形象。照片只用于本次课堂体验和确认适合展示后的作品呈现，不和真实姓名、学校、手机号等敏感信息绑定。</p>
       </div>
       <div class="glass rounded-2xl p-6">
         <h4 class="font-semibold mb-2">孩子没选上 CEO 怎么办？</h4>
@@ -630,60 +781,108 @@ tailwind.config = {
 // 飞书群机器人 Webhook — 报名提交直接推卡片到群
 const SIGNUP_URL = 'https://open.feishu.cn/open-apis/bot/v2/hook/4328438e-8e43-4037-aebd-66951a7cd8bd';
 
-const form = document.getElementById('signup-form');
-const btn = document.getElementById('submit-btn');
-const msg = document.getElementById('form-msg');
+const signupForm = document.getElementById('signup-form');
+const signupBtn = document.getElementById('submit-btn');
+const signupMsg = document.getElementById('form-msg');
+const partnerForm = document.getElementById('partner-form');
+const partnerBtn = document.getElementById('partner-submit-btn');
+const partnerMsg = document.getElementById('partner-form-msg');
 
-form.addEventListener('submit', async function(e) {
-  e.preventDefault();
-
+async function submitContactForm({ form, button, message, loadingText, resetText, successText, buildCard }) {
   const formData = new FormData(form);
   const data = Object.fromEntries(formData.entries());
 
-  btn.disabled = true;
-  btn.textContent = '提交中...';
-  msg.style.display = 'none';
-
-  const card = {
-    msg_type: 'interactive',
-    card: {
-      header: {
-        title: { tag: 'plain_text', content: '🎯 少年CEO AI 创业营 · 新报名' },
-        template: 'amber'
-      },
-      elements: [
-        { tag: 'div', text: { tag: 'lark_md', content: `**家长：** ${data.parent_name}\n**手机：** ${data.phone}\n**孩子：** ${data.child_name}（${data.child_age}岁）` } },
-        { tag: 'hr' },
-        { tag: 'div', text: { tag: 'lark_md', content: `**联系方式：** ${data.contact || '未填写'}\n**备注：** ${data.notes || '无'}` } },
-        { tag: 'hr' },
-        { tag: 'note', elements: [{ tag: 'plain_text', content: `提交时间：${new Date().toLocaleString('zh-CN')}` }] }
-      ]
-    }
-  };
+  button.disabled = true;
+  button.textContent = loadingText;
+  message.style.display = 'none';
 
   try {
     const resp = await fetch(SIGNUP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(card)
+      body: JSON.stringify(buildCard(data))
     });
     const result = await resp.json();
     if (result.code === 0 || result.StatusCode === 0) {
-      msg.className = 'text-center text-sm text-green-400 mt-3';
-      msg.style.display = 'block';
-      msg.textContent = '报名成功！我们会在 24 小时内联系你。';
+      message.className = 'text-center text-sm text-green-400 mt-3';
+      message.style.display = 'block';
+      message.textContent = successText;
       form.reset();
     } else {
       throw new Error(result.msg || '提交失败');
     }
   } catch (err) {
-    msg.className = 'text-center text-sm text-red-400 mt-3';
-    msg.style.display = 'block';
-    msg.textContent = '网络不稳定，请刷新页面后重试（Ctrl+Shift+R），或直接微信联系我们。';
+    message.className = 'text-center text-sm text-red-400 mt-3';
+    message.style.display = 'block';
+    message.textContent = '网络不稳定，请刷新页面后重试，或直接微信联系我们。';
   } finally {
-    btn.disabled = false;
-    btn.textContent = '提交报名';
+    button.disabled = false;
+    button.textContent = resetText;
   }
+}
+
+signupForm.addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  await submitContactForm({
+    form: signupForm,
+    button: signupBtn,
+    message: signupMsg,
+    loadingText: '提交中...',
+    resetText: '提交报名',
+    successText: '报名成功！我们会在 24 小时内联系你。',
+    buildCard(data) {
+      return {
+        msg_type: 'interactive',
+        card: {
+          header: {
+            title: { tag: 'plain_text', content: '🎯 少年CEO AI 创业营 · 新报名' },
+            template: 'amber'
+          },
+          elements: [
+            { tag: 'div', text: { tag: 'lark_md', content: `**家长：** ${data.parent_name}\n**手机：** ${data.phone}\n**孩子：** ${data.child_name}（${data.child_age}岁）` } },
+            { tag: 'hr' },
+            { tag: 'div', text: { tag: 'lark_md', content: `**联系方式：** ${data.contact || '未填写'}\n**备注：** ${data.notes || '无'}` } },
+            { tag: 'hr' },
+            { tag: 'note', elements: [{ tag: 'plain_text', content: `提交时间：${new Date().toLocaleString('zh-CN')}` }] }
+          ]
+        }
+      };
+    }
+  });
+});
+
+partnerForm.addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  await submitContactForm({
+    form: partnerForm,
+    button: partnerBtn,
+    message: partnerMsg,
+    loadingText: '提交中...',
+    resetText: '提交合作意向',
+    successText: '合作意向已收到！我们会尽快和你联系。',
+    buildCard(data) {
+      return {
+        msg_type: 'interactive',
+        card: {
+          header: {
+            title: { tag: 'plain_text', content: '🤝 少年CEO AI 创业营 · 新机构合作咨询' },
+            template: 'amber'
+          },
+          elements: [
+            { tag: 'div', text: { tag: 'lark_md', content: `**机构：** ${data.org_name}\n**城市：** ${data.city}` } },
+            { tag: 'hr' },
+            { tag: 'div', text: { tag: 'lark_md', content: `**联系人：** ${data.contact_name}\n**手机 / 微信：** ${data.contact_method}` } },
+            { tag: 'hr' },
+            { tag: 'div', text: { tag: 'lark_md', content: `**合作想法：** ${data.partner_notes || '未填写'}` } },
+            { tag: 'hr' },
+            { tag: 'note', elements: [{ tag: 'plain_text', content: `提交时间：${new Date().toLocaleString('zh-CN')}` }] }
+          ]
+        }
+      };
+    }
+  });
 });
 </script>
 
