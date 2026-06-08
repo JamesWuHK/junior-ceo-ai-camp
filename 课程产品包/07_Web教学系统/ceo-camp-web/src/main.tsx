@@ -3864,13 +3864,16 @@ function TeacherTechRoutes() {
 
 function TeacherProjectSubmissions() {
   const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [allSubmissions, setAllSubmissions] = useState<TaskSubmission[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   const load = async () => {
     try {
       const result = await api.submissions();
-      setItems(result.task_submissions.filter((item) => item.task_type === "product_link"));
+      const allItems = result.task_submissions;
+      setAllSubmissions(allItems);
+      setItems(allItems.filter((item) => item.task_type === "product_link"));
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "加载失败");
     }
@@ -3886,6 +3889,20 @@ function TeacherProjectSubmissions() {
     const productName = asText(item.payload.product_name).trim();
     const oneLiner = asText(item.payload.one_liner).trim();
     const accessUrl = asText(item.payload.access_url).trim();
+    const teamName = item.team_name || asText(item.payload.team_name);
+    const relatedItems = allSubmissions.filter((candidate) =>
+      candidate.id !== item.id && submissionMatchesProjectIdentity(candidate, productName, item.team_id, teamName)
+    );
+    const definition = latestTask(relatedItems.filter((candidate) => candidate.task_type === "product_definition"));
+    const packaging = latestTask(relatedItems.filter((candidate) => candidate.task_type === "product_packaging"));
+    const targetUser = asText(definition?.payload.target_user).trim() || asText(packaging?.payload.target_user).trim();
+    const coreProblem = asText(definition?.payload.core_problem).trim();
+    const mergedLine =
+      oneLiner ||
+      asText(definition?.payload.one_liner).trim() ||
+      (targetUser && coreProblem ? `${targetUser}：${coreProblem}` : "") ||
+      asText(packaging?.payload.slogan).trim();
+    const screenshotUrl = asText(packaging?.payload.poster_url).trim();
     if (!productName || !accessUrl) {
       setMessage("这条提交缺少作品名或链接。");
       return;
@@ -3897,12 +3914,13 @@ function TeacherProjectSubmissions() {
         id: `submission-${item.id}`,
         team_id: item.team_id || undefined,
         product_name: productName,
-        track: item.team_name || item.student_name || undefined,
-        one_liner: oneLiner || undefined,
+        track: teamName || item.student_name || targetUser || undefined,
+        one_liner: mergedLine || undefined,
         access_url: normalizeShowcaseUrl(accessUrl),
+        screenshot_url: screenshotUrl ? normalizeShowcaseUrl(screenshotUrl) : undefined,
         publish_status: "PUBLISHED"
       });
-      setMessage("已放进展示区。");
+      setMessage("已放进展示区，产品问题线索已合并。");
       await load();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "保存失败");
