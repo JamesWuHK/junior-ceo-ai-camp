@@ -831,6 +831,7 @@ function formatTimer(seconds: number) {
 
 function taskTypeForAction(action: string, page: DesignedLessonPage) {
   if (page.title.includes("下一次我怎么指挥 AI")) return "growth_reflection";
+  if (/AI 给答案，先看证据|真假侦探实验|证据比声音更有力/.test(page.title)) return "ai_validation";
   if (action === "进入评分") return "score";
   if (action === "发起互动") return "interaction";
   if (action === "打开看板") return "board";
@@ -882,6 +883,19 @@ function isUserVoiceTask(camp: Camp | null) {
   const title = activeTaskTitle(camp);
   const moduleId = camp?.active_task?.module_id || "";
   return moduleId === "user-interview" || /采访|用户声音|真实反馈|三个好问题|绿灯黄灯红灯/.test(title);
+}
+
+function isAiValidationTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  const activityType = camp?.active_task?.activity_type || "";
+  const payloadType = asText(camp?.active_task?.payload?.task_type);
+  return (
+    activityType === "ai_validation" ||
+    payloadType === "ai_validation" ||
+    moduleId === "ai-judgement" ||
+    /AI 判断|AI 验证|验证卡|可疑句|查证据|改结论|真假侦探/.test(title)
+  );
 }
 
 function isProductDefinitionTask(camp: Camp | null) {
@@ -1919,6 +1933,7 @@ function GrowthReflectionGallery({ reflections }: { reflections: WallArtifact[] 
 function journeyTitle(item: WallArtifact) {
   if (item.task_type === "problem_card") return asText(item.payload.problem_scene) || "发现一个真实问题";
   if (item.task_type === "user_voice") return asText(item.payload.interviewee) || "听见一位用户";
+  if (item.task_type === "ai_validation") return asText(item.payload.doubt) || "用证据检查 AI";
   if (item.task_type === "product_definition") return asText(item.payload.product_name) || "写出产品一句话";
   if (item.task_type === "product_feedback") return asText(item.payload.product_name) || "收到试用反馈";
   if (item.task_type === "mentor_comment") return asText(item.payload.product_name) || "导师点评";
@@ -1929,6 +1944,7 @@ function journeyLabel(item: WallArtifact) {
   const labels: Record<string, string> = {
     problem_card: "发现问题",
     user_voice: "听见用户",
+    ai_validation: "检查 AI",
     product_definition: "产品一句话",
     product_feedback: "收到反馈",
     mentor_comment: "导师点评"
@@ -1948,6 +1964,14 @@ function journeyCopy(item: WallArtifact) {
     return [
       ["听到", asText(item.payload.quote)],
       ["发现", asText(item.payload.finding)]
+    ];
+  }
+  if (item.task_type === "ai_validation") {
+    return [
+      ["AI 说", asText(item.payload.ai_answer)],
+      ["可疑句", asText(item.payload.doubt)],
+      ["证据", asText(item.payload.evidence)],
+      ["改后结论", asText(item.payload.revised_conclusion)]
     ];
   }
   if (item.task_type === "product_definition") {
@@ -2900,7 +2924,7 @@ function TeacherD1Artifacts() {
   const load = async () => {
     try {
       const [result, voteResult] = await Promise.all([api.submissions(), api.problemVotesManage()]);
-      setItems(result.task_submissions.filter((item) => ["problem_card", "user_voice"].includes(item.task_type)));
+      setItems(result.task_submissions.filter((item) => ["problem_card", "user_voice", "ai_validation"].includes(item.task_type)));
       setVoteSummaries(voteResult.summaries);
       setVoteCount(voteResult.votes.length);
     } catch (err) {
@@ -2917,8 +2941,9 @@ function TeacherD1Artifacts() {
   const stats = useMemo(() => {
     const problemCount = items.filter((item) => item.task_type === "problem_card").length;
     const voiceCount = items.filter((item) => item.task_type === "user_voice").length;
+    const validationCount = items.filter((item) => item.task_type === "ai_validation").length;
     const teamCount = new Set(items.map((item) => item.team_id || item.student_id || item.id)).size;
-    return { problemCount, voiceCount, teamCount };
+    return { problemCount, voiceCount, validationCount, teamCount };
   }, [items]);
 
   const toggleWall = async (item: TaskSubmission) => {
@@ -2961,11 +2986,12 @@ function TeacherD1Artifacts() {
     <section className="panel d1-artifacts-panel">
       <div className="panel-title">
         <StickyNote size={20} />
-        <h2>D1 问题和用户声音</h2>
+        <h2>D1 问题、用户声音和 AI 验证</h2>
       </div>
       <div className="artifact-stats">
         <span>{stats.problemCount} 张问题卡</span>
         <span>{stats.voiceCount} 条用户声音</span>
+        <span>{stats.validationCount} 张验证卡</span>
         <span>{stats.teamCount} 个来源</span>
         <span>{voteCount} 张投票</span>
       </div>
@@ -2981,14 +3007,24 @@ function TeacherD1Artifacts() {
       <div className="d1-artifact-list">
         {items.map((item) => {
           const isProblem = item.task_type === "problem_card";
+          const isValidation = item.task_type === "ai_validation";
           const title = isProblem
             ? asText(item.payload.problem_scene) || asText(item.payload.trouble) || "未命名问题"
+            : isValidation
+            ? asText(item.payload.doubt) || asText(item.payload.revised_conclusion) || "AI 验证卡"
             : asText(item.payload.interviewee) || "用户声音";
           return (
-            <article className={item.status === "ON_WALL" ? "d1-artifact-card on-wall" : "d1-artifact-card"} key={item.id}>
+            <article
+              className={[
+                "d1-artifact-card",
+                isValidation ? "validation" : "",
+                item.status === "ON_WALL" ? "on-wall" : ""
+              ].filter(Boolean).join(" ")}
+              key={item.id}
+            >
               <header>
                 <div>
-                  <span>{isProblem ? "问题卡" : "用户声音"}</span>
+                  <span>{isProblem ? "问题卡" : isValidation ? "验证卡" : "用户声音"}</span>
                   <strong>{title}</strong>
                   <small>{item.team_name || item.student_name || "学生提交"}</small>
                 </div>
@@ -3002,6 +3038,13 @@ function TeacherD1Artifacts() {
                   <p><strong>麻烦：</strong>{asText(item.payload.trouble) || "还没写"}</p>
                   <p><strong>现在办法：</strong>{asText(item.payload.current_solution) || "还没写"}</p>
                 </div>
+              ) : isValidation ? (
+                <div className="artifact-lines">
+                  <p><strong>AI 说：</strong>{asText(item.payload.ai_answer) || "还没写"}</p>
+                  <p><strong>可疑句：</strong>{asText(item.payload.doubt) || "还没写"}</p>
+                  <p><strong>证据：</strong>{asText(item.payload.evidence) || "还没写"}</p>
+                  <p><strong>改后结论：</strong>{asText(item.payload.revised_conclusion) || "还没写"}</p>
+                </div>
               ) : (
                 <div className="artifact-lines">
                   <p><strong>听到：</strong>{asText(item.payload.quote) || "还没写"}</p>
@@ -3011,7 +3054,7 @@ function TeacherD1Artifacts() {
             </article>
           );
         })}
-        {!items.length && <p className="empty">学生提交问题卡或用户声音后，会出现在这里。</p>}
+        {!items.length && <p className="empty">学生提交问题卡、用户声音或验证卡后，会出现在这里。</p>}
       </div>
     </section>
   );
@@ -5584,6 +5627,7 @@ function StudentApp({
   const problemVoteTask = isProblemVoteTask(camp);
   const problemTask = isProblemDiscoveryTask(camp);
   const userVoiceTask = isUserVoiceTask(camp);
+  const aiValidationTask = isAiValidationTask(camp);
   const productDefinitionTask = isProductDefinitionTask(camp);
   const blockerTask = isBlockerTask(camp);
   const observerScoreTask = isObserverScoreTask(camp);
@@ -5595,6 +5639,7 @@ function StudentApp({
     problemVoteTask ||
     problemTask ||
     userVoiceTask ||
+    aiValidationTask ||
     productDefinitionTask ||
     blockerTask ||
     observerScoreTask ||
@@ -5807,6 +5852,18 @@ function StudentApp({
   if (userVoiceTask) {
     return (
       <StudentUserVoiceTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (aiValidationTask) {
+    return (
+      <StudentAiValidationTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -6367,6 +6424,149 @@ function StudentUserVoiceTask({
             提交
           </button>
           <p className="hint">真实声音会告诉我们：这个问题值不值得继续做。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentAiValidationTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [aiAnswer, setAiAnswer] = useState("");
+  const [doubt, setDoubt] = useState("");
+  const [evidenceSource, setEvidenceSource] = useState("");
+  const [evidence, setEvidence] = useState("");
+  const [revisedConclusion, setRevisedConclusion] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!aiAnswer.trim()) {
+      showMessage("error", "先贴上或写下 AI 给出的说法。");
+      return;
+    }
+    if (!doubt.trim()) {
+      showMessage("error", "圈出一句你最想查一查的话。");
+      return;
+    }
+    if (!evidence.trim()) {
+      showMessage("error", "写下你找到的证据。");
+      return;
+    }
+    if (!revisedConclusion.trim()) {
+      showMessage("error", "最后写出你现在的结论。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "ai_validation",
+        title: taskTitle,
+        payload: {
+          ai_answer: aiAnswer.trim(),
+          doubt: doubt.trim(),
+          evidence_source: evidenceSource.trim(),
+          evidence: evidence.trim(),
+          revised_conclusion: revisedConclusion.trim(),
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。这张验证卡会帮大家看见：AI 的答案要用证据检查。");
+      setAiAnswer("");
+      setDoubt("");
+      setEvidenceSource("");
+      setEvidence("");
+      setRevisedConclusion("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "AI 验证卡"}</h1>
+        <p>选一句 AI 的说法，找证据，再把结论改得更可靠。</p>
+        <div className="student-card d1-task-card ai-validation-card">
+          <div className="student-current">
+            <div>
+              <span>验证人</span>
+              <strong>{student.nickname}</strong>
+              <small>{student.team_name || student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            AI 说了什么
+            <textarea
+              value={aiAnswer}
+              onChange={(event) => setAiAnswer(event.target.value)}
+              placeholder="例如：小学生每天应该先完成最难的作业"
+              rows={3}
+            />
+          </label>
+          <label>
+            我想查一查这句话
+            <textarea
+              value={doubt}
+              onChange={(event) => setDoubt(event.target.value)}
+              placeholder="例如：是不是所有人都适合先做最难的作业？"
+              rows={3}
+            />
+          </label>
+          <label>
+            我从哪里找到线索
+            <input
+              value={evidenceSource}
+              onChange={(event) => setEvidenceSource(event.target.value)}
+              placeholder="例如：采访同学、问老师、查一篇资料"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            我找到的证据
+            <textarea
+              value={evidence}
+              onChange={(event) => setEvidence(event.target.value)}
+              placeholder="例如：同桌说他先做简单题更容易进入状态"
+              rows={3}
+            />
+          </label>
+          <label>
+            我现在的结论
+            <textarea
+              value={revisedConclusion}
+              onChange={(event) => setRevisedConclusion(event.target.value)}
+              placeholder="例如：先做哪一题要看每个人的状态，可以先用 10 分钟启动"
+              rows={3}
+            />
+          </label>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <Search size={18} />}
+            提交
+          </button>
+          <p className="hint">会用 AI 的人，不只会提问，也会用证据改答案。</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -7736,25 +7936,37 @@ function ProblemVoteWall({ summaries }: { summaries: ProblemVoteSummary[] }) {
 function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   if (!artifacts.length) return null;
   const hasProduct = artifacts.some((item) => item.task_type === "product_definition");
+  const hasValidation = artifacts.some((item) => item.task_type === "ai_validation");
   return (
     <section className="wall-artifacts">
       <div className="wall-section-title">
-        <span className="eyebrow">{hasProduct ? "产品卡片" : "真实线索"}</span>
-        <h2>{hasProduct ? "从问题到产品" : "问题和用户声音"}</h2>
+        <span className="eyebrow">{hasProduct ? "产品卡片" : hasValidation ? "AI 验证" : "真实线索"}</span>
+        <h2>{hasProduct ? "从问题到产品" : hasValidation ? "用证据改答案" : "问题和用户声音"}</h2>
       </div>
       <div className="wall-artifact-grid">
         {artifacts.map((item) => {
           const isProblem = item.task_type === "problem_card";
+          const isValidation = item.task_type === "ai_validation";
           const isProduct = item.task_type === "product_definition";
           return (
             <article
-              className={isProduct ? "wall-artifact-card product" : isProblem ? "wall-artifact-card problem" : "wall-artifact-card voice"}
+              className={
+                isProduct
+                  ? "wall-artifact-card product"
+                  : isValidation
+                  ? "wall-artifact-card validation"
+                  : isProblem
+                  ? "wall-artifact-card problem"
+                  : "wall-artifact-card voice"
+              }
               key={item.id}
             >
-              <span>{isProduct ? "产品卡" : isProblem ? "问题卡" : "用户声音"}</span>
+              <span>{isProduct ? "产品卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
               <strong>
                 {isProduct
                   ? asText(item.payload.product_name) || "一个产品想法"
+                  : isValidation
+                  ? asText(item.payload.doubt) || asText(item.payload.revised_conclusion) || "用证据检查 AI"
                   : isProblem
                   ? asText(item.payload.problem_scene) || asText(item.payload.trouble) || "一个真实问题"
                   : asText(item.payload.interviewee) || "一次真实采访"}
@@ -7765,6 +7977,12 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                   <p><b>问题</b>{asText(item.payload.core_problem) || "还没写"}</p>
                   <p><b>办法</b>{asText(item.payload.solution) || "还没写"}</p>
                   <p><b>一句话</b>{asText(item.payload.one_liner) || "还在打磨"}</p>
+                </>
+              ) : isValidation ? (
+                <>
+                  <p><b>AI 说</b>{asText(item.payload.ai_answer) || "还没写"}</p>
+                  <p><b>证据</b>{asText(item.payload.evidence) || "还没写"}</p>
+                  <p><b>改后结论</b>{asText(item.payload.revised_conclusion) || "还在整理"}</p>
                 </>
               ) : isProblem ? (
                 <>

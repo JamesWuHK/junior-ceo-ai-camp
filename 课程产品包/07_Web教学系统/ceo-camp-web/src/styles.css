@@ -2723,6 +2723,10 @@ button:disabled {
   box-shadow: 0 0 0 2px rgba(31, 111, 80, 0.1);
 }
 
+.d1-artifact-card.validation {
+  border-left: 6px solid #172018;
+}
+
 .d1-artifact-card header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -3272,6 +3276,10 @@ button:disabled {
 
 .d1-task-card {
   max-width: 820px;
+}
+
+.ai-validation-card {
+  max-width: 860px;
 }
 
 .final-showcase-card {
@@ -3911,6 +3919,10 @@ button:disabled {
 
 .wall-artifact-card.product {
   border-top-color: #ef7d58;
+}
+
+.wall-artifact-card.validation {
+  border-top-color: #172018;
 }
 
 .wall-artifact-card span {
