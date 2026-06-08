@@ -816,7 +816,7 @@ function isProductLinkTask(camp: Camp | null) {
   const moduleId = camp?.active_task?.module_id || "";
   return (
     /作品链接|产品链接|真产品检查|作品页上线清单|产品原型|每组作品能打开|2 分钟 Demo|产品摊位预览/.test(title) ||
-    ["build-sprint", "demo-check", "product-packaging", "final-showcase"].includes(moduleId)
+    ["build-sprint", "demo-check", "product-packaging"].includes(moduleId)
   );
 }
 
@@ -836,6 +836,12 @@ function isProductDefinitionTask(camp: Camp | null) {
   const title = activeTaskTitle(camp);
   const moduleId = camp?.active_task?.module_id || "";
   return moduleId === "project-launch" || /产品一句话|产品定义|把线索变成产品一句话|产品卡片/.test(title);
+}
+
+function isFinalShowcaseTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  return moduleId === "final-showcase" || /路演|作品展|最终展示|故事发布|每组上场/.test(title);
 }
 
 function isPeerFeedbackTask(camp: Camp | null) {
@@ -954,8 +960,15 @@ function useTeacherData(enabled: boolean) {
 
 function App() {
   const route = window.location.pathname || "/teacher";
-  const active = route.startsWith("/student") ? "student" : route.startsWith("/wall") ? "wall" : "teacher";
+  const active = route.startsWith("/student")
+    ? "student"
+    : route.startsWith("/wall")
+      ? "wall"
+      : route.startsWith("/showcase") || route.startsWith("/parents")
+        ? "public-showcase"
+        : "teacher";
   if (active === "teacher") return <TeacherRoute />;
+  if (active === "public-showcase") return <PublicShowcaseRoute />;
 
   const data = useInitialData(active);
 
@@ -1089,6 +1102,115 @@ function TeacherRoute() {
         setAuthStatus("guest");
       }}
     />
+  );
+}
+
+function PublicShowcaseRoute() {
+  const [camp, setCamp] = useState<{ name: string; location: string; starts_on?: string; ends_on?: string } | null>(null);
+  const [finalItems, setFinalItems] = useState<WallArtifact[]>([]);
+  const [showcaseItems, setShowcaseItems] = useState<ShowcaseItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    api.publicFinalShowcase()
+      .then((result) => {
+        setCamp(result.camp);
+        setFinalItems(sortByDisplayOrder(result.final_showcase));
+        setShowcaseItems(result.showcase_items);
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "页面暂时没有打开"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <main className="loading-screen">
+        <Loader2 className="spin" />
+        <span>正在打开作品展</span>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="loading-screen">
+        <strong>作品展暂时没有打开</strong>
+        <span>{error}</span>
+      </main>
+    );
+  }
+
+  return (
+    <main className="public-showcase-page">
+      <header className="public-showcase-hero">
+        <span>{camp?.location || "少年CEO AI 创业营"}</span>
+        <h1>三天课程成果</h1>
+        <p>孩子们从真实问题出发，采访用户，做出产品原型，并在结营路演中展示自己的作品。</p>
+      </header>
+      <section className="public-section">
+        <div className="public-section-title">
+          <span>结营路演</span>
+          <h2>小组最终展示卡</h2>
+        </div>
+        <div className="public-final-grid">
+          {finalItems.map((item, index) => {
+            const href = asText(item.payload.access_url);
+            const screenshot = asText(item.payload.screenshot_url);
+            return (
+              <article className="public-final-card" key={item.id}>
+                <div className="public-final-shot">
+                  {screenshot ? (
+                    <img src={normalizeShowcaseUrl(screenshot)} alt={asText(item.payload.product_name) || "作品展示图"} />
+                  ) : (
+                    <Trophy size={42} />
+                  )}
+                </div>
+                <div>
+                  <span>第 {displayOrderFor(item) === 9999 ? index + 1 : displayOrderFor(item)} 组 · {item.team_name || "项目团队"}</span>
+                  <strong>{asText(item.payload.product_name) || "未命名作品"}</strong>
+                  <p>{asText(item.payload.value_line) || "这组作品正在整理介绍。"}</p>
+                </div>
+                <dl>
+                  <div>
+                    <dt>团队成员</dt>
+                    <dd>{asText(item.payload.team_members) || "团队成员"}</dd>
+                  </div>
+                  <div>
+                    <dt>目标用户</dt>
+                    <dd>{asText(item.payload.target_user) || "目标用户"}</dd>
+                  </div>
+                  <div>
+                    <dt>解决的问题</dt>
+                    <dd>{asText(item.payload.core_problem) || "真实问题"}</dd>
+                  </div>
+                </dl>
+                {href && (
+                  <a href={normalizeShowcaseUrl(href)} target="_blank" rel="noreferrer">
+                    <ExternalLink size={16} />
+                    打开作品
+                  </a>
+                )}
+              </article>
+            );
+          })}
+          {!finalItems.length && (
+            <article className="public-empty">
+              <Package size={34} />
+              <strong>最终展示卡会出现在这里</strong>
+              <span>结营路演准备好后，家长可以在这里看到作品成果。</span>
+            </article>
+          )}
+        </div>
+      </section>
+      <section className="public-section">
+        <div className="public-section-title">
+          <span>作品入口</span>
+          <h2>可以体验的产品</h2>
+        </div>
+        <ShowcaseGallery items={showcaseItems} />
+      </section>
+    </main>
   );
 }
 
@@ -1332,6 +1454,7 @@ function TeacherApp({
         <TeacherProductDefinitions />
         <TeacherProjectSubmissions />
         <TeacherPeerFeedback />
+        <TeacherFinalShowcase />
         <TeacherShowcase />
       </section>
       {presenting && selectedModule && (
@@ -1351,6 +1474,24 @@ function TeacherApp({
 
 function asText(value: unknown) {
   return typeof value === "string" ? value : "";
+}
+
+function asNumber(value: unknown) {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : 0;
+}
+
+function displayOrderFor(item: TaskSubmission | WallArtifact) {
+  const order = asNumber(item.payload.display_order);
+  return order > 0 ? order : 9999;
+}
+
+function sortByDisplayOrder<T extends TaskSubmission | WallArtifact>(items: T[]) {
+  return [...items].sort((a, b) => {
+    const byOrder = displayOrderFor(a) - displayOrderFor(b);
+    if (byOrder !== 0) return byOrder;
+    return String(a.created_at || "").localeCompare(String(b.created_at || ""));
+  });
 }
 
 function TeacherD1Artifacts() {
@@ -1713,6 +1854,142 @@ function TeacherPeerFeedback() {
           );
         })}
         {!groups.length && <p className="empty">学生试玩后提交的反馈会出现在这里。</p>}
+      </div>
+    </section>
+  );
+}
+
+function TeacherFinalShowcase() {
+  const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [message, setMessage] = useState("");
+  const [workingId, setWorkingId] = useState("");
+  const [orderDrafts, setOrderDrafts] = useState<Record<string, string>>({});
+
+  const load = async () => {
+    try {
+      const result = await api.submissions();
+      const nextItems = sortByDisplayOrder(result.task_submissions.filter((item) => item.task_type === "final_showcase"));
+      setItems(nextItems);
+      setOrderDrafts((current) => {
+        const next = { ...current };
+        nextItems.forEach((item, index) => {
+          if (!next[item.id]) next[item.id] = String(displayOrderFor(item) === 9999 ? index + 1 : displayOrderFor(item));
+        });
+        return next;
+      });
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const saveDisplay = async (item: TaskSubmission, status: "SUBMITTED" | "ON_WALL") => {
+    const order = Math.max(1, Math.round(Number(orderDrafts[item.id]) || displayOrderFor(item) || items.length));
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.setTaskSubmissionStatus(item.id, status, order);
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "操作失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
+
+  const publishCard = async (item: TaskSubmission) => {
+    const productName = asText(item.payload.product_name).trim();
+    const valueLine = asText(item.payload.value_line).trim();
+    const accessUrl = asText(item.payload.access_url).trim();
+    if (!productName || !accessUrl) {
+      setMessage("这张展示卡缺少产品名称或作品链接。");
+      return;
+    }
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.publishShowcase({
+        id: `final-${item.id}`,
+        team_id: item.team_id || undefined,
+        product_name: productName,
+        track: item.team_name || item.student_name || undefined,
+        one_liner: valueLine || undefined,
+        access_url: normalizeShowcaseUrl(accessUrl),
+        publish_status: "PUBLISHED"
+      });
+      setMessage("已生成公开作品卡。");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
+
+  return (
+    <section className="panel final-showcase-panel">
+      <div className="panel-title">
+        <Trophy size={20} />
+        <h2>D3 路演与作品展</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{items.length} 张展示卡</span>
+        <span>{items.filter((item) => item.status === "ON_WALL").length} 张上屏</span>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="d1-artifact-list">
+        {items.map((item, index) => {
+          const productName = asText(item.payload.product_name) || "未命名作品";
+          const accessUrl = asText(item.payload.access_url);
+          return (
+            <article className={item.status === "ON_WALL" ? "d1-artifact-card on-wall" : "d1-artifact-card"} key={item.id}>
+              <header>
+                <div>
+                  <span>最终展示卡</span>
+                  <strong>{productName}</strong>
+                  <small>{item.team_name || item.student_name || "学生提交"}</small>
+                </div>
+                <div className="artifact-actions final-showcase-actions">
+                  <label>
+                    顺序
+                    <input
+                      value={orderDrafts[item.id] ?? String(index + 1)}
+                      onChange={(event) => setOrderDrafts((current) => ({ ...current, [item.id]: event.target.value }))}
+                      inputMode="numeric"
+                    />
+                  </label>
+                  <button disabled={workingId === item.id} onClick={() => saveDisplay(item, "ON_WALL")}>
+                    保存并上屏
+                  </button>
+                  <button disabled={workingId === item.id} onClick={() => saveDisplay(item, "SUBMITTED")}>
+                    从大屏移开
+                  </button>
+                  <button disabled={workingId === item.id || !accessUrl} onClick={() => publishCard(item)}>
+                    生成公开作品卡
+                  </button>
+                </div>
+              </header>
+              <div className="artifact-lines">
+                <p><strong>成员：</strong>{asText(item.payload.team_members) || "还没写"}</p>
+                <p><strong>用户：</strong>{asText(item.payload.target_user) || "还没写"}</p>
+                <p><strong>问题：</strong>{asText(item.payload.core_problem) || "还没写"}</p>
+                <p><strong>价值：</strong>{asText(item.payload.value_line) || "还没写"}</p>
+                {accessUrl && (
+                  <p>
+                    <strong>链接：</strong>
+                    <a href={normalizeShowcaseUrl(accessUrl)} target="_blank" rel="noreferrer">打开作品</a>
+                  </p>
+                )}
+              </div>
+            </article>
+          );
+        })}
+        {!items.length && <p className="empty">学生提交最终展示卡后，会出现在这里。</p>}
       </div>
     </section>
   );
@@ -3339,9 +3616,10 @@ function StudentApp({
   const problemTask = isProblemDiscoveryTask(camp);
   const userVoiceTask = isUserVoiceTask(camp);
   const productDefinitionTask = isProductDefinitionTask(camp);
+  const finalShowcaseTask = isFinalShowcaseTask(camp);
   const productLinkTask = isProductLinkTask(camp);
   const peerFeedbackTask = isPeerFeedbackTask(camp);
-  const textTask = problemTask || userVoiceTask || productDefinitionTask || productLinkTask || peerFeedbackTask;
+  const textTask = problemTask || userVoiceTask || productDefinitionTask || finalShowcaseTask || productLinkTask || peerFeedbackTask;
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
@@ -3547,6 +3825,18 @@ function StudentApp({
   if (productDefinitionTask) {
     return (
       <StudentProductDefinitionTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (finalShowcaseTask) {
+    return (
+      <StudentFinalShowcaseTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -4066,6 +4356,181 @@ function StudentProductDefinitionTask({
   );
 }
 
+function StudentFinalShowcaseTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [productName, setProductName] = useState("");
+  const [teamMembers, setTeamMembers] = useState("");
+  const [targetUser, setTargetUser] = useState("");
+  const [coreProblem, setCoreProblem] = useState("");
+  const [accessUrl, setAccessUrl] = useState("");
+  const [screenshotUrl, setScreenshotUrl] = useState("");
+  const [valueLine, setValueLine] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!productName.trim()) {
+      showMessage("error", "先写产品名称。");
+      return;
+    }
+    if (!teamMembers.trim()) {
+      showMessage("error", "写上团队成员。");
+      return;
+    }
+    if (!targetUser.trim()) {
+      showMessage("error", "写清楚这个产品帮谁。");
+      return;
+    }
+    if (!coreProblem.trim()) {
+      showMessage("error", "写清楚它解决什么问题。");
+      return;
+    }
+    if (!accessUrl.trim()) {
+      showMessage("error", "贴上能打开的作品链接。");
+      return;
+    }
+    if (!valueLine.trim()) {
+      showMessage("error", "写一句话价值。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "final_showcase",
+        title: taskTitle,
+        payload: {
+          product_name: productName.trim(),
+          team_members: teamMembers.trim(),
+          target_user: targetUser.trim(),
+          core_problem: coreProblem.trim(),
+          access_url: normalizeShowcaseUrl(accessUrl),
+          screenshot_url: screenshotUrl.trim() ? normalizeShowcaseUrl(screenshotUrl) : "",
+          value_line: valueLine.trim(),
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。这张展示卡可以上台使用。");
+      setProductName("");
+      setTeamMembers("");
+      setTargetUser("");
+      setCoreProblem("");
+      setAccessUrl("");
+      setScreenshotUrl("");
+      setValueLine("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "提交最终展示卡"}</h1>
+        <p>把你们准备上台展示的作品，整理成一张清楚的卡片。</p>
+        <div className="student-card final-showcase-card">
+          <div className="student-current">
+            <div>
+              <span>路演小组</span>
+              <strong>{student.team_name || student.nickname}</strong>
+              <small>{student.student_no ? `${student.nickname} · 学号 ${student.student_no}` : student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            产品名称
+            <input
+              value={productName}
+              onChange={(event) => setProductName(event.target.value)}
+              placeholder="例如：午餐选择器"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            团队成员
+            <input
+              value={teamMembers}
+              onChange={(event) => setTeamMembers(event.target.value)}
+              placeholder="例如：小宇、小安、小林"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            目标用户
+            <input
+              value={targetUser}
+              onChange={(event) => setTargetUser(event.target.value)}
+              placeholder="例如：每天在食堂纠结的同学"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            解决的问题
+            <textarea
+              value={coreProblem}
+              onChange={(event) => setCoreProblem(event.target.value)}
+              placeholder="例如：选择太多，不知道今天吃什么"
+              rows={3}
+            />
+          </label>
+          <label>
+            作品链接
+            <input
+              value={accessUrl}
+              onChange={(event) => setAccessUrl(event.target.value)}
+              placeholder="https://..."
+              inputMode="url"
+            />
+          </label>
+          <label>
+            展示图链接（可选）
+            <input
+              value={screenshotUrl}
+              onChange={(event) => setScreenshotUrl(event.target.value)}
+              placeholder="https://..."
+              inputMode="url"
+            />
+          </label>
+          <label>
+            一句话价值
+            <textarea
+              value={valueLine}
+              onChange={(event) => setValueLine(event.target.value)}
+              placeholder="例如：它能让同学 10 秒选出今天最适合的午餐"
+              rows={3}
+            />
+          </label>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <Trophy size={18} />}
+            提交
+          </button>
+          <p className="hint">展示卡会帮助观众快速看懂：你们做了什么，它为什么有用。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
 function StudentProductLinkTask({
   camp,
   student,
@@ -4522,6 +4987,73 @@ function StudentLogin({ camp, onLoggedIn }: { camp: Camp | null; onLoggedIn: (st
   );
 }
 
+function FinalShowcaseRun({ artifacts }: { artifacts: WallArtifact[] }) {
+  const ordered = useMemo(() => sortByDisplayOrder(artifacts), [artifacts]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const active = ordered[activeIndex] || null;
+
+  useEffect(() => {
+    setActiveIndex((index) => Math.min(index, Math.max(ordered.length - 1, 0)));
+  }, [ordered.length]);
+
+  if (!active) return null;
+  const href = asText(active.payload.access_url);
+  const screenshot = asText(active.payload.screenshot_url);
+  return (
+    <section className="final-showcase-wall">
+      <div className="wall-section-title">
+        <span className="eyebrow">结营路演</span>
+        <h2>逐组展示</h2>
+      </div>
+      <article className="final-stage-card">
+        <div className="final-stage-media">
+          {screenshot ? (
+            <img src={normalizeShowcaseUrl(screenshot)} alt={asText(active.payload.product_name) || "作品展示图"} />
+          ) : (
+            <Trophy size={68} />
+          )}
+        </div>
+        <div className="final-stage-copy">
+          <span>第 {displayOrderFor(active) === 9999 ? activeIndex + 1 : displayOrderFor(active)} 组</span>
+          <h3>{asText(active.payload.product_name) || "未命名作品"}</h3>
+          <p>{asText(active.payload.value_line) || "让大家看到用户怎么用、结果是什么。"}</p>
+          <dl>
+            <div>
+              <dt>团队成员</dt>
+              <dd>{asText(active.payload.team_members) || active.team_name || "团队成员"}</dd>
+            </div>
+            <div>
+              <dt>目标用户</dt>
+              <dd>{asText(active.payload.target_user) || "还在介绍"}</dd>
+            </div>
+            <div>
+              <dt>解决的问题</dt>
+              <dd>{asText(active.payload.core_problem) || "还在介绍"}</dd>
+            </div>
+          </dl>
+          {href && (
+            <a href={normalizeShowcaseUrl(href)} target="_blank" rel="noreferrer">
+              <ExternalLink size={18} />
+              打开作品
+            </a>
+          )}
+        </div>
+      </article>
+      {ordered.length > 1 && (
+        <div className="final-stage-controls">
+          <button onClick={() => setActiveIndex((index) => Math.max(0, index - 1))} disabled={activeIndex === 0}>
+            上一组
+          </button>
+          <span>{activeIndex + 1} / {ordered.length}</span>
+          <button onClick={() => setActiveIndex((index) => Math.min(ordered.length - 1, index + 1))} disabled={activeIndex === ordered.length - 1}>
+            下一组
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   if (!artifacts.length) return null;
   const hasProduct = artifacts.some((item) => item.task_type === "product_definition");
@@ -4588,6 +5120,14 @@ function WallApp({
   artifacts: WallArtifact[];
 }) {
   const [selectedPhoto, setSelectedPhoto] = useState<Student | null>(null);
+  const finalShowcaseArtifacts = useMemo(
+    () => sortByDisplayOrder(artifacts.filter((item) => item.task_type === "final_showcase")),
+    [artifacts]
+  );
+  const classroomArtifacts = useMemo(
+    () => artifacts.filter((item) => item.task_type !== "final_showcase"),
+    [artifacts]
+  );
 
   return (
     <main className="wall-page">
@@ -4602,7 +5142,8 @@ function WallApp({
         </div>
       </header>
       <CoursePhotoWall students={students} variant="wall" onOpenPhoto={setSelectedPhoto} />
-      <ClassroomArtifactsWall artifacts={artifacts} />
+      <FinalShowcaseRun artifacts={finalShowcaseArtifacts} />
+      <ClassroomArtifactsWall artifacts={classroomArtifacts} />
       <section className="wall-showcase">
         <div className="wall-section-title">
           <span className="eyebrow">作品发布会</span>

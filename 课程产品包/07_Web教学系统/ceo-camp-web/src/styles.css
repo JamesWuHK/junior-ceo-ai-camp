@@ -2121,6 +2121,11 @@ button:disabled {
   gap: 12px;
 }
 
+.final-showcase-panel {
+  display: grid;
+  gap: 12px;
+}
+
 .d1-artifacts-panel {
   display: grid;
   gap: 12px;
@@ -2205,6 +2210,23 @@ button:disabled {
 
 .artifact-actions button {
   min-height: 40px;
+}
+
+.final-showcase-actions label {
+  width: 78px;
+  display: grid;
+  gap: 4px;
+  color: #60705f;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.final-showcase-actions input {
+  width: 100%;
+  border: 1px solid #d9d4c4;
+  border-radius: 6px;
+  padding: 9px 10px;
+  font-weight: 900;
 }
 
 .artifact-lines {
@@ -2534,6 +2556,10 @@ button:disabled {
 
 .d1-task-card {
   max-width: 820px;
+}
+
+.final-showcase-card {
+  max-width: 860px;
 }
 
 .student-check {
@@ -2936,6 +2962,12 @@ button:disabled {
   margin-top: 30px;
 }
 
+.final-showcase-wall {
+  display: grid;
+  gap: 18px;
+  margin-top: 30px;
+}
+
 .wall-section-title h2 {
   margin: 0;
   color: #fffdf6;
@@ -3012,6 +3044,122 @@ button:disabled {
   align-self: end;
   color: #1f6f50;
   font-weight: 900;
+}
+
+.final-stage-card {
+  min-height: clamp(420px, 44vw, 620px);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fffdf6;
+  color: #172018;
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
+}
+
+.final-stage-media {
+  background: #172018;
+  color: #f7d66d;
+  display: grid;
+  place-items: center;
+  min-height: 320px;
+}
+
+.final-stage-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.final-stage-copy {
+  padding: clamp(24px, 4vw, 54px);
+  display: grid;
+  align-content: center;
+  gap: 18px;
+}
+
+.final-stage-copy span {
+  color: #1f6f50;
+  font-weight: 900;
+}
+
+.final-stage-copy h3 {
+  margin: 0;
+  font-size: clamp(42px, 6vw, 86px);
+  line-height: 0.98;
+}
+
+.final-stage-copy p {
+  margin: 0;
+  color: #536151;
+  font-size: clamp(20px, 2vw, 30px);
+  line-height: 1.35;
+}
+
+.final-stage-copy dl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 0;
+}
+
+.final-stage-copy dl div {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff8e6;
+}
+
+.final-stage-copy dt {
+  color: #8a6d17;
+  font-size: 13px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+
+.final-stage-copy dd {
+  margin: 0;
+  font-weight: 900;
+  color: #172018;
+}
+
+.final-stage-copy a,
+.public-final-card a {
+  width: fit-content;
+  border-radius: 6px;
+  background: #172018;
+  color: #fffdf6;
+  text-decoration: none;
+  padding: 12px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 900;
+}
+
+.final-stage-controls {
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 8px;
+}
+
+.final-stage-controls button {
+  border: 0;
+  border-radius: 999px;
+  background: #fffdf6;
+  color: #172018;
+  padding: 10px 16px;
+  font-weight: 900;
+}
+
+.final-stage-controls span {
+  color: #fffdf6;
+  font-weight: 900;
+  min-width: 52px;
+  text-align: center;
 }
 
 .photo-wall {
@@ -3263,6 +3411,141 @@ button:disabled {
   font-weight: 900;
 }
 
+.public-showcase-page {
+  min-height: 100vh;
+  background: #f5f4ef;
+  color: #172018;
+  padding: clamp(18px, 4vw, 48px);
+  display: grid;
+  gap: 30px;
+}
+
+.public-showcase-hero {
+  display: grid;
+  gap: 12px;
+  max-width: 980px;
+}
+
+.public-showcase-hero span,
+.public-section-title span {
+  color: #1f6f50;
+  font-weight: 900;
+}
+
+.public-showcase-hero h1 {
+  margin: 0;
+  font-size: clamp(44px, 8vw, 104px);
+  line-height: 0.96;
+}
+
+.public-showcase-hero p {
+  margin: 0;
+  color: #536151;
+  font-size: clamp(18px, 2vw, 25px);
+  line-height: 1.45;
+}
+
+.public-section {
+  display: grid;
+  gap: 16px;
+}
+
+.public-section-title h2 {
+  margin: 4px 0 0;
+  font-size: clamp(28px, 4vw, 48px);
+}
+
+.public-final-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 14px;
+}
+
+.public-final-card,
+.public-empty {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fffdf6;
+  padding: 14px;
+  display: grid;
+  gap: 14px;
+  min-height: 100%;
+}
+
+.public-final-shot {
+  min-height: 190px;
+  border-radius: 8px;
+  background: #172018;
+  color: #f7d66d;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.public-final-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.public-final-card span {
+  color: #1f6f50;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.public-final-card strong {
+  display: block;
+  font-size: 28px;
+  line-height: 1.08;
+  margin-top: 4px;
+}
+
+.public-final-card p {
+  margin: 6px 0 0;
+  color: #536151;
+  line-height: 1.45;
+}
+
+.public-final-card dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.public-final-card dl div {
+  border-top: 1px solid #e7e2d2;
+  padding-top: 8px;
+}
+
+.public-final-card dt {
+  color: #60705f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.public-final-card dd {
+  margin: 3px 0 0;
+  color: #172018;
+  font-weight: 800;
+}
+
+.public-empty {
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  color: #1f6f50;
+}
+
+.public-empty strong,
+.public-empty span {
+  display: block;
+}
+
+.public-empty span {
+  color: #60705f;
+}
+
 @media (max-width: 980px) {
   .teacher-layout {
     grid-template-columns: 1fr;
@@ -3324,6 +3607,14 @@ button:disabled {
 
   .opening-pairs .sample-card img {
     height: 260px;
+  }
+
+  .final-stage-card {
+    grid-template-columns: 1fr;
+  }
+
+  .final-stage-copy dl {
+    grid-template-columns: 1fr;
   }
 }
 

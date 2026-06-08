@@ -187,6 +187,12 @@ export const api = {
   wall: () => request<{ students: Student[] }>("/wall/future-photo"),
   wallArtifacts: () => request<{ artifacts: WallArtifact[] }>("/wall/artifacts"),
   showcase: () => request<{ showcase_items: ShowcaseItem[] }>("/showcase"),
+  publicFinalShowcase: () =>
+    request<{
+      camp: Pick<Camp, "id" | "name" | "city" | "location"> & { starts_on?: string; ends_on?: string };
+      final_showcase: WallArtifact[];
+      showcase_items: ShowcaseItem[];
+    }>("/public/final-showcase"),
   manageShowcase: () => request<{ showcase_items: ShowcaseItem[] }>("/showcase/manage", { headers: headers(true) }),
   publishShowcase: (payload: Partial<ShowcaseItem>) =>
     request<{ showcase_item: ShowcaseItem }>("/publish/showcase", {
@@ -207,11 +213,11 @@ export const api = {
       headers: studentHeaders(true),
       body: JSON.stringify(payload)
     }),
-  setTaskSubmissionStatus: (id: string, status: "SUBMITTED" | "ON_WALL") =>
+  setTaskSubmissionStatus: (id: string, status: "SUBMITTED" | "ON_WALL", displayOrder?: number) =>
     request<{ submission: TaskSubmission | null }>(`/task-submissions/${encodeURIComponent(id)}/status`, {
       method: "POST",
       headers: headers(true),
-      body: JSON.stringify({ status })
+      body: JSON.stringify({ status, display_order: displayOrder })
     }),
   setCurrentTask: (payload: { module_id?: string; title: string; activity_type: string; payload?: Record<string, unknown> }) =>
     request<{ task: unknown }>("/tasks/current", {

@@ -94,6 +94,14 @@ function jsonParse<T>(value: unknown, fallback: T): T {
   }
 }
 
+type TaskPayload = Record<string, unknown>;
+type TaskArtifact = Record<string, any> & {
+  task_type: string;
+  payload: TaskPayload;
+  created_at?: string;
+  updated_at?: string;
+};
+
 function requireTeacher(request: { headers: Record<string, unknown> }): TeacherPrincipal | null {
   const header = request.headers.authorization;
   if (typeof header !== "string" || !header.startsWith("Bearer ")) return null;
@@ -287,8 +295,8 @@ function audit(action: string, targetType?: string, targetId?: string, payload: 
 }
 
 function currentCamp() {
-  const camp = row("SELECT * FROM camp_offerings WHERE id = ?", campId());
-  const activeTask = row(
+  const camp = row<Record<string, any>>("SELECT * FROM camp_offerings WHERE id = ?", campId());
+  const activeTask = row<Record<string, any>>(
     "SELECT * FROM class_activities WHERE camp_id = ? AND status = 'ACTIVE' ORDER BY updated_at DESC LIMIT 1",
     campId()
   );
@@ -410,21 +418,36 @@ function showcaseItems(includeAll = false) {
   }));
 }
 
-function wallTaskArtifacts() {
-  return rows(
+function wallTaskArtifacts(): TaskArtifact[] {
+  return rows<Record<string, any> & { payload?: string }>(
     `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
        FROM task_submissions ts
        LEFT JOIN students s ON s.id = ts.student_id
        LEFT JOIN teams t ON t.id = ts.team_id
       WHERE ts.camp_id = ?
         AND ts.status = 'ON_WALL'
-        AND ts.task_type IN ('problem_card', 'user_voice', 'product_definition')
+        AND ts.task_type IN ('problem_card', 'user_voice', 'product_definition', 'final_showcase')
       ORDER BY ts.updated_at DESC, ts.created_at DESC`,
     campId()
-  ).map((artifact) => ({
-    ...artifact,
-    payload: jsonParse(artifact.payload, {})
-  }));
+  ).map((artifact): TaskArtifact => {
+    const base = artifact as Record<string, any>;
+    return {
+      ...base,
+      task_type: String(base.task_type ?? ""),
+      payload: jsonParse<TaskPayload>(base.payload, {})
+    };
+  });
+}
+
+function finalShowcaseItems() {
+  return wallTaskArtifacts()
+    .filter((artifact) => artifact.task_type === "final_showcase")
+    .sort((a, b) => {
+      const aOrder = Number(a.payload?.display_order ?? 9999);
+      const bOrder = Number(b.payload?.display_order ?? 9999);
+      if (aOrder !== bOrder) return aOrder - bOrder;
+      return String(a.updated_at ?? "").localeCompare(String(b.updated_at ?? ""));
+    });
 }
 
 function emitState(event = "state.changed") {
@@ -1217,13 +1240,20 @@ app.post("/task-submissions/:id/status", async (request, reply) => {
   }
   const item = row("SELECT * FROM task_submissions WHERE id = ? AND camp_id = ?", [id, campId()]);
   if (!item) return reply.code(404).send({ error: "NOT_FOUND" });
-  db.prepare("UPDATE task_submissions SET status = ?, updated_at = ? WHERE id = ? AND camp_id = ?").run(
+  const payload = jsonParse<TaskPayload>(item.payload, {});
+  const displayOrder = Number(body.display_order);
+  const appliedDisplayOrder = Number.isFinite(displayOrder) && displayOrder > 0 ? Math.round(displayOrder) : null;
+  const nextPayload: TaskPayload = appliedDisplayOrder
+    ? { ...payload, display_order: appliedDisplayOrder }
+    : payload;
+  db.prepare("UPDATE task_submissions SET status = ?, payload = ?, updated_at = ? WHERE id = ? AND camp_id = ?").run(
     nextStatus,
+    JSON.stringify(nextPayload),
     nowSql(),
     id,
     campId()
   );
-  audit("task.status", "task_submissions", id, { status: nextStatus });
+  audit("task.status", "task_submissions", id, { status: nextStatus, display_order: appliedDisplayOrder });
   emitState("task.display.changed");
   const updated = row(
     `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
@@ -1343,6 +1373,22 @@ app.get("/wall/artifacts", async () => ({
 app.get("/showcase", async () => ({
   showcase_items: showcaseItems(false)
 }));
+
+app.get("/public/final-showcase", async () => {
+  const camp = currentCamp() as Record<string, any>;
+  return {
+    camp: {
+      id: camp.id,
+      name: camp.name,
+      city: camp.city,
+      location: camp.location,
+      starts_on: camp.starts_on,
+      ends_on: camp.ends_on
+    },
+    final_showcase: finalShowcaseItems(),
+    showcase_items: showcaseItems(false)
+  };
+});
 
 app.get("/showcase/manage", async (request, reply) => {
   if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
