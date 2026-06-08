@@ -645,6 +645,14 @@ function aiQueryMatches(markdown, cluster) {
   };
 }
 
+function aiQueryMatchesInText(text, cluster) {
+  const queries = cluster.aiQueries || [];
+  return {
+    matches: queries.filter((query) => includesPhrase(text, query)),
+    missing: queries.filter((query) => !includesPhrase(text, query))
+  };
+}
+
 function ensureReportDir() {
   mkdirSync(join(ROOT, 'reports'), { recursive: true });
 }
@@ -981,6 +989,10 @@ function coverage() {
     let jsonLdTypeList = [];
     let aiQueryAnswerMatches = [];
     let aiQueryAnswerMissing = cluster.aiQueries || [];
+    let htmlAnswerMatches = [];
+    let htmlAnswerMissing = cluster.aiQueries || [];
+    let schemaAnswerMatches = [];
+    let schemaAnswerMissing = cluster.aiQueries || [];
     let publicInternalTerms = [];
 
     if (!existsSync(join(ROOT, source))) {
@@ -993,9 +1005,21 @@ function coverage() {
       secondaryMatches = (cluster.secondary || []).filter((keyword) => includesPhrase(fields.all, keyword));
       secondaryMissing = (cluster.secondary || []).filter((keyword) => !includesPhrase(fields.all, keyword));
       publicInternalTerms = PUBLIC_INTERNAL_TERMS.filter((term) => includesPhrase(fields.body, term));
+      const htmlAnswerCoverage = aiQueryMatchesInText(fields.body, cluster);
+      htmlAnswerMatches = htmlAnswerCoverage.matches;
+      htmlAnswerMissing = htmlAnswerCoverage.missing;
+      const schemaAnswerCoverage = aiQueryMatchesInText(fields.jsonLd, cluster);
+      schemaAnswerMatches = schemaAnswerCoverage.matches;
+      schemaAnswerMissing = schemaAnswerCoverage.missing;
 
       if (missingPrimaryLocations.length > 0) {
         failures.push(`primary keyword missing in: ${missingPrimaryLocations.join(', ')}`);
+      }
+      if (htmlAnswerMissing.length > 0) {
+        failures.push(`visible HTML missing AI query answer blocks: ${htmlAnswerMissing.join(', ')}`);
+      }
+      if (schemaAnswerMissing.length > 0) {
+        failures.push(`JSON-LD missing AI query answers: ${schemaAnswerMissing.join(', ')}`);
       }
       if (secondaryMatches.length < minimumSecondaryMatches) {
         failures.push(`secondary keyword coverage ${secondaryMatches.length}/${minimumSecondaryMatches}`);
@@ -1052,6 +1076,10 @@ function coverage() {
       markdown: markdownSource ? (existsSync(join(ROOT, markdownSource)) ? markdownSource : 'missing') : 'n/a',
       aiQueryAnswerMatches,
       aiQueryAnswerMissing,
+      htmlAnswerMatches,
+      htmlAnswerMissing,
+      schemaAnswerMatches,
+      schemaAnswerMissing,
       jsonLdTypes: jsonLdTypeList,
       failures,
       warnings,
@@ -1069,6 +1097,8 @@ function coverage() {
       `- Secondary matches measured: ${secondaryMatches.length}/${(cluster.secondary || []).length}${secondaryMatches.length > 0 ? ` (${secondaryMatches.join(', ')})` : ''}`,
       `- JSON-LD types measured: ${jsonLdTypeList.length > 0 ? jsonLdTypeList.join(', ') : 'none'}`,
       `- AI query coverage targets: ${(cluster.aiQueries || []).join(' | ') || 'n/a'}`,
+      `- Visible HTML answer blocks measured: ${htmlAnswerMatches.length}/${(cluster.aiQueries || []).length}${htmlAnswerMatches.length > 0 ? ` (${htmlAnswerMatches.join(' | ')})` : ''}`,
+      `- JSON-LD answer blocks measured: ${schemaAnswerMatches.length}/${(cluster.aiQueries || []).length}${schemaAnswerMatches.length > 0 ? ` (${schemaAnswerMatches.join(' | ')})` : ''}`,
       `- AI query answer blocks measured: ${aiQueryAnswerMatches.length}/${(cluster.aiQueries || []).length}${aiQueryAnswerMatches.length > 0 ? ` (${aiQueryAnswerMatches.join(' | ')})` : ''}`,
       `- Status: ${status}`,
       failures.length > 0 ? `- Failures: ${failures.join(' | ')}` : '- Failures: none',
@@ -1092,7 +1122,7 @@ function coverage() {
   console.log(`SEO/GEO coverage status: ${overallStatus}`);
   console.log(`Report: ${COVERAGE_REPORT_FILE}`);
   for (const row of rows) {
-    console.log(`- ${row.status} ${row.id}: ${row.primaryLocations.join(', ') || 'no primary locations'}; secondary ${row.secondaryMatches.length}/${row.secondaryMatches.length + row.secondaryMissing.length}; AI answers ${row.aiQueryAnswerMatches.length}/${row.aiQueryAnswerMatches.length + row.aiQueryAnswerMissing.length}`);
+    console.log(`- ${row.status} ${row.id}: ${row.primaryLocations.join(', ') || 'no primary locations'}; secondary ${row.secondaryMatches.length}/${row.secondaryMatches.length + row.secondaryMissing.length}; HTML answers ${row.htmlAnswerMatches.length}/${row.htmlAnswerMatches.length + row.htmlAnswerMissing.length}; schema answers ${row.schemaAnswerMatches.length}/${row.schemaAnswerMatches.length + row.schemaAnswerMissing.length}; Markdown answers ${row.aiQueryAnswerMatches.length}/${row.aiQueryAnswerMatches.length + row.aiQueryAnswerMissing.length}`);
   }
 
   if (failedRows.length > 0) {
@@ -1114,6 +1144,8 @@ function buildCoverageReport({ generatedAt, overallStatus, rows, sitemapUrls, de
     row.primary,
     row.primaryLocations.join(', ') || 'none',
     `${row.secondaryMatches.length}/${row.secondaryMatches.length + row.secondaryMissing.length}`,
+    `${row.htmlAnswerMatches.length}/${row.htmlAnswerMatches.length + row.htmlAnswerMissing.length}`,
+    `${row.schemaAnswerMatches.length}/${row.schemaAnswerMatches.length + row.schemaAnswerMissing.length}`,
     `${row.aiQueryAnswerMatches.length}/${row.aiQueryAnswerMatches.length + row.aiQueryAnswerMissing.length}`,
     row.sitemap,
     row.llms,
@@ -1134,8 +1166,8 @@ function buildCoverageReport({ generatedAt, overallStatus, rows, sitemapUrls, de
     '',
     '## Keyword Coverage',
     '',
-    'Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | AI answer coverage | Sitemap | llms.txt | Markdown context',
-    '--- | --- | --- | --- | --- | --- | --- | --- | --- | ---',
+    'Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | HTML answers | Schema answers | Markdown answers | Sitemap | llms.txt | Markdown context',
+    '--- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---',
     ...tableRows,
     '',
     '## Baidu Submission Set',
@@ -1219,17 +1251,29 @@ function markdownAiQueryMarkersBySource() {
   return markers;
 }
 
+function htmlAiQueryMarkersBySource() {
+  const markers = new Map();
+  const config = readJsonIfExists(KEYWORD_CONFIG_FILE) || {};
+  for (const cluster of config.clusters || []) {
+    if (!cluster.source) continue;
+    const current = markers.get(cluster.source) || [];
+    markers.set(cluster.source, [...current, ...(cluster.aiQueries || [])]);
+  }
+  return markers;
+}
+
 function onlineTargets() {
   const markdownAiQueryMarkers = markdownAiQueryMarkersBySource();
+  const htmlAiQueryMarkers = htmlAiQueryMarkersBySource();
   return [
-    { url: siteUrl('/'), markers: [`<link rel="canonical" href="${siteUrl('/')}">`, 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('index.html'), ...schemaMarkersForSource('index.html')] },
-    { url: siteUrl('/ai-pbl-camp.html'), markers: ['AI PBL 创业营', 'application/ld+json', 'AI产品原型课程', ...alternateMarkersForSource('ai-pbl-camp.html'), ...schemaMarkersForSource('ai-pbl-camp.html')] },
-    { url: siteUrl('/ai-product-prototype-course.html'), markers: ['AI产品原型课程', 'application/ld+json', '孩子做AI产品', ...alternateMarkersForSource('ai-product-prototype-course.html'), ...schemaMarkersForSource('ai-product-prototype-course.html')] },
-    { url: siteUrl('/beijing-shunyi-youth-ai-course.html'), markers: ['北京顺义青少年AI课程', 'application/ld+json', '顺义AI课程', ...alternateMarkersForSource('beijing-shunyi-youth-ai-course.html'), ...schemaMarkersForSource('beijing-shunyi-youth-ai-course.html')] },
-    { url: siteUrl('/youth-ai-course-guide.html'), markers: ['青少年AI课程怎么选', 'application/ld+json', 'AI PBL创业营', ...alternateMarkersForSource('youth-ai-course-guide.html'), ...schemaMarkersForSource('youth-ai-course-guide.html')] },
-    { url: siteUrl('/ai-course-vs-coding.html'), markers: ['少儿编程和AI课程区别', 'application/ld+json', '孩子该学AI还是编程', ...alternateMarkersForSource('ai-course-vs-coding.html'), ...schemaMarkersForSource('ai-course-vs-coding.html')] },
-    { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子', ...alternateMarkersForSource('shunyi-ai-parent-class.html'), ...schemaMarkersForSource('shunyi-ai-parent-class.html')] },
-    { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html'), ...schemaMarkersForSource('partner-ai-pbl-camp.html')] },
+    { url: siteUrl('/'), markers: [`<link rel="canonical" href="${siteUrl('/')}">`, 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('index.html'), ...schemaMarkersForSource('index.html'), ...(htmlAiQueryMarkers.get('index.html') || [])] },
+    { url: siteUrl('/ai-pbl-camp.html'), markers: ['AI PBL 创业营', 'application/ld+json', 'AI产品原型课程', ...alternateMarkersForSource('ai-pbl-camp.html'), ...schemaMarkersForSource('ai-pbl-camp.html'), ...(htmlAiQueryMarkers.get('ai-pbl-camp.html') || [])] },
+    { url: siteUrl('/ai-product-prototype-course.html'), markers: ['AI产品原型课程', 'application/ld+json', '孩子做AI产品', ...alternateMarkersForSource('ai-product-prototype-course.html'), ...schemaMarkersForSource('ai-product-prototype-course.html'), ...(htmlAiQueryMarkers.get('ai-product-prototype-course.html') || [])] },
+    { url: siteUrl('/beijing-shunyi-youth-ai-course.html'), markers: ['北京顺义青少年AI课程', 'application/ld+json', '顺义AI课程', ...alternateMarkersForSource('beijing-shunyi-youth-ai-course.html'), ...schemaMarkersForSource('beijing-shunyi-youth-ai-course.html'), ...(htmlAiQueryMarkers.get('beijing-shunyi-youth-ai-course.html') || [])] },
+    { url: siteUrl('/youth-ai-course-guide.html'), markers: ['青少年AI课程怎么选', 'application/ld+json', 'AI PBL创业营', ...alternateMarkersForSource('youth-ai-course-guide.html'), ...schemaMarkersForSource('youth-ai-course-guide.html'), ...(htmlAiQueryMarkers.get('youth-ai-course-guide.html') || [])] },
+    { url: siteUrl('/ai-course-vs-coding.html'), markers: ['少儿编程和AI课程区别', 'application/ld+json', '孩子该学AI还是编程', ...alternateMarkersForSource('ai-course-vs-coding.html'), ...schemaMarkersForSource('ai-course-vs-coding.html'), ...(htmlAiQueryMarkers.get('ai-course-vs-coding.html') || [])] },
+    { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子', ...alternateMarkersForSource('shunyi-ai-parent-class.html'), ...schemaMarkersForSource('shunyi-ai-parent-class.html'), ...(htmlAiQueryMarkers.get('shunyi-ai-parent-class.html') || [])] },
+    { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html'), ...schemaMarkersForSource('partner-ai-pbl-camp.html'), ...(htmlAiQueryMarkers.get('partner-ai-pbl-camp.html') || [])] },
     { url: siteUrl('/robots.txt'), markers: [`Sitemap: ${siteUrl('/sitemap-index.xml')}`, `Sitemap: ${siteUrl('/sitemap.xml')}`, `Sitemap: ${siteUrl('/sitemap-context.xml')}`] },
     { url: siteUrl('/sitemap-index.xml'), markers: [`<loc>${siteUrl('/sitemap.xml')}</loc>`, `<loc>${siteUrl('/sitemap-context.xml')}</loc>`] },
     { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },
@@ -1292,6 +1336,10 @@ function keywordCoverageSnapshot() {
     let jsonLdTypeList = [];
     let aiQueryAnswerMatches = [];
     let aiQueryAnswerMissing = cluster.aiQueries || [];
+    let htmlAnswerMatches = [];
+    let htmlAnswerMissing = cluster.aiQueries || [];
+    let schemaAnswerMatches = [];
+    let schemaAnswerMissing = cluster.aiQueries || [];
 
     if (!existsSync(join(ROOT, source))) {
       failures.push(`missing source file: ${source}`);
@@ -1303,9 +1351,21 @@ function keywordCoverageSnapshot() {
       secondaryMatches = (cluster.secondary || []).filter((keyword) => includesPhrase(fields.all, keyword));
       secondaryMissing = (cluster.secondary || []).filter((keyword) => !includesPhrase(fields.all, keyword));
       const publicInternalTerms = PUBLIC_INTERNAL_TERMS.filter((term) => includesPhrase(fields.body, term));
+      const htmlAnswerCoverage = aiQueryMatchesInText(fields.body, cluster);
+      htmlAnswerMatches = htmlAnswerCoverage.matches;
+      htmlAnswerMissing = htmlAnswerCoverage.missing;
+      const schemaAnswerCoverage = aiQueryMatchesInText(fields.jsonLd, cluster);
+      schemaAnswerMatches = schemaAnswerCoverage.matches;
+      schemaAnswerMissing = schemaAnswerCoverage.missing;
 
       if (missingPrimaryLocations.length > 0) {
         failures.push(`primary keyword missing in: ${missingPrimaryLocations.join(', ')}`);
+      }
+      if (htmlAnswerMissing.length > 0) {
+        failures.push(`visible HTML missing AI query answer blocks: ${htmlAnswerMissing.join(', ')}`);
+      }
+      if (schemaAnswerMissing.length > 0) {
+        failures.push(`JSON-LD missing AI query answers: ${schemaAnswerMissing.join(', ')}`);
       }
       if (secondaryMatches.length < minimumSecondaryMatches) {
         failures.push(`secondary keyword coverage ${secondaryMatches.length}/${minimumSecondaryMatches}`);
@@ -1357,6 +1417,10 @@ function keywordCoverageSnapshot() {
       aiQueries: cluster.aiQueries || [],
       aiQueryAnswerMatches,
       aiQueryAnswerMissing,
+      htmlAnswerMatches,
+      htmlAnswerMissing,
+      schemaAnswerMatches,
+      schemaAnswerMissing,
       primaryLocations,
       secondaryMatches,
       secondaryTotal: (cluster.secondary || []).length,
@@ -1678,6 +1742,8 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     row.primary,
     row.primaryLocations.join(', ') || 'none',
     `${row.secondaryMatches.length}/${row.secondaryTotal}`,
+    `${row.htmlAnswerMatches.length}/${row.htmlAnswerMatches.length + row.htmlAnswerMissing.length}`,
+    `${row.schemaAnswerMatches.length}/${row.schemaAnswerMatches.length + row.schemaAnswerMissing.length}`,
     `${row.aiQueryAnswerMatches.length}/${row.aiQueryAnswerMatches.length + row.aiQueryAnswerMissing.length}`,
     row.jsonLdTypes.join(', ') || 'none'
   ].map(escapeMarkdownCell).join(' | '));
@@ -1734,8 +1800,8 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     '',
     '## Keyword / GEO Coverage',
     '',
-    'Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | AI answer coverage | JSON-LD types',
-    '--- | --- | --- | --- | --- | --- | --- | ---',
+    'Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | HTML answers | Schema answers | Markdown answers | JSON-LD types',
+    '--- | --- | --- | --- | --- | --- | --- | --- | --- | ---',
     ...coverageRows,
     '',
     '## Internal Link Graph',
@@ -1760,6 +1826,8 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
       `- Page: ${row.pageUrl}`,
       `- Primary keyword: ${row.primary}`,
       `- Target answer queries: ${row.aiQueries.join(' | ') || 'n/a'}`,
+      `- Visible HTML answer coverage: ${row.htmlAnswerMatches.length}/${row.htmlAnswerMatches.length + row.htmlAnswerMissing.length}`,
+      `- JSON-LD answer coverage: ${row.schemaAnswerMatches.length}/${row.schemaAnswerMatches.length + row.schemaAnswerMissing.length}`,
       `- Markdown answer coverage: ${row.aiQueryAnswerMatches.length}/${row.aiQueryAnswerMatches.length + row.aiQueryAnswerMissing.length}`,
       `- Status: ${row.status}`,
       row.failures.length > 0 ? `- Failures: ${row.failures.join(' | ')}` : '- Failures: none',

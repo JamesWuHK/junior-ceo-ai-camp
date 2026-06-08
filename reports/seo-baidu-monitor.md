@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-09T01:27:46+08:00
+Generated: 2026-06-09T01:39:16+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -42,16 +42,16 @@ Run `npm run seo:submit:baidu -- --dry-run` to print this same URL set without s
 
 ## Keyword / GEO Coverage
 
-Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | AI answer coverage | JSON-LD types
---- | --- | --- | --- | --- | --- | --- | ---
-PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | Course, FAQPage, Organization, WebSite
-PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | BreadcrumbList, Course, FAQPage
-PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产品原型课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | Article, BreadcrumbList, FAQPage
-PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | 北京顺义青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 8/8 | 3/3 | BreadcrumbList, Course, FAQPage
-PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | Article, BreadcrumbList, FAQPage
-PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | Article, BreadcrumbList, FAQPage
-PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | Article, BreadcrumbList, FAQPage
-PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | BreadcrumbList, FAQPage, Service
+Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | HTML answers | Schema answers | Markdown answers | JSON-LD types
+--- | --- | --- | --- | --- | --- | --- | --- | --- | ---
+PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | Course, FAQPage, Organization, WebSite
+PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | BreadcrumbList, Course, FAQPage
+PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产品原型课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | Article, BreadcrumbList, FAQPage
+PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | 北京顺义青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | BreadcrumbList, Course, FAQPage
+PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | Article, BreadcrumbList, FAQPage
+PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | Article, BreadcrumbList, FAQPage
+PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | Article, BreadcrumbList, FAQPage
+PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | BreadcrumbList, FAQPage, Service
 
 ## Internal Link Graph
 
@@ -65,14 +65,14 @@ PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构�
 
 Status | URL | HTTP | Bytes | Missing markers / error
 --- | --- | --- | --- | ---
-PASS | https://camps.wanli.wiki/ | 200 | 49255 | none
-PASS | https://camps.wanli.wiki/ai-pbl-camp.html | 200 | 9801 | none
-PASS | https://camps.wanli.wiki/ai-product-prototype-course.html | 200 | 11024 | none
-PASS | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | 200 | 11001 | none
-PASS | https://camps.wanli.wiki/youth-ai-course-guide.html | 200 | 11022 | none
-PASS | https://camps.wanli.wiki/ai-course-vs-coding.html | 200 | 10054 | none
-PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.html | 200 | 8591 | none
-PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.html | 200 | 9189 | none
+PASS | https://camps.wanli.wiki/ | 200 | 50368 | none
+PASS | https://camps.wanli.wiki/ai-pbl-camp.html | 200 | 10950 | none
+PASS | https://camps.wanli.wiki/ai-product-prototype-course.html | 200 | 12154 | none
+PASS | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | 200 | 12124 | none
+PASS | https://camps.wanli.wiki/youth-ai-course-guide.html | 200 | 12110 | none
+PASS | https://camps.wanli.wiki/ai-course-vs-coding.html | 200 | 11174 | none
+PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.html | 200 | 9679 | none
+PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.html | 200 | 10295 | none
 PASS | https://camps.wanli.wiki/robots.txt | 200 | 265 | none
 PASS | https://camps.wanli.wiki/sitemap-index.xml | 200 | 352 | none
 PASS | https://camps.wanli.wiki/sitemap.xml | 200 | 1561 | none
@@ -94,6 +94,8 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 2007 | no
 - Page: https://camps.wanli.wiki/
 - Primary keyword: 少年CEO AI 创业营
 - Target answer queries: 少年CEO AI 创业营是什么 | 适合8-16岁孩子的AI创业营 | 北京顺义青少年AI课程推荐
+- Visible HTML answer coverage: 3/3
+- JSON-LD answer coverage: 3/3
 - Markdown answer coverage: 3/3
 - Status: PASS
 - Failures: none
@@ -104,6 +106,8 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 2007 | no
 - Page: https://camps.wanli.wiki/ai-pbl-camp.html
 - Primary keyword: AI PBL 创业营
 - Target answer queries: AI PBL 创业营适合什么孩子 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上
+- Visible HTML answer coverage: 3/3
+- JSON-LD answer coverage: 3/3
 - Markdown answer coverage: 3/3
 - Status: PASS
 - Failures: none
@@ -114,6 +118,8 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 2007 | no
 - Page: https://camps.wanli.wiki/ai-product-prototype-course.html
 - Primary keyword: AI产品原型课程
 - Target answer queries: AI产品原型课程是什么 | 孩子做AI产品需要会编程吗 | AI产品原型课程和AI工具课有什么不同
+- Visible HTML answer coverage: 3/3
+- JSON-LD answer coverage: 3/3
 - Markdown answer coverage: 3/3
 - Status: PASS
 - Failures: none
@@ -124,6 +130,8 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 2007 | no
 - Page: https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html
 - Primary keyword: 北京顺义青少年AI课程
 - Target answer queries: 北京顺义青少年AI课程适合什么孩子 | 顺义AI课程和普通工具体验课有什么不同 | 顺义家长如何判断一门青少年AI课程
+- Visible HTML answer coverage: 3/3
+- JSON-LD answer coverage: 3/3
 - Markdown answer coverage: 3/3
 - Status: PASS
 - Failures: none
@@ -134,6 +142,8 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 2007 | no
 - Page: https://camps.wanli.wiki/youth-ai-course-guide.html
 - Primary keyword: 青少年AI课程
 - Target answer queries: 青少年AI课程怎么选 | 儿童AI课程只学工具够吗 | AI PBL课程适合什么孩子
+- Visible HTML answer coverage: 3/3
+- JSON-LD answer coverage: 3/3
 - Markdown answer coverage: 3/3
 - Status: PASS
 - Failures: none
@@ -144,6 +154,8 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 2007 | no
 - Page: https://camps.wanli.wiki/ai-course-vs-coding.html
 - Primary keyword: 少儿编程和AI课程区别
 - Target answer queries: 少儿编程和AI课程区别是什么 | 孩子该学AI还是编程 | 不会编程能学AI课程吗
+- Visible HTML answer coverage: 3/3
+- JSON-LD answer coverage: 3/3
 - Markdown answer coverage: 3/3
 - Status: PASS
 - Failures: none
@@ -154,6 +166,8 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 2007 | no
 - Page: https://camps.wanli.wiki/shunyi-ai-parent-class.html
 - Primary keyword: 北京顺义 AI 家长公益课
 - Target answer queries: 北京顺义AI家长公益课讲什么 | AI时代孩子需要什么能力 | 顺义家长怎么理解孩子学AI
+- Visible HTML answer coverage: 3/3
+- JSON-LD answer coverage: 3/3
 - Markdown answer coverage: 3/3
 - Status: PASS
 - Failures: none
@@ -164,6 +178,8 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 2007 | no
 - Page: https://camps.wanli.wiki/partner-ai-pbl-camp.html
 - Primary keyword: AI PBL 创业营机构合作
 - Target answer queries: 培训机构如何合作开展AI PBL创业营 | 青少年AI营地合作课程方案 | AI创业营机构合作支持什么
+- Visible HTML answer coverage: 3/3
+- JSON-LD answer coverage: 3/3
 - Markdown answer coverage: 3/3
 - Status: PASS
 - Failures: none
