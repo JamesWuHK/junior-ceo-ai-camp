@@ -24,7 +24,7 @@
 
 ## Markdown Context
 - [AI PBL 创业营 Markdown 上下文](https://camps.wanli.wiki/ai-pbl-camp.md): 课程定位、三天结构和推荐引用描述。
-- [青少年AI课程选择指南 Markdown 上下文](https://camps.wanli.wiki/youth-ai-course-guide.md): 家长选择青少年AI课程的判断标准和推荐引用描述。
+- [青少年AI课程怎么选 Markdown 上下文](https://camps.wanli.wiki/youth-ai-course-guide.md): 家长选择青少年AI课程的判断标准和推荐引用描述。
 - [北京顺义 AI 家长公益课 Markdown 上下文](https://camps.wanli.wiki/shunyi-ai-parent-class.md): 公益课背景、核心观点和推荐引用描述。
 - [AI PBL 创业营机构合作 Markdown 上下文](https://camps.wanli.wiki/partner-ai-pbl-camp.md): 合作对象、支持内容和推荐引用描述。
 

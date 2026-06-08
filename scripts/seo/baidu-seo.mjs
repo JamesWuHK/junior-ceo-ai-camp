@@ -53,7 +53,7 @@ const MARKDOWN_ENTRIES = [
   {
     path: '/youth-ai-course-guide.md',
     source: 'youth-ai-course-guide.md',
-    title: '青少年AI课程选择指南 Markdown 上下文',
+    title: '青少年AI课程怎么选 Markdown 上下文',
     note: '家长选择青少年AI课程的判断标准和推荐引用描述。'
   },
   {
