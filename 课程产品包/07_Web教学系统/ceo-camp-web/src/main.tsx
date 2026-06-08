@@ -844,6 +844,7 @@ function taskTypeForAction(action: string, page: DesignedLessonPage) {
   if (/功能先发散|只留下一个核心动作|最小可行产品|明天要做出的第一版/.test(page.title)) return "feature_scope";
   if (/选择今天能完成的路线|用户打开后第一步做什么|流程图检查/.test(page.title)) return "tech_route";
   if (/反馈进作品|改出 V2/.test(page.title)) return "iteration_plan";
+  if (/帮别人少烦了什么|价值交换榜|定价三问|别人愿意交换/.test(page.title)) return "value_card";
   if (action === "进入评分") return "score";
   if (action === "发起互动") return "interaction";
   if (action === "打开看板") return "board";
@@ -970,6 +971,19 @@ function isIterationPlanTask(camp: Camp | null) {
     activityType === "iteration_plan" ||
     payloadType === "iteration_plan" ||
     /反馈进作品|改出 V2|迭代清单/.test(title)
+  );
+}
+
+function isValueCardTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  const activityType = camp?.active_task?.activity_type || "";
+  const payloadType = asText(camp?.active_task?.payload?.task_type);
+  return (
+    activityType === "value_card" ||
+    payloadType === "value_card" ||
+    (moduleId === "value-experiment" && /帮别人少烦了什么|价值交换|定价三问|别人愿意交换|星星币/.test(title)) ||
+    /价值卡|价值交换|星星币|愿意交换|帮别人少烦了什么/.test(title)
   );
 }
 
@@ -1741,7 +1755,8 @@ function journeyItemRank(item: WallArtifact) {
     tech_route: 8,
     product_feedback: 9,
     iteration_plan: 10,
-    mentor_comment: 11
+    value_card: 11,
+    mentor_comment: 12
   };
   return ranks[item.task_type] ?? 9;
 }
@@ -2022,6 +2037,7 @@ function journeyTitle(item: WallArtifact) {
   if (item.task_type === "tech_route") return techRouteLabel(item.payload.route_choice);
   if (item.task_type === "product_feedback") return asText(item.payload.product_name) || "收到试用反馈";
   if (item.task_type === "iteration_plan") return asText(item.payload.v2_plan) || asText(item.payload.product_name) || "写出下一版计划";
+  if (item.task_type === "value_card") return asText(item.payload.value_change) || asText(item.payload.product_name) || "写出价值交换卡";
   if (item.task_type === "mentor_comment") return asText(item.payload.product_name) || "导师点评";
   return item.title || "项目记录";
 }
@@ -2038,6 +2054,7 @@ function journeyLabel(item: WallArtifact) {
     tech_route: "路线流程",
     product_feedback: "收到反馈",
     iteration_plan: "迭代清单",
+    value_card: "价值卡",
     mentor_comment: "导师点评"
   };
   return labels[item.task_type] || "项目记录";
@@ -2130,6 +2147,16 @@ function journeyCopy(item: WallArtifact) {
       ["暂不改", iterationListSummary(item.payload.later_items, item.payload.later_summary)],
       ["V2 先改", asText(item.payload.v2_plan)],
       ["再试一次", asText(item.payload.test_again)]
+    ];
+  }
+  if (item.task_type === "value_card") {
+    return [
+      ["产品", asText(item.payload.product_name)],
+      ["帮谁", asText(item.payload.target_user)],
+      ["少烦了", asText(item.payload.value_change)],
+      ["愿意交换", [valueExchangeLabel(item.payload.exchange_choice), asText(item.payload.exchange_amount)].filter(Boolean).join(" ")],
+      ["为什么值得", asText(item.payload.why_worth)],
+      ["证据", asText(item.payload.evidence)]
     ];
   }
   if (item.task_type === "mentor_comment") {
@@ -2516,6 +2543,7 @@ function TeacherApp({
         <TeacherProjectSubmissions />
         <TeacherPeerFeedback />
         <TeacherIterationPlans />
+        <TeacherValueCards />
         <TeacherFinalShowcase />
         <TeacherScoringCenter />
         <TeacherMentorComments />
@@ -2559,6 +2587,18 @@ function featureSummary(payload: Record<string, unknown>, limit = 4) {
 function techRouteLabel(value: unknown) {
   const route = asText(value);
   return techRouteOptions.find((option) => option.value === route)?.label || route || "还没选路线";
+}
+
+const valueExchangeOptions = [
+  { value: "stars", label: "星星币", hint: "愿意花一点星星币" },
+  { value: "time", label: "时间", hint: "愿意花时间试用" },
+  { value: "recommend", label: "推荐", hint: "愿意推荐给同学" },
+  { value: "again", label: "再用一次", hint: "愿意下次还打开" }
+] as const;
+
+function valueExchangeLabel(value: unknown) {
+  const exchange = asText(value);
+  return valueExchangeOptions.find((option) => option.value === exchange)?.label || exchange || "还没选择";
 }
 
 function userFlowSummary(payload: Record<string, unknown>, limit = 5) {
@@ -2605,6 +2645,7 @@ const progressMilestones = [
   { key: "product_link", label: "作品入口", target: 1, unit: "个" },
   { key: "product_feedback", label: "互测反馈", target: 2, unit: "条" },
   { key: "iteration_plan", label: "迭代清单", target: 1, unit: "张" },
+  { key: "value_card", label: "价值卡", target: 1, unit: "张" },
   { key: "final_showcase", label: "展示卡", target: 1, unit: "张" }
 ] as const;
 
@@ -2896,6 +2937,7 @@ function nextSupportAction(
   if (firstMissing.key === "user_voice") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条用户声音，先补真实采访。`;
   if (firstMissing.key === "product_feedback") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条互测反馈，安排别组打开作品试用。`;
   if (firstMissing.key === "iteration_plan") return "请小组把反馈分成必须改、建议改、暂不改，再定 V2 先改哪一处。";
+  if (firstMissing.key === "value_card") return "请小组补一张价值卡：帮谁少烦了什么，别人愿意用什么交换。";
   if (firstMissing.key === "product_link") return "先确认作品链接能打开，再准备上台展示。";
   if (firstMissing.key === "final_showcase") return "请小组把最终展示卡补齐。";
   if (firstMissing.key === "product_definition") return "先把产品一句话写清楚：帮谁、解决什么、怎么解决。";
@@ -2979,10 +3021,11 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
     const withFeatureScope = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "feature_scope")).length;
     const withTechRoute = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "tech_route")).length;
     const withIteration = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "iteration_plan")).length;
+    const withValueCard = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "value_card")).length;
     const interviewReady = teamSummaries.filter((item) => item.userVoiceCount >= 3).length;
     const feedbackReady = teamSummaries.filter((item) => item.feedbackCount >= 2).length;
     const needsSupport = teamSummaries.filter((item) => item.needsSupport).length;
-    return { activeBlockers, readyTeams, withScout, withProduct, withPrompt, withFeatureScope, withTechRoute, withIteration, interviewReady, feedbackReady, needsSupport };
+    return { activeBlockers, readyTeams, withScout, withProduct, withPrompt, withFeatureScope, withTechRoute, withIteration, withValueCard, interviewReady, feedbackReady, needsSupport };
   }, [teamSummaries]);
 
   const toggleBlocker = async (item: TaskSubmission) => {
@@ -3015,6 +3058,7 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
         <span>{totals.readyTeams} 组已有作品入口</span>
         <span>{totals.feedbackReady} 组收到互测反馈</span>
         <span>{totals.withIteration} 组有迭代清单</span>
+        <span>{totals.withValueCard} 组有价值卡</span>
         <span>{totals.needsSupport} 组需要跟进</span>
         <span>{totals.activeBlockers} 个卡点待支援</span>
       </div>
@@ -3961,6 +4005,95 @@ function TeacherIterationPlans() {
           );
         })}
         {!items.length && <p className="empty">学生提交迭代清单后，会出现在这里。</p>}
+      </div>
+    </section>
+  );
+}
+
+function TeacherValueCards() {
+  const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [message, setMessage] = useState("");
+  const [workingId, setWorkingId] = useState("");
+
+  const load = async () => {
+    try {
+      const result = await api.submissions();
+      setItems(result.task_submissions.filter((item) => item.task_type === "value_card"));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const groupedCount = useMemo(
+    () => new Set(items.map((item) => item.team_id || item.student_id || item.id)).size,
+    [items]
+  );
+
+  const toggleWall = async (item: TaskSubmission) => {
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.setTaskSubmissionStatus(item.id, item.status === "ON_WALL" ? "SUBMITTED" : "ON_WALL");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "操作失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
+
+  return (
+    <section className="panel value-card-panel">
+      <div className="panel-title">
+        <Coins size={20} />
+        <h2>D3 价值交换卡</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{items.length} 张价值卡</span>
+        <span>{groupedCount} 个来源</span>
+        <span>{items.filter((item) => item.status === "ON_WALL").length} 张已上屏</span>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="d1-artifact-list">
+        {items.map((item) => {
+          const exchangeLine = [valueExchangeLabel(item.payload.exchange_choice), asText(item.payload.exchange_amount)].filter(Boolean).join(" ");
+          return (
+            <article
+              className={[
+                "d1-artifact-card",
+                "value-card",
+                item.status === "ON_WALL" ? "on-wall" : ""
+              ].filter(Boolean).join(" ")}
+              key={item.id}
+            >
+              <header>
+                <div>
+                  <span>价值交换卡</span>
+                  <strong>{asText(item.payload.product_name) || "未命名作品"}</strong>
+                  <small>{item.team_name || item.student_name || "学生提交"}</small>
+                </div>
+                <button disabled={workingId === item.id} onClick={() => toggleWall(item)}>
+                  {item.status === "ON_WALL" ? "从大屏移开" : "放到大屏"}
+                </button>
+              </header>
+              <div className="artifact-lines">
+                <p><strong>帮谁：</strong>{asText(item.payload.target_user) || "还没写"}</p>
+                <p><strong>少烦了：</strong>{asText(item.payload.value_change) || "还没写"}</p>
+                <p><strong>愿意交换：</strong>{exchangeLine || "还没写"}</p>
+                <p><strong>为什么值得：</strong>{asText(item.payload.why_worth) || "还没写"}</p>
+                <p><strong>证据：</strong>{asText(item.payload.evidence) || "还没写"}</p>
+                <p><strong>下一次验证：</strong>{asText(item.payload.next_proof) || "还没写"}</p>
+              </div>
+            </article>
+          );
+        })}
+        {!items.length && <p className="empty">学生提交价值卡后，会出现在这里。</p>}
       </div>
     </section>
   );
@@ -6216,6 +6349,7 @@ function StudentApp({
   const featureScopeTask = isFeatureScopeTask(camp);
   const techRouteTask = isTechRouteTask(camp);
   const iterationPlanTask = isIterationPlanTask(camp);
+  const valueCardTask = isValueCardTask(camp);
   const productDefinitionTask = isProductDefinitionTask(camp);
   const blockerTask = isBlockerTask(camp);
   const observerScoreTask = isObserverScoreTask(camp);
@@ -6233,6 +6367,7 @@ function StudentApp({
     featureScopeTask ||
     techRouteTask ||
     iterationPlanTask ||
+    valueCardTask ||
     productDefinitionTask ||
     blockerTask ||
     observerScoreTask ||
@@ -6517,6 +6652,18 @@ function StudentApp({
   if (iterationPlanTask) {
     return (
       <StudentIterationPlanTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (valueCardTask) {
+    return (
+      <StudentValueCardTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -9079,6 +9226,202 @@ function StudentIterationPlanTask({
   );
 }
 
+function StudentValueCardTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [productName, setProductName] = useState("");
+  const [targetUser, setTargetUser] = useState("");
+  const [valueChange, setValueChange] = useState("");
+  const [exchangeChoice, setExchangeChoice] = useState<(typeof valueExchangeOptions)[number]["value"]>("stars");
+  const [exchangeAmount, setExchangeAmount] = useState("");
+  const [whyWorth, setWhyWorth] = useState("");
+  const [evidence, setEvidence] = useState("");
+  const [nextProof, setNextProof] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+  const exchangeLabel = valueExchangeLabel(exchangeChoice);
+  const exchangePreview = [exchangeLabel, exchangeAmount.trim()].filter(Boolean).join(" ");
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!productName.trim()) {
+      showMessage("error", "先写作品名。");
+      return;
+    }
+    if (!targetUser.trim()) {
+      showMessage("error", "先写这个作品帮谁。");
+      return;
+    }
+    if (!valueChange.trim()) {
+      showMessage("error", "写清它帮别人少烦了什么。");
+      return;
+    }
+    if (!exchangeAmount.trim()) {
+      showMessage("error", "写下别人愿意交换多少。");
+      return;
+    }
+    if (!whyWorth.trim()) {
+      showMessage("error", "再写一句为什么值得。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "value_card",
+        title: taskTitle,
+        payload: {
+          product_name: productName.trim(),
+          target_user: targetUser.trim(),
+          value_change: valueChange.trim(),
+          exchange_choice: exchangeChoice,
+          exchange_label: exchangeLabel,
+          exchange_amount: exchangeAmount.trim(),
+          why_worth: whyWorth.trim(),
+          evidence: evidence.trim(),
+          next_proof: nextProof.trim(),
+          team_id: student.team_id || "",
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。现在你们能说清作品为什么值得交换。");
+      setProductName("");
+      setTargetUser("");
+      setValueChange("");
+      setExchangeChoice("stars");
+      setExchangeAmount("");
+      setWhyWorth("");
+      setEvidence("");
+      setNextProof("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "价值交换卡"}</h1>
+        <p>说清你的作品帮别人少烦了什么，再看看别人愿意用什么交换。</p>
+        <div className="student-card value-card-form">
+          <div className="student-current">
+            <div>
+              <span>产品小组</span>
+              <strong>{student.team_name || student.nickname}</strong>
+              <small>{student.student_no ? `${student.nickname} · 学号 ${student.student_no}` : student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            作品名
+            <input
+              value={productName}
+              onChange={(event) => setProductName(event.target.value)}
+              placeholder="例如：午餐选择器"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            这个作品帮谁
+            <input
+              value={targetUser}
+              onChange={(event) => setTargetUser(event.target.value)}
+              placeholder="例如：每天中午不知道吃什么的同学"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            帮别人少烦了什么
+            <textarea
+              value={valueChange}
+              onChange={(event) => setValueChange(event.target.value)}
+              placeholder="例如：不用在很多选项里纠结，可以 10 秒看到一个推荐"
+              rows={3}
+            />
+          </label>
+          <div className="value-choice-grid" aria-label="选择交换方式">
+            {valueExchangeOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={exchangeChoice === option.value ? "active" : ""}
+                onClick={() => setExchangeChoice(option.value)}
+              >
+                <strong>{option.label}</strong>
+                <span>{option.hint}</span>
+              </button>
+            ))}
+          </div>
+          <label>
+            别人愿意交换多少
+            <input
+              value={exchangeAmount}
+              onChange={(event) => setExchangeAmount(event.target.value)}
+              placeholder="例如：3 枚星星币 / 5 分钟 / 推荐给 2 个同学"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            为什么值得
+            <textarea
+              value={whyWorth}
+              onChange={(event) => setWhyWorth(event.target.value)}
+              placeholder="例如：它让选择变快，还能给出理由"
+              rows={3}
+            />
+          </label>
+          <div className="value-proof-preview" aria-label="价值卡预览">
+            <span>{exchangePreview || "选择一种交换方式"}</span>
+            <strong>{valueChange.trim() || "帮别人少烦了什么"}</strong>
+          </div>
+          <label>
+            你看到的证据（可选）
+            <input
+              value={evidence}
+              onChange={(event) => setEvidence(event.target.value)}
+              placeholder="例如：第 2 组试用后说愿意再用一次"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            下一次再验证什么（可选）
+            <input
+              value={nextProof}
+              onChange={(event) => setNextProof(event.target.value)}
+              placeholder="例如：让 3 位没见过作品的同学试一次"
+              inputMode="text"
+              enterKeyHint="done"
+            />
+          </label>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <Coins size={18} />}
+            提交
+          </button>
+          <p className="hint">真正有价值的产品，会让别人愿意付出一点东西来换。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
 function ScoreRating({
   value,
   onChange
@@ -9561,13 +9904,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   const hasFeature = artifacts.some((item) => item.task_type === "feature_scope");
   const hasTech = artifacts.some((item) => item.task_type === "tech_route");
   const hasIteration = artifacts.some((item) => item.task_type === "iteration_plan");
+  const hasValue = artifacts.some((item) => item.task_type === "value_card");
   const hasValidation = artifacts.some((item) => item.task_type === "ai_validation");
   const hasScout = artifacts.some((item) => item.task_type === "market_scout");
   return (
     <section className="wall-artifacts">
       <div className="wall-section-title">
-        <span className="eyebrow">{hasProduct ? "产品卡片" : hasIteration ? "迭代清单" : hasTech ? "路线流程" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
-        <h2>{hasProduct ? "从问题到产品" : hasIteration ? "把反馈改成下一版" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
+        <span className="eyebrow">{hasProduct ? "产品卡片" : hasValue ? "价值交换" : hasIteration ? "迭代清单" : hasTech ? "路线流程" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
+        <h2>{hasProduct ? "从问题到产品" : hasValue ? "作品为什么值得" : hasIteration ? "把反馈改成下一版" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
       </div>
       <div className="wall-artifact-grid">
         {artifacts.map((item) => {
@@ -9579,11 +9923,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
           const isFeature = item.task_type === "feature_scope";
           const isTech = item.task_type === "tech_route";
           const isIteration = item.task_type === "iteration_plan";
+          const isValue = item.task_type === "value_card";
           return (
             <article
               className={
                 isProduct
                   ? "wall-artifact-card product"
+                  : isValue
+                  ? "wall-artifact-card value-card"
                   : isIteration
                   ? "wall-artifact-card iteration-plan"
                   : isTech
@@ -9602,10 +9949,12 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
               }
               key={item.id}
             >
-              <span>{isProduct ? "产品卡" : isIteration ? "迭代清单" : isTech ? "路线流程卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
+              <span>{isProduct ? "产品卡" : isValue ? "价值卡" : isIteration ? "迭代清单" : isTech ? "路线流程卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
               <strong>
                 {isProduct
                   ? asText(item.payload.product_name) || "一个产品想法"
+                  : isValue
+                  ? asText(item.payload.value_change) || asText(item.payload.product_name) || "作品为什么值得"
                   : isIteration
                   ? asText(item.payload.v2_plan) || asText(item.payload.product_name) || "下一版计划"
                   : isTech
@@ -9628,6 +9977,15 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                   <p><b>问题</b>{asText(item.payload.core_problem) || "还没写"}</p>
                   <p><b>办法</b>{asText(item.payload.solution) || "还没写"}</p>
                   <p><b>一句话</b>{asText(item.payload.one_liner) || "还在打磨"}</p>
+                </>
+              ) : isValue ? (
+                <>
+                  <p><b>产品</b>{asText(item.payload.product_name) || "还没写"}</p>
+                  <p><b>帮谁</b>{asText(item.payload.target_user) || "还没写"}</p>
+                  <p><b>少烦了</b>{asText(item.payload.value_change) || "还没写"}</p>
+                  <p><b>愿意交换</b>{[valueExchangeLabel(item.payload.exchange_choice), asText(item.payload.exchange_amount)].filter(Boolean).join(" ") || "还没写"}</p>
+                  <p><b>为什么值得</b>{asText(item.payload.why_worth) || "还没写"}</p>
+                  <p><b>证据</b>{asText(item.payload.evidence) || "还在整理"}</p>
                 </>
               ) : isIteration ? (
                 <>

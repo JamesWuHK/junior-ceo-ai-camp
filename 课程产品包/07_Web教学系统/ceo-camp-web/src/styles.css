@@ -2751,6 +2751,10 @@ button:disabled {
   border-left: 6px solid #c45b75;
 }
 
+.d1-artifact-card.value-card {
+  border-left: 6px solid #d7a326;
+}
+
 .d1-artifact-card header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -3326,6 +3330,10 @@ button:disabled {
   max-width: 900px;
 }
 
+.value-card-form {
+  max-width: 900px;
+}
+
 .prompt-preview {
   border: 1px solid #d5eadf;
   border-radius: 8px;
@@ -3415,6 +3423,40 @@ button:disabled {
   line-height: 1.35;
 }
 
+.value-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.value-choice-grid button {
+  border: 1px solid #ead7a1;
+  border-radius: 8px;
+  background: #fff9e7;
+  padding: 12px;
+  display: grid;
+  gap: 5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.value-choice-grid button.active {
+  border-color: #d7a326;
+  background: #fff1bf;
+  box-shadow: 0 0 0 2px rgba(215, 163, 38, 0.16);
+}
+
+.value-choice-grid strong {
+  color: #172018;
+  font-size: 16px;
+}
+
+.value-choice-grid span {
+  color: #675321;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
 .final-showcase-card {
   max-width: 860px;
 }
@@ -3454,6 +3496,26 @@ button:disabled {
   padding: 10px;
   font-weight: 900;
   text-align: center;
+}
+
+.value-proof-preview {
+  border: 1px solid #ead7a1;
+  border-radius: 8px;
+  background: #fff9e7;
+  padding: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.value-proof-preview span {
+  color: #8a6413;
+  font-weight: 900;
+}
+
+.value-proof-preview strong {
+  color: #172018;
+  font-size: 18px;
+  line-height: 1.35;
 }
 
 .ability-picker,
@@ -4138,6 +4200,10 @@ button:disabled {
 
 .wall-artifact-card.iteration-plan {
   border-top-color: #c45b75;
+}
+
+.wall-artifact-card.value-card {
+  border-top-color: #d7a326;
 }
 
 .wall-artifact-card.validation {
