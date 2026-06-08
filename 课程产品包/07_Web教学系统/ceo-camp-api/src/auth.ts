@@ -4,6 +4,7 @@ import { config } from "./config.js";
 const passwordIterations = 120_000;
 const teacherTokenPrefix = "teacher";
 const studentTokenPrefix = "student";
+const studentPhotoUploadTokenPrefix = "student-photo";
 
 export interface TeacherPrincipal {
   id: string;
@@ -115,6 +116,26 @@ export function issueStudentToken(student: StudentPrincipal) {
   };
 }
 
+export function issueStudentPhotoUploadToken(student: StudentPrincipal, expiresSeconds = 15 * 60) {
+  const expiresAt = Math.floor(Date.now() / 1000) + expiresSeconds;
+  const payload = base64UrlEncode(
+    JSON.stringify({
+      sub: student.id,
+      username: student.username,
+      nickname: student.nickname,
+      student_no: student.student_no ?? null,
+      scope: "future-photo-source",
+      exp: expiresAt
+    })
+  );
+  const signature = sign(`${studentPhotoUploadTokenPrefix}.${payload}`);
+  return {
+    token: `${studentPhotoUploadTokenPrefix}.${payload}.${signature}`,
+    expires_in: expiresSeconds,
+    student
+  };
+}
+
 export function verifyStudentToken(token: string): StudentPrincipal | null {
   const [prefix, payload, signature] = token.split(".");
   if (prefix !== studentTokenPrefix || !payload || !signature) return null;
@@ -134,6 +155,45 @@ export function verifyStudentToken(token: string): StudentPrincipal | null {
       exp?: number;
     };
     if (!data.sub || !data.username || !data.exp || data.exp < Math.floor(Date.now() / 1000)) return null;
+    return {
+      id: data.sub,
+      username: data.username,
+      nickname: data.nickname ?? data.username,
+      student_no: data.student_no ?? null
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function verifyStudentPhotoUploadToken(token: string): StudentPrincipal | null {
+  const [prefix, payload, signature] = token.split(".");
+  if (prefix !== studentPhotoUploadTokenPrefix || !payload || !signature) return null;
+  const expected = sign(`${prefix}.${payload}`);
+  const signatureBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
+  if (signatureBuffer.length !== expectedBuffer.length || !timingSafeEqual(signatureBuffer, expectedBuffer)) {
+    return null;
+  }
+
+  try {
+    const data = JSON.parse(base64UrlDecode(payload)) as {
+      sub?: string;
+      username?: string;
+      nickname?: string;
+      student_no?: string | null;
+      scope?: string;
+      exp?: number;
+    };
+    if (
+      !data.sub ||
+      !data.username ||
+      data.scope !== "future-photo-source" ||
+      !data.exp ||
+      data.exp < Math.floor(Date.now() / 1000)
+    ) {
+      return null;
+    }
     return {
       id: data.sub,
       username: data.username,

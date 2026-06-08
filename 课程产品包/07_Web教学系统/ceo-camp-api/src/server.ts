@@ -1,13 +1,16 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { randomUUID } from "node:crypto";
+import { extname } from "node:path";
 import { dirname, resolve } from "node:path";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import {
   hashPassword,
+  issueStudentPhotoUploadToken,
   issueStudentToken,
   issueTeacherToken,
   verifyPassword,
+  verifyStudentPhotoUploadToken,
   verifyStudentToken,
   verifyTeacherToken,
   type StudentPrincipal,
@@ -114,9 +117,25 @@ function requireStudent(request: { headers: Record<string, unknown> }): StudentP
   if (typeof header !== "string" || !header.startsWith("Bearer ")) return null;
   const principal = verifyStudentToken(header.slice("Bearer ".length));
   if (!principal) return null;
+  return activeStudent(principal.id);
+}
+
+function requireStudentPhotoUpload(
+  request: { headers: Record<string, unknown> },
+  expectedStudentId?: string
+): StudentPrincipal | null {
+  const header = request.headers.authorization;
+  if (typeof header !== "string" || !header.startsWith("Bearer ")) return null;
+  const principal = verifyStudentPhotoUploadToken(header.slice("Bearer ".length));
+  if (!principal) return null;
+  if (expectedStudentId && principal.id !== expectedStudentId) return null;
+  return activeStudent(principal.id);
+}
+
+function activeStudent(studentId: string): StudentPrincipal | null {
   const student = row<StudentPrincipal & { account_status: string }>(
     "SELECT id, username, nickname, student_no, account_status FROM students WHERE id = ?",
-    principal.id
+    studentId
   );
   if (!student || student.account_status !== "ACTIVE") return null;
   return {
@@ -224,6 +243,32 @@ function localUploadPath(objectKey: string) {
     throw new Error("Invalid upload key");
   }
   return target;
+}
+
+function contentTypeForObjectKey(objectKey: string) {
+  const extension = extname(objectKey).toLowerCase();
+  if (extension === ".jpg" || extension === ".jpeg") return "image/jpeg";
+  if (extension === ".png") return "image/png";
+  if (extension === ".webp") return "image/webp";
+  if (extension === ".heic") return "image/heic";
+  if (extension === ".heif") return "image/heif";
+  return "application/octet-stream";
+}
+
+async function readPrivateUploadObject(objectKey: string) {
+  if (!isSafeObjectKey(objectKey)) throw new Error("INVALID_UPLOAD_KEY");
+  if (config.localUploadEnabled) {
+    const localPath = localUploadPath(objectKey);
+    if (existsSync(localPath)) {
+      const body = readFileSync(localPath);
+      return {
+        body,
+        contentType: contentTypeForObjectKey(objectKey),
+        contentLength: String(body.length)
+      };
+    }
+  }
+  return readCosObject(objectKey);
 }
 
 function audit(action: string, targetType?: string, targetId?: string, payload: JsonValue = {}, actor = "teacher") {
@@ -924,9 +969,121 @@ app.post("/teams", async (request, reply) => {
 });
 
 app.post("/future-photo/upload-token", async (request, reply) => {
-  if (!requireTeacher(request) && !requireStudent(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
-  const body = (request.body ?? {}) as { kind?: string; file_name?: string };
+  const body = (request.body ?? {}) as { kind?: string; file_name?: string; student_id?: string };
+  const expectedStudentId = body.student_id ? String(body.student_id) : undefined;
+  if (
+    !requireTeacher(request) &&
+    !requireStudent(request) &&
+    !requireStudentPhotoUpload(request, expectedStudentId)
+  ) {
+    return reply.code(401).send({ error: "UNAUTHORIZED" });
+  }
   return createUploadTarget(body.kind ?? "future-photo", body.file_name ?? "upload.bin");
+});
+
+app.post("/future-photo/mobile-upload-link", async (request, reply) => {
+  const student = requireStudent(request);
+  if (!student) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const ticket = issueStudentPhotoUploadToken(student);
+  audit("future_photo.mobile_upload_link", "students", student.id, {}, `student:${student.id}`);
+  return {
+    token: ticket.token,
+    expires_in: ticket.expires_in,
+    student_id: student.id,
+    student: ticket.student
+  };
+});
+
+app.get("/future-photo/source-photo", async (request, reply) => {
+  const student = requireStudent(request);
+  if (!student) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const asset = row<{ object_key: string; updated_at: string }>(
+    `SELECT object_key, updated_at
+       FROM media_assets
+      WHERE camp_id = ?
+        AND owner_type = 'student'
+        AND owner_id = ?
+        AND asset_type = 'future-photo-source'
+      ORDER BY created_at DESC
+      LIMIT 1`,
+    [campId(), student.id]
+  );
+  return {
+    source_photo: asset
+      ? {
+          object_key: asset.object_key,
+          updated_at: asset.updated_at
+        }
+      : null
+  };
+});
+
+app.post("/future-photo/source-photo", async (request, reply) => {
+  const body = (request.body ?? {}) as { source_photo_key?: string; student_id?: string };
+  const expectedStudentId = body.student_id ? String(body.student_id) : undefined;
+  const student = requireStudent(request) ?? requireStudentPhotoUpload(request, expectedStudentId);
+  if (!student) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const objectKey = String(body.source_photo_key ?? "");
+  if (!isSafeObjectKey(objectKey)) return reply.code(400).send({ error: "INVALID_UPLOAD_KEY" });
+  const id = randomUUID();
+  const record = {
+    id,
+    camp_id: campId(),
+    owner_type: "student",
+    owner_id: student.id,
+    asset_type: "future-photo-source",
+    object_key: objectKey,
+    title: `${student.nickname}的照片`,
+    day: null,
+    audit_status: "PRIVATE",
+    display_permission: "PRIVATE",
+    updated_at: nowSql()
+  };
+  db.prepare(
+    `INSERT INTO media_assets
+      (id, camp_id, owner_type, owner_id, asset_type, object_key, title, day,
+       audit_status, display_permission, updated_at)
+     VALUES
+      (@id, @camp_id, @owner_type, @owner_id, @asset_type, @object_key, @title, @day,
+       @audit_status, @display_permission, @updated_at)`
+  ).run(record);
+  audit("future_photo.source_photo", "media_assets", id, { student_id: student.id }, `student:${student.id}`);
+  emitState("future_photo.source_photo");
+  return {
+    source_photo: {
+      object_key: record.object_key,
+      updated_at: record.updated_at
+    }
+  };
+});
+
+app.get("/future-photo/source-photo/object", async (request, reply) => {
+  const student = requireStudent(request);
+  if (!student) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const query = request.query as { key?: string };
+  const objectKey = String(query.key ?? "");
+  if (!isSafeObjectKey(objectKey)) return reply.code(404).send({ error: "NOT_FOUND" });
+  const asset = row<{ id: string }>(
+    `SELECT id
+       FROM media_assets
+      WHERE camp_id = ?
+        AND owner_type = 'student'
+        AND owner_id = ?
+        AND asset_type = 'future-photo-source'
+        AND object_key = ?
+      LIMIT 1`,
+    [campId(), student.id, objectKey]
+  );
+  if (!asset) return reply.code(404).send({ error: "NOT_FOUND" });
+  try {
+    const object = await readPrivateUploadObject(objectKey);
+    reply.header("Content-Type", object.contentType);
+    reply.header("Cache-Control", "private, max-age=60");
+    if (object.contentLength) reply.header("Content-Length", object.contentLength);
+    return reply.send(object.body);
+  } catch {
+    return reply.code(502).send({ error: "MEDIA_READ_FAILED" });
+  }
 });
 
 app.put("/uploads/local", async (request, reply) => {

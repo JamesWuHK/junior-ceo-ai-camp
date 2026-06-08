@@ -81,7 +81,7 @@ AUTH_SECRET=change-me-long-random-auth-secret
 STUDENT_DEFAULT_PASSWORD=camp2026
 ```
 
-学生端需要先调用 `POST /auth/student/login` 登录，再携带返回的 `Authorization: Bearer <token>` 上传照片和提交“未来职业”。学生 token 只绑定自己的学员资料，学生端不再展示全班名单。
+学生在 PC 学生端登录后，系统会生成绑定该学生的短期拍照二维码。手机扫码后不需要再次登录，只能完成本人照片上传；二维码链接中带学生 id 和短期签名，后端会校验两者匹配后才登记照片。提交“未来职业”仍由 PC 学生端用学生登录 token 完成。
 
 ## 本地开发
 

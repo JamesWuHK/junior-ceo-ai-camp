@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
+import QRCode from "qrcode";
 import {
   Brain,
   ChevronLeft,
@@ -43,6 +44,7 @@ import {
   clearTeacherToken,
   connectEvents,
   getStudentAccount,
+  getStudentToken,
   getTeacherAccount,
   hasStudentToken,
   hasTeacherToken,
@@ -70,6 +72,125 @@ const careerChoices = [
   "科学家",
   "运动员"
 ];
+
+const studentPhotoMaxEdge = 1600;
+const studentPhotoMaxBytes = 1_800_000;
+const studentPhotoQuality = 0.86;
+
+type StudentMessage = {
+  tone: "hint" | "success" | "error";
+  text: string;
+};
+
+type SpeechRecognitionAlternative = {
+  transcript: string;
+};
+
+type SpeechRecognitionResultLike = {
+  0?: SpeechRecognitionAlternative;
+};
+
+type SpeechRecognitionEventLike = {
+  results: ArrayLike<SpeechRecognitionResultLike>;
+};
+
+type SpeechRecognitionLike = {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  start: () => void;
+  abort?: () => void;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+};
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+function getSpeechRecognition() {
+  const win = window as typeof window & {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  };
+  return win.SpeechRecognition || win.webkitSpeechRecognition;
+}
+
+function isWechatBrowser() {
+  return /micromessenger/i.test(window.navigator.userAgent);
+}
+
+function studentPhotoUploadUrl(studentId: string, token: string) {
+  const url = new URL("/student", window.location.origin);
+  url.searchParams.set("photo-upload", "1");
+  url.searchParams.set("sid", studentId);
+  url.searchParams.set("token", token);
+  return url.toString();
+}
+
+function isStudentPhoto(file: File) {
+  return file.type.startsWith("image/") || /\.(heic|heif|jpe?g|png|webp)$/i.test(file.name);
+}
+
+function withPhotoExtension(fileName: string) {
+  const baseName = fileName.replace(/\.[^.]+$/, "").slice(0, 60) || "future-photo";
+  return `${baseName}.jpg`;
+}
+
+function loadImage(file: File) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new window.Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("IMAGE_LOAD_FAILED"));
+    };
+    image.src = url;
+  });
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("IMAGE_COMPRESS_FAILED"));
+    }, type, quality);
+  });
+}
+
+async function prepareStudentPhoto(file: File) {
+  if (!isStudentPhoto(file)) {
+    throw new Error("请选择一张照片。");
+  }
+
+  if (file.size <= studentPhotoMaxBytes && !/\.(heic|heif)$/i.test(file.name)) {
+    return file;
+  }
+
+  try {
+    const image = await loadImage(file);
+    const scale = Math.min(1, studentPhotoMaxEdge / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("IMAGE_COMPRESS_FAILED");
+    context.drawImage(image, 0, 0, width, height);
+    const blob = await canvasToBlob(canvas, "image/jpeg", studentPhotoQuality);
+    if (blob.size >= file.size && file.size <= studentPhotoMaxBytes) {
+      return file;
+    }
+    return new File([blob], withPhotoExtension(file.name), { type: "image/jpeg" });
+  } catch {
+    if (file.size <= studentPhotoMaxBytes * 2) return file;
+    throw new Error("这张照片太大了，请换一张近一点、清楚一点的照片。");
+  }
+}
 
 const openingImages = {
   cover: "/courseware/opening/future-studio-cover.webp",
@@ -2664,15 +2785,32 @@ function StudentApp({
   camp: Camp | null;
   refresh: () => Promise<void>;
 }) {
+  const searchParams = new URLSearchParams(window.location.search);
+  if (searchParams.get("photo-upload") === "1") {
+    return <StudentPhotoUploadApp camp={camp} />;
+  }
+
   const [loggedIn, setLoggedIn] = useState(hasStudentToken());
   const [student, setStudent] = useState<StudentAccount | null>(getStudentAccount());
   const [checking, setChecking] = useState(hasStudentToken());
   const [career, setCareer] = useState("");
   const [photoKey, setPhotoKey] = useState("");
   const [preview, setPreview] = useState("");
+  const [checkingPhoto, setCheckingPhoto] = useState(false);
+  const [listening, setListening] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState("");
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+  const [mobileUploadUrl, setMobileUploadUrl] = useState("");
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [qrLoading, setQrLoading] = useState(false);
+  const careerInputRef = useRef<HTMLInputElement | null>(null);
+  const speechRef = useRef<SpeechRecognitionLike | null>(null);
+  const loadedSourcePhotoRef = useRef("");
   const taskTitle = camp?.active_task?.title || "未来照相馆";
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
 
   useEffect(() => {
     if (!hasStudentToken()) {
@@ -2682,7 +2820,7 @@ function StudentApp({
     api.studentMe()
       .then((payload) => {
         setStudent(payload.student);
-        setStudentToken(window.localStorage.getItem("ceo_camp_student_token") || "", payload.student);
+        setStudentToken(getStudentToken(), payload.student);
         setLoggedIn(true);
       })
       .catch(() => {
@@ -2693,29 +2831,117 @@ function StudentApp({
       .finally(() => setChecking(false));
   }, []);
 
-  const onFile = async (file?: File) => {
-    if (!file) return;
-    setResult("");
-    setPreview(URL.createObjectURL(file));
-    const target = await api.uploadToken("source-photo", file.name);
-    if ((target.provider === "cos" || target.provider === "local") && target.uploadUrl) {
-      const uploadResponse = await fetch(target.uploadUrl, {
-        method: "PUT",
-        headers: target.headers,
-        body: file
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+      speechRef.current?.abort?.();
+    };
+  }, [preview]);
+
+  const createMobileUploadLink = async () => {
+    if (!loggedIn || !student) return;
+    setQrLoading(true);
+    try {
+      const ticket = await api.mobileUploadLink();
+      const url = studentPhotoUploadUrl(ticket.student_id || ticket.student.id, ticket.token);
+      const qr = await QRCode.toDataURL(url, {
+        width: 224,
+        margin: 1,
+        color: {
+          dark: "#172018",
+          light: "#ffffff"
+        }
       });
-      if (!uploadResponse.ok) throw new Error("照片没传好，请再试一次。");
+      setMobileUploadUrl(url);
+      setQrCodeUrl(qr);
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "二维码没出来，请再试一次。");
+    } finally {
+      setQrLoading(false);
     }
-    setPhotoKey(target.objectKey);
+  };
+
+  const loadSourcePhoto = async (showLoadedMessage = false) => {
+    if (!loggedIn || !student || checkingPhoto) return;
+    setCheckingPhoto(true);
+    try {
+      const payload = await api.sourcePhoto();
+      const objectKey = payload.source_photo?.object_key;
+      if (!objectKey || objectKey === loadedSourcePhotoRef.current) return;
+      const blob = await api.sourcePhotoBlob(objectKey);
+      const nextPreview = URL.createObjectURL(blob);
+      setPreview((current) => {
+        if (current) URL.revokeObjectURL(current);
+        return nextPreview;
+      });
+      loadedSourcePhotoRef.current = objectKey;
+      setPhotoKey(objectKey);
+      if (showLoadedMessage) showMessage("success", "照片已经回到电脑上了。");
+    } catch {
+      if (showLoadedMessage) showMessage("hint", "还没看到照片，可以等一下再刷新。");
+    } finally {
+      setCheckingPhoto(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!loggedIn || !student) return;
+    void createMobileUploadLink();
+    void loadSourcePhoto(false);
+  }, [loggedIn, student?.id]);
+
+  useEffect(() => {
+    if (!loggedIn || !student || photoKey) return undefined;
+    const timer = window.setInterval(() => {
+      void loadSourcePhoto(true);
+    }, 2200);
+    return () => window.clearInterval(timer);
+  }, [loggedIn, student?.id, photoKey]);
+
+  const startVoiceInput = () => {
+    setMessage(null);
+    const Recognition = getSpeechRecognition();
+    if (!Recognition || isWechatBrowser()) {
+      careerInputRef.current?.focus();
+      showMessage("hint", "可以用手机键盘语音输入，也可以直接点选一个职业。");
+      return;
+    }
+
+    speechRef.current?.abort?.();
+    const recognition = new Recognition();
+    speechRef.current = recognition;
+    recognition.lang = "zh-CN";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (event) => {
+      const transcript = event.results?.[0]?.[0]?.transcript?.trim();
+      if (transcript) {
+        setCareer(transcript);
+        showMessage("hint", "听到了。你也可以再改一改。");
+      }
+    };
+    recognition.onerror = () => {
+      careerInputRef.current?.focus();
+      showMessage("hint", "这次没听清，可以用手机键盘语音输入。");
+    };
+    recognition.onend = () => setListening(false);
+    setListening(true);
+    try {
+      recognition.start();
+    } catch {
+      setListening(false);
+      careerInputRef.current?.focus();
+      showMessage("hint", "可以用手机键盘语音输入，也可以直接点选一个职业。");
+    }
   };
 
   const submit = async () => {
     if (!career.trim()) {
-      setResult("先告诉未来照相馆：你理想的未来职业是？");
+      showMessage("error", "先告诉未来照相馆：你理想的未来职业是？");
       return;
     }
     if (!photoKey) {
-      setResult("先上传一张照片，再提交。");
+      showMessage("error", checkingPhoto ? "照片还在路上，等一下再提交。" : "先用手机扫码拍一张照片。");
       return;
     }
     setSubmitting(true);
@@ -2725,13 +2951,13 @@ function StudentApp({
         career_source: "choice",
         source_photo_key: photoKey
       });
-      setResult("收到啦。未来照片正在路上，老师看过后会点亮照片墙。");
+      showMessage("success", "收到啦。未来照片正在路上，老师看过后会点亮照片墙。");
       await refresh();
       const me = await api.studentMe();
       setStudent(me.student);
-      setStudentToken(window.localStorage.getItem("ceo_camp_student_token") || "", me.student);
+      setStudentToken(getStudentToken(), me.student);
     } catch (err) {
-      setResult(err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
     } finally {
       setSubmitting(false);
     }
@@ -2774,13 +3000,63 @@ function StudentApp({
             </div>
             <button className="text-button" onClick={logout}>退出</button>
           </div>
-          <label className="photo-uploader">
-            <input type="file" accept="image/*" onChange={(event) => onFile(event.target.files?.[0])} />
-            {preview ? <img src={preview} alt="预览" /> : <span><Image size={28} /> 上传照片</span>}
-          </label>
+          <div className="photo-qr-panel">
+            {preview ? (
+              <div className="pc-photo-preview">
+                <img src={preview} alt="今天的照片预览" />
+                <div>
+                  <strong>照片已经回到电脑上了</strong>
+                  <span>可以继续填写理想职业。</span>
+                  <button className="text-button" onClick={() => {
+                    setPreview((current) => {
+                      if (current) URL.revokeObjectURL(current);
+                      return "";
+                    });
+                    setPhotoKey("");
+                    loadedSourcePhotoRef.current = "";
+                    void createMobileUploadLink();
+                  }}>
+                    重新扫码拍照
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="qr-box">
+                  {qrLoading ? (
+                    <Loader2 className="spin" size={28} />
+                  ) : qrCodeUrl ? (
+                    <img src={qrCodeUrl} alt="手机拍照二维码" />
+                  ) : (
+                    <button className="submit-button" onClick={createMobileUploadLink}>生成拍照二维码</button>
+                  )}
+                </div>
+                <div className="qr-copy">
+                  <strong>用手机扫码拍照</strong>
+                  <span>手机拍好上传后，这里会自动出现照片。</span>
+                  <div className="qr-actions">
+                    <button className="text-button" onClick={() => void loadSourcePhoto(true)} disabled={checkingPhoto}>
+                      {checkingPhoto ? "正在看照片" : "刷新照片"}
+                    </button>
+                    <button className="text-button" onClick={createMobileUploadLink} disabled={qrLoading}>
+                      换一个二维码
+                    </button>
+                  </div>
+                  {mobileUploadUrl && <small>手机扫码打不开时，可以把这个页面发到手机再打开。</small>}
+                </div>
+              </>
+            )}
+          </div>
           <label>
             你理想的未来职业是：
-            <input value={career} onChange={(event) => setCareer(event.target.value)} placeholder="例如：动物医生" />
+            <input
+              ref={careerInputRef}
+              value={career}
+              onChange={(event) => setCareer(event.target.value)}
+              placeholder="例如：动物医生"
+              inputMode="text"
+              enterKeyHint="done"
+            />
           </label>
           <div className="career-grid">
             {careerChoices.map((choice) => (
@@ -2789,17 +3065,120 @@ function StudentApp({
               </button>
             ))}
           </div>
-          <button className="voice-button" onClick={() => setCareer("我长大想成为动物医生")}>
-            <Mic size={18} />
-            说出你理想中的未来职业
+          <button className="voice-button" onClick={startVoiceInput} disabled={listening}>
+            {listening ? <Loader2 className="spin" size={18} /> : <Mic size={18} />}
+            {listening ? "正在听你说" : "说出你理想中的未来职业"}
           </button>
           <p className="hint">例如：我长大想成为动物医生</p>
-          <button className="submit-button" disabled={submitting} onClick={submit}>
-            {submitting ? <Loader2 className="spin" size={18} /> : <Sparkles size={18} />}
-            提交
+          <button className="submit-button" disabled={submitting || checkingPhoto} onClick={submit}>
+            {submitting || checkingPhoto ? <Loader2 className="spin" size={18} /> : <Sparkles size={18} />}
+            {checkingPhoto ? "正在看照片" : "提交"}
           </button>
           <p className="hint">提交后，未来照片会先被画出来；老师看过后，照片墙就会亮。</p>
-          {result && <p className="success">{result}</p>}
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentPhotoUploadApp({ camp }: { camp: Camp | null }) {
+  const searchParams = new URLSearchParams(window.location.search);
+  const studentId = searchParams.get("sid") || "";
+  const token = searchParams.get("token") || "";
+  const [preview, setPreview] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(
+    token && studentId ? null : { tone: "error", text: "二维码时间到了，请回电脑换一个二维码。" }
+  );
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
+
+  const uploadMobilePhoto = async (file?: File) => {
+    if (!file || !token || !studentId) return;
+    setUploading(true);
+    setMessage(null);
+    try {
+      const uploadFile = await prepareStudentPhoto(file);
+      const nextPreview = URL.createObjectURL(uploadFile);
+      setPreview((current) => {
+        if (current) URL.revokeObjectURL(current);
+        return nextPreview;
+      });
+      const target = await api.uploadToken("source-photo", uploadFile.name, token, studentId);
+      if ((target.provider === "cos" || target.provider === "local") && target.uploadUrl) {
+        const uploadResponse = await fetch(target.uploadUrl, {
+          method: "PUT",
+          headers: {
+            ...target.headers,
+            ...(uploadFile.type ? { "Content-Type": uploadFile.type } : {})
+          },
+          body: uploadFile
+        });
+        if (!uploadResponse.ok) throw new Error("照片没传好，请再试一次。");
+      }
+      await api.registerSourcePhoto(target.objectKey, token, studentId);
+      showMessage("success", "照片传好了，可以回到电脑继续。");
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "照片没传好，请再试一次。");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <main className="student-page phone-upload-page">
+      <section className="student-shell phone-upload-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>拍一张今天的你</h1>
+        <p>拍好后，照片会回到电脑上的未来照相馆。</p>
+        <div className="student-card phone-upload-card">
+          <div className="mobile-photo-preview">
+            {preview ? <img src={preview} alt="照片预览" /> : <span><Image size={32} /> 等你拍照</span>}
+            {uploading && (
+              <span className="photo-uploading">
+                <Loader2 className="spin" size={18} />
+                照片上传中
+              </span>
+            )}
+          </div>
+          <div className="mobile-photo-actions">
+            <label className="mobile-photo-button primary">
+              打开相机
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/*"
+                capture="user"
+                disabled={!token || !studentId || uploading}
+                onChange={(event) => {
+                  void uploadMobilePhoto(event.target.files?.[0]);
+                  event.currentTarget.value = "";
+                }}
+              />
+            </label>
+            <label className="mobile-photo-button">
+              从相册选择
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/*"
+                disabled={!token || !studentId || uploading}
+                onChange={(event) => {
+                  void uploadMobilePhoto(event.target.files?.[0]);
+                  event.currentTarget.value = "";
+                }}
+              />
+            </label>
+          </div>
+          <p className="hint">选一张清楚的正脸照片就好。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
     </main>
@@ -2834,7 +3213,7 @@ function StudentLogin({ camp, onLoggedIn }: { camp: Camp | null; onLoggedIn: (st
         <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
         <h1>进入课堂任务</h1>
         <p>输入老师给你的账号，就能打开今天的任务。</p>
-        <form className="student-card student-login-card" onSubmit={login}>
+        <form className="student-card student-login-card" onSubmit={login} noValidate>
           <label>
             学生账号
             <input
@@ -2842,6 +3221,11 @@ function StudentLogin({ camp, onLoggedIn }: { camp: Camp | null; onLoggedIn: (st
               onChange={(event) => setUsername(event.target.value)}
               placeholder="例如：student01"
               autoComplete="username"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              inputMode="text"
+              enterKeyHint="next"
             />
           </label>
           <label>
@@ -2852,6 +3236,10 @@ function StudentLogin({ camp, onLoggedIn }: { camp: Camp | null; onLoggedIn: (st
               placeholder="请输入密码"
               type="password"
               autoComplete="current-password"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="go"
             />
           </label>
           <button className="submit-button" disabled={loading} type="submit">

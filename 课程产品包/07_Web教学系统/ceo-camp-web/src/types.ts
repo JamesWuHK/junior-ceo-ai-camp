@@ -123,6 +123,11 @@ export interface UploadTarget {
   note?: string;
 }
 
+export interface SourcePhoto {
+  object_key: string;
+  updated_at: string;
+}
+
 export interface StatePayload {
   camp: Camp;
   wall: Student[];

@@ -3,6 +3,7 @@ import type {
   CourseModule,
   FuturePhotoSubmission,
   ShowcaseItem,
+  SourcePhoto,
   StatePayload,
   Student,
   StudentAccount,
@@ -17,15 +18,44 @@ export const API_BASE =
 
 const teacherTokenKey = "ceo_camp_teacher_token";
 const teacherAccountKey = "ceo_camp_teacher";
-const legacyTeacherStorage = window.localStorage;
-const teacherStorage = window.sessionStorage;
+const studentTokenKey = "ceo_camp_student_token";
+const studentAccountKey = "ceo_camp_student";
+
+type KeyValueStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+
+function createMemoryStorage(): KeyValueStorage {
+  const store = new Map<string, string>();
+  return {
+    getItem: (key) => store.get(key) ?? null,
+    setItem: (key, value) => store.set(key, value),
+    removeItem: (key) => store.delete(key)
+  };
+}
+
+function usableStorage(kind: "localStorage" | "sessionStorage", fallback: KeyValueStorage) {
+  try {
+    const storage = window[kind];
+    const probeKey = "__ceo_camp_storage_probe__";
+    storage.setItem(probeKey, "1");
+    storage.removeItem(probeKey);
+    return storage;
+  } catch {
+    return fallback;
+  }
+}
+
+const memoryLocalStorage = createMemoryStorage();
+const memorySessionStorage = createMemoryStorage();
+const legacyTeacherStorage = usableStorage("localStorage", memoryLocalStorage);
+const teacherStorage = usableStorage("sessionStorage", memorySessionStorage);
+const studentStorage = usableStorage("localStorage", memoryLocalStorage);
 
 function teacherToken() {
   return teacherStorage.getItem(teacherTokenKey) || "";
 }
 
 function studentToken() {
-  return window.localStorage.getItem("ceo_camp_student_token") || "";
+  return studentStorage.getItem(studentTokenKey) || "";
 }
 
 function headers(auth = false) {
@@ -36,11 +66,11 @@ function headers(auth = false) {
   return base;
 }
 
-function studentHeaders(auth = false) {
+function studentHeaders(auth = false, tokenOverride?: string) {
   const base: Record<string, string> = {
     "Content-Type": "application/json"
   };
-  if (auth) base.Authorization = `Bearer ${studentToken()}`;
+  if (auth) base.Authorization = `Bearer ${tokenOverride || studentToken()}`;
   return base;
 }
 
@@ -100,12 +130,36 @@ export const api = {
       headers: { Authorization: `Bearer ${teacherToken()}` }
     }),
   teams: () => request<{ teams: Team[] }>("/teams"),
-  uploadToken: (kind: string, fileName: string) =>
+  uploadToken: (kind: string, fileName: string, tokenOverride?: string, studentId?: string) =>
     request<UploadTarget>("/future-photo/upload-token", {
       method: "POST",
-      headers: studentHeaders(true),
-      body: JSON.stringify({ kind, file_name: fileName })
+      headers: studentHeaders(true, tokenOverride),
+      body: JSON.stringify({ kind, file_name: fileName, student_id: studentId })
     }),
+  mobileUploadLink: () =>
+    request<{ token: string; expires_in: number; student_id: string; student: StudentAccount }>("/future-photo/mobile-upload-link", {
+      method: "POST",
+      headers: studentHeaders(true),
+      body: JSON.stringify({})
+    }),
+  sourcePhoto: () =>
+    request<{ source_photo: SourcePhoto | null }>("/future-photo/source-photo", {
+      headers: studentHeaders(true)
+    }),
+  registerSourcePhoto: (sourcePhotoKey: string, tokenOverride?: string, studentId?: string) =>
+    request<{ source_photo: SourcePhoto }>("/future-photo/source-photo", {
+      method: "POST",
+      headers: studentHeaders(true, tokenOverride),
+      body: JSON.stringify({ source_photo_key: sourcePhotoKey, student_id: studentId })
+    }),
+  sourcePhotoBlob: async (sourcePhotoKey: string) => {
+    const response = await fetch(
+      `${API_BASE}/future-photo/source-photo/object?key=${encodeURIComponent(sourcePhotoKey)}`,
+      { headers: studentHeaders(true) }
+    );
+    if (!response.ok) throw new Error("照片暂时还没显示出来，请稍等一下。");
+    return response.blob();
+  },
   submitFuturePhoto: (payload: {
     career_text: string;
     career_source: string;
@@ -201,16 +255,20 @@ export function clearTeacherToken() {
 }
 
 export function setStudentToken(token: string, student?: StudentAccount) {
-  window.localStorage.setItem("ceo_camp_student_token", token);
-  if (student) window.localStorage.setItem("ceo_camp_student", JSON.stringify(student));
+  studentStorage.setItem(studentTokenKey, token);
+  if (student) studentStorage.setItem(studentAccountKey, JSON.stringify(student));
 }
 
 export function hasStudentToken() {
   return Boolean(studentToken());
 }
 
+export function getStudentToken() {
+  return studentToken();
+}
+
 export function getStudentAccount() {
-  const value = window.localStorage.getItem("ceo_camp_student");
+  const value = studentStorage.getItem(studentAccountKey);
   if (!value) return null;
   try {
     return JSON.parse(value) as StudentAccount;
@@ -220,6 +278,6 @@ export function getStudentAccount() {
 }
 
 export function clearStudentToken() {
-  window.localStorage.removeItem("ceo_camp_student_token");
-  window.localStorage.removeItem("ceo_camp_student");
+  studentStorage.removeItem(studentTokenKey);
+  studentStorage.removeItem(studentAccountKey);
 }
