@@ -1145,6 +1145,8 @@ function PublicShowcaseRoute() {
   const [awardResults, setAwardResults] = useState<AwardResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const searchParams = new URLSearchParams(window.location.search);
+  const selectedProjectId = searchParams.get("project") || "";
 
   useEffect(() => {
     api.publicFinalShowcase()
@@ -1177,6 +1179,19 @@ function PublicShowcaseRoute() {
     );
   }
 
+  if (selectedProjectId) {
+    return (
+      <PublicProjectDetail
+        projectId={selectedProjectId}
+        camp={camp}
+        finalItems={finalItems}
+        showcaseItems={showcaseItems}
+        scoreSummaries={scoreSummaries}
+        awardResults={awardResults}
+      />
+    );
+  }
+
   return (
     <main className="public-showcase-page">
       <header className="public-showcase-hero">
@@ -1193,6 +1208,7 @@ function PublicShowcaseRoute() {
           {finalItems.map((item, index) => {
             const href = asText(item.payload.access_url);
             const screenshot = asText(item.payload.screenshot_url);
+            const projectHref = publicProjectUrl(item.id);
             return (
               <article className="public-final-card" key={item.id}>
                 <div className="public-final-shot">
@@ -1221,12 +1237,18 @@ function PublicShowcaseRoute() {
                     <dd>{asText(item.payload.core_problem) || "真实问题"}</dd>
                   </div>
                 </dl>
-                {href && (
-                  <a href={normalizeShowcaseUrl(href)} target="_blank" rel="noreferrer">
-                    <ExternalLink size={16} />
-                    打开作品
+                <div className="public-final-actions">
+                  <a href={projectHref}>
+                    <Package size={16} />
+                    查看作品页
                   </a>
-                )}
+                  {href && (
+                    <a href={normalizeShowcaseUrl(href)} target="_blank" rel="noreferrer">
+                      <ExternalLink size={16} />
+                      打开作品
+                    </a>
+                  )}
+                </div>
               </article>
             );
           })}
@@ -1259,6 +1281,198 @@ function PublicShowcaseRoute() {
           <h2>奖项与能力标签</h2>
         </div>
         <AwardGallery awards={awardResults} />
+      </section>
+    </main>
+  );
+}
+
+function publicProjectUrl(projectId: string) {
+  const route = window.location.pathname.startsWith("/parents") ? "/parents" : "/showcase";
+  return `${route}?project=${encodeURIComponent(projectId)}`;
+}
+
+function splitList(value: unknown) {
+  return asText(value)
+    .split(/[\n,，、;；]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function contributionCards(finalItem: WallArtifact | null, awards: AwardResult[]) {
+  const contributionLines = splitList(finalItem?.payload.personal_contributions);
+  if (contributionLines.length) {
+    return contributionLines.map((line) => {
+      const [name, ...rest] = line.split(/[：:]/);
+      return {
+        name: (rest.length ? name : line).trim(),
+        contribution: rest.join("：").trim() || "为团队作品贡献了自己的力量",
+        tag: awards[0]?.award_type || "能力标签"
+      };
+    });
+  }
+  const members = splitList(finalItem?.payload.team_members);
+  return members.map((member, index) => ({
+    name: member,
+    contribution: index === 0 ? "把团队想法带到台前" : "和团队一起完成作品展示",
+    tag: awards[index % Math.max(awards.length, 1)]?.award_type || "团队贡献"
+  }));
+}
+
+function matchesProject(
+  projectId: string,
+  finalItem: WallArtifact | null,
+  productName: string,
+  teamId?: string | null,
+  teamName?: string | null
+) {
+  return (item: { showcase_item_id?: string | null; team_id?: string | null; team_name?: string | null; product_name?: string }) => {
+    const finalShowcaseId = finalItem ? `final-${finalItem.id}` : "";
+    return (
+      item.showcase_item_id === projectId ||
+      item.showcase_item_id === finalShowcaseId ||
+      (!!teamId && item.team_id === teamId) ||
+      (!!productName && item.product_name === productName) ||
+      (!!teamName && item.team_name === teamName)
+    );
+  };
+}
+
+function awardMatchesProject(award: AwardResult, projectId: string, finalItem: WallArtifact | null, productName: string, teamId?: string | null) {
+  const finalShowcaseId = finalItem ? `final-${finalItem.id}` : "";
+  return (
+    award.winner_id === projectId ||
+    award.winner_id === finalShowcaseId ||
+    (!!teamId && award.winner_id === teamId) ||
+    (!!productName && award.winner_name.includes(productName))
+  );
+}
+
+function PublicProjectDetail({
+  projectId,
+  camp,
+  finalItems,
+  showcaseItems,
+  scoreSummaries,
+  awardResults
+}: {
+  projectId: string;
+  camp: { name: string; location: string; starts_on?: string; ends_on?: string } | null;
+  finalItems: WallArtifact[];
+  showcaseItems: ShowcaseItem[];
+  scoreSummaries: ScoreSummary[];
+  awardResults: AwardResult[];
+}) {
+  const finalItem =
+    finalItems.find((item) => item.id === projectId || `final-${item.id}` === projectId) ||
+    finalItems.find((item) => showcaseItems.some((showcase) => showcase.id === projectId && showcase.team_id && showcase.team_id === item.team_id)) ||
+    null;
+  const showcaseItem =
+    showcaseItems.find((item) => item.id === projectId || (finalItem && item.id === `final-${finalItem.id}`)) ||
+    showcaseItems.find((item) => finalItem && item.team_id === finalItem.team_id && item.product_name === asText(finalItem.payload.product_name)) ||
+    null;
+  const productName = asText(finalItem?.payload.product_name) || showcaseItem?.product_name || "未命名作品";
+  const teamName = finalItem?.team_name || showcaseItem?.team_name || showcaseItem?.track || "项目团队";
+  const teamId = finalItem?.team_id || showcaseItem?.team_id || null;
+  const accessUrl = asText(finalItem?.payload.access_url) || showcaseItem?.access_url || "";
+  const screenshot = asText(finalItem?.payload.screenshot_url) || showcaseItem?.screenshot_url || "";
+  const scoreSummary = scoreSummaries.find(matchesProject(projectId, finalItem, productName, teamId, teamName)) || null;
+  const projectAwards = awardResults.filter((award) => awardMatchesProject(award, projectId, finalItem, productName, teamId));
+  const certificates = contributionCards(finalItem, projectAwards);
+
+  if (!finalItem && !showcaseItem) {
+    return (
+      <main className="public-showcase-page">
+        <section className="project-not-found">
+          <Package size={36} />
+          <h1>这个作品页还没有准备好</h1>
+          <p>可以先回到作品展，看看已经整理好的团队成果。</p>
+          <a href={window.location.pathname.startsWith("/parents") ? "/parents" : "/showcase"}>回到作品展</a>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className="public-project-page">
+      <header className="project-hero">
+        <a href={window.location.pathname.startsWith("/parents") ? "/parents" : "/showcase"}>返回作品展</a>
+        <span>{camp?.location || "少年CEO AI 创业营"} · {teamName}</span>
+        <h1>{productName}</h1>
+        <p>{asText(finalItem?.payload.value_line) || showcaseItem?.one_liner || "这是一组正在被真实用户检验的 AI 产品原型。"}</p>
+        {accessUrl && (
+          <a className="project-open-link" href={normalizeShowcaseUrl(accessUrl)} target="_blank" rel="noreferrer">
+            <ExternalLink size={18} />
+            打开作品
+          </a>
+        )}
+      </header>
+
+      <section className="project-story-grid">
+        <div className="project-shot">
+          {screenshot ? <img src={normalizeShowcaseUrl(screenshot)} alt={`${productName} 展示图`} /> : <Rocket size={54} />}
+        </div>
+        <article className="project-story-card">
+          <span>项目故事</span>
+          <dl>
+            <div>
+              <dt>目标用户</dt>
+              <dd>{asText(finalItem?.payload.target_user) || "真实用户"}</dd>
+            </div>
+            <div>
+              <dt>解决的问题</dt>
+              <dd>{asText(finalItem?.payload.core_problem) || "一个值得继续研究的问题"}</dd>
+            </div>
+            <div>
+              <dt>团队成员</dt>
+              <dd>{asText(finalItem?.payload.team_members) || teamName}</dd>
+            </div>
+          </dl>
+        </article>
+      </section>
+
+      <section className="project-section">
+        <div className="public-section-title">
+          <span>观察员记录</span>
+          <h2>亮点和下一步</h2>
+        </div>
+        {scoreSummary ? <ScoreSummaryGallery summaries={[scoreSummary]} /> : (
+          <article className="public-empty">
+            <Star size={34} />
+            <strong>观察员记录会出现在这里</strong>
+            <span>作品秀开始后，亮点和下一步建议会慢慢长出来。</span>
+          </article>
+        )}
+      </section>
+
+      <section className="project-section">
+        <div className="public-section-title">
+          <span>证书卡</span>
+          <h2>每个人的贡献</h2>
+        </div>
+        <div className="certificate-grid">
+          {certificates.map((certificate) => (
+            <article className="certificate-card" key={`${certificate.name}-${certificate.contribution}`}>
+              <span>{certificate.tag}</span>
+              <strong>{certificate.name}</strong>
+              <p>{certificate.contribution}</p>
+            </article>
+          ))}
+          {!certificates.length && (
+            <article className="public-empty">
+              <UsersRound size={34} />
+              <strong>贡献卡会出现在这里</strong>
+              <span>团队补充每个人的贡献后，这里会生成证书卡。</span>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="project-section">
+        <div className="public-section-title">
+          <span>奖项</span>
+          <h2>被看见的能力标签</h2>
+        </div>
+        <AwardGallery awards={projectAwards} />
       </section>
     </main>
   );
@@ -2112,6 +2326,7 @@ function TeacherFinalShowcase() {
               </header>
               <div className="artifact-lines">
                 <p><strong>成员：</strong>{asText(item.payload.team_members) || "还没写"}</p>
+                <p><strong>贡献：</strong>{asText(item.payload.personal_contributions) || "还没写"}</p>
                 <p><strong>用户：</strong>{asText(item.payload.target_user) || "还没写"}</p>
                 <p><strong>问题：</strong>{asText(item.payload.core_problem) || "还没写"}</p>
                 <p><strong>价值：</strong>{asText(item.payload.value_line) || "还没写"}</p>
@@ -4714,6 +4929,7 @@ function StudentFinalShowcaseTask({
 }) {
   const [productName, setProductName] = useState("");
   const [teamMembers, setTeamMembers] = useState("");
+  const [personalContributions, setPersonalContributions] = useState("");
   const [targetUser, setTargetUser] = useState("");
   const [coreProblem, setCoreProblem] = useState("");
   const [accessUrl, setAccessUrl] = useState("");
@@ -4760,6 +4976,7 @@ function StudentFinalShowcaseTask({
         payload: {
           product_name: productName.trim(),
           team_members: teamMembers.trim(),
+          personal_contributions: personalContributions.trim(),
           target_user: targetUser.trim(),
           core_problem: coreProblem.trim(),
           access_url: normalizeShowcaseUrl(accessUrl),
@@ -4771,6 +4988,7 @@ function StudentFinalShowcaseTask({
       showMessage("success", "收到啦。这张展示卡可以上台使用。");
       setProductName("");
       setTeamMembers("");
+      setPersonalContributions("");
       setTargetUser("");
       setCoreProblem("");
       setAccessUrl("");
@@ -4815,6 +5033,15 @@ function StudentFinalShowcaseTask({
               onChange={(event) => setTeamMembers(event.target.value)}
               placeholder="例如：小宇、小安、小林"
               inputMode="text"
+            />
+          </label>
+          <label>
+            每个人的贡献
+            <textarea
+              value={personalContributions}
+              onChange={(event) => setPersonalContributions(event.target.value)}
+              placeholder={"例如：\\n小宇：采访同学，整理问题\\n小安：做产品页面和按钮\\n小林：准备故事发布"}
+              rows={4}
             />
           </label>
           <label>

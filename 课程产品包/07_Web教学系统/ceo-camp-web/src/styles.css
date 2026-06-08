@@ -3681,6 +3681,34 @@ button:disabled {
   font-weight: 800;
 }
 
+.public-final-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.public-final-actions a,
+.project-open-link,
+.project-not-found a,
+.project-hero > a:first-child {
+  border-radius: 6px;
+  background: #172018;
+  color: #fffdf6;
+  padding: 10px 13px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.public-final-actions a:first-child,
+.project-hero > a:first-child {
+  background: #e9f5eb;
+  color: #1f6f50;
+}
+
 .public-empty {
   align-content: center;
   justify-items: center;
@@ -3844,6 +3872,164 @@ button:disabled {
   line-height: 1.35;
 }
 
+.public-project-page {
+  min-height: 100vh;
+  background: #f5f4ef;
+  color: #172018;
+  padding: clamp(18px, 4vw, 48px);
+  display: grid;
+  gap: 28px;
+}
+
+.project-hero {
+  display: grid;
+  gap: 12px;
+  max-width: 1080px;
+}
+
+.project-hero > a:first-child {
+  justify-self: start;
+}
+
+.project-hero span {
+  color: #1f6f50;
+  font-weight: 900;
+}
+
+.project-hero h1 {
+  margin: 0;
+  font-size: clamp(46px, 8vw, 104px);
+  line-height: 0.95;
+}
+
+.project-hero p {
+  margin: 0;
+  color: #536151;
+  font-size: clamp(19px, 2.1vw, 28px);
+  line-height: 1.42;
+  max-width: 860px;
+}
+
+.project-open-link {
+  justify-self: start;
+}
+
+.project-story-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.project-shot,
+.project-story-card,
+.certificate-card,
+.project-not-found {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fffdf6;
+}
+
+.project-shot {
+  min-height: 360px;
+  background: #172018;
+  color: #f7d66d;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.project-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.project-story-card {
+  padding: clamp(18px, 3vw, 30px);
+  display: grid;
+  align-content: center;
+  gap: 18px;
+}
+
+.project-story-card > span,
+.certificate-card span {
+  color: #1f6f50;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.project-story-card dl {
+  margin: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.project-story-card dl div {
+  border-top: 1px solid #e7e2d2;
+  padding-top: 12px;
+}
+
+.project-story-card dt {
+  color: #60705f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.project-story-card dd {
+  margin: 4px 0 0;
+  font-size: clamp(20px, 2vw, 30px);
+  font-weight: 900;
+  line-height: 1.24;
+}
+
+.project-section {
+  display: grid;
+  gap: 16px;
+}
+
+.certificate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.certificate-card {
+  min-height: 210px;
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  border-top: 8px solid #f7d66d;
+}
+
+.certificate-card strong {
+  font-size: clamp(26px, 3vw, 40px);
+  line-height: 1.05;
+}
+
+.certificate-card p {
+  margin: 0;
+  color: #536151;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.project-not-found {
+  min-height: 52vh;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  text-align: center;
+  padding: 28px;
+}
+
+.project-not-found h1,
+.project-not-found p {
+  margin: 0;
+}
+
 @media (max-width: 980px) {
   .teacher-layout {
     grid-template-columns: 1fr;
@@ -3912,6 +4098,10 @@ button:disabled {
   }
 
   .final-stage-copy dl {
+    grid-template-columns: 1fr;
+  }
+
+  .project-story-grid {
     grid-template-columns: 1fr;
   }
 }
