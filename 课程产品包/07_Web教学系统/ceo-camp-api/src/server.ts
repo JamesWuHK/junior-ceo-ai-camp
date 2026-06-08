@@ -1144,6 +1144,51 @@ app.post("/future-photo/submissions", async (request, reply) => {
   };
 });
 
+app.post("/task-submissions", async (request, reply) => {
+  const principal = requireStudent(request);
+  if (!principal) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const body = request.body as Record<string, unknown>;
+  const student = row<{ id: string; nickname: string; team_id?: string | null; team_name?: string | null }>(
+    `SELECT s.id, s.nickname, s.team_id, t.name AS team_name
+       FROM students s
+       LEFT JOIN teams t ON t.id = s.team_id
+      WHERE s.id = ?
+        AND s.camp_id = ?`,
+    [principal.id, campId()]
+  );
+  if (!student) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const activeTask = currentCamp().active_task as { title?: string; activity_type?: string } | null;
+  const id = randomUUID();
+  const payload = body.payload && typeof body.payload === "object" ? body.payload : {};
+  const record = {
+    id,
+    camp_id: campId(),
+    student_id: student.id,
+    team_id: student.team_id ?? null,
+    task_type: String(body.task_type ?? activeTask?.activity_type ?? "task"),
+    title: String(body.title ?? activeTask?.title ?? "课堂任务"),
+    payload: JSON.stringify(payload),
+    status: "SUBMITTED",
+    updated_at: nowSql()
+  };
+  db.prepare(
+    `INSERT INTO task_submissions
+      (id, camp_id, student_id, team_id, task_type, title, payload, status, updated_at)
+     VALUES
+      (@id, @camp_id, @student_id, @team_id, @task_type, @title, @payload, @status, @updated_at)`
+  ).run(record);
+  audit("task.submit", "task_submissions", id, { student_id: student.id, team_id: student.team_id ?? null }, `student:${student.id}`);
+  emitState("task.submitted");
+  return {
+    submission: {
+      ...record,
+      student_name: student.nickname,
+      team_name: student.team_name ?? null,
+      payload
+    }
+  };
+});
+
 app.post("/future-photo/:id/generate", async (request, reply) => {
   if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
   const { id } = request.params as { id: string };
@@ -1325,12 +1370,18 @@ app.get("/submissions", async (request, reply) => {
       "SELECT * FROM future_photo_submissions WHERE camp_id = ? ORDER BY created_at DESC",
       campId()
     ),
-    task_submissions: rows("SELECT * FROM task_submissions WHERE camp_id = ? ORDER BY created_at DESC", campId()).map(
-      (submission) => ({
+    task_submissions: rows(
+      `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
+         FROM task_submissions ts
+         LEFT JOIN students s ON s.id = ts.student_id
+         LEFT JOIN teams t ON t.id = ts.team_id
+        WHERE ts.camp_id = ?
+        ORDER BY ts.created_at DESC`,
+      campId()
+    ).map((submission) => ({
         ...submission,
         payload: jsonParse(submission.payload, {})
-      })
-    )
+      }))
   };
 });
 

@@ -58,6 +58,7 @@ import type {
   ShowcaseItem,
   Student,
   StudentAccount,
+  TaskSubmission,
   Team,
   TeacherAccount
 } from "./types";
@@ -805,6 +806,19 @@ function taskTypeForAction(action: string, page: DesignedLessonPage) {
   return page.page_type || "lesson";
 }
 
+function activeTaskTitle(camp: Camp | null) {
+  return camp?.active_task?.title || "";
+}
+
+function isProductLinkTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  return (
+    /作品链接|产品链接|真产品检查|作品页上线清单|产品原型|每组作品能打开|2 分钟 Demo|产品摊位预览/.test(title) ||
+    ["build-sprint", "demo-check", "product-packaging", "final-showcase"].includes(moduleId)
+  );
+}
+
 function futurePhotoHint(item: FuturePhotoSubmission) {
   if (!item.review_note) return "";
   try {
@@ -1276,6 +1290,7 @@ function TeacherApp({
           <TeacherStudents students={students} refresh={refresh} />
           <FuturePhotoReview refresh={refresh} />
         </section>
+        <TeacherProjectSubmissions />
         <TeacherShowcase />
       </section>
       {presenting && selectedModule && (
@@ -1290,6 +1305,96 @@ function TeacherApp({
       )}
       {selectedPhoto && <PhotoLightbox student={selectedPhoto} onClose={() => setSelectedPhoto(null)} />}
     </main>
+  );
+}
+
+function asText(value: unknown) {
+  return typeof value === "string" ? value : "";
+}
+
+function TeacherProjectSubmissions() {
+  const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const load = async () => {
+    try {
+      const result = await api.submissions();
+      setItems(result.task_submissions.filter((item) => item.task_type === "product_link"));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const publish = async (item: TaskSubmission) => {
+    const productName = asText(item.payload.product_name).trim();
+    const oneLiner = asText(item.payload.one_liner).trim();
+    const accessUrl = asText(item.payload.access_url).trim();
+    if (!productName || !accessUrl) {
+      setMessage("这条提交缺少作品名或链接。");
+      return;
+    }
+    setLoading(true);
+    setMessage("");
+    try {
+      await api.publishShowcase({
+        id: `submission-${item.id}`,
+        team_id: item.team_id || undefined,
+        product_name: productName,
+        track: item.team_name || item.student_name || undefined,
+        one_liner: oneLiner || undefined,
+        access_url: normalizeShowcaseUrl(accessUrl),
+        publish_status: "PUBLISHED"
+      });
+      setMessage("已放进展示区。");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="panel project-submissions-panel">
+      <div className="panel-title">
+        <ExternalLink size={20} />
+        <h2>学生提交的作品链接</h2>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="project-submission-list">
+        {items.map((item) => {
+          const productName = asText(item.payload.product_name);
+          const oneLiner = asText(item.payload.one_liner);
+          const accessUrl = asText(item.payload.access_url);
+          return (
+            <article className="project-submission-row" key={item.id}>
+              <div>
+                <span>{item.team_name || item.student_name || "未分组"}</span>
+                <strong>{productName || "未命名作品"}</strong>
+                <p>{oneLiner || "还没有一句话介绍。"}</p>
+                {accessUrl && (
+                  <a href={normalizeShowcaseUrl(accessUrl)} target="_blank" rel="noreferrer">
+                    <ExternalLink size={15} />
+                    打开作品
+                  </a>
+                )}
+              </div>
+              <button disabled={loading || !accessUrl} onClick={() => publish(item)}>
+                放进展示区
+              </button>
+            </article>
+          );
+        })}
+        {!items.length && <p className="empty">学生提交作品链接后，会出现在这里。</p>}
+      </div>
+    </section>
   );
 }
 
@@ -2911,6 +3016,7 @@ function StudentApp({
   const speechRef = useRef<SpeechRecognitionLike | null>(null);
   const loadedSourcePhotoRef = useRef("");
   const taskTitle = camp?.active_task?.title || "未来照相馆";
+  const productLinkTask = isProductLinkTask(camp);
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
@@ -2989,18 +3095,18 @@ function StudentApp({
   };
 
   useEffect(() => {
-    if (!loggedIn || !student) return;
+    if (!loggedIn || !student || productLinkTask) return;
     void createMobileUploadLink();
     void loadSourcePhoto(false);
-  }, [loggedIn, student?.id]);
+  }, [loggedIn, student?.id, productLinkTask]);
 
   useEffect(() => {
-    if (!loggedIn || !student || photoKey) return undefined;
+    if (!loggedIn || !student || photoKey || productLinkTask) return undefined;
     const timer = window.setInterval(() => {
       void loadSourcePhoto(true);
     }, 2200);
     return () => window.clearInterval(timer);
-  }, [loggedIn, student?.id, photoKey]);
+  }, [loggedIn, student?.id, photoKey, productLinkTask]);
 
   const startVoiceInput = () => {
     setMessage(null);
@@ -3087,6 +3193,18 @@ function StudentApp({
       setStudent(account);
       setLoggedIn(true);
     }} />;
+  }
+
+  if (productLinkTask) {
+    return (
+      <StudentProductLinkTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
   }
 
   return (
@@ -3179,6 +3297,115 @@ function StudentApp({
             {checkingPhoto ? "正在看照片" : "提交"}
           </button>
           <p className="hint">提交后，未来照片会先被画出来；老师看过后，照片墙就会亮。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentProductLinkTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [productName, setProductName] = useState("");
+  const [oneLiner, setOneLiner] = useState("");
+  const [accessUrl, setAccessUrl] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!productName.trim()) {
+      showMessage("error", "先写作品名。");
+      return;
+    }
+    if (!accessUrl.trim()) {
+      showMessage("error", "先贴上能打开的作品链接。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "product_link",
+        title: taskTitle,
+        payload: {
+          product_name: productName.trim(),
+          one_liner: oneLiner.trim(),
+          access_url: normalizeShowcaseUrl(accessUrl),
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。老师会看到这张作品卡。");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "提交作品链接"}</h1>
+        <p>把你们做好的作品入口交上来，让别人可以点开体验。</p>
+        <div className="student-card product-link-card">
+          <div className="student-current">
+            <div>
+              <span>提交人</span>
+              <strong>{student.team_name || student.nickname}</strong>
+              <small>{student.student_no ? `${student.nickname} · 学号 ${student.student_no}` : student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            作品名
+            <input
+              value={productName}
+              onChange={(event) => setProductName(event.target.value)}
+              placeholder="例如：午餐选择器"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            一句话介绍
+            <input
+              value={oneLiner}
+              onChange={(event) => setOneLiner(event.target.value)}
+              placeholder="它帮谁解决什么问题？"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            作品链接
+            <input
+              value={accessUrl}
+              onChange={(event) => setAccessUrl(event.target.value)}
+              placeholder="https://..."
+              inputMode="url"
+              enterKeyHint="done"
+            />
+          </label>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <ExternalLink size={18} />}
+            提交
+          </button>
+          <p className="hint">提交后，作品会准备成一张可以点开的卡片。</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>

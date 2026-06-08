@@ -105,6 +105,20 @@ export interface ShowcaseItem {
   updated_at?: string;
 }
 
+export interface TaskSubmission {
+  id: string;
+  student_id?: string | null;
+  student_name?: string | null;
+  team_id?: string | null;
+  team_name?: string | null;
+  task_type: string;
+  title: string;
+  payload: Record<string, unknown>;
+  status: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Activity {
   id: string;
   module_id?: string | null;

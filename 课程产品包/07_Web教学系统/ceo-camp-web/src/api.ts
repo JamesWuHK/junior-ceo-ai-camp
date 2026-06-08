@@ -7,6 +7,7 @@ import type {
   StatePayload,
   Student,
   StudentAccount,
+  TaskSubmission,
   TeacherAccount,
   Team,
   UploadTarget
@@ -194,9 +195,15 @@ export const api = {
   submissions: () =>
     request<{
       future_photo_submissions: FuturePhotoSubmission[];
-      task_submissions: unknown[];
+      task_submissions: TaskSubmission[];
     }>("/submissions", {
       headers: headers(true)
+    }),
+  submitTask: (payload: { task_type: string; title: string; payload: Record<string, unknown> }) =>
+    request<{ submission: TaskSubmission }>("/task-submissions", {
+      method: "POST",
+      headers: studentHeaders(true),
+      body: JSON.stringify(payload)
     }),
   setCurrentTask: (payload: { module_id?: string; title: string; activity_type: string; payload?: Record<string, unknown> }) =>
     request<{ task: unknown }>("/tasks/current", {
@@ -220,6 +227,7 @@ export function connectEvents(onState: (payload: StatePayload) => void) {
   source.addEventListener("future_photo.generated", handler);
   source.addEventListener("future_photo.reviewed", handler);
   source.addEventListener("task.changed", handler);
+  source.addEventListener("task.submitted", handler);
   source.addEventListener("publish.changed", handler);
   return () => source.close();
 }
