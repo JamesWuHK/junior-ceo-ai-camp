@@ -10,6 +10,7 @@ loadDotEnv();
 const SITE_URL = stripTrailingSlash(process.env.SITE_URL || 'https://camps.wanli.wiki');
 const OUTPUT_DIRS = ['.', 'camp-website'];
 const KEYWORD_CONFIG_FILE = 'seo/keywords.json';
+const SITEMAP_INDEX_FILE = 'sitemap-index.xml';
 const HTML_SITEMAP_FILE = 'sitemap.xml';
 const CONTEXT_SITEMAP_FILE = 'sitemap-context.xml';
 const COVERAGE_REPORT_FILE = 'reports/seo-baidu-geo-coverage.md';
@@ -207,6 +208,7 @@ function buildRobots() {
     'Disallow: /cards.html',
     'Disallow: /slides/',
     '',
+    `Sitemap: ${siteUrl(`/${SITEMAP_INDEX_FILE}`)}`,
     `Sitemap: ${siteUrl(`/${HTML_SITEMAP_FILE}`)}`,
     `Sitemap: ${siteUrl(`/${CONTEXT_SITEMAP_FILE}`)}`,
     ''
@@ -243,6 +245,7 @@ function buildLlmsTxt() {
     `- [北京顺义 AI 家长公益课](${siteUrl('/shunyi-ai-parent-class.html')}): 顺义家长公益课回顾和 AI 时代孩子能力说明。`,
     `- [AI PBL 创业营机构合作](${siteUrl('/partner-ai-pbl-camp.html')}): 面向培训机构、营地和城市伙伴的合作说明。`,
     `- [robots.txt](${siteUrl('/robots.txt')}): 搜索引擎抓取规则。`,
+    `- [sitemap-index.xml](${siteUrl('/sitemap-index.xml')}): HTML 页面地图和 AI 上下文地图的总入口。`,
     `- [sitemap.xml](${siteUrl('/sitemap.xml')}): 当前可索引公开页面。`,
     `- [sitemap-context.xml](${siteUrl('/sitemap-context.xml')}): AI 可读上下文、Markdown 页面和 Entity Profile 发现入口。`,
     '',
@@ -302,6 +305,27 @@ function buildSitemap() {
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     urls,
     '</urlset>',
+    ''
+  ].join('\n');
+}
+
+function buildSitemapIndex() {
+  const sitemaps = [
+    HTML_SITEMAP_FILE,
+    CONTEXT_SITEMAP_FILE
+  ];
+  const entries = sitemaps.map((filename) => [
+    '  <sitemap>',
+    `    <loc>${escapeXml(siteUrl(`/${filename}`))}</loc>`,
+    `    <lastmod>${localDate()}</lastmod>`,
+    '  </sitemap>'
+  ].join('\n')).join('\n');
+
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    entries,
+    '</sitemapindex>',
     ''
   ].join('\n');
 }
@@ -366,6 +390,7 @@ function generateRobots() {
 function generateSitemap() {
   writeStaticFile(HTML_SITEMAP_FILE, buildSitemap());
   writeStaticFile(CONTEXT_SITEMAP_FILE, buildContextSitemap());
+  writeStaticFile(SITEMAP_INDEX_FILE, buildSitemapIndex());
 }
 
 function generateLlms() {
@@ -767,6 +792,7 @@ function check() {
   for (const dir of OUTPUT_DIRS) {
     const prefix = dir === '.' ? '' : `${dir}/`;
     const robotsPath = join(ROOT, dir, 'robots.txt');
+    const sitemapIndexPath = join(ROOT, dir, SITEMAP_INDEX_FILE);
     const sitemapPath = join(ROOT, dir, HTML_SITEMAP_FILE);
     const contextSitemapPath = join(ROOT, dir, CONTEXT_SITEMAP_FILE);
     const llmsPath = join(ROOT, dir, 'llms.txt');
@@ -774,8 +800,20 @@ function check() {
       checks.push(fail(`missing ${prefix}robots.txt`));
     } else {
       const robots = readFileSync(robotsPath, 'utf8');
+      if (!robots.includes(`Sitemap: ${siteUrl(`/${SITEMAP_INDEX_FILE}`)}`)) checks.push(fail(`${prefix}robots.txt missing sitemap index URL`));
       if (!robots.includes(`Sitemap: ${siteUrl(`/${HTML_SITEMAP_FILE}`)}`)) checks.push(fail(`${prefix}robots.txt missing sitemap URL`));
       if (!robots.includes(`Sitemap: ${siteUrl(`/${CONTEXT_SITEMAP_FILE}`)}`)) checks.push(fail(`${prefix}robots.txt missing context sitemap URL`));
+    }
+    if (!existsSync(sitemapIndexPath)) {
+      checks.push(fail(`missing ${prefix}${SITEMAP_INDEX_FILE}`));
+    } else {
+      const sitemapIndex = readFileSync(sitemapIndexPath, 'utf8');
+      if (!sitemapIndex.includes(`<loc>${siteUrl(`/${HTML_SITEMAP_FILE}`)}</loc>`)) {
+        checks.push(fail(`${prefix}${SITEMAP_INDEX_FILE} missing ${siteUrl(`/${HTML_SITEMAP_FILE}`)}`));
+      }
+      if (!sitemapIndex.includes(`<loc>${siteUrl(`/${CONTEXT_SITEMAP_FILE}`)}</loc>`)) {
+        checks.push(fail(`${prefix}${SITEMAP_INDEX_FILE} missing ${siteUrl(`/${CONTEXT_SITEMAP_FILE}`)}`));
+      }
     }
     if (!existsSync(sitemapPath)) {
       checks.push(fail(`missing ${prefix}${HTML_SITEMAP_FILE}`));
@@ -1071,7 +1109,8 @@ function onlineTargets() {
     { url: siteUrl('/ai-course-vs-coding.html'), markers: ['少儿编程和AI课程区别', 'application/ld+json', '孩子该学AI还是编程', ...alternateMarkersForSource('ai-course-vs-coding.html')] },
     { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子', ...alternateMarkersForSource('shunyi-ai-parent-class.html')] },
     { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html')] },
-    { url: siteUrl('/robots.txt'), markers: [`Sitemap: ${siteUrl('/sitemap.xml')}`, `Sitemap: ${siteUrl('/sitemap-context.xml')}`] },
+    { url: siteUrl('/robots.txt'), markers: [`Sitemap: ${siteUrl('/sitemap-index.xml')}`, `Sitemap: ${siteUrl('/sitemap.xml')}`, `Sitemap: ${siteUrl('/sitemap-context.xml')}`] },
+    { url: siteUrl('/sitemap-index.xml'), markers: [`<loc>${siteUrl('/sitemap.xml')}</loc>`, `<loc>${siteUrl('/sitemap-context.xml')}</loc>`] },
     { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },
     { url: siteUrl('/sitemap-context.xml'), markers: [`<loc>${siteUrl('/llms.txt')}</loc>`, ...MARKDOWN_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`)] },
     { url: siteUrl('/llms.txt'), markers: LLM_MARKERS },
@@ -1891,17 +1930,17 @@ function usage() {
     'Usage: node scripts/seo/baidu-seo.mjs <command>',
     '',
     'Commands:',
-    '  generate          Write robots.txt, sitemap.xml, sitemap-context.xml, and llms.txt',
+    '  generate          Write robots.txt, sitemap-index.xml, sitemap.xml, sitemap-context.xml, and llms.txt',
     '  llms              Write llms.txt',
     '  robots            Write robots.txt',
-    '  sitemap           Write sitemap.xml and sitemap-context.xml',
+    '  sitemap           Write sitemap-index.xml, sitemap.xml, and sitemap-context.xml',
     '  links             Write public internal link graph report',
     '  coverage          Validate Baidu SEO and GEO keyword coverage',
     '  evidence          Write measured Baidu index/rank/GEO evidence report',
     '  monitor           Write a Baidu SEO/GEO monitoring report',
     '  rank-plan         Write a Baidu ranking and GEO query tracking sheet',
     '  check             Validate homepage SEO files and tags',
-    '  check-online      Validate live homepage, robots, sitemap, and llms.txt',
+    '  check-online      Validate live homepage, robots, sitemaps, and llms.txt',
     '  submit [--dry-run] Submit sitemap URLs to Baidu Search Resource Platform'
   ].join('\n'));
 }
