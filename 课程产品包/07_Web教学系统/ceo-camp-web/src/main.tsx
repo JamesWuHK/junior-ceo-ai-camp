@@ -3586,6 +3586,9 @@ function TeacherProductDefinitions() {
                 <p><strong>问题：</strong>{asText(item.payload.core_problem) || "还没写"}</p>
                 <p><strong>办法：</strong>{asText(item.payload.solution) || "还没写"}</p>
                 <p><strong>一句话：</strong>{oneLiner || "还没生成"}</p>
+                {asText(item.payload.source_problem_title) && (
+                  <p><strong>来源线索：</strong>{asText(item.payload.source_problem_title)}{asNumber(item.payload.source_problem_votes) > 0 ? ` · ${asNumber(item.payload.source_problem_votes)} 票` : ""}</p>
+                )}
               </div>
             </article>
           );
@@ -8557,6 +8560,10 @@ function StudentProductDefinitionTask({
   const [targetUser, setTargetUser] = useState("");
   const [coreProblem, setCoreProblem] = useState("");
   const [solution, setSolution] = useState("");
+  const [problemOptions, setProblemOptions] = useState<WallArtifact[]>([]);
+  const [problemVotes, setProblemVotes] = useState<Record<string, number>>({});
+  const [selectedProblemId, setSelectedProblemId] = useState("");
+  const [selectedProblemTitle, setSelectedProblemTitle] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
   const oneLiner = useMemo(() => {
@@ -8566,6 +8573,46 @@ function StudentProductDefinitionTask({
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
+  };
+
+  useEffect(() => {
+    let alive = true;
+    api.problemVoteBrief()
+      .then((result) => {
+        if (!alive) return;
+        const voteMap = new Map(result.summaries.map((summary) => [summary.problem_id, summary.vote_count]));
+        const byId = new Map(result.candidates.map((item) => [item.id, item]));
+        const sameTeam = result.candidates.filter((item) =>
+          (!!student.team_id && item.team_id === student.team_id) ||
+          (!!student.team_name && (item.team_name === student.team_name || asText(item.payload.team_name) === student.team_name))
+        );
+        const voted = result.summaries
+          .filter((summary) => summary.vote_count > 0)
+          .map((summary) => byId.get(summary.problem_id))
+          .filter(Boolean) as WallArtifact[];
+        const fallback = result.candidates.slice(0, 5);
+        const merged = [...sameTeam, ...voted, ...fallback].filter((item, index, list) =>
+          list.findIndex((candidate) => candidate.id === item.id) === index
+        );
+        setProblemOptions(merged.slice(0, 5));
+        setProblemVotes(Object.fromEntries(voteMap.entries()));
+      })
+      .catch(() => {
+        if (alive) setProblemOptions([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [student.team_id, student.team_name]);
+
+  const useProblemOption = (item: WallArtifact) => {
+    const problemTitle = asText(item.payload.problem_scene) || asText(item.payload.trouble) || "一个真实问题";
+    const problemUser = asText(item.payload.target_user);
+    const problemTrouble = asText(item.payload.trouble) || problemTitle;
+    if (problemUser) setTargetUser(problemUser);
+    if (problemTrouble) setCoreProblem(problemTrouble);
+    setSelectedProblemId(item.id);
+    setSelectedProblemTitle(problemTitle);
   };
 
   const submit = async () => {
@@ -8597,6 +8644,9 @@ function StudentProductDefinitionTask({
           core_problem: coreProblem.trim(),
           solution: solution.trim(),
           one_liner: oneLiner,
+          source_problem_id: selectedProblemId,
+          source_problem_title: selectedProblemTitle,
+          source_problem_votes: selectedProblemId ? problemVotes[selectedProblemId] ?? 0 : 0,
           team_name: student.team_name || ""
         }
       });
@@ -8605,6 +8655,8 @@ function StudentProductDefinitionTask({
       setTargetUser("");
       setCoreProblem("");
       setSolution("");
+      setSelectedProblemId("");
+      setSelectedProblemTitle("");
       await refresh();
     } catch (err) {
       showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
@@ -8628,6 +8680,31 @@ function StudentProductDefinitionTask({
             </div>
             <button className="text-button" onClick={onLogout}>退出</button>
           </div>
+          {problemOptions.length > 0 && (
+            <div className="product-source-panel">
+              <span>可以从前面的问题线索带入</span>
+              <div className="product-source-options">
+                {problemOptions.map((item) => {
+                  const title = asText(item.payload.problem_scene) || asText(item.payload.trouble) || "一个真实问题";
+                  const votes = problemVotes[item.id] ?? 0;
+                  const sameTeam =
+                    (!!student.team_id && item.team_id === student.team_id) ||
+                    (!!student.team_name && (item.team_name === student.team_name || asText(item.payload.team_name) === student.team_name));
+                  return (
+                    <button
+                      className={selectedProblemId === item.id ? "product-source-option active" : "product-source-option"}
+                      key={item.id}
+                      onClick={() => useProblemOption(item)}
+                    >
+                      <small>{sameTeam ? "我们的问题卡" : votes > 0 ? `${votes} 票线索` : "问题线索"}</small>
+                      <strong>{title}</strong>
+                      <em>{asText(item.payload.target_user) || "真实用户"}</em>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <label>
             产品名
             <input
@@ -8667,6 +8744,7 @@ function StudentProductDefinitionTask({
           <div className="product-sentence-preview">
             <span>产品一句话</span>
             <strong>{oneLiner || "填完上面三格，这里会出现一句完整介绍。"}</strong>
+            {selectedProblemTitle && <small>来自线索：{selectedProblemTitle}</small>}
           </div>
           <button className="submit-button" disabled={submitting} onClick={submit}>
             {submitting ? <Loader2 className="spin" size={18} /> : <Target size={18} />}

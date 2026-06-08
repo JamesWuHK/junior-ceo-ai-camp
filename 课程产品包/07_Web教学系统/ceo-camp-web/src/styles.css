@@ -3684,6 +3684,54 @@ button:disabled {
   accent-color: #1f6f50;
 }
 
+.product-source-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.product-source-panel > span {
+  color: #60705f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.product-source-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.product-source-option {
+  min-height: 124px;
+  border: 1px solid #e5eadf;
+  border-radius: 8px;
+  background: #fffef8;
+  padding: 12px;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  text-align: left;
+  color: #172018;
+  cursor: pointer;
+}
+
+.product-source-option.active {
+  border-color: #1f6f50;
+  box-shadow: 0 0 0 2px rgba(31, 111, 80, 0.14);
+}
+
+.product-source-option small,
+.product-source-option em {
+  color: #60705f;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.product-source-option strong {
+  font-size: 16px;
+  line-height: 1.25;
+}
+
 .product-sentence-preview {
   border: 1px solid #e5eadf;
   border-radius: 8px;
@@ -3702,6 +3750,11 @@ button:disabled {
 .product-sentence-preview strong {
   color: #172018;
   line-height: 1.45;
+}
+
+.product-sentence-preview small {
+  color: #60705f;
+  font-size: 13px;
 }
 
 .feedback-card {
