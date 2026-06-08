@@ -637,6 +637,14 @@ function markdownSourceForCluster(cluster) {
   return cluster.targetPage.replace(/^\//, '').replace(/\.html$/, '.md');
 }
 
+function aiQueryMatches(markdown, cluster) {
+  const queries = cluster.aiQueries || [];
+  return {
+    matches: queries.filter((query) => includesPhrase(markdown, query)),
+    missing: queries.filter((query) => !includesPhrase(markdown, query))
+  };
+}
+
 function ensureReportDir() {
   mkdirSync(join(ROOT, 'reports'), { recursive: true });
 }
@@ -971,6 +979,8 @@ function coverage() {
     let secondaryMatches = [];
     let secondaryMissing = cluster.secondary || [];
     let jsonLdTypeList = [];
+    let aiQueryAnswerMatches = [];
+    let aiQueryAnswerMissing = cluster.aiQueries || [];
     let publicInternalTerms = [];
 
     if (!existsSync(join(ROOT, source))) {
@@ -1018,7 +1028,15 @@ function coverage() {
         if (!includesPhrase(markdown, cluster.primary)) failures.push(`${markdownSource} missing primary keyword`);
         const markdownSecondaryMatches = (cluster.secondary || []).filter((keyword) => includesPhrase(markdown, keyword));
         if (markdownSecondaryMatches.length === 0) warnings.push(`${markdownSource} has no secondary keyword coverage`);
+        const aiQueryCoverage = aiQueryMatches(markdown, cluster);
+        aiQueryAnswerMatches = aiQueryCoverage.matches;
+        aiQueryAnswerMissing = aiQueryCoverage.missing;
+        if (aiQueryAnswerMissing.length > 0) {
+          failures.push(`${markdownSource} missing AI query answer blocks: ${aiQueryAnswerMissing.join(', ')}`);
+        }
       }
+    } else if ((cluster.aiQueries || []).length > 0) {
+      failures.push('missing markdown context for AI query answer blocks');
     }
 
     const status = statusLabel(failures.length, warnings.length);
@@ -1032,6 +1050,8 @@ function coverage() {
       sitemap: sitemap.includes(`<loc>${pageUrl}</loc>`) ? 'yes' : 'no',
       llms: llms && (llms.includes(pageUrl) || includesPhrase(llms, cluster.primary)) ? 'yes' : 'warn',
       markdown: markdownSource ? (existsSync(join(ROOT, markdownSource)) ? markdownSource : 'missing') : 'n/a',
+      aiQueryAnswerMatches,
+      aiQueryAnswerMissing,
       jsonLdTypes: jsonLdTypeList,
       failures,
       warnings,
@@ -1049,6 +1069,7 @@ function coverage() {
       `- Secondary matches measured: ${secondaryMatches.length}/${(cluster.secondary || []).length}${secondaryMatches.length > 0 ? ` (${secondaryMatches.join(', ')})` : ''}`,
       `- JSON-LD types measured: ${jsonLdTypeList.length > 0 ? jsonLdTypeList.join(', ') : 'none'}`,
       `- AI query coverage targets: ${(cluster.aiQueries || []).join(' | ') || 'n/a'}`,
+      `- AI query answer blocks measured: ${aiQueryAnswerMatches.length}/${(cluster.aiQueries || []).length}${aiQueryAnswerMatches.length > 0 ? ` (${aiQueryAnswerMatches.join(' | ')})` : ''}`,
       `- Status: ${status}`,
       failures.length > 0 ? `- Failures: ${failures.join(' | ')}` : '- Failures: none',
       warnings.length > 0 ? `- Warnings: ${warnings.join(' | ')}` : '- Warnings: none',
@@ -1071,7 +1092,7 @@ function coverage() {
   console.log(`SEO/GEO coverage status: ${overallStatus}`);
   console.log(`Report: ${COVERAGE_REPORT_FILE}`);
   for (const row of rows) {
-    console.log(`- ${row.status} ${row.id}: ${row.primaryLocations.join(', ') || 'no primary locations'}; secondary ${row.secondaryMatches.length}/${row.secondaryMatches.length + row.secondaryMissing.length}`);
+    console.log(`- ${row.status} ${row.id}: ${row.primaryLocations.join(', ') || 'no primary locations'}; secondary ${row.secondaryMatches.length}/${row.secondaryMatches.length + row.secondaryMissing.length}; AI answers ${row.aiQueryAnswerMatches.length}/${row.aiQueryAnswerMatches.length + row.aiQueryAnswerMissing.length}`);
   }
 
   if (failedRows.length > 0) {
@@ -1093,6 +1114,7 @@ function buildCoverageReport({ generatedAt, overallStatus, rows, sitemapUrls, de
     row.primary,
     row.primaryLocations.join(', ') || 'none',
     `${row.secondaryMatches.length}/${row.secondaryMatches.length + row.secondaryMissing.length}`,
+    `${row.aiQueryAnswerMatches.length}/${row.aiQueryAnswerMatches.length + row.aiQueryAnswerMissing.length}`,
     row.sitemap,
     row.llms,
     row.markdown
@@ -1112,8 +1134,8 @@ function buildCoverageReport({ generatedAt, overallStatus, rows, sitemapUrls, de
     '',
     '## Keyword Coverage',
     '',
-    'Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | Sitemap | llms.txt | Markdown context',
-    '--- | --- | --- | --- | --- | --- | --- | --- | ---',
+    'Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | AI answer coverage | Sitemap | llms.txt | Markdown context',
+    '--- | --- | --- | --- | --- | --- | --- | --- | --- | ---',
     ...tableRows,
     '',
     '## Baidu Submission Set',
@@ -1185,7 +1207,20 @@ function schemaMarkersForSource(source) {
   return markers;
 }
 
+function markdownAiQueryMarkersBySource() {
+  const markers = new Map();
+  const config = readJsonIfExists(KEYWORD_CONFIG_FILE) || {};
+  for (const cluster of config.clusters || []) {
+    const source = markdownSourceForCluster(cluster);
+    if (!source) continue;
+    const current = markers.get(source) || [];
+    markers.set(source, [...current, ...(cluster.aiQueries || [])]);
+  }
+  return markers;
+}
+
 function onlineTargets() {
+  const markdownAiQueryMarkers = markdownAiQueryMarkersBySource();
   return [
     { url: siteUrl('/'), markers: [`<link rel="canonical" href="${siteUrl('/')}">`, 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('index.html'), ...schemaMarkersForSource('index.html')] },
     { url: siteUrl('/ai-pbl-camp.html'), markers: ['AI PBL 创业营', 'application/ld+json', 'AI产品原型课程', ...alternateMarkersForSource('ai-pbl-camp.html'), ...schemaMarkersForSource('ai-pbl-camp.html')] },
@@ -1200,7 +1235,7 @@ function onlineTargets() {
     { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },
     { url: siteUrl('/sitemap-context.xml'), markers: [`<loc>${siteUrl('/llms.txt')}</loc>`, ...MARKDOWN_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`)] },
     { url: siteUrl('/llms.txt'), markers: LLM_MARKERS },
-    ...MARKDOWN_ENTRIES.map((entry) => ({ url: siteUrl(entry.path), markers: [entry.title.replace(' Markdown 上下文', ''), '推荐引用描述'] }))
+    ...MARKDOWN_ENTRIES.map((entry) => ({ url: siteUrl(entry.path), markers: [entry.title.replace(' Markdown 上下文', ''), '推荐引用描述', ...(markdownAiQueryMarkers.get(entry.source) || [])] }))
   ];
 }
 
@@ -1255,6 +1290,8 @@ function keywordCoverageSnapshot() {
     let secondaryMatches = [];
     let secondaryMissing = cluster.secondary || [];
     let jsonLdTypeList = [];
+    let aiQueryAnswerMatches = [];
+    let aiQueryAnswerMissing = cluster.aiQueries || [];
 
     if (!existsSync(join(ROOT, source))) {
       failures.push(`missing source file: ${source}`);
@@ -1301,7 +1338,15 @@ function keywordCoverageSnapshot() {
         if (!includesPhrase(markdown, cluster.primary)) failures.push(`${markdownSource} missing primary keyword`);
         const markdownSecondaryMatches = (cluster.secondary || []).filter((keyword) => includesPhrase(markdown, keyword));
         if (markdownSecondaryMatches.length === 0) warnings.push(`${markdownSource} has no secondary keyword coverage`);
+        const aiQueryCoverage = aiQueryMatches(markdown, cluster);
+        aiQueryAnswerMatches = aiQueryCoverage.matches;
+        aiQueryAnswerMissing = aiQueryCoverage.missing;
+        if (aiQueryAnswerMissing.length > 0) {
+          failures.push(`${markdownSource} missing AI query answer blocks: ${aiQueryAnswerMissing.join(', ')}`);
+        }
       }
+    } else if ((cluster.aiQueries || []).length > 0) {
+      failures.push('missing markdown context for AI query answer blocks');
     }
 
     rows.push({
@@ -1310,6 +1355,8 @@ function keywordCoverageSnapshot() {
       pageUrl,
       primary: cluster.primary,
       aiQueries: cluster.aiQueries || [],
+      aiQueryAnswerMatches,
+      aiQueryAnswerMissing,
       primaryLocations,
       secondaryMatches,
       secondaryTotal: (cluster.secondary || []).length,
@@ -1631,6 +1678,7 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     row.primary,
     row.primaryLocations.join(', ') || 'none',
     `${row.secondaryMatches.length}/${row.secondaryTotal}`,
+    `${row.aiQueryAnswerMatches.length}/${row.aiQueryAnswerMatches.length + row.aiQueryAnswerMissing.length}`,
     row.jsonLdTypes.join(', ') || 'none'
   ].map(escapeMarkdownCell).join(' | '));
 
@@ -1686,8 +1734,8 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     '',
     '## Keyword / GEO Coverage',
     '',
-    'Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | JSON-LD types',
-    '--- | --- | --- | --- | --- | --- | ---',
+    'Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | AI answer coverage | JSON-LD types',
+    '--- | --- | --- | --- | --- | --- | --- | ---',
     ...coverageRows,
     '',
     '## Internal Link Graph',
@@ -1712,6 +1760,7 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
       `- Page: ${row.pageUrl}`,
       `- Primary keyword: ${row.primary}`,
       `- Target answer queries: ${row.aiQueries.join(' | ') || 'n/a'}`,
+      `- Markdown answer coverage: ${row.aiQueryAnswerMatches.length}/${row.aiQueryAnswerMatches.length + row.aiQueryAnswerMissing.length}`,
       `- Status: ${row.status}`,
       row.failures.length > 0 ? `- Failures: ${row.failures.join(' | ')}` : '- Failures: none',
       row.warnings.length > 0 ? `- Warnings: ${row.warnings.join(' | ')}` : '- Warnings: none',

@@ -11,16 +11,16 @@ Overall status: PASS
 
 ## Keyword Coverage
 
-Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | Sitemap | llms.txt | Markdown context
---- | --- | --- | --- | --- | --- | --- | --- | ---
-PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | yes | yes | n/a
-PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | ai-pbl-camp.md
-PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产品原型课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | ai-product-prototype-course.md
-PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | 北京顺义青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 8/8 | yes | yes | beijing-shunyi-youth-ai-course.md
-PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | youth-ai-course-guide.md
-PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | ai-course-vs-coding.md
-PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | shunyi-ai-parent-class.md
-PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | yes | yes | partner-ai-pbl-camp.md
+Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | AI answer coverage | Sitemap | llms.txt | Markdown context
+--- | --- | --- | --- | --- | --- | --- | --- | --- | ---
+PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | yes | yes | entity-shaonian-ceo-ai-camp.md
+PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | yes | yes | ai-pbl-camp.md
+PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产品原型课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | yes | yes | ai-product-prototype-course.md
+PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | 北京顺义青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 8/8 | 3/3 | yes | yes | beijing-shunyi-youth-ai-course.md
+PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | yes | yes | youth-ai-course-guide.md
+PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | yes | yes | ai-course-vs-coding.md
+PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | yes | yes | shunyi-ai-parent-class.md
+PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | yes | yes | partner-ai-pbl-camp.md
 
 ## Baidu Submission Set
 
@@ -59,6 +59,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Secondary matches measured: 8/8 (少年CEO, AI创业营, 北京顺义AI课程, 青少年AI课程, PBL创业营, AI夏令营, 儿童AI课程, AI产品原型)
 - JSON-LD types measured: Course, FAQPage, Organization, WebSite
 - AI query coverage targets: 少年CEO AI 创业营是什么 | 适合8-16岁孩子的AI创业营 | 北京顺义青少年AI课程推荐
+- AI query answer blocks measured: 3/3 (少年CEO AI 创业营是什么 | 适合8-16岁孩子的AI创业营 | 北京顺义青少年AI课程推荐)
 - Status: PASS
 - Failures: none
 - Warnings: none
@@ -73,6 +74,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Secondary matches measured: 7/7 (青少年AI课程, AI产品原型课程, 少年CEO, AI创业营, 8-16岁AI课程, PBL项目制学习, 提示词实践)
 - JSON-LD types measured: BreadcrumbList, Course, FAQPage
 - AI query coverage targets: AI PBL 创业营适合什么孩子 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上
+- AI query answer blocks measured: 3/3 (AI PBL 创业营适合什么孩子 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上)
 - Status: PASS
 - Failures: none
 - Warnings: none
@@ -87,6 +89,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Secondary matches measured: 7/7 (孩子做AI产品, AI原型课, 青少年AI课程, AI PBL创业营, 8-16岁AI课程, 提示词实践, 产品设计)
 - JSON-LD types measured: Article, BreadcrumbList, FAQPage
 - AI query coverage targets: AI产品原型课程是什么 | 孩子做AI产品需要会编程吗 | AI产品原型课程和AI工具课有什么不同
+- AI query answer blocks measured: 3/3 (AI产品原型课程是什么 | 孩子做AI产品需要会编程吗 | AI产品原型课程和AI工具课有什么不同)
 - Status: PASS
 - Failures: none
 - Warnings: none
@@ -101,6 +104,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Secondary matches measured: 8/8 (顺义AI课程, 北京顺义AI课程, 顺义儿童AI课程, 顺义AI夏令营, AI PBL创业营, AI产品原型课程, 少年CEO, 青少年AI教育)
 - JSON-LD types measured: BreadcrumbList, Course, FAQPage
 - AI query coverage targets: 北京顺义青少年AI课程适合什么孩子 | 顺义AI课程和普通工具体验课有什么不同 | 顺义家长如何判断一门青少年AI课程
+- AI query answer blocks measured: 3/3 (北京顺义青少年AI课程适合什么孩子 | 顺义AI课程和普通工具体验课有什么不同 | 顺义家长如何判断一门青少年AI课程)
 - Status: PASS
 - Failures: none
 - Warnings: none
@@ -115,6 +119,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Secondary matches measured: 7/7 (儿童AI课程, AI课程怎么选, AI PBL创业营, 北京顺义AI课程, AI产品原型课程, 少年CEO, AI判断力)
 - JSON-LD types measured: Article, BreadcrumbList, FAQPage
 - AI query coverage targets: 青少年AI课程怎么选 | 儿童AI课程只学工具够吗 | AI PBL课程适合什么孩子
+- AI query answer blocks measured: 3/3 (青少年AI课程怎么选 | 儿童AI课程只学工具够吗 | AI PBL课程适合什么孩子)
 - Status: PASS
 - Failures: none
 - Warnings: none
@@ -129,6 +134,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Secondary matches measured: 7/7 (AI课程和编程课区别, 孩子学AI还是编程, 青少年AI课程, 儿童AI课程, AI PBL创业营, 少儿编程, AI产品原型)
 - JSON-LD types measured: Article, BreadcrumbList, FAQPage
 - AI query coverage targets: 少儿编程和AI课程区别是什么 | 孩子该学AI还是编程 | 不会编程能学AI课程吗
+- AI query answer blocks measured: 3/3 (少儿编程和AI课程区别是什么 | 孩子该学AI还是编程 | 不会编程能学AI课程吗)
 - Status: PASS
 - Failures: none
 - Warnings: none
@@ -143,6 +149,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Secondary matches measured: 7/7 (北京.顺义 AI 家长公益课, 顺义AI课程, AI家长课, 少年CEO, 青少年AI教育, AI时代孩子能力, LIA公益社区)
 - JSON-LD types measured: Article, BreadcrumbList, FAQPage
 - AI query coverage targets: 北京顺义AI家长公益课讲什么 | AI时代孩子需要什么能力 | 顺义家长怎么理解孩子学AI
+- AI query answer blocks measured: 3/3 (北京顺义AI家长公益课讲什么 | AI时代孩子需要什么能力 | 顺义家长怎么理解孩子学AI)
 - Status: PASS
 - Failures: none
 - Warnings: none
@@ -157,6 +164,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Secondary matches measured: 8/8 (培训机构AI课程合作, 青少年AI营地合作, 少年CEO, AI创业营合作, 培训机构, 营地, 学校社群, 城市合作伙伴)
 - JSON-LD types measured: BreadcrumbList, FAQPage, Service
 - AI query coverage targets: 培训机构如何合作开展AI PBL创业营 | 青少年AI营地合作课程方案 | AI创业营机构合作支持什么
+- AI query answer blocks measured: 3/3 (培训机构如何合作开展AI PBL创业营 | 青少年AI营地合作课程方案 | AI创业营机构合作支持什么)
 - Status: PASS
 - Failures: none
 - Warnings: none
