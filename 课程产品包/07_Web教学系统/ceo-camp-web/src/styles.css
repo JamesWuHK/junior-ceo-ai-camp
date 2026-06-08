@@ -2735,6 +2735,10 @@ button:disabled {
   border-left: 6px solid #d9991f;
 }
 
+.d1-artifact-card.prompt {
+  border-left: 6px solid #2f8f7a;
+}
+
 .d1-artifact-card header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -3296,6 +3300,35 @@ button:disabled {
 
 .market-scout-card {
   max-width: 900px;
+}
+
+.prompt-card-form {
+  max-width: 900px;
+}
+
+.prompt-preview {
+  border: 1px solid #d5eadf;
+  border-radius: 8px;
+  background: #f4fbf6;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.prompt-preview span {
+  color: #1f6f50;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.prompt-preview pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #172018;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.55;
 }
 
 .final-showcase-card {
@@ -3976,6 +4009,10 @@ button:disabled {
 
 .wall-artifact-card.product {
   border-top-color: #ef7d58;
+}
+
+.wall-artifact-card.prompt {
+  border-top-color: #2f8f7a;
 }
 
 .wall-artifact-card.validation {

@@ -833,6 +833,7 @@ function taskTypeForAction(action: string, page: DesignedLessonPage) {
   if (page.title.includes("下一次我怎么指挥 AI")) return "growth_reflection";
   if (/AI 给答案，先看证据|真假侦探实验|证据比声音更有力/.test(page.title)) return "ai_validation";
   if (/把候选问题改清楚|AI 市场侦察卡|竞品观察三格/.test(page.title)) return "market_scout";
+  if (/五句提示词卡|改一版再试|对 AI 说：不对，再改/.test(page.title)) return "prompt_card";
   if (action === "进入评分") return "score";
   if (action === "发起互动") return "interaction";
   if (action === "打开看板") return "board";
@@ -909,6 +910,19 @@ function isMarketScoutTask(camp: Camp | null) {
     payloadType === "market_scout" ||
     (moduleId === "ai-superpowers" && /问题改写|候选问题|市场侦察|已有方案|竞品观察|继续验证|把候选问题改清楚/.test(title)) ||
     /问题改写|候选问题|市场侦察|已有方案|竞品观察|继续验证/.test(title)
+  );
+}
+
+function isPromptCardTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  const activityType = camp?.active_task?.activity_type || "";
+  const payloadType = asText(camp?.active_task?.payload?.task_type);
+  return (
+    activityType === "prompt_card" ||
+    payloadType === "prompt_card" ||
+    (moduleId === "ai-lab" && /五句提示词|提示词卡|改一版|再改|AI 初稿/.test(title)) ||
+    /五句提示词|提示词卡|改一版|再改|AI 初稿/.test(title)
   );
 }
 
@@ -1675,8 +1689,9 @@ function journeyItemRank(item: WallArtifact) {
     market_scout: 3,
     user_voice: 4,
     product_definition: 5,
-    product_feedback: 6,
-    mentor_comment: 7
+    prompt_card: 6,
+    product_feedback: 7,
+    mentor_comment: 8
   };
   return ranks[item.task_type] ?? 9;
 }
@@ -1952,6 +1967,7 @@ function journeyTitle(item: WallArtifact) {
   if (item.task_type === "user_voice") return asText(item.payload.interviewee) || "听见一位用户";
   if (item.task_type === "ai_validation") return asText(item.payload.doubt) || "用证据检查 AI";
   if (item.task_type === "product_definition") return asText(item.payload.product_name) || "写出产品一句话";
+  if (item.task_type === "prompt_card") return asText(item.payload.goal) || "写出五句提示词";
   if (item.task_type === "product_feedback") return asText(item.payload.product_name) || "收到试用反馈";
   if (item.task_type === "mentor_comment") return asText(item.payload.product_name) || "导师点评";
   return item.title || "项目记录";
@@ -1964,6 +1980,7 @@ function journeyLabel(item: WallArtifact) {
     user_voice: "听见用户",
     ai_validation: "检查 AI",
     product_definition: "产品一句话",
+    prompt_card: "提示词卡",
     product_feedback: "收到反馈",
     mentor_comment: "导师点评"
   };
@@ -2012,6 +2029,16 @@ function journeyCopy(item: WallArtifact) {
       ["问题", asText(item.payload.core_problem)],
       ["办法", asText(item.payload.solution)],
       ["一句话", asText(item.payload.one_liner)]
+    ];
+  }
+  if (item.task_type === "prompt_card") {
+    return [
+      ["目标", asText(item.payload.goal)],
+      ["用户", asText(item.payload.target_user)],
+      ["材料", asText(item.payload.materials)],
+      ["限制", asText(item.payload.constraints)],
+      ["格式", asText(item.payload.output_format)],
+      ["再改一句", asText(item.payload.revision_request)]
     ];
   }
   if (item.task_type === "product_feedback") {
@@ -2398,6 +2425,7 @@ function TeacherApp({
         </section>
         <TeacherD1Artifacts />
         <TeacherProductDefinitions />
+        <TeacherPromptCards />
         <TeacherProjectSubmissions />
         <TeacherPeerFeedback />
         <TeacherFinalShowcase />
@@ -2454,6 +2482,7 @@ const progressMilestones = [
   { key: "market_scout", label: "侦察卡", target: 1, unit: "张" },
   { key: "user_voice", label: "用户声音", target: 3, unit: "条" },
   { key: "product_definition", label: "产品一句话", target: 1, unit: "条" },
+  { key: "prompt_card", label: "提示词卡", target: 1, unit: "张" },
   { key: "product_link", label: "作品入口", target: 1, unit: "个" },
   { key: "product_feedback", label: "互测反馈", target: 2, unit: "条" },
   { key: "final_showcase", label: "展示卡", target: 1, unit: "张" }
@@ -2749,6 +2778,7 @@ function nextSupportAction(
   if (firstMissing.key === "product_link") return "先确认作品链接能打开，再准备上台展示。";
   if (firstMissing.key === "final_showcase") return "请小组把最终展示卡补齐。";
   if (firstMissing.key === "product_definition") return "先把产品一句话写清楚：帮谁、解决什么、怎么解决。";
+  if (firstMissing.key === "prompt_card") return "请小组补一张五句提示词卡：目标、用户、材料、限制、格式。";
   return "先补一张真实问题卡。";
 }
 
@@ -2822,10 +2852,11 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
     const readyTeams = teamSummaries.filter((item) => item.readyForDemo).length;
     const withScout = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "market_scout")).length;
     const withProduct = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "product_definition")).length;
+    const withPrompt = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "prompt_card")).length;
     const interviewReady = teamSummaries.filter((item) => item.userVoiceCount >= 3).length;
     const feedbackReady = teamSummaries.filter((item) => item.feedbackCount >= 2).length;
     const needsSupport = teamSummaries.filter((item) => item.needsSupport).length;
-    return { activeBlockers, readyTeams, withScout, withProduct, interviewReady, feedbackReady, needsSupport };
+    return { activeBlockers, readyTeams, withScout, withProduct, withPrompt, interviewReady, feedbackReady, needsSupport };
   }, [teamSummaries]);
 
   const toggleBlocker = async (item: TaskSubmission) => {
@@ -2852,6 +2883,7 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
         <span>{totals.withScout} 组已有侦察卡</span>
         <span>{totals.interviewReady}/{teamSummaries.length} 组采访达标</span>
         <span>{totals.withProduct} 组已有产品一句话</span>
+        <span>{totals.withPrompt} 组已有提示词卡</span>
         <span>{totals.readyTeams} 组已有作品入口</span>
         <span>{totals.feedbackReady} 组收到互测反馈</span>
         <span>{totals.needsSupport} 组需要跟进</span>
@@ -3264,6 +3296,94 @@ function TeacherProductDefinitions() {
           );
         })}
         {!items.length && <p className="empty">学生提交产品一句话后，会出现在这里。</p>}
+      </div>
+    </section>
+  );
+}
+
+function TeacherPromptCards() {
+  const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [message, setMessage] = useState("");
+  const [workingId, setWorkingId] = useState("");
+
+  const load = async () => {
+    try {
+      const result = await api.submissions();
+      setItems(result.task_submissions.filter((item) => item.task_type === "prompt_card"));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const groupedCount = useMemo(
+    () => new Set(items.map((item) => item.team_id || item.student_id || item.id)).size,
+    [items]
+  );
+
+  const toggleWall = async (item: TaskSubmission) => {
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.setTaskSubmissionStatus(item.id, item.status === "ON_WALL" ? "SUBMITTED" : "ON_WALL");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "操作失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
+
+  return (
+    <section className="panel prompt-card-panel">
+      <div className="panel-title">
+        <WandSparkles size={20} />
+        <h2>D2 五句提示词卡</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{items.length} 张提示词卡</span>
+        <span>{groupedCount} 个来源</span>
+        <span>{items.filter((item) => item.status === "ON_WALL").length} 张已上屏</span>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="d1-artifact-list">
+        {items.map((item) => {
+          const goal = asText(item.payload.goal) || "还没写目标";
+          return (
+            <article
+              className={[
+                "d1-artifact-card",
+                "prompt",
+                item.status === "ON_WALL" ? "on-wall" : ""
+              ].filter(Boolean).join(" ")}
+              key={item.id}
+            >
+              <header>
+                <div>
+                  <span>提示词卡</span>
+                  <strong>{goal}</strong>
+                  <small>{item.team_name || item.student_name || "学生提交"}</small>
+                </div>
+                <button disabled={workingId === item.id} onClick={() => toggleWall(item)}>
+                  {item.status === "ON_WALL" ? "从大屏移开" : "放到大屏"}
+                </button>
+              </header>
+              <div className="artifact-lines">
+                <p><strong>用户：</strong>{asText(item.payload.target_user) || "还没写"}</p>
+                <p><strong>材料：</strong>{asText(item.payload.materials) || "还没写"}</p>
+                <p><strong>限制：</strong>{asText(item.payload.constraints) || "还没写"}</p>
+                <p><strong>格式：</strong>{asText(item.payload.output_format) || "还没写"}</p>
+                <p><strong>再改一句：</strong>{asText(item.payload.revision_request) || "还没写"}</p>
+              </div>
+            </article>
+          );
+        })}
+        {!items.length && <p className="empty">学生提交五句提示词卡后，会出现在这里。</p>}
       </div>
     </section>
   );
@@ -5694,6 +5814,7 @@ function StudentApp({
   const userVoiceTask = isUserVoiceTask(camp);
   const aiValidationTask = isAiValidationTask(camp);
   const marketScoutTask = isMarketScoutTask(camp);
+  const promptCardTask = isPromptCardTask(camp);
   const productDefinitionTask = isProductDefinitionTask(camp);
   const blockerTask = isBlockerTask(camp);
   const observerScoreTask = isObserverScoreTask(camp);
@@ -5707,6 +5828,7 @@ function StudentApp({
     userVoiceTask ||
     aiValidationTask ||
     marketScoutTask ||
+    promptCardTask ||
     productDefinitionTask ||
     blockerTask ||
     observerScoreTask ||
@@ -5943,6 +6065,18 @@ function StudentApp({
   if (marketScoutTask) {
     return (
       <StudentMarketScoutTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (promptCardTask) {
+    return (
+      <StudentPromptCardTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -6894,6 +7028,194 @@ function StudentMarketScoutTask({
             提交
           </button>
           <p className="hint">好侦察卡不是答案更多，而是让下一次采访更准。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentPromptCardTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [goal, setGoal] = useState("");
+  const [targetUser, setTargetUser] = useState("");
+  const [materials, setMaterials] = useState("");
+  const [constraints, setConstraints] = useState("");
+  const [outputFormat, setOutputFormat] = useState("");
+  const [firstResult, setFirstResult] = useState("");
+  const [revisionRequest, setRevisionRequest] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+  const promptText = useMemo(() => {
+    const lines = [
+      goal.trim() ? `目标：${goal.trim()}` : "",
+      targetUser.trim() ? `用户：${targetUser.trim()}` : "",
+      materials.trim() ? `材料：${materials.trim()}` : "",
+      constraints.trim() ? `限制：${constraints.trim()}` : "",
+      outputFormat.trim() ? `格式：${outputFormat.trim()}` : ""
+    ].filter(Boolean);
+    return lines.join("\n");
+  }, [goal, targetUser, materials, constraints, outputFormat]);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!goal.trim()) {
+      showMessage("error", "先写清楚你要 AI 帮你完成什么。");
+      return;
+    }
+    if (!targetUser.trim()) {
+      showMessage("error", "再写清楚这次结果给谁用。");
+      return;
+    }
+    if (!materials.trim()) {
+      showMessage("error", "把你已经有的材料写进去。");
+      return;
+    }
+    if (!constraints.trim()) {
+      showMessage("error", "写一个必须注意的限制。");
+      return;
+    }
+    if (!outputFormat.trim()) {
+      showMessage("error", "最后写清楚你想要什么样的结果。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "prompt_card",
+        title: taskTitle,
+        payload: {
+          goal: goal.trim(),
+          target_user: targetUser.trim(),
+          materials: materials.trim(),
+          constraints: constraints.trim(),
+          output_format: outputFormat.trim(),
+          prompt_text: promptText,
+          first_result: firstResult.trim(),
+          revision_request: revisionRequest.trim(),
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。这张提示词卡可以带到产品制作里继续试。");
+      setGoal("");
+      setTargetUser("");
+      setMaterials("");
+      setConstraints("");
+      setOutputFormat("");
+      setFirstResult("");
+      setRevisionRequest("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "五句提示词卡"}</h1>
+        <p>把目标、用户、材料、限制和格式写清楚，让 AI 更容易给出可用的一版。</p>
+        <div className="student-card d1-task-card prompt-card-form">
+          <div className="student-current">
+            <div>
+              <span>提示词小组</span>
+              <strong>{student.team_name || student.nickname}</strong>
+              <small>{student.student_no ? `${student.nickname} · 学号 ${student.student_no}` : student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            目标
+            <textarea
+              value={goal}
+              onChange={(event) => setGoal(event.target.value)}
+              placeholder="例如：帮我们生成午餐选择器的首页文案"
+              rows={2}
+            />
+          </label>
+          <label>
+            用户
+            <input
+              value={targetUser}
+              onChange={(event) => setTargetUser(event.target.value)}
+              placeholder="例如：每天在食堂纠结的同学"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            材料
+            <textarea
+              value={materials}
+              onChange={(event) => setMaterials(event.target.value)}
+              placeholder="例如：用户说最烦的是后面有人等，自己还没想好"
+              rows={3}
+            />
+          </label>
+          <label>
+            限制
+            <textarea
+              value={constraints}
+              onChange={(event) => setConstraints(event.target.value)}
+              placeholder="例如：文字要短，8-16 岁同学能看懂"
+              rows={2}
+            />
+          </label>
+          <label>
+            格式
+            <input
+              value={outputFormat}
+              onChange={(event) => setOutputFormat(event.target.value)}
+              placeholder="例如：标题 1 句，按钮 2 个，说明 3 条"
+              inputMode="text"
+            />
+          </label>
+          {promptText && (
+            <article className="prompt-preview">
+              <span>可以拿去试的一版</span>
+              <pre>{promptText}</pre>
+            </article>
+          )}
+          <label>
+            AI 第一版哪里还要改
+            <textarea
+              value={firstResult}
+              onChange={(event) => setFirstResult(event.target.value)}
+              placeholder="例如：它写得太像广告，还不够像给同学看的页面"
+              rows={2}
+            />
+          </label>
+          <label>
+            我让 AI 再改一句
+            <textarea
+              value={revisionRequest}
+              onChange={(event) => setRevisionRequest(event.target.value)}
+              placeholder="例如：把文案改短一点，先说能帮同学快点做选择"
+              rows={2}
+            />
+          </label>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <WandSparkles size={18} />}
+            提交
+          </button>
+          <p className="hint">好的提示词会把“我要什么”和“为什么这样做”一起说清楚。</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -8263,13 +8585,14 @@ function ProblemVoteWall({ summaries }: { summaries: ProblemVoteSummary[] }) {
 function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   if (!artifacts.length) return null;
   const hasProduct = artifacts.some((item) => item.task_type === "product_definition");
+  const hasPrompt = artifacts.some((item) => item.task_type === "prompt_card");
   const hasValidation = artifacts.some((item) => item.task_type === "ai_validation");
   const hasScout = artifacts.some((item) => item.task_type === "market_scout");
   return (
     <section className="wall-artifacts">
       <div className="wall-section-title">
-        <span className="eyebrow">{hasProduct ? "产品卡片" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
-        <h2>{hasProduct ? "从问题到产品" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
+        <span className="eyebrow">{hasProduct ? "产品卡片" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
+        <h2>{hasProduct ? "从问题到产品" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
       </div>
       <div className="wall-artifact-grid">
         {artifacts.map((item) => {
@@ -8277,11 +8600,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
           const isScout = item.task_type === "market_scout";
           const isValidation = item.task_type === "ai_validation";
           const isProduct = item.task_type === "product_definition";
+          const isPrompt = item.task_type === "prompt_card";
           return (
             <article
               className={
                 isProduct
                   ? "wall-artifact-card product"
+                  : isPrompt
+                  ? "wall-artifact-card prompt"
                   : isScout
                   ? "wall-artifact-card scout"
                   : isValidation
@@ -8292,10 +8618,12 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
               }
               key={item.id}
             >
-              <span>{isProduct ? "产品卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
+              <span>{isProduct ? "产品卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
               <strong>
                 {isProduct
                   ? asText(item.payload.product_name) || "一个产品想法"
+                  : isPrompt
+                  ? asText(item.payload.goal) || "一张五句提示词卡"
                   : isScout
                   ? asText(item.payload.ai_rewrite) || asText(item.payload.original_problem) || "一次市场侦察"
                   : isValidation
@@ -8310,6 +8638,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                   <p><b>问题</b>{asText(item.payload.core_problem) || "还没写"}</p>
                   <p><b>办法</b>{asText(item.payload.solution) || "还没写"}</p>
                   <p><b>一句话</b>{asText(item.payload.one_liner) || "还在打磨"}</p>
+                </>
+              ) : isPrompt ? (
+                <>
+                  <p><b>用户</b>{asText(item.payload.target_user) || "还没写"}</p>
+                  <p><b>材料</b>{asText(item.payload.materials) || "还没写"}</p>
+                  <p><b>限制</b>{asText(item.payload.constraints) || "还没写"}</p>
+                  <p><b>格式</b>{asText(item.payload.output_format) || "还没写"}</p>
+                  <p><b>再改一句</b>{asText(item.payload.revision_request) || "还在整理"}</p>
                 </>
               ) : isScout ? (
                 <>
