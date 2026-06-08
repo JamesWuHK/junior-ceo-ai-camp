@@ -1,11 +1,12 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-09T00:45:42+08:00
+Generated: 2026-06-09T00:50:31+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
 
 - Local SEO/GEO coverage: PASS
+- Internal link graph: PASS
 - Online crawl target check: PASS
 - Baidu push token configured: no
 - Baidu site parameter: https://camps.wanli.wiki
@@ -17,6 +18,7 @@ Site URL: https://camps.wanli.wiki
 ## Measurement Boundary
 
 - Measured now: local page metadata, sitemap membership, JSON-LD presence, public copy internal-term scan, live HTTP status, live marker presence, and Baidu push URL set.
+- Internal link graph checks verify that public sitemap pages are reachable from the homepage and connected with descriptive links to related topic pages.
 - Measured Baidu index count, search impressions, clicks, crawler frequency, keyword ranking positions, and AI citation frequency require `seo/baidu-measurements.json` populated from Baidu Search Resource Platform exports, a compliant rank monitor, reproducible manual checks, or manual AI answer checks.
 - Baidu URL submission helps Baidu discover URLs faster; it does not guarantee inclusion or ranking. Treat successful push as discovery support, not as proof of indexed status.
 
@@ -50,6 +52,14 @@ PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 |
 PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | Article, BreadcrumbList, FAQPage
 PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | Article, BreadcrumbList, FAQPage
 PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | BreadcrumbList, FAQPage, Service
+
+## Internal Link Graph
+
+- Status: PASS
+- Report: reports/seo-internal-links.md
+- Public sitemap pages checked: 8
+- Failures: none
+- Warnings: none
 
 ## Online Targets
 

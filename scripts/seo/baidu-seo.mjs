@@ -14,6 +14,7 @@ const COVERAGE_REPORT_FILE = 'reports/seo-baidu-geo-coverage.md';
 const MONITOR_REPORT_FILE = 'reports/seo-baidu-monitor.md';
 const RANK_PLAN_REPORT_FILE = 'reports/seo-baidu-rank-plan.md';
 const BAIDU_EVIDENCE_REPORT_FILE = 'reports/seo-baidu-evidence.md';
+const INTERNAL_LINK_REPORT_FILE = 'reports/seo-internal-links.md';
 const BAIDU_MEASUREMENTS_FILE = 'seo/baidu-measurements.json';
 const BAIDU_MEASUREMENTS_EXAMPLE_FILE = 'seo/baidu-measurements.example.json';
 const SITEMAP_ENTRIES = [
@@ -306,6 +307,31 @@ function readJsonIfExists(relativePath) {
   return readJson(relativePath);
 }
 
+function canonicalPagePath(pathname) {
+  const path = String(pathname || '/').split('#')[0].split('?')[0] || '/';
+  if (path === '/' || path === '') return '/';
+  return path.startsWith('/') ? path.replace(/\/+$/, '') : `/${path.replace(/\/+$/, '')}`;
+}
+
+function extractAnchors(html) {
+  return Array.from(html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi), (match) => ({
+    href: match[1].trim(),
+    text: htmlToText(match[2])
+  }));
+}
+
+function internalPathFromHref(href, sourcePath = '/') {
+  if (!href || href.startsWith('#')) return null;
+  if (/^(mailto|tel|sms|javascript):/i.test(href)) return null;
+  try {
+    const url = new URL(href, siteUrl(sourcePath));
+    if (url.origin !== new URL(SITE_URL).origin) return null;
+    return canonicalPagePath(url.pathname);
+  } catch {
+    return null;
+  }
+}
+
 function getTitle(html) {
   return html.match(/<title>([\s\S]*?)<\/title>/i)?.[1]?.trim() || '';
 }
@@ -439,6 +465,142 @@ function writeReport(relativePath, content) {
   writeFileSync(join(ROOT, relativePath), content, 'utf8');
 }
 
+function internalLinkSnapshot() {
+  const sitemapPaths = new Set(SITEMAP_ENTRIES.map((entry) => canonicalPagePath(entry.path)));
+  const pageRows = [];
+  const incoming = new Map(Array.from(sitemapPaths, (path) => [path, []]));
+  const failures = [];
+  const warnings = [];
+
+  for (const entry of SITEMAP_ENTRIES) {
+    const path = canonicalPagePath(entry.path);
+    const html = existsSync(join(ROOT, entry.source)) ? read(entry.source) : '';
+    const anchors = extractAnchors(html);
+    const outbound = [];
+    const unknownInternal = [];
+
+    for (const anchor of anchors) {
+      const targetPath = internalPathFromHref(anchor.href, path);
+      if (!targetPath) continue;
+      const link = {
+        path: targetPath,
+        href: anchor.href,
+        text: anchor.text
+      };
+      if (sitemapPaths.has(targetPath)) {
+        outbound.push(link);
+        if (targetPath !== path) incoming.get(targetPath).push({ from: path, text: anchor.text });
+      } else if (targetPath.endsWith('.html') || targetPath === '/') {
+        unknownInternal.push(link);
+      }
+    }
+
+    const uniqueOutboundPaths = Array.from(new Set(outbound.map((link) => link.path)));
+    pageRows.push({
+      path,
+      source: entry.source,
+      title: getTitle(html),
+      outbound,
+      outboundPaths: uniqueOutboundPaths,
+      unknownInternal,
+      linksHome: path === '/' ? true : uniqueOutboundPaths.includes('/'),
+      linksFromHome: path === '/' ? true : false
+    });
+  }
+
+  const homeRow = pageRows.find((row) => row.path === '/');
+  const homeOutbound = new Set(homeRow?.outboundPaths || []);
+  for (const row of pageRows) {
+    row.incoming = incoming.get(row.path) || [];
+    row.incomingPaths = Array.from(new Set(row.incoming.map((link) => link.from)));
+    row.linksFromHome = row.path === '/' ? true : homeOutbound.has(row.path);
+
+    if (row.path !== '/' && !row.linksFromHome) {
+      failures.push(`${row.source} is not linked from homepage`);
+    }
+    if (row.path !== '/' && !row.linksHome) {
+      failures.push(`${row.source} does not link back to homepage`);
+    }
+    if (row.path !== '/' && row.outboundPaths.filter((target) => target !== row.path).length < 3) {
+      failures.push(`${row.source} has fewer than 3 sitemap-page internal links`);
+    }
+    if (row.path !== '/' && row.incomingPaths.length === 0) {
+      failures.push(`${row.source} has no incoming sitemap-page links`);
+    }
+    const unknownSeoLinks = row.unknownInternal
+      .filter((link) => !['/teacher.html', '/student.html', '/cards.html', '/slides.html'].includes(link.path));
+    if (unknownSeoLinks.length > 0) {
+      warnings.push(`${row.source} links to internal pages outside sitemap: ${unknownSeoLinks.map((link) => link.href).join(', ')}`);
+    }
+  }
+
+  return {
+    generatedAt: localTimestamp(),
+    status: statusLabel(failures.length, warnings.length),
+    pageRows,
+    failures,
+    warnings
+  };
+}
+
+function buildInternalLinkReport(snapshot) {
+  const rows = snapshot.pageRows.map((row) => [
+    row.path,
+    row.source,
+    row.linksFromHome ? 'yes' : 'no',
+    row.linksHome ? 'yes' : 'no',
+    row.outboundPaths.filter((target) => target !== row.path).length,
+    row.incomingPaths.length,
+    row.outboundPaths.join(', ') || 'none',
+    row.incomingPaths.join(', ') || 'none'
+  ].map(escapeMarkdownCell).join(' | '));
+
+  return [
+    '# SEO Internal Link Report',
+    '',
+    `Generated: ${snapshot.generatedAt}`,
+    `Site URL: ${SITE_URL}`,
+    `Overall status: ${snapshot.status}`,
+    '',
+    '## Rules',
+    '',
+    '- Homepage should link to every public sitemap HTML page.',
+    '- Every non-home public sitemap page should link back to the homepage.',
+    '- Every non-home public sitemap page should link to at least 3 public sitemap pages so Baidu and users can discover related topics.',
+    '- Internal `.html` links outside the sitemap are warnings unless they are known classroom utility pages.',
+    '',
+    '## Link Graph',
+    '',
+    'Path | Source | Linked from homepage | Links home | Outbound sitemap links | Incoming sitemap pages | Outbound paths | Incoming paths',
+    '--- | --- | --- | --- | --- | --- | --- | ---',
+    ...rows,
+    '',
+    '## Findings',
+    '',
+    snapshot.failures.length > 0 ? snapshot.failures.map((item) => `- FAIL: ${item}`).join('\n') : '- Failures: none',
+    snapshot.warnings.length > 0 ? snapshot.warnings.map((item) => `- WARN: ${item}`).join('\n') : '- Warnings: none',
+    '',
+    '## SEO / GEO Notes',
+    '',
+    '- Strong internal links help Baidu discover topic pages even before or beyond sitemap submission.',
+    '- Descriptive anchors also reinforce GEO entity relationships such as AI PBL 创业营, AI产品原型课程, 北京顺义青少年AI课程 and 机构合作.',
+    ''
+  ].join('\n');
+}
+
+function internalLinks() {
+  const snapshot = internalLinkSnapshot();
+  writeReport(INTERNAL_LINK_REPORT_FILE, buildInternalLinkReport(snapshot));
+  console.log(`SEO internal link status: ${snapshot.status}`);
+  console.log(`Report: ${INTERNAL_LINK_REPORT_FILE}`);
+  for (const row of snapshot.pageRows) {
+    console.log(`- ${row.source}: outbound=${row.outboundPaths.filter((target) => target !== row.path).length}, incoming=${row.incomingPaths.length}, fromHome=${row.linksFromHome ? 'yes' : 'no'}`);
+  }
+  if (snapshot.failures.length > 0) {
+    process.exitCode = 1;
+  }
+}
+
 function check() {
   const checks = [];
   const warnings = [];
@@ -541,6 +703,10 @@ function check() {
     .filter((file) => existsSync(join(ROOT, file)))
     .filter((file) => /BAIDU_TOKEN\s*=\s*(?!replace_with_)/.test(read(file)));
   if (baiduTokenLeakFiles.length > 0) checks.push(fail(`possible BAIDU_TOKEN committed in ${baiduTokenLeakFiles.join(', ')}`));
+
+  const linkSnapshot = internalLinkSnapshot();
+  for (const failure of linkSnapshot.failures) checks.push(fail(`internal links: ${failure}`));
+  for (const warning of linkSnapshot.warnings) warnings.push(`internal links: ${warning}`);
 
   if (warnings.length > 0) {
     console.log('Warnings:');
@@ -1218,7 +1384,7 @@ function baiduEvidence() {
   console.log(`GEO answer evidence: ${snapshot.summary.geoPassCount}/${snapshot.summary.geoQueryCount} pass, ${snapshot.summary.missingGeoEvidenceCount} missing`);
 }
 
-function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, onlineStatus, onlineResults, evidenceSnapshot }) {
+function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSnapshot, onlineStatus, onlineResults, evidenceSnapshot }) {
   const coverageRows = coverageSnapshot.rows.map((row) => [
     row.status,
     row.id,
@@ -1252,6 +1418,7 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, online
     '## Status Summary',
     '',
     `- Local SEO/GEO coverage: ${coverageSnapshot.status}`,
+    `- Internal link graph: ${linkSnapshot.status}`,
     `- Online crawl target check: ${onlineStatus}`,
     `- Baidu push token configured: ${baidu.tokenConfigured ? 'yes' : 'no'}`,
     `- Baidu site parameter: ${baidu.site}`,
@@ -1263,6 +1430,7 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, online
     '## Measurement Boundary',
     '',
     '- Measured now: local page metadata, sitemap membership, JSON-LD presence, public copy internal-term scan, live HTTP status, live marker presence, and Baidu push URL set.',
+    '- Internal link graph checks verify that public sitemap pages are reachable from the homepage and connected with descriptive links to related topic pages.',
     '- Measured Baidu index count, search impressions, clicks, crawler frequency, keyword ranking positions, and AI citation frequency require `seo/baidu-measurements.json` populated from Baidu Search Resource Platform exports, a compliant rank monitor, reproducible manual checks, or manual AI answer checks.',
     '- Baidu URL submission helps Baidu discover URLs faster; it does not guarantee inclusion or ranking. Treat successful push as discovery support, not as proof of indexed status.',
     '',
@@ -1282,6 +1450,14 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, online
     'Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | JSON-LD types',
     '--- | --- | --- | --- | --- | --- | ---',
     ...coverageRows,
+    '',
+    '## Internal Link Graph',
+    '',
+    `- Status: ${linkSnapshot.status}`,
+    `- Report: ${INTERNAL_LINK_REPORT_FILE}`,
+    `- Public sitemap pages checked: ${linkSnapshot.pageRows.length}`,
+    `- Failures: ${linkSnapshot.failures.length > 0 ? linkSnapshot.failures.join(' | ') : 'none'}`,
+    `- Warnings: ${linkSnapshot.warnings.length > 0 ? linkSnapshot.warnings.join(' | ') : 'none'}`,
     '',
     '## Online Targets',
     '',
@@ -1484,6 +1660,7 @@ async function monitor() {
   const generatedAt = localTimestamp();
   const urls = urlsFromSitemap();
   const coverageSnapshot = keywordCoverageSnapshot();
+  const linkSnapshot = internalLinkSnapshot();
   const evidenceSnapshot = baiduEvidenceSnapshot();
   const onlineResults = [];
 
@@ -1502,19 +1679,21 @@ async function monitor() {
     baidu,
     urls,
     coverageSnapshot,
+    linkSnapshot,
     onlineStatus,
     onlineResults,
     evidenceSnapshot
   });
 
+  writeReport(INTERNAL_LINK_REPORT_FILE, buildInternalLinkReport(linkSnapshot));
   writeReport(MONITOR_REPORT_FILE, report);
-  console.log(`Baidu SEO/GEO monitor: local=${coverageSnapshot.status}, online=${onlineStatus}, token=${baidu.tokenConfigured ? 'configured' : 'missing'}, evidence=${evidenceSnapshot.summary.overallStatus}`);
+  console.log(`Baidu SEO/GEO monitor: local=${coverageSnapshot.status}, links=${linkSnapshot.status}, online=${onlineStatus}, token=${baidu.tokenConfigured ? 'configured' : 'missing'}, evidence=${evidenceSnapshot.summary.overallStatus}`);
   console.log(`Report: ${MONITOR_REPORT_FILE}`);
   for (const result of onlineResults) {
     console.log(`- ${result.ok ? 'PASS' : 'FAIL'} ${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
   }
 
-  if (coverageSnapshot.status === 'FAIL' || onlineStatus === 'FAIL') {
+  if (coverageSnapshot.status === 'FAIL' || linkSnapshot.status === 'FAIL' || onlineStatus === 'FAIL') {
     process.exitCode = 1;
   }
 }
@@ -1602,6 +1781,7 @@ function usage() {
     '  llms              Write llms.txt',
     '  robots            Write robots.txt',
     '  sitemap           Write sitemap.xml',
+    '  links             Write public internal link graph report',
     '  coverage          Validate Baidu SEO and GEO keyword coverage',
     '  evidence          Write measured Baidu index/rank/GEO evidence report',
     '  monitor           Write a Baidu SEO/GEO monitoring report',
@@ -1628,6 +1808,9 @@ async function main() {
       break;
     case 'sitemap':
       generateSitemap();
+      break;
+    case 'links':
+      internalLinks();
       break;
     case 'coverage':
       coverage();

@@ -9,6 +9,8 @@
     "seo:llms": "node scripts/seo/baidu-seo.mjs llms",
     "seo:robots": "node scripts/seo/baidu-seo.mjs robots",
     "seo:sitemap": "node scripts/seo/baidu-seo.mjs sitemap",
+    "seo:links": "node scripts/seo/baidu-seo.mjs links",
+    "seo:internal-links": "node scripts/seo/baidu-seo.mjs links",
     "seo:coverage": "node scripts/seo/baidu-seo.mjs coverage",
     "seo:monitor": "node scripts/seo/baidu-seo.mjs monitor",
     "seo:baidu:monitor": "node scripts/seo/baidu-seo.mjs monitor",

@@ -36,6 +36,7 @@
 ```bash
 npm run seo:generate       # 生成 robots.txt、sitemap.xml 和 llms.txt
 npm run seo:check          # 检查公开页面 SEO 标签、robots、sitemap、llms.txt 和 Markdown 上下文
+npm run seo:links          # 生成公开页面站内链接图报告
 npm run seo:coverage       # 生成百度 SEO / GEO 关键词覆盖报告
 npm run seo:rank-plan      # 生成百度关键词排名和 GEO 问题追踪表
 npm run seo:baidu:evidence # 生成百度收录、关键词排名和 GEO 实测证据报告
