@@ -1943,25 +1943,61 @@ button:disabled {
 
 .showcase-form {
   display: grid;
-  grid-template-columns: minmax(150px, 1fr) minmax(130px, 0.7fr) minmax(190px, 1.2fr) minmax(190px, 1.2fr) auto;
+  grid-template-columns: minmax(130px, 0.8fr) minmax(150px, 1fr) minmax(130px, 0.7fr) minmax(190px, 1.2fr) minmax(190px, 1.2fr);
   gap: 8px;
 }
 
-.showcase-form input {
+.showcase-form input,
+.showcase-form select {
   width: 100%;
   border: 1px solid #d9d4c4;
   border-radius: 6px;
   padding: 10px 12px;
   background: #fff;
+  color: #172018;
 }
 
-.showcase-form button {
+.showcase-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.showcase-form button,
+.showcase-manage-row button,
+.showcase-manage-row a {
   border: 0;
   border-radius: 6px;
   background: #172018;
   color: #fffdf6;
   padding: 10px 14px;
   font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.showcase-form button.secondary,
+.showcase-manage-row button.secondary {
+  background: #e9f5eb;
+  color: #1f6f50;
+}
+
+.showcase-form button.ghost {
+  background: transparent;
+  color: #536151;
+  border: 1px solid #d9d4c4;
+}
+
+.showcase-form button:disabled,
+.showcase-manage-row button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .showcase-gallery {
@@ -2061,6 +2097,63 @@ button:disabled {
   justify-items: center;
   text-align: center;
   color: #1f6f50;
+}
+
+.showcase-manage-list {
+  display: grid;
+  gap: 8px;
+}
+
+.showcase-manage-row {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fffdf6;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.showcase-manage-row strong,
+.showcase-manage-row small {
+  display: block;
+}
+
+.showcase-manage-row strong {
+  margin-top: 4px;
+  color: #172018;
+}
+
+.showcase-manage-row small {
+  margin-top: 2px;
+  color: #60705f;
+}
+
+.showcase-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.showcase-status.live {
+  background: #e9f5eb;
+  color: #1f6f50;
+}
+
+.showcase-status.draft {
+  background: #f4efe0;
+  color: #7c6130;
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .student-table,
@@ -2844,10 +2937,22 @@ button:disabled {
   .lesson-page-nav,
   .lesson-operator,
   .showcase-form,
+  .showcase-manage-row,
   .teacher-grid,
   .career-grid,
   .student-form {
     grid-template-columns: 1fr;
+  }
+
+  .showcase-actions,
+  .row-actions {
+    justify-content: stretch;
+  }
+
+  .showcase-actions button,
+  .showcase-manage-row button,
+  .showcase-manage-row a {
+    width: 100%;
   }
 
   .student-row,

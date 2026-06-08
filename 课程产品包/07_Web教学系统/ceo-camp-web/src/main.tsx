@@ -58,6 +58,7 @@ import type {
   ShowcaseItem,
   Student,
   StudentAccount,
+  Team,
   TeacherAccount
 } from "./types";
 import "./styles.css";
@@ -1596,6 +1597,7 @@ function normalizeShowcaseUrl(value: string) {
 
 function ShowcaseGallery({ items, variant = "panel" }: { items: ShowcaseItem[]; variant?: "panel" | "wall" }) {
   const visibleItems = items.filter((item) => item.publish_status === "PUBLISHED" || variant === "panel");
+  const isWall = variant === "wall";
   return (
     <div className={`showcase-gallery ${variant}`}>
       {visibleItems.map((item) => {
@@ -1615,7 +1617,7 @@ function ShowcaseGallery({ items, variant = "panel" }: { items: ShowcaseItem[]; 
               <p>{item.one_liner || "点开看看它怎么帮到用户。"}</p>
             </div>
             <footer>
-              <small>{item.publish_status === "PUBLISHED" ? "展示中" : "待展示"}</small>
+              <small>{isWall ? item.team_name || item.track || "作品入口" : item.publish_status === "PUBLISHED" ? "展示中" : "草稿"}</small>
               {href && (
                 <span>
                   <ExternalLink size={16} />
@@ -1648,6 +1650,9 @@ function ShowcaseGallery({ items, variant = "panel" }: { items: ShowcaseItem[]; 
 
 function TeacherShowcase() {
   const [items, setItems] = useState<ShowcaseItem[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [editingId, setEditingId] = useState("");
+  const [teamId, setTeamId] = useState("");
   const [productName, setProductName] = useState("");
   const [track, setTrack] = useState("");
   const [oneLiner, setOneLiner] = useState("");
@@ -1657,8 +1662,9 @@ function TeacherShowcase() {
 
   const load = async () => {
     try {
-      const result = await api.manageShowcase();
-      setItems(result.showcase_items);
+      const [showcaseResult, teamResult] = await Promise.all([api.manageShowcase(), api.teams()]);
+      setItems(showcaseResult.showcase_items);
+      setTeams(teamResult.teams);
     } catch {
       setItems([]);
     }
@@ -1668,26 +1674,71 @@ function TeacherShowcase() {
     load();
   }, []);
 
-  const save = async () => {
+  const resetForm = () => {
+    setEditingId("");
+    setTeamId("");
+    setProductName("");
+    setTrack("");
+    setOneLiner("");
+    setAccessUrl("");
+  };
+
+  const editItem = (item: ShowcaseItem) => {
+    setEditingId(item.id);
+    setTeamId(item.team_id || "");
+    setProductName(item.product_name || "");
+    setTrack(item.track || "");
+    setOneLiner(item.one_liner || "");
+    setAccessUrl(item.access_url || "");
+    setMessage("正在编辑这张作品卡。");
+  };
+
+  const save = async (publishStatus: "DRAFT" | "PUBLISHED") => {
     if (!productName.trim()) {
       setMessage("先写作品名。");
+      return;
+    }
+    if (publishStatus === "PUBLISHED" && !accessUrl.trim()) {
+      setMessage("要放进展示区，先填一个能打开的作品链接。");
       return;
     }
     setSaving(true);
     setMessage("");
     try {
       await api.publishShowcase({
+        id: editingId || undefined,
+        team_id: teamId || undefined,
         product_name: productName.trim(),
         track: track.trim() || undefined,
         one_liner: oneLiner.trim() || undefined,
         access_url: normalizeShowcaseUrl(accessUrl),
-        publish_status: "PUBLISHED"
+        publish_status: publishStatus
       });
-      setProductName("");
-      setTrack("");
-      setOneLiner("");
-      setAccessUrl("");
-      setMessage("作品卡已放进展示区。");
+      resetForm();
+      setMessage(publishStatus === "PUBLISHED" ? "作品卡已放进展示区。" : "作品卡已保存为草稿。");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const setItemStatus = async (item: ShowcaseItem, publishStatus: "DRAFT" | "PUBLISHED") => {
+    setSaving(true);
+    setMessage("");
+    try {
+      await api.publishShowcase({
+        id: item.id,
+        team_id: item.team_id || undefined,
+        product_name: item.product_name,
+        track: item.track || undefined,
+        one_liner: item.one_liner || undefined,
+        access_url: item.access_url ? normalizeShowcaseUrl(item.access_url) : undefined,
+        screenshot_key: item.screenshot_key || undefined,
+        publish_status: publishStatus
+      });
+      setMessage(publishStatus === "PUBLISHED" ? "作品卡已放进展示区。" : "作品卡已撤回草稿。");
       await load();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "保存失败");
@@ -1703,16 +1754,69 @@ function TeacherShowcase() {
         <h2>作品展示区</h2>
       </div>
       <div className="showcase-form">
+        <select value={teamId} onChange={(event) => setTeamId(event.target.value)} aria-label="选择小组">
+          <option value="">选择小组</option>
+          {teams.map((team) => (
+            <option key={team.id} value={team.id}>
+              {team.name}
+            </option>
+          ))}
+        </select>
         <input value={productName} onChange={(event) => setProductName(event.target.value)} placeholder="作品名" />
-        <input value={track} onChange={(event) => setTrack(event.target.value)} placeholder="赛道或小组" />
+        <input value={track} onChange={(event) => setTrack(event.target.value)} placeholder="赛道或标签" />
         <input value={oneLiner} onChange={(event) => setOneLiner(event.target.value)} placeholder="一句话介绍" />
         <input value={accessUrl} onChange={(event) => setAccessUrl(event.target.value)} placeholder="作品链接" />
-        <button disabled={saving} onClick={save}>
-          {saving ? "保存中" : "加入展示"}
-        </button>
+        <div className="showcase-actions">
+          <button className="secondary" disabled={saving} onClick={() => save("DRAFT")}>
+            <ClipboardCheck size={16} />
+            {saving ? "保存中" : "保存草稿"}
+          </button>
+          <button disabled={saving} onClick={() => save("PUBLISHED")}>
+            <CheckCircle2 size={16} />
+            {saving ? "保存中" : "放进展示区"}
+          </button>
+          {editingId && (
+            <button className="ghost" disabled={saving} onClick={resetForm}>
+              取消编辑
+            </button>
+          )}
+        </div>
       </div>
       {message && <p className="hint">{message}</p>}
       <ShowcaseGallery items={items} />
+      <div className="showcase-manage-list">
+        {items.map((item) => {
+          const isPublished = item.publish_status === "PUBLISHED";
+          return (
+            <div className="showcase-manage-row" key={item.id}>
+              <div>
+                <span className={isPublished ? "showcase-status live" : "showcase-status draft"}>
+                  {isPublished ? "展示中" : "草稿"}
+                </span>
+                <strong>{item.product_name}</strong>
+                <small>{item.team_name || item.track || "未选择小组"}</small>
+              </div>
+              <div className="row-actions">
+                {item.access_url && (
+                  <a href={normalizeShowcaseUrl(item.access_url)} target="_blank" rel="noreferrer">
+                    <ExternalLink size={15} />
+                    打开
+                  </a>
+                )}
+                <button className="secondary" disabled={saving} onClick={() => editItem(item)}>
+                  编辑
+                </button>
+                <button
+                  disabled={saving || (!isPublished && !item.access_url)}
+                  onClick={() => setItemStatus(item, isPublished ? "DRAFT" : "PUBLISHED")}
+                >
+                  {isPublished ? "撤回草稿" : "放进展示区"}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }
