@@ -30,6 +30,23 @@
 ### 网站
 部署 `camp-website/` 到 COS 或其他静态托管。
 
+### 百度 SEO
+根目录提供轻量 SEO 脚本，适合静态官网使用：
+
+```bash
+npm run seo:generate       # 生成 robots.txt 和 sitemap.xml
+npm run seo:check          # 检查首页 SEO 标签、robots 和 sitemap
+npm run seo:submit:baidu -- --dry-run
+```
+
+如需提交到百度搜索资源平台，复制 `.env.example` 为本地 `.env`，填入百度站长平台给当前站点分配的 `BAIDU_SITE` 和 `BAIDU_TOKEN`，再运行：
+
+```bash
+npm run seo:submit:baidu
+```
+
+`BAIDU_TOKEN` 只放本地环境变量，不提交到仓库。
+
 ### 云函数认证
 教师入口需要云函数验证密码。云函数地址已配置在 `teacher.html` 中。
 

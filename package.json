@@ -1,0 +1,13 @@
+{
+  "name": "junior-ceo-ai-camp-static-site",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "seo:check": "node scripts/seo/baidu-seo.mjs check",
+    "seo:generate": "node scripts/seo/baidu-seo.mjs generate",
+    "seo:robots": "node scripts/seo/baidu-seo.mjs robots",
+    "seo:sitemap": "node scripts/seo/baidu-seo.mjs sitemap",
+    "seo:baidu:submit": "node scripts/seo/baidu-seo.mjs submit",
+    "seo:submit:baidu": "node scripts/seo/baidu-seo.mjs submit"
+  }
+}

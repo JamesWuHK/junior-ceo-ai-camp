@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /teacher.html
+Disallow: /student.html
+Disallow: /cards.html
+Disallow: /slides/
+
+Sitemap: https://camps.wanli.wiki/sitemap.xml
