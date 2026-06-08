@@ -1,5 +1,5 @@
 {
-  "version": "2026-06-08",
+  "version": "2026-06-09",
   "siteUrl": "https://camps.wanli.wiki",
   "purpose": "Baidu SEO and GEO keyword coverage map for public indexable pages.",
   "defaults": {
@@ -49,6 +49,28 @@
         "AI PBL 创业营适合什么孩子",
         "孩子不懂编程能参加AI创业营吗",
         "青少年AI产品原型课程怎么上"
+      ]
+    },
+    {
+      "id": "ai-product-prototype-course",
+      "audienceLayer": "家长公开展示",
+      "targetPage": "/ai-product-prototype-course.html",
+      "source": "ai-product-prototype-course.html",
+      "markdownSource": "ai-product-prototype-course.md",
+      "primary": "AI产品原型课程",
+      "secondary": [
+        "孩子做AI产品",
+        "AI原型课",
+        "青少年AI课程",
+        "AI PBL创业营",
+        "8-16岁AI课程",
+        "提示词实践",
+        "产品设计"
+      ],
+      "aiQueries": [
+        "AI产品原型课程是什么",
+        "孩子做AI产品需要会编程吗",
+        "AI产品原型课程和AI工具课有什么不同"
       ]
     },
     {
