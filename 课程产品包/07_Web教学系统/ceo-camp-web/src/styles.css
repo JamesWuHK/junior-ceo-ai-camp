@@ -2755,6 +2755,10 @@ button:disabled {
   border-left: 6px solid #d7a326;
 }
 
+.d1-artifact-card.story-pitch {
+  border-left: 6px solid #8f6ed5;
+}
+
 .d1-artifact-card header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -3334,6 +3338,10 @@ button:disabled {
   max-width: 900px;
 }
 
+.story-pitch-form {
+  max-width: 940px;
+}
+
 .prompt-preview {
   border: 1px solid #d5eadf;
   border-radius: 8px;
@@ -3516,6 +3524,37 @@ button:disabled {
   color: #172018;
   font-size: 18px;
   line-height: 1.35;
+}
+
+.story-step-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 10px;
+}
+
+.story-pitch-preview {
+  border: 1px solid #d8cef5;
+  border-radius: 8px;
+  background: #f7f3ff;
+  padding: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.story-pitch-preview span {
+  color: #5d3d9e;
+  font-weight: 900;
+}
+
+.story-pitch-preview strong {
+  color: #172018;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.story-pitch-preview small {
+  color: #60705f;
+  font-weight: 900;
 }
 
 .ability-picker,
@@ -4204,6 +4243,10 @@ button:disabled {
 
 .wall-artifact-card.value-card {
   border-top-color: #d7a326;
+}
+
+.wall-artifact-card.story-pitch {
+  border-top-color: #8f6ed5;
 }
 
 .wall-artifact-card.validation {

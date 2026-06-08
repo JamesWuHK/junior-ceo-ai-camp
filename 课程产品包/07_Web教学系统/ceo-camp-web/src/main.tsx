@@ -845,6 +845,7 @@ function taskTypeForAction(action: string, page: DesignedLessonPage) {
   if (/选择今天能完成的路线|用户打开后第一步做什么|流程图检查/.test(page.title)) return "tech_route";
   if (/反馈进作品|改出 V2/.test(page.title)) return "iteration_plan";
   if (/帮别人少烦了什么|价值交换榜|定价三问|别人愿意交换/.test(page.title)) return "value_card";
+  if (/把作品讲成一个小故事|故事发布五步卡|问答预演/.test(page.title)) return "story_pitch";
   if (action === "进入评分") return "score";
   if (action === "发起互动") return "interaction";
   if (action === "打开看板") return "board";
@@ -987,6 +988,19 @@ function isValueCardTask(camp: Camp | null) {
   );
 }
 
+function isStoryPitchTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  const activityType = camp?.active_task?.activity_type || "";
+  const payloadType = asText(camp?.active_task?.payload?.task_type);
+  return (
+    activityType === "story_pitch" ||
+    payloadType === "story_pitch" ||
+    (moduleId === "brand-story" && /故事发布五步卡|把作品讲成一个小故事|问答预演|故事结构/.test(title)) ||
+    /故事发布五步卡|故事结构|故事稿|把作品讲成一个小故事/.test(title)
+  );
+}
+
 function isProductDefinitionTask(camp: Camp | null) {
   const title = activeTaskTitle(camp);
   const moduleId = camp?.active_task?.module_id || "";
@@ -996,7 +1010,7 @@ function isProductDefinitionTask(camp: Camp | null) {
 function isFinalShowcaseTask(camp: Camp | null) {
   const title = activeTaskTitle(camp);
   const moduleId = camp?.active_task?.module_id || "";
-  return (moduleId === "final-showcase" || /路演|作品展|最终展示|故事发布|每组上场/.test(title)) && !isObserverScoreTask(camp);
+  return (moduleId === "final-showcase" || /路演|作品展|最终展示|每组上场/.test(title)) && !isObserverScoreTask(camp) && !isStoryPitchTask(camp);
 }
 
 function isGrowthReflectionTask(camp: Camp | null) {
@@ -1756,7 +1770,8 @@ function journeyItemRank(item: WallArtifact) {
     product_feedback: 9,
     iteration_plan: 10,
     value_card: 11,
-    mentor_comment: 12
+    story_pitch: 12,
+    mentor_comment: 13
   };
   return ranks[item.task_type] ?? 9;
 }
@@ -2038,6 +2053,7 @@ function journeyTitle(item: WallArtifact) {
   if (item.task_type === "product_feedback") return asText(item.payload.product_name) || "收到试用反馈";
   if (item.task_type === "iteration_plan") return asText(item.payload.v2_plan) || asText(item.payload.product_name) || "写出下一版计划";
   if (item.task_type === "value_card") return asText(item.payload.value_change) || asText(item.payload.product_name) || "写出价值交换卡";
+  if (item.task_type === "story_pitch") return asText(item.payload.story_hook) || asText(item.payload.product_name) || "写出故事发布五步卡";
   if (item.task_type === "mentor_comment") return asText(item.payload.product_name) || "导师点评";
   return item.title || "项目记录";
 }
@@ -2055,6 +2071,7 @@ function journeyLabel(item: WallArtifact) {
     product_feedback: "收到反馈",
     iteration_plan: "迭代清单",
     value_card: "价值卡",
+    story_pitch: "故事发布",
     mentor_comment: "导师点评"
   };
   return labels[item.task_type] || "项目记录";
@@ -2157,6 +2174,16 @@ function journeyCopy(item: WallArtifact) {
       ["愿意交换", [valueExchangeLabel(item.payload.exchange_choice), asText(item.payload.exchange_amount)].filter(Boolean).join(" ")],
       ["为什么值得", asText(item.payload.why_worth)],
       ["证据", asText(item.payload.evidence)]
+    ];
+  }
+  if (item.task_type === "story_pitch") {
+    return [
+      ["开头", asText(item.payload.story_hook)],
+      ["人物", asText(item.payload.user_scene)],
+      ["作品", asText(item.payload.product_demo)],
+      ["证据", asText(item.payload.proof_line)],
+      ["邀请", asText(item.payload.invite_line)],
+      ["预演问题", asText(item.payload.rehearsal_question)]
     ];
   }
   if (item.task_type === "mentor_comment") {
@@ -2544,6 +2571,7 @@ function TeacherApp({
         <TeacherPeerFeedback />
         <TeacherIterationPlans />
         <TeacherValueCards />
+        <TeacherStoryPitches />
         <TeacherFinalShowcase />
         <TeacherScoringCenter />
         <TeacherMentorComments />
@@ -2646,6 +2674,7 @@ const progressMilestones = [
   { key: "product_feedback", label: "互测反馈", target: 2, unit: "条" },
   { key: "iteration_plan", label: "迭代清单", target: 1, unit: "张" },
   { key: "value_card", label: "价值卡", target: 1, unit: "张" },
+  { key: "story_pitch", label: "故事卡", target: 1, unit: "张" },
   { key: "final_showcase", label: "展示卡", target: 1, unit: "张" }
 ] as const;
 
@@ -2938,6 +2967,7 @@ function nextSupportAction(
   if (firstMissing.key === "product_feedback") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条互测反馈，安排别组打开作品试用。`;
   if (firstMissing.key === "iteration_plan") return "请小组把反馈分成必须改、建议改、暂不改，再定 V2 先改哪一处。";
   if (firstMissing.key === "value_card") return "请小组补一张价值卡：帮谁少烦了什么，别人愿意用什么交换。";
+  if (firstMissing.key === "story_pitch") return "请小组补一张故事发布五步卡：人物、麻烦、作品、证据、邀请。";
   if (firstMissing.key === "product_link") return "先确认作品链接能打开，再准备上台展示。";
   if (firstMissing.key === "final_showcase") return "请小组把最终展示卡补齐。";
   if (firstMissing.key === "product_definition") return "先把产品一句话写清楚：帮谁、解决什么、怎么解决。";
@@ -3022,10 +3052,11 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
     const withTechRoute = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "tech_route")).length;
     const withIteration = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "iteration_plan")).length;
     const withValueCard = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "value_card")).length;
+    const withStoryPitch = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "story_pitch")).length;
     const interviewReady = teamSummaries.filter((item) => item.userVoiceCount >= 3).length;
     const feedbackReady = teamSummaries.filter((item) => item.feedbackCount >= 2).length;
     const needsSupport = teamSummaries.filter((item) => item.needsSupport).length;
-    return { activeBlockers, readyTeams, withScout, withProduct, withPrompt, withFeatureScope, withTechRoute, withIteration, withValueCard, interviewReady, feedbackReady, needsSupport };
+    return { activeBlockers, readyTeams, withScout, withProduct, withPrompt, withFeatureScope, withTechRoute, withIteration, withValueCard, withStoryPitch, interviewReady, feedbackReady, needsSupport };
   }, [teamSummaries]);
 
   const toggleBlocker = async (item: TaskSubmission) => {
@@ -3059,6 +3090,7 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
         <span>{totals.feedbackReady} 组收到互测反馈</span>
         <span>{totals.withIteration} 组有迭代清单</span>
         <span>{totals.withValueCard} 组有价值卡</span>
+        <span>{totals.withStoryPitch} 组有故事卡</span>
         <span>{totals.needsSupport} 组需要跟进</span>
         <span>{totals.activeBlockers} 个卡点待支援</span>
       </div>
@@ -4094,6 +4126,92 @@ function TeacherValueCards() {
           );
         })}
         {!items.length && <p className="empty">学生提交价值卡后，会出现在这里。</p>}
+      </div>
+    </section>
+  );
+}
+
+function TeacherStoryPitches() {
+  const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [message, setMessage] = useState("");
+  const [workingId, setWorkingId] = useState("");
+
+  const load = async () => {
+    try {
+      const result = await api.submissions();
+      setItems(result.task_submissions.filter((item) => item.task_type === "story_pitch"));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const groupedCount = useMemo(
+    () => new Set(items.map((item) => item.team_id || item.student_id || item.id)).size,
+    [items]
+  );
+
+  const toggleWall = async (item: TaskSubmission) => {
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.setTaskSubmissionStatus(item.id, item.status === "ON_WALL" ? "SUBMITTED" : "ON_WALL");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "操作失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
+
+  return (
+    <section className="panel story-pitch-panel">
+      <div className="panel-title">
+        <Megaphone size={20} />
+        <h2>D3 故事发布五步卡</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{items.length} 张故事卡</span>
+        <span>{groupedCount} 个来源</span>
+        <span>{items.filter((item) => item.status === "ON_WALL").length} 张已上屏</span>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="d1-artifact-list">
+        {items.map((item) => (
+          <article
+            className={[
+              "d1-artifact-card",
+              "story-pitch",
+              item.status === "ON_WALL" ? "on-wall" : ""
+            ].filter(Boolean).join(" ")}
+            key={item.id}
+          >
+            <header>
+              <div>
+                <span>故事发布五步卡</span>
+                <strong>{asText(item.payload.product_name) || "未命名作品"}</strong>
+                <small>{item.team_name || item.student_name || "学生提交"}</small>
+              </div>
+              <button disabled={workingId === item.id} onClick={() => toggleWall(item)}>
+                {item.status === "ON_WALL" ? "从大屏移开" : "放到大屏"}
+              </button>
+            </header>
+            <div className="artifact-lines">
+              <p><strong>开头：</strong>{asText(item.payload.story_hook) || "还没写"}</p>
+              <p><strong>人物：</strong>{asText(item.payload.user_scene) || "还没写"}</p>
+              <p><strong>作品：</strong>{asText(item.payload.product_demo) || "还没写"}</p>
+              <p><strong>证据：</strong>{asText(item.payload.proof_line) || "还没写"}</p>
+              <p><strong>邀请：</strong>{asText(item.payload.invite_line) || "还没写"}</p>
+              <p><strong>预演问题：</strong>{asText(item.payload.rehearsal_question) || "还没写"}</p>
+            </div>
+          </article>
+        ))}
+        {!items.length && <p className="empty">学生提交故事发布五步卡后，会出现在这里。</p>}
       </div>
     </section>
   );
@@ -6350,6 +6468,7 @@ function StudentApp({
   const techRouteTask = isTechRouteTask(camp);
   const iterationPlanTask = isIterationPlanTask(camp);
   const valueCardTask = isValueCardTask(camp);
+  const storyPitchTask = isStoryPitchTask(camp);
   const productDefinitionTask = isProductDefinitionTask(camp);
   const blockerTask = isBlockerTask(camp);
   const observerScoreTask = isObserverScoreTask(camp);
@@ -6368,6 +6487,7 @@ function StudentApp({
     techRouteTask ||
     iterationPlanTask ||
     valueCardTask ||
+    storyPitchTask ||
     productDefinitionTask ||
     blockerTask ||
     observerScoreTask ||
@@ -6664,6 +6784,18 @@ function StudentApp({
   if (valueCardTask) {
     return (
       <StudentValueCardTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (storyPitchTask) {
+    return (
+      <StudentStoryPitchTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -9422,6 +9554,189 @@ function StudentValueCardTask({
   );
 }
 
+function StudentStoryPitchTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [productName, setProductName] = useState("");
+  const [storyHook, setStoryHook] = useState("");
+  const [userScene, setUserScene] = useState("");
+  const [productDemo, setProductDemo] = useState("");
+  const [proofLine, setProofLine] = useState("");
+  const [inviteLine, setInviteLine] = useState("");
+  const [rehearsalQuestion, setRehearsalQuestion] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!productName.trim()) {
+      showMessage("error", "先写作品名。");
+      return;
+    }
+    if (!storyHook.trim()) {
+      showMessage("error", "先写一句开头，让大家想继续听。");
+      return;
+    }
+    if (!userScene.trim()) {
+      showMessage("error", "写清楚故事里的那个人遇到了什么。");
+      return;
+    }
+    if (!productDemo.trim()) {
+      showMessage("error", "写清楚上台时先演示作品哪一步。");
+      return;
+    }
+    if (!proofLine.trim()) {
+      showMessage("error", "加上一条证据，让别人相信它真的有用。");
+      return;
+    }
+    if (!inviteLine.trim()) {
+      showMessage("error", "最后写一句邀请大家做什么。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "story_pitch",
+        title: taskTitle,
+        payload: {
+          product_name: productName.trim(),
+          story_hook: storyHook.trim(),
+          user_scene: userScene.trim(),
+          product_demo: productDemo.trim(),
+          proof_line: proofLine.trim(),
+          invite_line: inviteLine.trim(),
+          rehearsal_question: rehearsalQuestion.trim(),
+          team_id: student.team_id || "",
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。你们的作品故事已经有清楚的上台顺序。");
+      setProductName("");
+      setStoryHook("");
+      setUserScene("");
+      setProductDemo("");
+      setProofLine("");
+      setInviteLine("");
+      setRehearsalQuestion("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "故事发布五步卡"}</h1>
+        <p>把作品讲成一个故事：先让大家看见一个人，再让作品上场。</p>
+        <div className="student-card story-pitch-form">
+          <div className="student-current">
+            <div>
+              <span>路演小组</span>
+              <strong>{student.team_name || student.nickname}</strong>
+              <small>{student.student_no ? `${student.nickname} · 学号 ${student.student_no}` : student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            作品名
+            <input
+              value={productName}
+              onChange={(event) => setProductName(event.target.value)}
+              placeholder="例如：午餐选择器"
+              inputMode="text"
+            />
+          </label>
+          <div className="story-step-grid">
+            <label>
+              1. 一句开头
+              <textarea
+                value={storyHook}
+                onChange={(event) => setStoryHook(event.target.value)}
+                placeholder="例如：你有没有在食堂排队时，突然不知道吃什么？"
+                rows={3}
+              />
+            </label>
+            <label>
+              2. 人物和麻烦
+              <textarea
+                value={userScene}
+                onChange={(event) => setUserScene(event.target.value)}
+                placeholder="例如：小宇每天中午都在窗口前纠结，最后随便选一个。"
+                rows={3}
+              />
+            </label>
+            <label>
+              3. 作品怎么帮他
+              <textarea
+                value={productDemo}
+                onChange={(event) => setProductDemo(event.target.value)}
+                placeholder="例如：打开作品，选口味和时间，它会给出一个推荐。"
+                rows={3}
+              />
+            </label>
+            <label>
+              4. 一条证据
+              <textarea
+                value={proofLine}
+                onChange={(event) => setProofLine(event.target.value)}
+                placeholder="例如：3 位同学试用后，有 2 位说愿意明天再用。"
+                rows={3}
+              />
+            </label>
+            <label>
+              5. 最后邀请
+              <textarea
+                value={inviteLine}
+                onChange={(event) => setInviteLine(event.target.value)}
+                placeholder="例如：欢迎大家课间点开试一次，看看它会推荐什么。"
+                rows={3}
+              />
+            </label>
+            <label>
+              可能被问到的问题（可选）
+              <textarea
+                value={rehearsalQuestion}
+                onChange={(event) => setRehearsalQuestion(event.target.value)}
+                placeholder="例如：如果推荐结果不喜欢，可以怎么改？"
+                rows={3}
+              />
+            </label>
+          </div>
+          <div className="story-pitch-preview" aria-label="故事发布预览">
+            <span>上台顺序</span>
+            <strong>{storyHook.trim() || "一句开头"}</strong>
+            <small>人物 → 作品 → 证据 → 邀请</small>
+          </div>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <Megaphone size={18} />}
+            提交
+          </button>
+          <p className="hint">好的故事发布，会让别人先看见问题，再看懂作品怎么帮忙。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
 function ScoreRating({
   value,
   onChange
@@ -9905,13 +10220,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   const hasTech = artifacts.some((item) => item.task_type === "tech_route");
   const hasIteration = artifacts.some((item) => item.task_type === "iteration_plan");
   const hasValue = artifacts.some((item) => item.task_type === "value_card");
+  const hasStory = artifacts.some((item) => item.task_type === "story_pitch");
   const hasValidation = artifacts.some((item) => item.task_type === "ai_validation");
   const hasScout = artifacts.some((item) => item.task_type === "market_scout");
   return (
     <section className="wall-artifacts">
       <div className="wall-section-title">
-        <span className="eyebrow">{hasProduct ? "产品卡片" : hasValue ? "价值交换" : hasIteration ? "迭代清单" : hasTech ? "路线流程" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
-        <h2>{hasProduct ? "从问题到产品" : hasValue ? "作品为什么值得" : hasIteration ? "把反馈改成下一版" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
+        <span className="eyebrow">{hasProduct ? "产品卡片" : hasStory ? "故事发布" : hasValue ? "价值交换" : hasIteration ? "迭代清单" : hasTech ? "路线流程" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
+        <h2>{hasProduct ? "从问题到产品" : hasStory ? "让大家听懂作品" : hasValue ? "作品为什么值得" : hasIteration ? "把反馈改成下一版" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
       </div>
       <div className="wall-artifact-grid">
         {artifacts.map((item) => {
@@ -9924,11 +10240,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
           const isTech = item.task_type === "tech_route";
           const isIteration = item.task_type === "iteration_plan";
           const isValue = item.task_type === "value_card";
+          const isStory = item.task_type === "story_pitch";
           return (
             <article
               className={
                 isProduct
                   ? "wall-artifact-card product"
+                  : isStory
+                  ? "wall-artifact-card story-pitch"
                   : isValue
                   ? "wall-artifact-card value-card"
                   : isIteration
@@ -9949,10 +10268,12 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
               }
               key={item.id}
             >
-              <span>{isProduct ? "产品卡" : isValue ? "价值卡" : isIteration ? "迭代清单" : isTech ? "路线流程卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
+              <span>{isProduct ? "产品卡" : isStory ? "故事发布卡" : isValue ? "价值卡" : isIteration ? "迭代清单" : isTech ? "路线流程卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
               <strong>
                 {isProduct
                   ? asText(item.payload.product_name) || "一个产品想法"
+                  : isStory
+                  ? asText(item.payload.story_hook) || asText(item.payload.product_name) || "让大家听懂作品"
                   : isValue
                   ? asText(item.payload.value_change) || asText(item.payload.product_name) || "作品为什么值得"
                   : isIteration
@@ -9977,6 +10298,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                   <p><b>问题</b>{asText(item.payload.core_problem) || "还没写"}</p>
                   <p><b>办法</b>{asText(item.payload.solution) || "还没写"}</p>
                   <p><b>一句话</b>{asText(item.payload.one_liner) || "还在打磨"}</p>
+                </>
+              ) : isStory ? (
+                <>
+                  <p><b>产品</b>{asText(item.payload.product_name) || "还没写"}</p>
+                  <p><b>人物</b>{asText(item.payload.user_scene) || "还没写"}</p>
+                  <p><b>作品</b>{asText(item.payload.product_demo) || "还没写"}</p>
+                  <p><b>证据</b>{asText(item.payload.proof_line) || "还没写"}</p>
+                  <p><b>邀请</b>{asText(item.payload.invite_line) || "还没写"}</p>
                 </>
               ) : isValue ? (
                 <>
