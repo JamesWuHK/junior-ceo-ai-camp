@@ -1732,24 +1732,43 @@ function splitList(value: unknown) {
     .filter(Boolean);
 }
 
-function contributionCards(finalItem: WallArtifact | null, awards: AwardResult[]) {
+function contributionCards(finalItem: WallArtifact | null, awards: AwardResult[], reflections: WallArtifact[] = []) {
+  const reflectionCards = reflections.map((reflection) => {
+    const ability = asText(reflection.payload.ability_tag) || awards[0]?.award_type || "能力标签";
+    const evidence = asText(reflection.payload.evidence).trim();
+    const humanDecision = asText(reflection.payload.human_decision).trim();
+    const aiJob = asText(reflection.payload.ai_job).trim();
+    const nextPractice = asText(reflection.payload.next_practice).trim();
+    return {
+      name: reflection.student_name || "一位少年 CEO",
+      contribution: evidence || humanDecision || aiJob || "写下了自己的 AI 协作证据",
+      tag: ability,
+      nextPractice
+    };
+  });
   const contributionLines = splitList(finalItem?.payload.personal_contributions);
   if (contributionLines.length) {
-    return contributionLines.map((line) => {
+    const fallbackCards = contributionLines.map((line) => {
       const [name, ...rest] = line.split(/[：:]/);
       return {
         name: (rest.length ? name : line).trim(),
         contribution: rest.join("：").trim() || "为团队作品贡献了自己的力量",
-        tag: awards[0]?.award_type || "能力标签"
+        tag: awards[0]?.award_type || "能力标签",
+        nextPractice: ""
       };
     });
+    const reflectedNames = new Set(reflectionCards.map((card) => card.name));
+    return [...reflectionCards, ...fallbackCards.filter((card) => !reflectedNames.has(card.name))];
   }
   const members = splitList(finalItem?.payload.team_members);
-  return members.map((member, index) => ({
+  const fallbackCards = members.map((member, index) => ({
     name: member,
     contribution: index === 0 ? "把团队想法带到台前" : "和团队一起完成作品展示",
-    tag: awards[index % Math.max(awards.length, 1)]?.award_type || "团队贡献"
+    tag: awards[index % Math.max(awards.length, 1)]?.award_type || "团队贡献",
+    nextPractice: ""
   }));
+  const reflectedNames = new Set(reflectionCards.map((card) => card.name));
+  return [...reflectionCards, ...fallbackCards.filter((card) => !reflectedNames.has(card.name))];
 }
 
 function matchesProject(
@@ -1880,7 +1899,7 @@ function PublicProjectDetail({
       (!!finalItem?.team_id && reflectionTeamId === finalItem.team_id)
     );
   });
-  const certificates = contributionCards(finalItem, projectAwards);
+  const certificates = contributionCards(finalItem, projectAwards, projectGrowthReflections);
 
   if (!finalItem && !showcaseItem) {
     return (
@@ -1974,6 +1993,7 @@ function PublicProjectDetail({
               <span>{certificate.tag}</span>
               <strong>{certificate.name}</strong>
               <p>{certificate.contribution}</p>
+              {certificate.nextPractice && <small>下一次想练：{certificate.nextPractice}</small>}
             </article>
           ))}
           {!certificates.length && (

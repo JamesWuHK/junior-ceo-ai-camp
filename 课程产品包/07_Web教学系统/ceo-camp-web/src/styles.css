@@ -5424,6 +5424,16 @@ button:disabled {
   line-height: 1.45;
 }
 
+.certificate-card small {
+  display: block;
+  border-top: 1px solid #e7e2d2;
+  padding-top: 10px;
+  color: #1f6f50;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 .project-not-found {
   min-height: 52vh;
   display: grid;
