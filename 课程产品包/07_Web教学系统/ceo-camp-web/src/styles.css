@@ -2384,6 +2384,33 @@ button:disabled {
 .feedback-note {
   border-top: 1px solid #e7e2d2;
   padding-top: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.feedback-note.on-wall {
+  border-top-color: #1f6f50;
+}
+
+.feedback-note button {
+  border: 0;
+  border-radius: 6px;
+  background: #172018;
+  color: #fffdf6;
+  padding: 9px 12px;
+  font-weight: 900;
+}
+
+.feedback-note.on-wall button {
+  background: #e9f5eb;
+  color: #1f6f50;
+}
+
+.feedback-note button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .feedback-note p {
@@ -4076,6 +4103,72 @@ button:disabled {
   gap: 14px;
 }
 
+.project-journey-timeline {
+  display: grid;
+  gap: 12px;
+}
+
+.project-journey-card {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fffdf6;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.journey-step-index {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #172018;
+  color: #fffdf6;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+}
+
+.project-journey-card span,
+.project-journey-card small {
+  color: #1f6f50;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.project-journey-card strong {
+  display: block;
+  color: #172018;
+  font-size: clamp(22px, 2.4vw, 34px);
+  line-height: 1.1;
+  margin: 4px 0 12px;
+}
+
+.project-journey-card dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.project-journey-card dl div {
+  border-top: 1px solid #e7e2d2;
+  padding-top: 8px;
+}
+
+.project-journey-card dt {
+  color: #60705f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.project-journey-card dd {
+  margin: 4px 0 0;
+  color: #536151;
+  line-height: 1.45;
+}
+
 .certificate-card {
   min-height: 210px;
   padding: 18px;
@@ -4274,6 +4367,8 @@ button:disabled {
   .showcase-manage-row,
   .award-manage-row,
   .project-submission-row,
+  .feedback-note,
+  .project-journey-card,
   .teacher-grid,
   .career-grid,
   .student-form {
@@ -4292,6 +4387,7 @@ button:disabled {
   .project-submission-row button,
   .project-submission-row a,
   .feedback-summary-card header a,
+  .feedback-note button,
   .feedback-product a {
     width: 100%;
   }

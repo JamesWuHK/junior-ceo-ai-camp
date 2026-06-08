@@ -493,6 +493,27 @@ function growthReflectionItems() {
   });
 }
 
+function projectJourneyItems() {
+  return rows<Record<string, any> & { payload?: string }>(
+    `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
+       FROM task_submissions ts
+       LEFT JOIN students s ON s.id = ts.student_id
+       LEFT JOIN teams t ON t.id = ts.team_id
+      WHERE ts.camp_id = ?
+        AND ts.status = 'ON_WALL'
+        AND ts.task_type IN ('problem_card', 'user_voice', 'product_definition', 'product_feedback')
+      ORDER BY ts.updated_at ASC, ts.created_at ASC`,
+    campId()
+  ).map((artifact): TaskArtifact => {
+    const base = artifact as Record<string, any>;
+    return {
+      ...base,
+      task_type: String(base.task_type ?? ""),
+      payload: jsonParse<TaskPayload>(base.payload, {})
+    };
+  });
+}
+
 function scoreValue(value: unknown) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return 0;
@@ -1544,6 +1565,7 @@ app.get("/public/final-showcase", async () => {
     final_showcase: finalShowcaseItems(),
     showcase_items: showcaseItems(false),
     growth_reflections: growthReflectionItems(),
+    project_journey: projectJourneyItems(),
     score_summaries: scoreSummaries(),
     award_results: awardResults(false)
   };

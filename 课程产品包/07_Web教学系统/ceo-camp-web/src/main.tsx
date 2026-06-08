@@ -1181,6 +1181,7 @@ function PublicShowcaseRoute() {
   const [finalItems, setFinalItems] = useState<WallArtifact[]>([]);
   const [showcaseItems, setShowcaseItems] = useState<ShowcaseItem[]>([]);
   const [growthReflections, setGrowthReflections] = useState<WallArtifact[]>([]);
+  const [projectJourney, setProjectJourney] = useState<WallArtifact[]>([]);
   const [scoreSummaries, setScoreSummaries] = useState<ScoreSummary[]>([]);
   const [awardResults, setAwardResults] = useState<AwardResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1195,6 +1196,7 @@ function PublicShowcaseRoute() {
         setFinalItems(sortByDisplayOrder(result.final_showcase));
         setShowcaseItems(result.showcase_items);
         setGrowthReflections(result.growth_reflections ?? []);
+        setProjectJourney(result.project_journey ?? []);
         setScoreSummaries(result.score_summaries ?? []);
         setAwardResults(result.award_results ?? []);
       })
@@ -1228,6 +1230,7 @@ function PublicShowcaseRoute() {
         finalItems={finalItems}
         showcaseItems={showcaseItems}
         growthReflections={growthReflections}
+        projectJourney={projectJourney}
         scoreSummaries={scoreSummaries}
         awardResults={awardResults}
       />
@@ -1396,12 +1399,46 @@ function awardMatchesProject(award: AwardResult, projectId: string, finalItem: W
   );
 }
 
+function journeyItemRank(item: WallArtifact) {
+  const ranks: Record<string, number> = {
+    problem_card: 1,
+    user_voice: 2,
+    product_definition: 3,
+    product_feedback: 4
+  };
+  return ranks[item.task_type] ?? 9;
+}
+
+function journeyItemMatchesProject(item: WallArtifact, productName: string, teamId?: string | null, teamName?: string | null) {
+  const itemTeamId = item.task_type === "product_feedback"
+    ? asText(item.payload.team_id)
+    : item.team_id || asText(item.payload.team_id);
+  const itemTeamName = item.task_type === "product_feedback"
+    ? asText(item.payload.team_name) || item.team_name
+    : item.team_name || asText(item.payload.team_name);
+  const itemProductName = asText(item.payload.product_name);
+  return (
+    (!!teamId && itemTeamId === teamId) ||
+    (!!teamName && itemTeamName === teamName) ||
+    (!!productName && itemProductName === productName)
+  );
+}
+
+function sortProjectJourney(items: WallArtifact[]) {
+  return [...items].sort((a, b) => {
+    const byRank = journeyItemRank(a) - journeyItemRank(b);
+    if (byRank !== 0) return byRank;
+    return String(a.created_at || "").localeCompare(String(b.created_at || ""));
+  });
+}
+
 function PublicProjectDetail({
   projectId,
   camp,
   finalItems,
   showcaseItems,
   growthReflections,
+  projectJourney,
   scoreSummaries,
   awardResults
 }: {
@@ -1410,6 +1447,7 @@ function PublicProjectDetail({
   finalItems: WallArtifact[];
   showcaseItems: ShowcaseItem[];
   growthReflections: WallArtifact[];
+  projectJourney: WallArtifact[];
   scoreSummaries: ScoreSummary[];
   awardResults: AwardResult[];
 }) {
@@ -1428,6 +1466,9 @@ function PublicProjectDetail({
   const screenshot = asText(finalItem?.payload.screenshot_url) || showcaseItem?.screenshot_url || "";
   const scoreSummary = scoreSummaries.find(matchesProject(projectId, finalItem, productName, teamId, teamName)) || null;
   const projectAwards = awardResults.filter((award) => awardMatchesProject(award, projectId, finalItem, productName, teamId));
+  const projectJourneyItems = sortProjectJourney(
+    projectJourney.filter((item) => journeyItemMatchesProject(item, productName, teamId, teamName))
+  );
   const projectGrowthReflections = growthReflections.filter((reflection) => {
     const reflectionTeamId = reflection.team_id || asText(reflection.payload.team_id);
     const reflectionTeamName = reflection.team_name || asText(reflection.payload.team_name);
@@ -1488,6 +1529,14 @@ function PublicProjectDetail({
             </div>
           </dl>
         </article>
+      </section>
+
+      <section className="project-section">
+        <div className="public-section-title">
+          <span>项目成长线</span>
+          <h2>从问题到作品</h2>
+        </div>
+        <ProjectJourneyTimeline items={projectJourneyItems} />
       </section>
 
       <section className="project-section">
@@ -1582,6 +1631,98 @@ function GrowthReflectionGallery({ reflections }: { reflections: WallArtifact[] 
                 <dd>{asText(reflection.payload.next_practice) || growthAbilityHints[ability as keyof typeof growthAbilityHints] || "继续练习指挥 AI"}</dd>
               </div>
             </dl>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+function journeyTitle(item: WallArtifact) {
+  if (item.task_type === "problem_card") return asText(item.payload.problem_scene) || "发现一个真实问题";
+  if (item.task_type === "user_voice") return asText(item.payload.interviewee) || "听见一位用户";
+  if (item.task_type === "product_definition") return asText(item.payload.product_name) || "写出产品一句话";
+  if (item.task_type === "product_feedback") return asText(item.payload.product_name) || "收到试用反馈";
+  return item.title || "项目记录";
+}
+
+function journeyLabel(item: WallArtifact) {
+  const labels: Record<string, string> = {
+    problem_card: "发现问题",
+    user_voice: "听见用户",
+    product_definition: "产品一句话",
+    product_feedback: "收到反馈"
+  };
+  return labels[item.task_type] || "项目记录";
+}
+
+function journeyCopy(item: WallArtifact) {
+  if (item.task_type === "problem_card") {
+    return [
+      ["用户", asText(item.payload.target_user)],
+      ["麻烦", asText(item.payload.trouble)],
+      ["现在办法", asText(item.payload.current_solution)]
+    ];
+  }
+  if (item.task_type === "user_voice") {
+    return [
+      ["听到", asText(item.payload.quote)],
+      ["发现", asText(item.payload.finding)]
+    ];
+  }
+  if (item.task_type === "product_definition") {
+    return [
+      ["帮谁", asText(item.payload.target_user)],
+      ["问题", asText(item.payload.core_problem)],
+      ["办法", asText(item.payload.solution)],
+      ["一句话", asText(item.payload.one_liner)]
+    ];
+  }
+  if (item.task_type === "product_feedback") {
+    return [
+      ["有用的地方", asText(item.payload.most_useful)],
+      ["下一版建议", asText(item.payload.suggestion)]
+    ];
+  }
+  return [["记录", item.title]];
+}
+
+function ProjectJourneyTimeline({ items }: { items: WallArtifact[] }) {
+  if (!items.length) {
+    return (
+      <article className="public-empty journey-empty">
+        <Route size={34} />
+        <strong>项目成长线会出现在这里</strong>
+        <span>老师选择问题卡、用户声音和反馈后，这里会看到作品一路长出来的过程。</span>
+      </article>
+    );
+  }
+
+  return (
+    <div className="project-journey-timeline">
+      {items.map((item, index) => {
+        const sourceName = item.task_type === "product_feedback"
+          ? asText(item.payload.team_name) || item.team_name || "作品团队"
+          : item.team_name || item.student_name || "项目记录";
+        return (
+          <article className="project-journey-card" key={item.id}>
+            <div className="journey-step-index">{index + 1}</div>
+            <div>
+              <span>{journeyLabel(item)}</span>
+              <strong>{journeyTitle(item)}</strong>
+              <dl>
+                {journeyCopy(item)
+                  .filter(([, value]) => Boolean(value))
+                  .slice(0, 4)
+                  .map(([label, value]) => (
+                    <div key={label}>
+                      <dt>{label}</dt>
+                      <dd>{value}</dd>
+                    </div>
+                  ))}
+              </dl>
+              <small>{sourceName}</small>
+            </div>
           </article>
         );
       })}
@@ -2250,6 +2391,7 @@ function TeacherProjectSubmissions() {
 function TeacherPeerFeedback() {
   const [items, setItems] = useState<TaskSubmission[]>([]);
   const [message, setMessage] = useState("");
+  const [workingId, setWorkingId] = useState("");
 
   const load = async () => {
     try {
@@ -2274,6 +2416,19 @@ function TeacherPeerFeedback() {
     }
     return Array.from(map.values());
   }, [items]);
+
+  const toggleJourney = async (item: TaskSubmission) => {
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.setTaskSubmissionStatus(item.id, item.status === "ON_WALL" ? "SUBMITTED" : "ON_WALL");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "操作失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
 
   return (
     <section className="panel feedback-summary-panel">
@@ -2305,10 +2460,15 @@ function TeacherPeerFeedback() {
               </header>
               <div className="feedback-summary-notes">
                 {group.map((item) => (
-                  <div key={item.id} className="feedback-note">
-                    <span>{item.student_name || "学生"}</span>
-                    <p><strong>有用：</strong>{asText(item.payload.most_useful) || "未填写"}</p>
-                    <p><strong>建议：</strong>{asText(item.payload.suggestion) || "未填写"}</p>
+                  <div key={item.id} className={item.status === "ON_WALL" ? "feedback-note on-wall" : "feedback-note"}>
+                    <div>
+                      <span>{item.student_name || "学生"}</span>
+                      <p><strong>有用：</strong>{asText(item.payload.most_useful) || "未填写"}</p>
+                      <p><strong>建议：</strong>{asText(item.payload.suggestion) || "未填写"}</p>
+                    </div>
+                    <button disabled={workingId === item.id} onClick={() => toggleJourney(item)}>
+                      {item.status === "ON_WALL" ? "从项目页移开" : "放到项目页"}
+                    </button>
                   </div>
                 ))}
               </div>
@@ -5628,6 +5788,7 @@ function StudentPeerFeedbackTask({
         payload: {
           showcase_item_id: selectedItem.id,
           product_name: selectedItem.product_name,
+          team_id: selectedItem.team_id || "",
           team_name: selectedItem.team_name || selectedItem.track || "",
           access_url: selectedItem.access_url || "",
           most_useful: mostUseful.trim(),

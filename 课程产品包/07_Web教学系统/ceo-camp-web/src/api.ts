@@ -195,6 +195,7 @@ export const api = {
       final_showcase: WallArtifact[];
       showcase_items: ShowcaseItem[];
       growth_reflections: WallArtifact[];
+      project_journey: WallArtifact[];
       score_summaries: ScoreSummary[];
       award_results: AwardResult[];
     }>("/public/final-showcase"),
