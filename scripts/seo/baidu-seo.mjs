@@ -12,6 +12,7 @@ const OUTPUT_DIRS = ['.', 'camp-website'];
 const KEYWORD_CONFIG_FILE = 'seo/keywords.json';
 const COVERAGE_REPORT_FILE = 'reports/seo-baidu-geo-coverage.md';
 const MONITOR_REPORT_FILE = 'reports/seo-baidu-monitor.md';
+const RANK_PLAN_REPORT_FILE = 'reports/seo-baidu-rank-plan.md';
 const SITEMAP_ENTRIES = [
   {
     path: '/',
@@ -372,6 +373,20 @@ function statusLabel(failures, warnings) {
   if (failures > 0) return 'FAIL';
   if (warnings > 0) return 'WARN';
   return 'PASS';
+}
+
+function localTimestamp() {
+  const value = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).format(new Date()).replace(' ', 'T');
+  return `${value}+08:00`;
 }
 
 function markdownSourceForCluster(cluster) {
@@ -954,14 +969,179 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, online
     '- Add `BAIDU_TOKEN` privately in `.env` or the shell, then run `npm run seo:submit:baidu`.',
     '- Confirm `https://camps.wanli.wiki/sitemap.xml` in Baidu Search Resource Platform ordinary inclusion/sitemap tools.',
     '- Record measured Baidu platform data weekly: indexed URLs, crawl frequency, search impressions, clicks, and keyword positions for each cluster.',
+    '- Use `npm run seo:rank-plan` to generate the Baidu keyword and GEO query tracking sheet before weekly checks.',
     '- For GEO, run this monitor after each content change and keep every target query backed by a visible HTML answer, FAQ/schema match, Markdown context, and `llms.txt` link.',
     ''
   ].join('\n');
 }
 
+function baiduSearchUrl(query) {
+  const url = new URL('https://www.baidu.com/s');
+  url.searchParams.set('wd', query);
+  return url.toString();
+}
+
+function rankQueryRows(config) {
+  const rows = [];
+  for (const cluster of config.clusters || []) {
+    const page = cluster.targetPage || '/';
+    const pageUrl = siteUrl(page);
+    const markdownSource = markdownSourceForCluster(cluster);
+    const markdownUrl = markdownSource ? siteUrl(`/${markdownSource}`) : '';
+    const keywordSet = [
+      { type: 'primary', query: cluster.primary },
+      { type: 'brand-assisted', query: `${cluster.primary} 少年CEO` },
+      { type: 'site-restricted', query: `site:camps.wanli.wiki ${cluster.primary}` },
+      ...(cluster.secondary || []).map((keyword) => ({ type: 'secondary', query: keyword }))
+    ];
+
+    for (const item of keywordSet) {
+      rows.push({
+        cluster: cluster.id,
+        type: item.type,
+        query: item.query,
+        pageUrl,
+        markdownUrl,
+        searchUrl: baiduSearchUrl(item.query)
+      });
+    }
+  }
+  return rows;
+}
+
+function geoQueryRows(config) {
+  const rows = [];
+  for (const cluster of config.clusters || []) {
+    const page = cluster.targetPage || '/';
+    const markdownSource = markdownSourceForCluster(cluster);
+    for (const query of cluster.aiQueries || []) {
+      rows.push({
+        cluster: cluster.id,
+        query,
+        pageUrl: siteUrl(page),
+        markdownUrl: markdownSource ? siteUrl(`/${markdownSource}`) : siteUrl('/llms.txt'),
+        searchUrl: baiduSearchUrl(query)
+      });
+    }
+  }
+  return rows;
+}
+
+function buildRankPlanReport({ generatedAt, config, urls }) {
+  const keywordRows = rankQueryRows(config).map((row) => [
+    row.cluster,
+    row.type,
+    row.query,
+    row.pageUrl,
+    row.searchUrl,
+    'N/A',
+    'N/A'
+  ].map(escapeMarkdownCell).join(' | '));
+  const geoRows = geoQueryRows(config).map((row) => [
+    row.cluster,
+    row.query,
+    row.pageUrl,
+    row.markdownUrl,
+    row.searchUrl,
+    'N/A'
+  ].map(escapeMarkdownCell).join(' | '));
+  const siteQueries = [
+    `site:camps.wanli.wiki`,
+    `site:camps.wanli.wiki 少年CEO AI 创业营`,
+    `site:camps.wanli.wiki AI PBL 创业营`,
+    `site:camps.wanli.wiki AI产品原型课程`,
+    `site:camps.wanli.wiki 青少年AI课程`
+  ];
+
+  return [
+    '# Baidu Ranking / GEO Tracking Plan',
+    '',
+    `Generated: ${generatedAt}`,
+    `Site URL: ${SITE_URL}`,
+    `Keyword map: ${KEYWORD_CONFIG_FILE}`,
+    '',
+    '## Measurement Rules',
+    '',
+    '- This report is a tracking sheet, not a scraper. Use the Baidu links for manual checks or replace `Current Baidu rank` with data from a compliant rank monitor.',
+    '- Treat Baidu Search Resource Platform as the source of truth for indexed URLs, impressions, clicks, crawl frequency, and query data.',
+    '- Record date, location, device, browser state, and whether personalization is disabled when checking search result pages manually.',
+    '- A submitted URL is not proof of inclusion. A page counts as indexed only after Baidu index data or a reproducible `site:` result confirms it.',
+    '- GEO checks should record whether an AI answer mentions the project, uses the intended page, and preserves the intended positioning.',
+    '',
+    '## Site Inclusion Checks',
+    '',
+    'Query | Baidu URL | What to record',
+    '--- | --- | ---',
+    ...siteQueries.map((query) => [
+      query,
+      baiduSearchUrl(query),
+      'indexed page count, visible target URLs, unexpected missing pages'
+    ].map(escapeMarkdownCell).join(' | ')),
+    '',
+    '## Sitemap Submission Set',
+    '',
+    ...urls.map((url) => `- ${url}`),
+    '',
+    '## Keyword Ranking Matrix',
+    '',
+    'Cluster | Query type | Query | Target page | Baidu check URL | Current Baidu rank | Evidence date',
+    '--- | --- | --- | --- | --- | --- | ---',
+    ...keywordRows,
+    '',
+    '## GEO Answer Matrix',
+    '',
+    'Cluster | AI answer query | Target HTML page | Markdown context | Baidu check URL | Current AI citation status',
+    '--- | --- | --- | --- | --- | ---',
+    ...geoRows,
+    '',
+    '## Weekly Data Entry Template',
+    '',
+    'Date | Cluster | Query | Target page indexed? | Baidu rank | Impressions | Clicks | CTR | Notes',
+    '--- | --- | --- | --- | --- | --- | --- | --- | ---',
+    ...rankQueryRows(config)
+      .filter((row) => row.type === 'primary')
+      .map((row) => [
+        'YYYY-MM-DD',
+        row.cluster,
+        row.query,
+        'N/A',
+        'N/A',
+        'N/A',
+        'N/A',
+        'N/A',
+        '-'
+      ].map(escapeMarkdownCell).join(' | ')),
+    '',
+    '## Next Actions',
+    '',
+    '- After `BAIDU_TOKEN` is configured, run `npm run seo:submit:baidu` and record the response separately without committing secrets.',
+    '- Check Baidu Search Resource Platform weekly for index amount, traffic and keywords, crawl frequency, and crawl errors.',
+    '- When a target query starts receiving impressions but not clicks, improve the title/meta and first visible answer block for that exact page.',
+    '- When a GEO query misses the project, strengthen the visible answer block, FAQ schema, Markdown context, and `llms.txt` canonical answer for that query.',
+    ''
+  ].join('\n');
+}
+
+function rankPlan() {
+  const generatedAt = localTimestamp();
+  const config = readJson(KEYWORD_CONFIG_FILE);
+  const urls = urlsFromSitemap();
+  const report = buildRankPlanReport({
+    generatedAt,
+    config,
+    urls
+  });
+
+  writeReport(RANK_PLAN_REPORT_FILE, report);
+  console.log(`Baidu ranking/GEO tracking plan: ${RANK_PLAN_REPORT_FILE}`);
+  console.log(`Keyword clusters: ${(config.clusters || []).length}`);
+  console.log(`Tracked keyword checks: ${rankQueryRows(config).length}`);
+  console.log(`Tracked GEO queries: ${geoQueryRows(config).length}`);
+}
+
 async function monitor() {
   loadDotEnv();
-  const generatedAt = new Date().toISOString();
+  const generatedAt = localTimestamp();
   const urls = urlsFromSitemap();
   const coverageSnapshot = keywordCoverageSnapshot();
   const onlineResults = [];
@@ -1082,6 +1262,7 @@ function usage() {
     '  sitemap           Write sitemap.xml',
     '  coverage          Validate Baidu SEO and GEO keyword coverage',
     '  monitor           Write a Baidu SEO/GEO monitoring report',
+    '  rank-plan         Write a Baidu ranking and GEO query tracking sheet',
     '  check             Validate homepage SEO files and tags',
     '  check-online      Validate live homepage, robots, sitemap, and llms.txt',
     '  submit [--dry-run] Submit sitemap URLs to Baidu Search Resource Platform'
@@ -1110,6 +1291,9 @@ async function main() {
       break;
     case 'monitor':
       await monitor();
+      break;
+    case 'rank-plan':
+      rankPlan();
       break;
     case 'check':
       check();
