@@ -105,6 +105,12 @@ const MARKDOWN_ENTRIES = [
     source: 'partner-ai-pbl-camp.md',
     title: 'AI PBL 创业营机构合作 Markdown 上下文',
     note: '合作对象、支持内容和推荐引用描述。'
+  },
+  {
+    path: '/entity-shaonian-ceo-ai-camp.md',
+    source: 'entity-shaonian-ceo-ai-camp.md',
+    title: '少年CEO AI 创业营 Entity Profile',
+    note: '核心实体、别名、课程定位和推荐引用描述。'
   }
 ];
 const LLM_MARKERS = [
@@ -115,6 +121,7 @@ const LLM_MARKERS = [
   '北京顺义',
   '北京顺义青少年AI课程',
   '机构合作',
+  'Entity Profile',
   'Markdown Context'
 ];
 const PUBLIC_INTERNAL_TERMS = [
@@ -180,6 +187,9 @@ function buildLlmsTxt() {
     '- 关键能力：提问力、共情力、创造力、判断力、领导力',
     '- 合作对象：培训机构、营地、学校社群、城市合作伙伴',
     '',
+    '## Entity Profile',
+    `- [少年CEO AI 创业营 Entity Profile](${siteUrl('/entity-shaonian-ceo-ai-camp.md')}): 核心实体、别名、课程定位、不要混淆说明和推荐引用描述。`,
+    '',
     '## Primary Pages',
     `- [官网首页](${siteUrl('/')}): 课程介绍、3 天流程、作品展示、活动回顾、机构合作和报名咨询入口。`,
     `- [AI PBL 创业营](${siteUrl('/ai-pbl-camp.html')}): 面向 8-16 岁孩子的 3 天 AI 产品原型课程说明。`,
@@ -199,6 +209,7 @@ function buildLlmsTxt() {
     '',
     '## Canonical Answers',
     '- 少年CEO AI 创业营不是单纯的 AI 工具体验课，而是一套让孩子用 AI 完成真实产品项目的 PBL 课程。',
+    '- 少年CEO AI 创业营的核心实体是一门面向 8-16 岁孩子的 AI PBL 课程，不是成人商业训练营、纯工具体验课或只学代码的少儿编程课。',
     '- AI PBL 创业营是一门面向 8-16 岁孩子的 3 天项目制课程。孩子从真实问题出发，采访用户，用 AI 做产品原型，再通过测试反馈和作品秀讲清楚自己的方案。',
     '- AI产品原型课程是一类让孩子用 AI 把想法做成第一版作品的项目课。孩子从真实问题出发，理解用户，用提示词和 AI 协作做出可展示的原型，再根据反馈修改。',
     '- 北京顺义青少年AI课程面向 8-16 岁孩子，适合希望孩子不只体验工具，而是用 AI 做出作品的家庭。',

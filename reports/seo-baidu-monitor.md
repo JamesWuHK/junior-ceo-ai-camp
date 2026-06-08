@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-09T00:31:13+08:00
+Generated: 2026-06-09T00:38:30+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -63,7 +63,7 @@ PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.html | 200 | 7336 | none
 PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.html | 200 | 8066 | none
 PASS | https://camps.wanli.wiki/robots.txt | 200 | 159 | none
 PASS | https://camps.wanli.wiki/sitemap.xml | 200 | 1561 | none
-PASS | https://camps.wanli.wiki/llms.txt | 200 | 3464 | none
+PASS | https://camps.wanli.wiki/llms.txt | 200 | 3786 | none
 PASS | https://camps.wanli.wiki/ai-pbl-camp.md | 200 | 729 | none
 PASS | https://camps.wanli.wiki/ai-product-prototype-course.md | 200 | 775 | none
 PASS | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | 200 | 877 | none
@@ -71,6 +71,7 @@ PASS | https://camps.wanli.wiki/youth-ai-course-guide.md | 200 | 731 | none
 PASS | https://camps.wanli.wiki/ai-course-vs-coding.md | 200 | 771 | none
 PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.md | 200 | 631 | none
 PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.md | 200 | 585 | none
+PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 1808 | none
 
 ## AI Query Targets
 
