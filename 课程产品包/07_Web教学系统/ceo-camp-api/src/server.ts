@@ -337,10 +337,39 @@ function wallData() {
   });
 }
 
+function showcaseItems(includeAll = false) {
+  const statusClause = includeAll ? "" : "AND s.publish_status = 'PUBLISHED'";
+  return rows(
+    `SELECT s.*, t.name AS team_name
+       FROM showcase_items s
+       LEFT JOIN teams t ON t.id = s.team_id
+      WHERE s.camp_id = ?
+        ${statusClause}
+      ORDER BY s.updated_at DESC, s.created_at DESC`,
+    campId()
+  ).map((item) => ({
+    id: item.id,
+    team_id: item.team_id,
+    team_name: item.team_name,
+    product_name: item.product_name,
+    track: item.track,
+    one_liner: item.one_liner,
+    access_url: item.access_url,
+    screenshot_key: item.screenshot_key,
+    screenshot_url: item.screenshot_key
+      ? `${config.publicApiBase}/media/object?key=${encodeURIComponent(String(item.screenshot_key))}`
+      : null,
+    publish_status: item.publish_status,
+    created_at: item.created_at,
+    updated_at: item.updated_at
+  }));
+}
+
 function emitState(event = "state.changed") {
   broadcast(event, {
     camp: currentCamp(),
-    wall: wallData()
+    wall: wallData(),
+    showcase_items: showcaseItems(false)
   });
 }
 
@@ -711,10 +740,13 @@ app.get("/auth/student/me", async (request, reply) => {
 
 app.get("/camp/current", async () => currentCamp());
 
-app.get("/course/modules", async () => ({
-  camp_id: campId(),
-  modules: courseModules()
-}));
+app.get("/course/modules", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  return {
+    camp_id: campId(),
+    modules: courseModules()
+  };
+});
 
 app.get("/students", async (request, reply) => {
   if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
@@ -1047,6 +1079,17 @@ app.get("/wall/future-photo", async () => ({
   students: wallData()
 }));
 
+app.get("/showcase", async () => ({
+  showcase_items: showcaseItems(false)
+}));
+
+app.get("/showcase/manage", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  return {
+    showcase_items: showcaseItems(true)
+  };
+});
+
 app.get("/media/object", async (request, reply) => {
   const query = request.query as { key?: string };
   const objectKey = String(query.key ?? "");
@@ -1081,7 +1124,7 @@ app.get("/events", async (request, reply) => {
     write,
     close: () => reply.raw.end()
   });
-  write("connected", { id, camp: currentCamp(), wall: wallData() });
+  write("connected", { id, camp: currentCamp(), wall: wallData(), showcase_items: showcaseItems(false) });
   const keepAlive = setInterval(() => write("ping", { time: new Date().toISOString() }), 25000);
   request.raw.on("close", () => {
     clearInterval(keepAlive);

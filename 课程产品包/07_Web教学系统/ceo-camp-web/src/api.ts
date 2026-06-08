@@ -2,6 +2,7 @@ import type {
   Camp,
   CourseModule,
   FuturePhotoSubmission,
+  ShowcaseItem,
   StatePayload,
   Student,
   StudentAccount,
@@ -14,8 +15,13 @@ const configuredBase = import.meta.env.VITE_API_BASE as string | undefined;
 export const API_BASE =
   configuredBase || (import.meta.env.DEV ? "/api" : "https://api.camps.wanli.wiki");
 
+const teacherTokenKey = "ceo_camp_teacher_token";
+const teacherAccountKey = "ceo_camp_teacher";
+const legacyTeacherStorage = window.localStorage;
+const teacherStorage = window.sessionStorage;
+
 function teacherToken() {
-  return window.localStorage.getItem("ceo_camp_teacher_token") || "";
+  return teacherStorage.getItem(teacherTokenKey) || "";
 }
 
 function studentToken() {
@@ -65,7 +71,7 @@ export const api = {
     }),
   studentMe: () => request<{ student: StudentAccount }>("/auth/student/me", { headers: studentHeaders(true) }),
   currentCamp: () => request<Camp>("/camp/current"),
-  courseModules: () => request<{ modules: CourseModule[] }>("/course/modules"),
+  courseModules: () => request<{ modules: CourseModule[] }>("/course/modules", { headers: headers(true) }),
   students: () => request<{ students: Student[] }>("/students", { headers: headers(true) }),
   saveStudents: (students: Partial<Student> | Partial<Student>[]) =>
     request<{ students: Student[] }>("/students", {
@@ -108,6 +114,14 @@ export const api = {
       body: JSON.stringify({ action })
     }),
   wall: () => request<{ students: Student[] }>("/wall/future-photo"),
+  showcase: () => request<{ showcase_items: ShowcaseItem[] }>("/showcase"),
+  manageShowcase: () => request<{ showcase_items: ShowcaseItem[] }>("/showcase/manage", { headers: headers(true) }),
+  publishShowcase: (payload: Partial<ShowcaseItem>) =>
+    request<{ showcase_item: ShowcaseItem }>("/publish/showcase", {
+      method: "POST",
+      headers: headers(true),
+      body: JSON.stringify(payload)
+    }),
   submissions: () =>
     request<{
       future_photo_submissions: FuturePhotoSubmission[];
@@ -115,7 +129,7 @@ export const api = {
     }>("/submissions", {
       headers: headers(true)
     }),
-  setCurrentTask: (payload: { module_id?: string; title: string; activity_type: string }) =>
+  setCurrentTask: (payload: { module_id?: string; title: string; activity_type: string; payload?: Record<string, unknown> }) =>
     request<{ task: unknown }>("/tasks/current", {
       method: "POST",
       headers: headers(true),
@@ -137,12 +151,17 @@ export function connectEvents(onState: (payload: StatePayload) => void) {
   source.addEventListener("future_photo.generated", handler);
   source.addEventListener("future_photo.reviewed", handler);
   source.addEventListener("task.changed", handler);
+  source.addEventListener("publish.changed", handler);
   return () => source.close();
 }
 
 export function setTeacherToken(token: string, teacher?: TeacherAccount) {
-  window.localStorage.setItem("ceo_camp_teacher_token", token);
-  if (teacher) window.localStorage.setItem("ceo_camp_teacher", JSON.stringify(teacher));
+  teacherStorage.setItem(teacherTokenKey, token);
+  legacyTeacherStorage.removeItem(teacherTokenKey);
+  if (teacher) {
+    teacherStorage.setItem(teacherAccountKey, JSON.stringify(teacher));
+    legacyTeacherStorage.removeItem(teacherAccountKey);
+  }
 }
 
 export function hasTeacherToken() {
@@ -150,7 +169,7 @@ export function hasTeacherToken() {
 }
 
 export function getTeacherAccount() {
-  const value = window.localStorage.getItem("ceo_camp_teacher");
+  const value = teacherStorage.getItem(teacherAccountKey);
   if (!value) return null;
   try {
     return JSON.parse(value) as TeacherAccount;
@@ -160,8 +179,10 @@ export function getTeacherAccount() {
 }
 
 export function clearTeacherToken() {
-  window.localStorage.removeItem("ceo_camp_teacher_token");
-  window.localStorage.removeItem("ceo_camp_teacher");
+  teacherStorage.removeItem(teacherTokenKey);
+  teacherStorage.removeItem(teacherAccountKey);
+  legacyTeacherStorage.removeItem(teacherTokenKey);
+  legacyTeacherStorage.removeItem(teacherAccountKey);
 }
 
 export function setStudentToken(token: string, student?: StudentAccount) {

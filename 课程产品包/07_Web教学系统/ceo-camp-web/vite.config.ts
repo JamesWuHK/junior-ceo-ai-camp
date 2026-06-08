@@ -6,9 +6,9 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://api.camps.wanli.wiki",
+        target: "http://127.0.0.1:7001",
         changeOrigin: true,
-        secure: true,
+        secure: false,
         rewrite: (path) => path.replace(/^\/api/, "")
       }
     }

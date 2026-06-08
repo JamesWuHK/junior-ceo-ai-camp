@@ -90,6 +90,21 @@ export interface FuturePhotoSubmission {
   updated_at: string;
 }
 
+export interface ShowcaseItem {
+  id: string;
+  team_id?: string | null;
+  team_name?: string | null;
+  product_name: string;
+  track?: string | null;
+  one_liner?: string | null;
+  access_url?: string | null;
+  screenshot_key?: string | null;
+  screenshot_url?: string | null;
+  publish_status: "DRAFT" | "PUBLISHED" | string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Activity {
   id: string;
   module_id?: string | null;
@@ -111,4 +126,5 @@ export interface UploadTarget {
 export interface StatePayload {
   camp: Camp;
   wall: Student[];
+  showcase_items?: ShowcaseItem[];
 }
