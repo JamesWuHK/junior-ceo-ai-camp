@@ -18,6 +18,8 @@
     "seo:baidu:evidence": "node scripts/seo/baidu-seo.mjs evidence",
     "seo:measurements:template": "node scripts/seo/baidu-seo.mjs measurements-template",
     "seo:baidu:template": "node scripts/seo/baidu-seo.mjs measurements-template",
+    "seo:measurements:checklist": "node scripts/seo/baidu-seo.mjs measurements-checklist",
+    "seo:baidu:checklist": "node scripts/seo/baidu-seo.mjs measurements-checklist",
     "seo:rank-plan": "node scripts/seo/baidu-seo.mjs rank-plan",
     "seo:baidu:rank-plan": "node scripts/seo/baidu-seo.mjs rank-plan",
     "seo:geo:queries": "node scripts/seo/baidu-seo.mjs rank-plan",

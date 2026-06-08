@@ -1,6 +1,6 @@
 # Baidu Measured Evidence Report
 
-Generated: 2026-06-09T01:43:43+08:00
+Generated: 2026-06-09T01:51:24+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_MEASURED_DATA
 
@@ -15,6 +15,7 @@ Overall status: NEEDS_MEASURED_DATA
 
 - URL index evidence: 0/8 indexed, 0 measured not indexed, 8 missing evidence.
 - Primary keyword rank evidence: 0/8 ranked, 0 measured no rank, 8 missing evidence.
+- Tracked keyword rank evidence: 0/83 ranked, 0 measured no rank, 83 missing evidence.
 - GEO answer evidence: 0/24 pass, 0 needs repair, 24 missing evidence.
 
 ## How To Use This File
@@ -49,6 +50,96 @@ MISSING_EVIDENCE | youth-ai-course-guide | 青少年AI课程 | https://camps.wan
 MISSING_EVIDENCE | ai-course-vs-coding | 少儿编程和AI课程区别 | https://camps.wanli.wiki/ai-course-vs-coding.html | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | shunyi-parent-class | 北京顺义 AI 家长公益课 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | partner-cooperation | AI PBL 创业营机构合作 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | N/A | N/A | N/A | N/A | N/A | -
+
+## Tracked Keyword Rank Evidence
+
+This section covers every query in the Baidu ranking plan: primary, brand-assisted, site-restricted, and secondary keywords.
+
+Status | Cluster | Query type | Query | Target page | Baidu check URL | Rank | Impressions | Clicks | Evidence date | Source | Notes
+--- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
+MISSING_EVIDENCE | brand-home | primary | 少年CEO AI 创业营 | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO+AI+%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | brand-home | brand-assisted | 少年CEO AI 创业营 少年CEO | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO+AI+%E5%88%9B%E4%B8%9A%E8%90%A5+%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | brand-home | site-restricted | site:camps.wanli.wiki 少年CEO AI 创业营 | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%B0%91%E5%B9%B4CEO+AI+%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | brand-home | secondary | 少年CEO | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | brand-home | secondary | AI创业营 | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=AI%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | brand-home | secondary | 北京顺义AI课程 | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | brand-home | secondary | 青少年AI课程 | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | brand-home | secondary | PBL创业营 | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=PBL%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | brand-home | secondary | AI夏令营 | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=AI%E5%A4%8F%E4%BB%A4%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | brand-home | secondary | 儿童AI课程 | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | brand-home | secondary | AI产品原型 | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=AI%E4%BA%A7%E5%93%81%E5%8E%9F%E5%9E%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-pbl-camp | primary | AI PBL 创业营 | https://camps.wanli.wiki/ai-pbl-camp.html | https://www.baidu.com/s?wd=AI+PBL+%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-pbl-camp | brand-assisted | AI PBL 创业营 少年CEO | https://camps.wanli.wiki/ai-pbl-camp.html | https://www.baidu.com/s?wd=AI+PBL+%E5%88%9B%E4%B8%9A%E8%90%A5+%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-pbl-camp | site-restricted | site:camps.wanli.wiki AI PBL 创业营 | https://camps.wanli.wiki/ai-pbl-camp.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+AI+PBL+%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-pbl-camp | secondary | 青少年AI课程 | https://camps.wanli.wiki/ai-pbl-camp.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-pbl-camp | secondary | AI产品原型课程 | https://camps.wanli.wiki/ai-pbl-camp.html | https://www.baidu.com/s?wd=AI%E4%BA%A7%E5%93%81%E5%8E%9F%E5%9E%8B%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-pbl-camp | secondary | 少年CEO | https://camps.wanli.wiki/ai-pbl-camp.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-pbl-camp | secondary | AI创业营 | https://camps.wanli.wiki/ai-pbl-camp.html | https://www.baidu.com/s?wd=AI%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-pbl-camp | secondary | 8-16岁AI课程 | https://camps.wanli.wiki/ai-pbl-camp.html | https://www.baidu.com/s?wd=8-16%E5%B2%81AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-pbl-camp | secondary | PBL项目制学习 | https://camps.wanli.wiki/ai-pbl-camp.html | https://www.baidu.com/s?wd=PBL%E9%A1%B9%E7%9B%AE%E5%88%B6%E5%AD%A6%E4%B9%A0 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-pbl-camp | secondary | 提示词实践 | https://camps.wanli.wiki/ai-pbl-camp.html | https://www.baidu.com/s?wd=%E6%8F%90%E7%A4%BA%E8%AF%8D%E5%AE%9E%E8%B7%B5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-product-prototype-course | primary | AI产品原型课程 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=AI%E4%BA%A7%E5%93%81%E5%8E%9F%E5%9E%8B%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-product-prototype-course | brand-assisted | AI产品原型课程 少年CEO | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=AI%E4%BA%A7%E5%93%81%E5%8E%9F%E5%9E%8B%E8%AF%BE%E7%A8%8B+%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-product-prototype-course | site-restricted | site:camps.wanli.wiki AI产品原型课程 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+AI%E4%BA%A7%E5%93%81%E5%8E%9F%E5%9E%8B%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-product-prototype-course | secondary | 孩子做AI产品 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E5%81%9AAI%E4%BA%A7%E5%93%81 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-product-prototype-course | secondary | AI原型课 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=AI%E5%8E%9F%E5%9E%8B%E8%AF%BE | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-product-prototype-course | secondary | 青少年AI课程 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-product-prototype-course | secondary | AI PBL创业营 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=AI+PBL%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-product-prototype-course | secondary | 8-16岁AI课程 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=8-16%E5%B2%81AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-product-prototype-course | secondary | 提示词实践 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=%E6%8F%90%E7%A4%BA%E8%AF%8D%E5%AE%9E%E8%B7%B5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-product-prototype-course | secondary | 产品设计 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=%E4%BA%A7%E5%93%81%E8%AE%BE%E8%AE%A1 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | primary | 北京顺义青少年AI课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | brand-assisted | 北京顺义青少年AI课程 少年CEO | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B+%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | site-restricted | site:camps.wanli.wiki 北京顺义青少年AI课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | secondary | 顺义AI课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | secondary | 北京顺义AI课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | secondary | 顺义儿童AI课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | secondary | 顺义AI夏令营 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89AI%E5%A4%8F%E4%BB%A4%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | secondary | AI PBL创业营 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=AI+PBL%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | secondary | AI产品原型课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=AI%E4%BA%A7%E5%93%81%E5%8E%9F%E5%9E%8B%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | secondary | 少年CEO | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | secondary | 青少年AI教育 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E6%95%99%E8%82%B2 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | youth-ai-course-guide | primary | 青少年AI课程 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | youth-ai-course-guide | brand-assisted | 青少年AI课程 少年CEO | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B+%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | youth-ai-course-guide | site-restricted | site:camps.wanli.wiki 青少年AI课程 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | youth-ai-course-guide | secondary | 儿童AI课程 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | youth-ai-course-guide | secondary | AI课程怎么选 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=AI%E8%AF%BE%E7%A8%8B%E6%80%8E%E4%B9%88%E9%80%89 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | youth-ai-course-guide | secondary | AI PBL创业营 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=AI+PBL%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | youth-ai-course-guide | secondary | 北京顺义AI课程 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | youth-ai-course-guide | secondary | AI产品原型课程 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=AI%E4%BA%A7%E5%93%81%E5%8E%9F%E5%9E%8B%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | youth-ai-course-guide | secondary | 少年CEO | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | youth-ai-course-guide | secondary | AI判断力 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=AI%E5%88%A4%E6%96%AD%E5%8A%9B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-course-vs-coding | primary | 少儿编程和AI课程区别 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%84%BF%E7%BC%96%E7%A8%8B%E5%92%8CAI%E8%AF%BE%E7%A8%8B%E5%8C%BA%E5%88%AB | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-course-vs-coding | brand-assisted | 少儿编程和AI课程区别 少年CEO | https://camps.wanli.wiki/ai-course-vs-coding.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%84%BF%E7%BC%96%E7%A8%8B%E5%92%8CAI%E8%AF%BE%E7%A8%8B%E5%8C%BA%E5%88%AB+%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-course-vs-coding | site-restricted | site:camps.wanli.wiki 少儿编程和AI课程区别 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%B0%91%E5%84%BF%E7%BC%96%E7%A8%8B%E5%92%8CAI%E8%AF%BE%E7%A8%8B%E5%8C%BA%E5%88%AB | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-course-vs-coding | secondary | AI课程和编程课区别 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://www.baidu.com/s?wd=AI%E8%AF%BE%E7%A8%8B%E5%92%8C%E7%BC%96%E7%A8%8B%E8%AF%BE%E5%8C%BA%E5%88%AB | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-course-vs-coding | secondary | 孩子学AI还是编程 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E5%AD%A6AI%E8%BF%98%E6%98%AF%E7%BC%96%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-course-vs-coding | secondary | 青少年AI课程 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-course-vs-coding | secondary | 儿童AI课程 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://www.baidu.com/s?wd=%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-course-vs-coding | secondary | AI PBL创业营 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://www.baidu.com/s?wd=AI+PBL%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-course-vs-coding | secondary | 少儿编程 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%84%BF%E7%BC%96%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-course-vs-coding | secondary | AI产品原型 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://www.baidu.com/s?wd=AI%E4%BA%A7%E5%93%81%E5%8E%9F%E5%9E%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | shunyi-parent-class | primary | 北京顺义 AI 家长公益课 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89+AI+%E5%AE%B6%E9%95%BF%E5%85%AC%E7%9B%8A%E8%AF%BE | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | shunyi-parent-class | brand-assisted | 北京顺义 AI 家长公益课 少年CEO | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89+AI+%E5%AE%B6%E9%95%BF%E5%85%AC%E7%9B%8A%E8%AF%BE+%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | shunyi-parent-class | site-restricted | site:camps.wanli.wiki 北京顺义 AI 家长公益课 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89+AI+%E5%AE%B6%E9%95%BF%E5%85%AC%E7%9B%8A%E8%AF%BE | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | shunyi-parent-class | secondary | 北京.顺义 AI 家长公益课 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC.%E9%A1%BA%E4%B9%89+AI+%E5%AE%B6%E9%95%BF%E5%85%AC%E7%9B%8A%E8%AF%BE | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | shunyi-parent-class | secondary | 顺义AI课程 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | shunyi-parent-class | secondary | AI家长课 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://www.baidu.com/s?wd=AI%E5%AE%B6%E9%95%BF%E8%AF%BE | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | shunyi-parent-class | secondary | 少年CEO | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | shunyi-parent-class | secondary | 青少年AI教育 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E6%95%99%E8%82%B2 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | shunyi-parent-class | secondary | AI时代孩子能力 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://www.baidu.com/s?wd=AI%E6%97%B6%E4%BB%A3%E5%AD%A9%E5%AD%90%E8%83%BD%E5%8A%9B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | shunyi-parent-class | secondary | LIA公益社区 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://www.baidu.com/s?wd=LIA%E5%85%AC%E7%9B%8A%E7%A4%BE%E5%8C%BA | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | partner-cooperation | primary | AI PBL 创业营机构合作 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://www.baidu.com/s?wd=AI+PBL+%E5%88%9B%E4%B8%9A%E8%90%A5%E6%9C%BA%E6%9E%84%E5%90%88%E4%BD%9C | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | partner-cooperation | brand-assisted | AI PBL 创业营机构合作 少年CEO | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://www.baidu.com/s?wd=AI+PBL+%E5%88%9B%E4%B8%9A%E8%90%A5%E6%9C%BA%E6%9E%84%E5%90%88%E4%BD%9C+%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | partner-cooperation | site-restricted | site:camps.wanli.wiki AI PBL 创业营机构合作 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+AI+PBL+%E5%88%9B%E4%B8%9A%E8%90%A5%E6%9C%BA%E6%9E%84%E5%90%88%E4%BD%9C | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | partner-cooperation | secondary | 培训机构AI课程合作 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://www.baidu.com/s?wd=%E5%9F%B9%E8%AE%AD%E6%9C%BA%E6%9E%84AI%E8%AF%BE%E7%A8%8B%E5%90%88%E4%BD%9C | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | partner-cooperation | secondary | 青少年AI营地合作 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%90%A5%E5%9C%B0%E5%90%88%E4%BD%9C | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | partner-cooperation | secondary | 少年CEO | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | partner-cooperation | secondary | AI创业营合作 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://www.baidu.com/s?wd=AI%E5%88%9B%E4%B8%9A%E8%90%A5%E5%90%88%E4%BD%9C | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | partner-cooperation | secondary | 培训机构 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://www.baidu.com/s?wd=%E5%9F%B9%E8%AE%AD%E6%9C%BA%E6%9E%84 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | partner-cooperation | secondary | 营地 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://www.baidu.com/s?wd=%E8%90%A5%E5%9C%B0 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | partner-cooperation | secondary | 学校社群 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://www.baidu.com/s?wd=%E5%AD%A6%E6%A0%A1%E7%A4%BE%E7%BE%A4 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | partner-cooperation | secondary | 城市合作伙伴 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://www.baidu.com/s?wd=%E5%9F%8E%E5%B8%82%E5%90%88%E4%BD%9C%E4%BC%99%E4%BC%B4 | N/A | N/A | N/A | N/A | N/A | -
 
 ## GEO Answer Evidence
 

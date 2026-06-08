@@ -18,6 +18,7 @@ const MONITOR_REPORT_FILE = 'reports/seo-baidu-monitor.md';
 const RANK_PLAN_REPORT_FILE = 'reports/seo-baidu-rank-plan.md';
 const BAIDU_EVIDENCE_REPORT_FILE = 'reports/seo-baidu-evidence.md';
 const INTERNAL_LINK_REPORT_FILE = 'reports/seo-internal-links.md';
+const MEASUREMENT_CHECKLIST_CSV_FILE = 'reports/seo-baidu-measurement-checklist.csv';
 const BAIDU_MEASUREMENTS_FILE = 'seo/baidu-measurements.json';
 const BAIDU_MEASUREMENTS_EXAMPLE_FILE = 'seo/baidu-measurements.example.json';
 const SITEMAP_ENTRIES = [
@@ -1560,11 +1561,13 @@ function buildMeasurementTemplate({ generatedAt, config, urls }) {
       notes: ''
     })),
     keywordRankings: rankQueryRows(config)
-      .filter((row) => row.type === 'primary')
       .map((row) => ({
         cluster: row.cluster,
+        queryType: row.type,
         query: row.query,
         targetPage: row.pageUrl,
+        markdownUrl: row.markdownUrl,
+        baiduCheckUrl: row.searchUrl,
         rank: null,
         impressions: null,
         clicks: null,
@@ -1605,7 +1608,7 @@ function measurementTemplateCoverageFailures(measurements, config, urls) {
     if (!indexed.has(normalized)) failures.push(`indexedUrls missing ${url}`);
     if (!urlMetrics.has(normalized)) failures.push(`urlMetrics missing ${url}`);
   }
-  for (const row of rankQueryRows(config).filter((item) => item.type === 'primary')) {
+  for (const row of rankQueryRows(config)) {
     if (!keywordRecords.has(keywordRecordKey(row.cluster, row.query, row.pageUrl))) {
       failures.push(`keywordRankings missing ${row.cluster} / ${row.query}`);
     }
@@ -1631,7 +1634,7 @@ function measurementTemplate() {
   console.log(`Baidu measurement template: ${BAIDU_MEASUREMENTS_EXAMPLE_FILE}`);
   console.log(`Indexed URL templates: ${template.indexedUrls.length}`);
   console.log(`URL metric templates: ${template.urlMetrics.length}`);
-  console.log(`Primary keyword templates: ${template.keywordRankings.length}`);
+  console.log(`Keyword rank templates: ${template.keywordRankings.length}`);
   console.log(`GEO answer templates: ${template.geoAnswers.length}`);
 }
 
@@ -1663,27 +1666,29 @@ function baiduEvidenceSnapshot() {
     };
   });
 
-  const primaryKeywordRows = rankQueryRows(config)
-    .filter((row) => row.type === 'primary')
-    .map((row) => {
-      const record = keywordRecords.get(keywordRecordKey(row.cluster, row.query, row.pageUrl));
-      const rank = numberOrNull(record?.rank ?? record?.position ?? record?.baiduRank);
-      const status = record
-        ? (rank && rank > 0 ? 'RANKED' : 'MEASURED_NO_RANK')
-        : 'MISSING_EVIDENCE';
-      return {
-        cluster: row.cluster,
-        query: row.query,
-        targetPage: row.pageUrl,
-        status,
-        rank: rank || 'N/A',
-        impressions: numberOrNull(record?.impressions) ?? 'N/A',
-        clicks: numberOrNull(record?.clicks) ?? 'N/A',
-        evidenceDate: record?.evidenceDate || 'N/A',
-        source: record?.source || 'N/A',
-        notes: record?.notes || ''
-      };
-    });
+  const trackedKeywordRows = rankQueryRows(config).map((row) => {
+    const record = keywordRecords.get(keywordRecordKey(row.cluster, row.query, row.pageUrl));
+    const rank = numberOrNull(record?.rank ?? record?.position ?? record?.baiduRank);
+    const status = record
+      ? (rank && rank > 0 ? 'RANKED' : 'MEASURED_NO_RANK')
+      : 'MISSING_EVIDENCE';
+    return {
+      cluster: row.cluster,
+      queryType: row.type,
+      query: row.query,
+      targetPage: row.pageUrl,
+      markdownUrl: row.markdownUrl,
+      baiduCheckUrl: row.searchUrl,
+      status,
+      rank: rank || 'N/A',
+      impressions: numberOrNull(record?.impressions) ?? 'N/A',
+      clicks: numberOrNull(record?.clicks) ?? 'N/A',
+      evidenceDate: record?.evidenceDate || 'N/A',
+      source: record?.source || 'N/A',
+      notes: record?.notes || ''
+    };
+  });
+  const primaryKeywordRows = trackedKeywordRows.filter((row) => row.queryType === 'primary');
 
   const geoRows = geoQueryRows(config).map((row) => {
     const record = geoRecords.get(geoRecordKey(row.cluster, row.query));
@@ -1712,12 +1717,15 @@ function baiduEvidenceSnapshot() {
   const rankedCount = primaryKeywordRows.filter((row) => row.status === 'RANKED').length;
   const measuredNoRankCount = primaryKeywordRows.filter((row) => row.status === 'MEASURED_NO_RANK').length;
   const missingKeywordEvidenceCount = primaryKeywordRows.filter((row) => row.status === 'MISSING_EVIDENCE').length;
+  const trackedRankedCount = trackedKeywordRows.filter((row) => row.status === 'RANKED').length;
+  const trackedMeasuredNoRankCount = trackedKeywordRows.filter((row) => row.status === 'MEASURED_NO_RANK').length;
+  const trackedMissingKeywordEvidenceCount = trackedKeywordRows.filter((row) => row.status === 'MISSING_EVIDENCE').length;
   const geoPassCount = geoRows.filter((row) => row.status === 'PASS').length;
   const geoRepairCount = geoRows.filter((row) => row.status === 'NEEDS_REPAIR').length;
   const missingGeoEvidenceCount = geoRows.filter((row) => row.status === 'MISSING_EVIDENCE').length;
   const overallStatus = source.status === 'WAITING_FOR_PRIVATE_MEASUREMENTS'
     ? 'NEEDS_MEASURED_DATA'
-    : missingUrlEvidenceCount || missingKeywordEvidenceCount || missingGeoEvidenceCount || notIndexedCount || measuredNoRankCount || geoRepairCount
+    : missingUrlEvidenceCount || trackedMissingKeywordEvidenceCount || missingGeoEvidenceCount || notIndexedCount || trackedMeasuredNoRankCount || geoRepairCount
       ? 'PARTIAL_EVIDENCE'
       : 'MEASURED_PASS';
 
@@ -1727,6 +1735,7 @@ function baiduEvidenceSnapshot() {
     measurements,
     urls,
     urlRows,
+    trackedKeywordRows,
     primaryKeywordRows,
     geoRows,
     summary: {
@@ -1739,6 +1748,10 @@ function baiduEvidenceSnapshot() {
       measuredNoRankCount,
       missingKeywordEvidenceCount,
       primaryKeywordCount: primaryKeywordRows.length,
+      trackedRankedCount,
+      trackedMeasuredNoRankCount,
+      trackedMissingKeywordEvidenceCount,
+      trackedKeywordCount: trackedKeywordRows.length,
       geoPassCount,
       geoRepairCount,
       missingGeoEvidenceCount,
@@ -1776,6 +1789,21 @@ function buildEvidenceReport(snapshot) {
     row.notes || '-'
   ].map(escapeMarkdownCell).join(' | '));
 
+  const trackedKeywordRows = snapshot.trackedKeywordRows.map((row) => [
+    row.status,
+    row.cluster,
+    row.queryType,
+    row.query,
+    row.targetPage,
+    row.baiduCheckUrl,
+    row.rank,
+    row.impressions,
+    row.clicks,
+    row.evidenceDate,
+    row.source,
+    row.notes || '-'
+  ].map(escapeMarkdownCell).join(' | '));
+
   const geoRows = snapshot.geoRows.map((row) => [
     row.status,
     row.cluster,
@@ -1805,6 +1833,7 @@ function buildEvidenceReport(snapshot) {
     '',
     `- URL index evidence: ${snapshot.summary.indexedCount}/${snapshot.summary.targetUrlCount} indexed, ${snapshot.summary.notIndexedCount} measured not indexed, ${snapshot.summary.missingUrlEvidenceCount} missing evidence.`,
     `- Primary keyword rank evidence: ${snapshot.summary.rankedCount}/${snapshot.summary.primaryKeywordCount} ranked, ${snapshot.summary.measuredNoRankCount} measured no rank, ${snapshot.summary.missingKeywordEvidenceCount} missing evidence.`,
+    `- Tracked keyword rank evidence: ${snapshot.summary.trackedRankedCount}/${snapshot.summary.trackedKeywordCount} ranked, ${snapshot.summary.trackedMeasuredNoRankCount} measured no rank, ${snapshot.summary.trackedMissingKeywordEvidenceCount} missing evidence.`,
     `- GEO answer evidence: ${snapshot.summary.geoPassCount}/${snapshot.summary.geoQueryCount} pass, ${snapshot.summary.geoRepairCount} needs repair, ${snapshot.summary.missingGeoEvidenceCount} missing evidence.`,
     '',
     '## How To Use This File',
@@ -1825,6 +1854,14 @@ function buildEvidenceReport(snapshot) {
     'Status | Cluster | Query | Target page | Rank | Impressions | Clicks | Evidence date | Source | Notes',
     '--- | --- | --- | --- | --- | --- | --- | --- | --- | ---',
     ...keywordRows,
+    '',
+    '## Tracked Keyword Rank Evidence',
+    '',
+    'This section covers every query in the Baidu ranking plan: primary, brand-assisted, site-restricted, and secondary keywords.',
+    '',
+    'Status | Cluster | Query type | Query | Target page | Baidu check URL | Rank | Impressions | Clicks | Evidence date | Source | Notes',
+    '--- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---',
+    ...trackedKeywordRows,
     '',
     '## GEO Answer Evidence',
     '',
@@ -1850,6 +1887,7 @@ function baiduEvidence() {
   console.log(`Report: ${BAIDU_EVIDENCE_REPORT_FILE}`);
   console.log(`URL index evidence: ${snapshot.summary.indexedCount}/${snapshot.summary.targetUrlCount} indexed, ${snapshot.summary.missingUrlEvidenceCount} missing`);
   console.log(`Primary keyword rank evidence: ${snapshot.summary.rankedCount}/${snapshot.summary.primaryKeywordCount} ranked, ${snapshot.summary.missingKeywordEvidenceCount} missing`);
+  console.log(`Tracked keyword rank evidence: ${snapshot.summary.trackedRankedCount}/${snapshot.summary.trackedKeywordCount} ranked, ${snapshot.summary.trackedMissingKeywordEvidenceCount} missing`);
   console.log(`GEO answer evidence: ${snapshot.summary.geoPassCount}/${snapshot.summary.geoQueryCount} pass, ${snapshot.summary.missingGeoEvidenceCount} missing`);
 }
 
@@ -1960,6 +1998,7 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     '- Confirm `https://camps.wanli.wiki/sitemap.xml` in Baidu Search Resource Platform ordinary inclusion/sitemap tools.',
     '- Record measured Baidu platform data weekly: indexed URLs, crawl frequency, search impressions, clicks, and keyword positions for each cluster.',
     '- Use `npm run seo:rank-plan` to generate the Baidu keyword and GEO query tracking sheet before weekly checks.',
+    `- Use \`npm run seo:measurements:checklist\` when a CSV checklist is easier to fill or share; it writes ${MEASUREMENT_CHECKLIST_CSV_FILE}.`,
     '- For GEO, run this monitor after each content change and keep every target query backed by a visible HTML answer, FAQ/schema match, Markdown context, and `llms.txt` link.',
     ''
   ].join('\n');
@@ -2113,6 +2152,99 @@ function buildRankPlanReport({ generatedAt, config, urls }) {
   ].join('\n');
 }
 
+function csvEscape(value) {
+  const text = String(value ?? '');
+  if (/[",\n\r]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+  return text;
+}
+
+function buildMeasurementChecklistCsv({ config, urls }) {
+  const columns = [
+    'type',
+    'cluster',
+    'queryType',
+    'query',
+    'targetPage',
+    'markdownUrl',
+    'baiduCheckUrl',
+    'evidenceDate',
+    'indexed',
+    'rank',
+    'impressions',
+    'clicks',
+    'ctr',
+    'avgRank',
+    'crawlCount',
+    'mentionsProject',
+    'usesTargetPage',
+    'positioning',
+    'source',
+    'notes'
+  ];
+  const host = new URL(SITE_URL).host;
+  const rows = [];
+
+  for (const url of urls) {
+    const inclusionQuery = `site:${host} ${url}`;
+    rows.push({
+      type: 'URL_INDEX',
+      targetPage: url,
+      query: inclusionQuery,
+      baiduCheckUrl: baiduSearchUrl(inclusionQuery),
+      source: 'Baidu Search Resource Platform or reproducible site: result'
+    });
+    rows.push({
+      type: 'URL_METRIC',
+      targetPage: url,
+      source: 'Baidu Search Resource Platform'
+    });
+  }
+
+  for (const row of rankQueryRows(config)) {
+    rows.push({
+      type: 'KEYWORD_RANK',
+      cluster: row.cluster,
+      queryType: row.type,
+      query: row.query,
+      targetPage: row.pageUrl,
+      markdownUrl: row.markdownUrl,
+      baiduCheckUrl: row.searchUrl,
+      source: 'Baidu Search Resource Platform, compliant rank monitor, or manual result check'
+    });
+  }
+
+  for (const row of geoQueryRows(config)) {
+    rows.push({
+      type: 'GEO_ANSWER',
+      cluster: row.cluster,
+      queryType: 'ai-answer',
+      query: row.query,
+      targetPage: row.pageUrl,
+      markdownUrl: row.markdownUrl,
+      baiduCheckUrl: row.searchUrl,
+      positioning: 'unknown',
+      source: 'manual AI answer check'
+    });
+  }
+
+  return [
+    columns.join(','),
+    ...rows.map((row) => columns.map((column) => csvEscape(row[column] ?? '')).join(','))
+  ].join('\n') + '\n';
+}
+
+function measurementsChecklist() {
+  const config = readJson(KEYWORD_CONFIG_FILE);
+  const urls = urlsFromSitemap();
+  const csv = buildMeasurementChecklistCsv({ config, urls });
+  writeReport(MEASUREMENT_CHECKLIST_CSV_FILE, csv);
+  console.log(`Baidu measurement checklist: ${MEASUREMENT_CHECKLIST_CSV_FILE}`);
+  console.log(`Rows: ${csv.trim().split(/\r?\n/).length - 1}`);
+  console.log(`URL rows: ${urls.length * 2}`);
+  console.log(`Keyword rank rows: ${rankQueryRows(config).length}`);
+  console.log(`GEO answer rows: ${geoQueryRows(config).length}`);
+}
+
 function rankPlan() {
   const generatedAt = localTimestamp();
   const config = readJson(KEYWORD_CONFIG_FILE);
@@ -2124,7 +2256,9 @@ function rankPlan() {
   });
 
   writeReport(RANK_PLAN_REPORT_FILE, report);
+  writeReport(MEASUREMENT_CHECKLIST_CSV_FILE, buildMeasurementChecklistCsv({ config, urls }));
   console.log(`Baidu ranking/GEO tracking plan: ${RANK_PLAN_REPORT_FILE}`);
+  console.log(`Baidu measurement checklist: ${MEASUREMENT_CHECKLIST_CSV_FILE}`);
   console.log(`Keyword clusters: ${(config.clusters || []).length}`);
   console.log(`Tracked keyword checks: ${rankQueryRows(config).length}`);
   console.log(`Tracked GEO queries: ${geoQueryRows(config).length}`);
@@ -2261,6 +2395,8 @@ function usage() {
     '  evidence          Write measured Baidu index/rank/GEO evidence report',
     '  measurements-template',
     '                    Write a full private-measurement JSON template for all sitemap, keyword, and GEO targets',
+    '  measurements-checklist',
+    '                    Write a CSV checklist for Baidu index, rank, URL metric, and GEO answer checks',
     '  monitor           Write a Baidu SEO/GEO monitoring report',
     '  rank-plan         Write a Baidu ranking and GEO query tracking sheet',
     '  check             Validate homepage SEO files and tags',
@@ -2297,6 +2433,9 @@ async function main() {
       break;
     case 'measurements-template':
       measurementTemplate();
+      break;
+    case 'measurements-checklist':
+      measurementsChecklist();
       break;
     case 'monitor':
       await monitor();
