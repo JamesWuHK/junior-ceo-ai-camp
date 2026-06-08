@@ -2116,6 +2116,11 @@ button:disabled {
   gap: 12px;
 }
 
+.product-definition-panel {
+  display: grid;
+  gap: 12px;
+}
+
 .d1-artifacts-panel {
   display: grid;
   gap: 12px;
@@ -2189,6 +2194,17 @@ button:disabled {
 .d1-artifact-card.on-wall header button {
   background: #e9f5eb;
   color: #1f6f50;
+}
+
+.artifact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.artifact-actions button {
+  min-height: 40px;
 }
 
 .artifact-lines {
@@ -2535,6 +2551,26 @@ button:disabled {
   height: 18px;
   padding: 0;
   accent-color: #1f6f50;
+}
+
+.product-sentence-preview {
+  border: 1px solid #e5eadf;
+  border-radius: 8px;
+  background: #f7fbf2;
+  padding: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.product-sentence-preview span {
+  color: #1f6f50;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.product-sentence-preview strong {
+  color: #172018;
+  line-height: 1.45;
 }
 
 .feedback-card {
@@ -2943,6 +2979,10 @@ button:disabled {
   border-top-color: #78b7e8;
 }
 
+.wall-artifact-card.product {
+  border-top-color: #ef7d58;
+}
+
 .wall-artifact-card span {
   color: #1f6f50;
   font-size: 14px;
@@ -3331,6 +3371,14 @@ button:disabled {
 
   .d1-artifact-card header button {
     width: 100%;
+  }
+
+  .artifact-actions {
+    width: 100%;
+  }
+
+  .artifact-actions button {
+    flex: 1 1 150px;
   }
 
   .photo-qr-panel,

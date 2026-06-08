@@ -832,6 +832,12 @@ function isUserVoiceTask(camp: Camp | null) {
   return moduleId === "user-interview" || /采访|用户声音|真实反馈|三个好问题|绿灯黄灯红灯/.test(title);
 }
 
+function isProductDefinitionTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  return moduleId === "project-launch" || /产品一句话|产品定义|把线索变成产品一句话|产品卡片/.test(title);
+}
+
 function isPeerFeedbackTask(camp: Camp | null) {
   const title = activeTaskTitle(camp);
   const moduleId = camp?.active_task?.module_id || "";
@@ -1323,6 +1329,7 @@ function TeacherApp({
           <FuturePhotoReview refresh={refresh} />
         </section>
         <TeacherD1Artifacts />
+        <TeacherProductDefinitions />
         <TeacherProjectSubmissions />
         <TeacherPeerFeedback />
         <TeacherShowcase />
@@ -1432,6 +1439,120 @@ function TeacherD1Artifacts() {
           );
         })}
         {!items.length && <p className="empty">学生提交问题卡或用户声音后，会出现在这里。</p>}
+      </div>
+    </section>
+  );
+}
+
+function TeacherProductDefinitions() {
+  const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [message, setMessage] = useState("");
+  const [workingId, setWorkingId] = useState("");
+
+  const load = async () => {
+    try {
+      const result = await api.submissions();
+      setItems(result.task_submissions.filter((item) => item.task_type === "product_definition"));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const groupedCount = useMemo(
+    () => new Set(items.map((item) => item.team_id || item.student_id || item.id)).size,
+    [items]
+  );
+
+  const toggleWall = async (item: TaskSubmission) => {
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.setTaskSubmissionStatus(item.id, item.status === "ON_WALL" ? "SUBMITTED" : "ON_WALL");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "操作失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
+
+  const publishCard = async (item: TaskSubmission) => {
+    const productName = asText(item.payload.product_name).trim();
+    const oneLiner = asText(item.payload.one_liner).trim();
+    const targetUser = asText(item.payload.target_user).trim();
+    const coreProblem = asText(item.payload.core_problem).trim();
+    if (!productName) {
+      setMessage("这条提交缺少产品名。");
+      return;
+    }
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.publishShowcase({
+        id: `definition-${item.id}`,
+        team_id: item.team_id || undefined,
+        product_name: productName,
+        track: item.team_name || item.student_name || targetUser || undefined,
+        one_liner: oneLiner || (targetUser && coreProblem ? `${targetUser}：${coreProblem}` : undefined),
+        publish_status: "PUBLISHED"
+      });
+      setMessage("已生成产品卡，并放进展示区。");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
+
+  return (
+    <section className="panel product-definition-panel">
+      <div className="panel-title">
+        <Target size={20} />
+        <h2>D2 产品一句话</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{items.length} 条产品定义</span>
+        <span>{groupedCount} 个来源</span>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="d1-artifact-list">
+        {items.map((item) => {
+          const productName = asText(item.payload.product_name) || "未命名产品";
+          const oneLiner = asText(item.payload.one_liner);
+          return (
+            <article className={item.status === "ON_WALL" ? "d1-artifact-card on-wall" : "d1-artifact-card"} key={item.id}>
+              <header>
+                <div>
+                  <span>产品卡片</span>
+                  <strong>{productName}</strong>
+                  <small>{item.team_name || item.student_name || "学生提交"}</small>
+                </div>
+                <div className="artifact-actions">
+                  <button disabled={workingId === item.id} onClick={() => toggleWall(item)}>
+                    {item.status === "ON_WALL" ? "从大屏移开" : "放到大屏"}
+                  </button>
+                  <button disabled={workingId === item.id} onClick={() => publishCard(item)}>
+                    生成产品卡
+                  </button>
+                </div>
+              </header>
+              <div className="artifact-lines">
+                <p><strong>帮谁：</strong>{asText(item.payload.target_user) || "还没写"}</p>
+                <p><strong>问题：</strong>{asText(item.payload.core_problem) || "还没写"}</p>
+                <p><strong>办法：</strong>{asText(item.payload.solution) || "还没写"}</p>
+                <p><strong>一句话：</strong>{oneLiner || "还没生成"}</p>
+              </div>
+            </article>
+          );
+        })}
+        {!items.length && <p className="empty">学生提交产品一句话后，会出现在这里。</p>}
       </div>
     </section>
   );
@@ -3217,9 +3338,10 @@ function StudentApp({
   const taskTitle = camp?.active_task?.title || "未来照相馆";
   const problemTask = isProblemDiscoveryTask(camp);
   const userVoiceTask = isUserVoiceTask(camp);
+  const productDefinitionTask = isProductDefinitionTask(camp);
   const productLinkTask = isProductLinkTask(camp);
   const peerFeedbackTask = isPeerFeedbackTask(camp);
-  const textTask = problemTask || userVoiceTask || productLinkTask || peerFeedbackTask;
+  const textTask = problemTask || userVoiceTask || productDefinitionTask || productLinkTask || peerFeedbackTask;
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
@@ -3413,6 +3535,18 @@ function StudentApp({
   if (userVoiceTask) {
     return (
       <StudentUserVoiceTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (productDefinitionTask) {
+    return (
+      <StudentProductDefinitionTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -3785,6 +3919,146 @@ function StudentUserVoiceTask({
             提交
           </button>
           <p className="hint">真实声音会告诉我们：这个问题值不值得继续做。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentProductDefinitionTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [productName, setProductName] = useState("");
+  const [targetUser, setTargetUser] = useState("");
+  const [coreProblem, setCoreProblem] = useState("");
+  const [solution, setSolution] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+  const oneLiner = useMemo(() => {
+    if (!targetUser.trim() || !coreProblem.trim() || !solution.trim()) return "";
+    return `我们为${targetUser.trim()}，用${solution.trim()}，解决${coreProblem.trim()}。`;
+  }, [targetUser, coreProblem, solution]);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!productName.trim()) {
+      showMessage("error", "先给产品起一个名字。");
+      return;
+    }
+    if (!targetUser.trim()) {
+      showMessage("error", "写清楚这个产品帮谁。");
+      return;
+    }
+    if (!coreProblem.trim()) {
+      showMessage("error", "写清楚它解决什么问题。");
+      return;
+    }
+    if (!solution.trim()) {
+      showMessage("error", "写清楚你们准备用什么方式解决。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "product_definition",
+        title: taskTitle,
+        payload: {
+          product_name: productName.trim(),
+          target_user: targetUser.trim(),
+          core_problem: coreProblem.trim(),
+          solution: solution.trim(),
+          one_liner: oneLiner,
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。这句话可以变成你们的第一张产品卡。");
+      setProductName("");
+      setTargetUser("");
+      setCoreProblem("");
+      setSolution("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "写出产品一句话"}</h1>
+        <p>把小组想做的产品，说成别人一眼能懂的一句话。</p>
+        <div className="student-card d1-task-card">
+          <div className="student-current">
+            <div>
+              <span>产品小组</span>
+              <strong>{student.team_name || student.nickname}</strong>
+              <small>{student.student_no ? `${student.nickname} · 学号 ${student.student_no}` : student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            产品名
+            <input
+              value={productName}
+              onChange={(event) => setProductName(event.target.value)}
+              placeholder="例如：午餐选择器"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            这个产品帮谁
+            <input
+              value={targetUser}
+              onChange={(event) => setTargetUser(event.target.value)}
+              placeholder="例如：每天在食堂纠结的同学"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            解决什么问题
+            <textarea
+              value={coreProblem}
+              onChange={(event) => setCoreProblem(event.target.value)}
+              placeholder="例如：选择太多，不知道今天吃什么"
+              rows={3}
+            />
+          </label>
+          <label>
+            用什么方式解决
+            <textarea
+              value={solution}
+              onChange={(event) => setSolution(event.target.value)}
+              placeholder="例如：根据心情、排队时间和忌口推荐一个选择"
+              rows={3}
+            />
+          </label>
+          <div className="product-sentence-preview">
+            <span>产品一句话</span>
+            <strong>{oneLiner || "填完上面三格，这里会出现一句完整介绍。"}</strong>
+          </div>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <Target size={18} />}
+            提交
+          </button>
+          <p className="hint">先说清楚帮谁，再说怎么帮，产品就会更像真的。</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -4250,24 +4524,38 @@ function StudentLogin({ camp, onLoggedIn }: { camp: Camp | null; onLoggedIn: (st
 
 function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   if (!artifacts.length) return null;
+  const hasProduct = artifacts.some((item) => item.task_type === "product_definition");
   return (
     <section className="wall-artifacts">
       <div className="wall-section-title">
-        <span className="eyebrow">真实线索</span>
-        <h2>问题和用户声音</h2>
+        <span className="eyebrow">{hasProduct ? "产品卡片" : "真实线索"}</span>
+        <h2>{hasProduct ? "从问题到产品" : "问题和用户声音"}</h2>
       </div>
       <div className="wall-artifact-grid">
         {artifacts.map((item) => {
           const isProblem = item.task_type === "problem_card";
+          const isProduct = item.task_type === "product_definition";
           return (
-            <article className={isProblem ? "wall-artifact-card problem" : "wall-artifact-card voice"} key={item.id}>
-              <span>{isProblem ? "问题卡" : "用户声音"}</span>
+            <article
+              className={isProduct ? "wall-artifact-card product" : isProblem ? "wall-artifact-card problem" : "wall-artifact-card voice"}
+              key={item.id}
+            >
+              <span>{isProduct ? "产品卡" : isProblem ? "问题卡" : "用户声音"}</span>
               <strong>
-                {isProblem
+                {isProduct
+                  ? asText(item.payload.product_name) || "一个产品想法"
+                  : isProblem
                   ? asText(item.payload.problem_scene) || asText(item.payload.trouble) || "一个真实问题"
                   : asText(item.payload.interviewee) || "一次真实采访"}
               </strong>
-              {isProblem ? (
+              {isProduct ? (
+                <>
+                  <p><b>帮谁</b>{asText(item.payload.target_user) || "还没写"}</p>
+                  <p><b>问题</b>{asText(item.payload.core_problem) || "还没写"}</p>
+                  <p><b>办法</b>{asText(item.payload.solution) || "还没写"}</p>
+                  <p><b>一句话</b>{asText(item.payload.one_liner) || "还在打磨"}</p>
+                </>
+              ) : isProblem ? (
                 <>
                   <p><b>用户</b>{asText(item.payload.target_user) || "还没写"}</p>
                   <p><b>麻烦</b>{asText(item.payload.trouble) || "还没写"}</p>

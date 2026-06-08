@@ -418,7 +418,7 @@ function wallTaskArtifacts() {
        LEFT JOIN teams t ON t.id = ts.team_id
       WHERE ts.camp_id = ?
         AND ts.status = 'ON_WALL'
-        AND ts.task_type IN ('problem_card', 'user_voice')
+        AND ts.task_type IN ('problem_card', 'user_voice', 'product_definition')
       ORDER BY ts.updated_at DESC, ts.created_at DESC`,
     campId()
   ).map((artifact) => ({
