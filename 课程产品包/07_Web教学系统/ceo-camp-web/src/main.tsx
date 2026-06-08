@@ -1433,6 +1433,7 @@ function PublicShowcaseRoute() {
               journeyItemMatchesProject(journeyItem, productName, item.team_id, item.team_name)
             );
             const screenshot = asText(item.payload.screenshot_url) || asText(packagingItem?.payload.poster_url);
+            const recording = asText(item.payload.recording_url);
             const cardLine = asText(item.payload.value_line) || asText(packagingItem?.payload.slogan) || asText(storyItem?.payload.story_hook) || "这组作品正在整理介绍。";
             const projectHref = publicProjectUrl(item.id);
             return (
@@ -1440,6 +1441,8 @@ function PublicShowcaseRoute() {
                 <div className="public-final-shot">
                   {screenshot ? (
                     <img src={normalizeShowcaseUrl(screenshot)} alt={productName || "作品展示图"} />
+                  ) : recording ? (
+                    <video src={normalizeShowcaseUrl(recording)} controls preload="metadata" playsInline />
                   ) : (
                     <Trophy size={42} />
                   )}
@@ -1875,6 +1878,7 @@ function PublicProjectDetail({
   const teamId = finalItem?.team_id || showcaseItem?.team_id || null;
   const baseAccessUrl = asText(finalItem?.payload.access_url) || showcaseItem?.access_url || "";
   const baseScreenshot = asText(finalItem?.payload.screenshot_url) || showcaseItem?.screenshot_url || "";
+  const baseRecording = asText(finalItem?.payload.recording_url) || showcaseItem?.recording_url || "";
   const scoreSummary = scoreSummaries.find(matchesProject(projectId, finalItem, productName, teamId, teamName)) || null;
   const projectAwards = awardResults.filter((award) => awardMatchesProject(award, projectId, finalItem, productName, teamId));
   const allProjectJourneyItems = sortProjectJourney(
@@ -1885,6 +1889,7 @@ function PublicProjectDetail({
   const storyItem = allProjectJourneyItems.find((item) => item.task_type === "story_pitch") || null;
   const accessUrl = baseAccessUrl || asText(packagingItem?.payload.access_url);
   const screenshot = baseScreenshot || asText(packagingItem?.payload.poster_url);
+  const recording = baseRecording;
   const heroLine = asText(finalItem?.payload.value_line) || showcaseItem?.one_liner || asText(packagingItem?.payload.slogan) || "这是一组正在被真实用户检验的 AI 产品原型。";
   const targetUser = asText(finalItem?.payload.target_user) || asText(definitionItem?.payload.target_user) || asText(packagingItem?.payload.target_user) || "真实用户";
   const coreProblem = asText(finalItem?.payload.core_problem) || asText(definitionItem?.payload.core_problem) || asText(storyItem?.payload.user_scene) || "一个值得继续研究的问题";
@@ -1931,7 +1936,13 @@ function PublicProjectDetail({
 
       <section className="project-story-grid">
         <div className="project-shot">
-          {screenshot ? <img src={normalizeShowcaseUrl(screenshot)} alt={`${productName} 展示图`} /> : <Rocket size={54} />}
+          {recording ? (
+            <video src={normalizeShowcaseUrl(recording)} controls preload="metadata" playsInline />
+          ) : screenshot ? (
+            <img src={normalizeShowcaseUrl(screenshot)} alt={`${productName} 展示图`} />
+          ) : (
+            <Rocket size={54} />
+          )}
         </div>
         <article className="project-story-card">
           <span>项目故事</span>
@@ -3934,6 +3945,8 @@ function TeacherProjectSubmissions() {
       asText(packaging?.payload.slogan).trim();
     const screenshotKey = asText(item.payload.screenshot_key).trim() || asText(packaging?.payload.poster_key).trim();
     const screenshotUrl = asText(item.payload.screenshot_url).trim() || asText(packaging?.payload.poster_url).trim();
+    const recordingKey = asText(item.payload.recording_key).trim();
+    const recordingUrl = asText(item.payload.recording_url).trim();
     if (!productName || !accessUrl) {
       setMessage("这条提交缺少作品名或链接。");
       return;
@@ -3950,6 +3963,8 @@ function TeacherProjectSubmissions() {
         access_url: normalizeShowcaseUrl(accessUrl),
         screenshot_key: screenshotKey || undefined,
         screenshot_url: screenshotUrl ? normalizeShowcaseUrl(screenshotUrl) : undefined,
+        recording_key: recordingKey || undefined,
+        recording_url: recordingUrl ? normalizeShowcaseUrl(recordingUrl) : undefined,
         publish_status: "PUBLISHED"
       });
       setMessage("已放进展示区，产品问题线索已合并。");
@@ -3974,6 +3989,7 @@ function TeacherProjectSubmissions() {
           const oneLiner = asText(item.payload.one_liner);
           const accessUrl = asText(item.payload.access_url);
           const screenshot = asText(item.payload.screenshot_url);
+          const recording = asText(item.payload.recording_url);
           return (
             <article className="project-submission-row" key={item.id}>
               {screenshot && (
@@ -3981,10 +3997,16 @@ function TeacherProjectSubmissions() {
                   <img src={normalizeShowcaseUrl(screenshot)} alt={productName || "作品展示图"} />
                 </div>
               )}
+              {!screenshot && recording && (
+                <div className="project-submission-shot video">
+                  <Play size={28} />
+                </div>
+              )}
               <div>
                 <span>{item.team_name || item.student_name || "未分组"}</span>
                 <strong>{productName || "未命名作品"}</strong>
                 <p>{oneLiner || "还没有一句话介绍。"}</p>
+                {recording && <p className="project-submission-media">已准备演示视频</p>}
                 {accessUrl && (
                   <a href={normalizeShowcaseUrl(accessUrl)} target="_blank" rel="noreferrer">
                     <ExternalLink size={15} />
@@ -4531,6 +4553,8 @@ function TeacherFinalShowcase() {
     const story = latestTask(relatedItems.filter((candidate) => candidate.task_type === "story_pitch"));
     const screenshotKey = asText(item.payload.screenshot_key).trim() || asText(packaging?.payload.poster_key).trim();
     const screenshotUrl = asText(item.payload.screenshot_url).trim() || asText(packaging?.payload.poster_url).trim();
+    const recordingKey = asText(item.payload.recording_key).trim();
+    const recordingUrl = asText(item.payload.recording_url).trim();
     const oneLiner =
       valueLine ||
       asText(packaging?.payload.slogan).trim() ||
@@ -4551,6 +4575,8 @@ function TeacherFinalShowcase() {
         access_url: normalizeShowcaseUrl(accessUrl),
         screenshot_key: screenshotKey || undefined,
         screenshot_url: screenshotUrl ? normalizeShowcaseUrl(screenshotUrl) : undefined,
+        recording_key: recordingKey || undefined,
+        recording_url: recordingUrl ? normalizeShowcaseUrl(recordingUrl) : undefined,
         publish_status: "PUBLISHED"
       });
       setMessage("已生成公开作品卡，海报和故事线索已合并。");
@@ -5416,6 +5442,7 @@ function normalizeShowcaseUrl(value: string) {
 }
 
 type ClassroomImageAssetType = "product-screenshot" | "product-poster" | "final-showcase-screenshot";
+type ClassroomVideoAssetType = "product-recording" | "final-showcase-recording";
 
 function mediaObjectUrl(objectKey: string) {
   return `${API_BASE}/media/object?key=${encodeURIComponent(objectKey)}`;
@@ -5436,6 +5463,37 @@ async function uploadClassroomImage(file: File, assetType: ClassroomImageAssetTy
       body: file
     });
     if (!response.ok) throw new Error("图片没有传好，请重新选一次。");
+  }
+  await api.registerMediaAsset({
+    object_key: target.objectKey,
+    asset_type: assetType,
+    title: file.name
+  });
+  return {
+    objectKey: target.objectKey,
+    url: mediaObjectUrl(target.objectKey)
+  };
+}
+
+function isVideoFile(file: File) {
+  return file.type.startsWith("video/") || /\.(mp4|m4v|mov|webm)$/i.test(file.name);
+}
+
+async function uploadClassroomVideo(file: File, assetType: ClassroomVideoAssetType) {
+  if (!isVideoFile(file)) {
+    throw new Error("请选择一段视频。");
+  }
+  if (file.size > 80 * 1024 * 1024) {
+    throw new Error("这段视频有点大，请换一段小于 80MB 的视频。");
+  }
+  const target = await api.uploadToken(assetType, file.name);
+  if (target.provider !== "mock") {
+    const response = await fetch(target.uploadUrl, {
+      method: "PUT",
+      headers: target.headers,
+      body: file
+    });
+    if (!response.ok) throw new Error("视频没有传好，请重新选一次。");
   }
   await api.registerMediaAsset({
     object_key: target.objectKey,
@@ -5516,6 +5574,74 @@ function StudentImageUploadField({
   );
 }
 
+function StudentVideoUploadField({
+  label,
+  value,
+  objectKey,
+  assetType,
+  onChange,
+  onObjectKeyChange
+}: {
+  label: string;
+  value: string;
+  objectKey: string;
+  assetType: ClassroomVideoAssetType;
+  onChange: (value: string) => void;
+  onObjectKeyChange: (value: string) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const selectFile = async (file: File | null) => {
+    if (!file) return;
+    setUploading(true);
+    setMessage("");
+    try {
+      const result = await uploadClassroomVideo(file, assetType);
+      onChange(result.url);
+      onObjectKeyChange(result.objectKey);
+      setMessage("演示视频已准备好。");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "视频没有传好，请重新选一次。");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="student-upload-field">
+      <label>
+        {label}
+        <input
+          type="file"
+          accept="video/mp4,video/webm,video/quicktime,video/*"
+          disabled={uploading}
+          onChange={(event) => void selectFile(event.currentTarget.files?.[0] ?? null)}
+        />
+      </label>
+      <label>
+        或粘贴视频链接
+        <input
+          value={value}
+          onChange={(event) => {
+            onChange(event.target.value);
+            onObjectKeyChange("");
+          }}
+          placeholder="https://..."
+          inputMode="url"
+        />
+      </label>
+      {value && (
+        <div className="student-upload-preview video">
+          <video src={normalizeShowcaseUrl(value)} controls preload="metadata" playsInline />
+          <span>{objectKey ? "演示视频已准备好" : "已填写视频链接"}</span>
+        </div>
+      )}
+      {message && <p className={message.includes("准备好") ? "student-upload-message success" : "student-upload-message"}>{message}</p>}
+    </div>
+  );
+}
+
 function ShowcaseGallery({ items, variant = "panel" }: { items: ShowcaseItem[]; variant?: "panel" | "wall" }) {
   const visibleItems = items.filter((item) => item.publish_status === "PUBLISHED" || variant === "panel");
   const isWall = variant === "wall";
@@ -5524,11 +5650,14 @@ function ShowcaseGallery({ items, variant = "panel" }: { items: ShowcaseItem[]; 
       {visibleItems.map((item) => {
         const href = item.access_url ? normalizeShowcaseUrl(item.access_url) : "";
         const screenshot = item.screenshot_url ? normalizeShowcaseUrl(item.screenshot_url) : "";
+        const recording = item.recording_url ? normalizeShowcaseUrl(item.recording_url) : "";
         const card = (
           <article className="showcase-card">
             <div className="showcase-shot">
               {screenshot ? (
                 <img src={screenshot} alt={item.product_name} />
+              ) : recording ? (
+                <video src={recording} muted preload="metadata" playsInline />
               ) : (
                 <Package size={34} />
               )}
@@ -5580,6 +5709,7 @@ function TeacherShowcase() {
   const [oneLiner, setOneLiner] = useState("");
   const [accessUrl, setAccessUrl] = useState("");
   const [screenshotUrl, setScreenshotUrl] = useState("");
+  const [recordingUrl, setRecordingUrl] = useState("");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -5605,6 +5735,7 @@ function TeacherShowcase() {
     setOneLiner("");
     setAccessUrl("");
     setScreenshotUrl("");
+    setRecordingUrl("");
   };
 
   const editItem = (item: ShowcaseItem) => {
@@ -5615,6 +5746,7 @@ function TeacherShowcase() {
     setOneLiner(item.one_liner || "");
     setAccessUrl(item.access_url || "");
     setScreenshotUrl(item.screenshot_url || "");
+    setRecordingUrl(item.recording_url || "");
     setMessage("正在编辑这张作品卡。");
   };
 
@@ -5638,6 +5770,7 @@ function TeacherShowcase() {
         one_liner: oneLiner.trim() || undefined,
         access_url: normalizeShowcaseUrl(accessUrl),
         screenshot_url: screenshotUrl.trim() ? normalizeShowcaseUrl(screenshotUrl) : undefined,
+        recording_url: recordingUrl.trim() ? normalizeShowcaseUrl(recordingUrl) : undefined,
         publish_status: publishStatus
       });
       resetForm();
@@ -5663,6 +5796,8 @@ function TeacherShowcase() {
         access_url: item.access_url ? normalizeShowcaseUrl(item.access_url) : undefined,
         screenshot_key: item.screenshot_key || undefined,
         screenshot_url: item.screenshot_url ? normalizeShowcaseUrl(item.screenshot_url) : undefined,
+        recording_key: item.recording_key || undefined,
+        recording_url: item.recording_url ? normalizeShowcaseUrl(item.recording_url) : undefined,
         publish_status: publishStatus
       });
       setMessage(publishStatus === "PUBLISHED" ? "作品卡已放进展示区。" : "作品卡已撤回草稿。");
@@ -5694,6 +5829,7 @@ function TeacherShowcase() {
         <input value={oneLiner} onChange={(event) => setOneLiner(event.target.value)} placeholder="一句话介绍" />
         <input value={accessUrl} onChange={(event) => setAccessUrl(event.target.value)} placeholder="作品链接" />
         <input value={screenshotUrl} onChange={(event) => setScreenshotUrl(event.target.value)} placeholder="展示图链接" />
+        <input value={recordingUrl} onChange={(event) => setRecordingUrl(event.target.value)} placeholder="演示视频链接" />
         <div className="showcase-actions">
           <button className="secondary" disabled={saving} onClick={() => save("DRAFT")}>
             <ClipboardCheck size={16} />
@@ -9202,6 +9338,8 @@ function StudentFinalShowcaseTask({
   const [accessUrl, setAccessUrl] = useState("");
   const [screenshotUrl, setScreenshotUrl] = useState("");
   const [screenshotKey, setScreenshotKey] = useState("");
+  const [recordingUrl, setRecordingUrl] = useState("");
+  const [recordingKey, setRecordingKey] = useState("");
   const [valueLine, setValueLine] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
@@ -9250,6 +9388,8 @@ function StudentFinalShowcaseTask({
           access_url: normalizeShowcaseUrl(accessUrl),
           screenshot_key: screenshotKey,
           screenshot_url: screenshotUrl.trim() ? normalizeShowcaseUrl(screenshotUrl) : "",
+          recording_key: recordingKey,
+          recording_url: recordingUrl.trim() ? normalizeShowcaseUrl(recordingUrl) : "",
           value_line: valueLine.trim(),
           team_id: student.team_id || "",
           team_name: student.team_name || ""
@@ -9264,6 +9404,8 @@ function StudentFinalShowcaseTask({
       setAccessUrl("");
       setScreenshotUrl("");
       setScreenshotKey("");
+      setRecordingUrl("");
+      setRecordingKey("");
       setValueLine("");
       await refresh();
     } catch (err) {
@@ -9350,6 +9492,14 @@ function StudentFinalShowcaseTask({
             onChange={setScreenshotUrl}
             onObjectKeyChange={setScreenshotKey}
           />
+          <StudentVideoUploadField
+            label="上传演示视频（可选）"
+            value={recordingUrl}
+            objectKey={recordingKey}
+            assetType="final-showcase-recording"
+            onChange={setRecordingUrl}
+            onObjectKeyChange={setRecordingKey}
+          />
           <label>
             一句话价值
             <textarea
@@ -9389,6 +9539,8 @@ function StudentProductLinkTask({
   const [accessUrl, setAccessUrl] = useState("");
   const [screenshotUrl, setScreenshotUrl] = useState("");
   const [screenshotKey, setScreenshotKey] = useState("");
+  const [recordingUrl, setRecordingUrl] = useState("");
+  const [recordingKey, setRecordingKey] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
 
@@ -9417,6 +9569,8 @@ function StudentProductLinkTask({
           access_url: normalizeShowcaseUrl(accessUrl),
           screenshot_key: screenshotKey,
           screenshot_url: screenshotUrl.trim() ? normalizeShowcaseUrl(screenshotUrl) : "",
+          recording_key: recordingKey,
+          recording_url: recordingUrl.trim() ? normalizeShowcaseUrl(recordingUrl) : "",
           team_id: student.team_id || "",
           team_name: student.team_name || ""
         }
@@ -9424,6 +9578,8 @@ function StudentProductLinkTask({
       showMessage("success", "收到啦。老师会看到这张作品卡。");
       setScreenshotUrl("");
       setScreenshotKey("");
+      setRecordingUrl("");
+      setRecordingKey("");
       await refresh();
     } catch (err) {
       showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
@@ -9482,6 +9638,14 @@ function StudentProductLinkTask({
             assetType="product-screenshot"
             onChange={setScreenshotUrl}
             onObjectKeyChange={setScreenshotKey}
+          />
+          <StudentVideoUploadField
+            label="上传演示视频（可选）"
+            value={recordingUrl}
+            objectKey={recordingKey}
+            assetType="product-recording"
+            onChange={setRecordingUrl}
+            onObjectKeyChange={setRecordingKey}
           />
           <button className="submit-button" disabled={submitting} onClick={submit}>
             {submitting ? <Loader2 className="spin" size={18} /> : <ExternalLink size={18} />}
@@ -10938,6 +11102,7 @@ function FinalShowcaseRun({ artifacts }: { artifacts: WallArtifact[] }) {
   if (!active) return null;
   const href = asText(active.payload.access_url);
   const screenshot = asText(active.payload.screenshot_url);
+  const recording = asText(active.payload.recording_url);
   return (
     <section className="final-showcase-wall">
       <div className="wall-section-title">
@@ -10946,7 +11111,9 @@ function FinalShowcaseRun({ artifacts }: { artifacts: WallArtifact[] }) {
       </div>
       <article className="final-stage-card">
         <div className="final-stage-media">
-          {screenshot ? (
+          {recording ? (
+            <video src={normalizeShowcaseUrl(recording)} controls preload="metadata" playsInline />
+          ) : screenshot ? (
             <img src={normalizeShowcaseUrl(screenshot)} alt={asText(active.payload.product_name) || "作品展示图"} />
           ) : (
             <Trophy size={68} />

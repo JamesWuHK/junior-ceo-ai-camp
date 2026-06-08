@@ -35,7 +35,7 @@ const app = Fastify({
   bodyLimit: 20 * 1024 * 1024
 });
 
-const uploadBodyLimit = 20 * 1024 * 1024;
+const uploadBodyLimit = 80 * 1024 * 1024;
 recoverFuturePhotoJobs();
 scheduleFuturePhotoWorker();
 
@@ -53,6 +53,10 @@ type FuturePhotoJobRow = {
 };
 
 app.addContentTypeParser(/^image\/.+$/, { parseAs: "buffer", bodyLimit: uploadBodyLimit }, (_request, body, done) => {
+  done(null, body);
+});
+
+app.addContentTypeParser(/^video\/.+$/, { parseAs: "buffer", bodyLimit: uploadBodyLimit }, (_request, body, done) => {
   done(null, body);
 });
 
@@ -136,7 +140,9 @@ const scoreDimensions: ScoreDimension[] = [
 const classroomMediaAssetTypes = new Set([
   "product-screenshot",
   "product-poster",
-  "final-showcase-screenshot"
+  "final-showcase-screenshot",
+  "product-recording",
+  "final-showcase-recording"
 ]);
 
 function requireTeacher(request: { headers: Record<string, unknown> }): TeacherPrincipal | null {
@@ -284,7 +290,13 @@ function canReadWallObject(objectKey: string) {
          FROM media_assets
         WHERE camp_id = ?
           AND object_key = ?
-          AND asset_type IN ('product-screenshot', 'product-poster', 'final-showcase-screenshot')
+          AND asset_type IN (
+            'product-screenshot',
+            'product-poster',
+            'final-showcase-screenshot',
+            'product-recording',
+            'final-showcase-recording'
+          )
           AND display_permission IN ('CLASSROOM', 'PUBLIC')
         LIMIT 1`,
       [campId(), objectKey]
@@ -308,6 +320,9 @@ function contentTypeForObjectKey(objectKey: string) {
   if (extension === ".webp") return "image/webp";
   if (extension === ".heic") return "image/heic";
   if (extension === ".heif") return "image/heif";
+  if (extension === ".mp4" || extension === ".m4v") return "video/mp4";
+  if (extension === ".webm") return "video/webm";
+  if (extension === ".mov") return "video/quicktime";
   return "application/octet-stream";
 }
 
@@ -460,6 +475,10 @@ function showcaseItems(includeAll = false) {
     screenshot_url: item.screenshot_key
       ? `${config.publicApiBase}/media/object?key=${encodeURIComponent(String(item.screenshot_key))}`
       : item.screenshot_url ?? null,
+    recording_key: item.recording_key,
+    recording_url: item.recording_key
+      ? `${config.publicApiBase}/media/object?key=${encodeURIComponent(String(item.recording_key))}`
+      : item.recording_url ?? null,
     publish_status: item.publish_status,
     created_at: item.created_at,
     updated_at: item.updated_at
@@ -2292,14 +2311,18 @@ app.post("/publish/showcase", async (request, reply) => {
     access_url: body.access_url ? String(body.access_url) : null,
     screenshot_key: body.screenshot_key ? String(body.screenshot_key) : null,
     screenshot_url: body.screenshot_url ? String(body.screenshot_url) : null,
+    recording_key: body.recording_key ? String(body.recording_key) : null,
+    recording_url: body.recording_url ? String(body.recording_url) : null,
     publish_status: String(body.publish_status ?? "DRAFT"),
     updated_at: nowSql()
   };
   db.prepare(
     `INSERT INTO showcase_items
-      (id, camp_id, team_id, product_name, track, one_liner, access_url, screenshot_key, screenshot_url, publish_status, updated_at)
+      (id, camp_id, team_id, product_name, track, one_liner, access_url,
+       screenshot_key, screenshot_url, recording_key, recording_url, publish_status, updated_at)
      VALUES
-      (@id, @camp_id, @team_id, @product_name, @track, @one_liner, @access_url, @screenshot_key, @screenshot_url, @publish_status, @updated_at)
+      (@id, @camp_id, @team_id, @product_name, @track, @one_liner, @access_url,
+       @screenshot_key, @screenshot_url, @recording_key, @recording_url, @publish_status, @updated_at)
      ON CONFLICT(id) DO UPDATE SET
       team_id = excluded.team_id,
       product_name = excluded.product_name,
@@ -2308,6 +2331,8 @@ app.post("/publish/showcase", async (request, reply) => {
       access_url = excluded.access_url,
       screenshot_key = excluded.screenshot_key,
       screenshot_url = excluded.screenshot_url,
+      recording_key = excluded.recording_key,
+      recording_url = excluded.recording_url,
       publish_status = excluded.publish_status,
       updated_at = excluded.updated_at`
   ).run(record);

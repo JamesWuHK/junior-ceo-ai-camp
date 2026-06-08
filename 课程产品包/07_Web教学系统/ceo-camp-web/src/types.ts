@@ -100,6 +100,8 @@ export interface ShowcaseItem {
   access_url?: string | null;
   screenshot_key?: string | null;
   screenshot_url?: string | null;
+  recording_key?: string | null;
+  recording_url?: string | null;
   publish_status: "DRAFT" | "PUBLISHED" | string;
   created_at?: string;
   updated_at?: string;

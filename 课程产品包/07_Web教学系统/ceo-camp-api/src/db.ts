@@ -326,6 +326,8 @@ export function initializeDatabase() {
       access_url TEXT,
       screenshot_key TEXT,
       screenshot_url TEXT,
+      recording_key TEXT,
+      recording_url TEXT,
       publish_status TEXT NOT NULL DEFAULT 'DRAFT',
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -402,6 +404,8 @@ function migrateShowcaseItems() {
   const columns = db.prepare("PRAGMA table_info(showcase_items)").all() as { name: string }[];
   const hasColumn = (name: string) => columns.some((column) => column.name === name);
   if (!hasColumn("screenshot_url")) db.exec("ALTER TABLE showcase_items ADD COLUMN screenshot_url TEXT");
+  if (!hasColumn("recording_key")) db.exec("ALTER TABLE showcase_items ADD COLUMN recording_key TEXT");
+  if (!hasColumn("recording_url")) db.exec("ALTER TABLE showcase_items ADD COLUMN recording_url TEXT");
 }
 
 function seedDefaultCamp() {
