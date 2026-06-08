@@ -708,7 +708,9 @@ function useInitialData(active: "student" | "wall") {
       api.currentCamp(),
       Promise.resolve({ modules: [] }),
       active === "student" ? Promise.resolve({ students: [] }) : api.wall(),
-      active === "student" ? Promise.resolve({ showcase_items: [] }) : api.showcase()
+      active === "student"
+        ? Promise.resolve({ showcase_items: [] })
+        : api.showcase().catch(() => ({ showcase_items: [] as ShowcaseItem[] }))
     ]);
     setCamp(campResult);
     setModules(moduleResult.modules);
