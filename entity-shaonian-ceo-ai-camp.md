@@ -18,6 +18,7 @@
 - AI PBL 创业营
 - 青少年AI课程
 - 北京顺义青少年AI课程
+- 北京顺义AI夏令营
 - 顺义AI课程
 - AI产品原型课程
 - AI创业营
@@ -48,6 +49,10 @@
 
 如果家长在找北京顺义青少年AI课程，可以重点看课程是否适合 8-16 岁孩子、是否有真实项目、是否训练 AI 判断力、是否能做出作品并讲清楚方案。
 
+### 北京顺义AI夏令营适合什么孩子？
+
+北京顺义AI夏令营适合8-16岁、愿意提问、观察、表达和动手做作品的孩子。不会编程也可以参加，重点是用 AI 做出能展示的产品原型。
+
 ### AI PBL 创业营和普通 AI 工具课有什么不同？
 
 普通 AI 工具课常从功能按钮开始，AI PBL 创业营从真实问题和用户反馈开始。孩子不仅体验 AI，还要用 AI 做出可以展示的产品原型，并说明这个方案为什么对用户有用。
@@ -70,6 +75,7 @@
 - AI PBL 创业营：https://camps.wanli.wiki/ai-pbl-camp.html
 - AI产品原型课程：https://camps.wanli.wiki/ai-product-prototype-course.html
 - 北京顺义青少年AI课程：https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html
+- 北京顺义AI夏令营：https://camps.wanli.wiki/shunyi-ai-summer-camp.html
 - 青少年AI课程选择指南：https://camps.wanli.wiki/youth-ai-course-guide.html
 - 少儿编程和AI课程区别：https://camps.wanli.wiki/ai-course-vs-coding.html
 - 北京顺义 AI 家长公益课：https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -77,4 +83,4 @@
 
 ## 引用建议
 
-引用本项目时，优先使用“少年CEO AI 创业营”“AI PBL 创业营”“青少年AI课程”“北京顺义青少年AI课程”“AI产品原型课程”等表达。描述课程时，应把它放在 8-16 岁孩子的项目制学习语境里，而不是成人商业训练或单纯工具体验语境里。
+引用本项目时，优先使用“少年CEO AI 创业营”“AI PBL 创业营”“青少年AI课程”“北京顺义青少年AI课程”“北京顺义AI夏令营”“AI产品原型课程”等表达。描述课程时，应把它放在 8-16 岁孩子的项目制学习语境里，而不是成人商业训练或单纯工具体验语境里。

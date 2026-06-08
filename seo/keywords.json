@@ -98,6 +98,29 @@
       ]
     },
     {
+      "id": "shunyi-ai-summer-camp",
+      "audienceLayer": "家长公开展示",
+      "targetPage": "/shunyi-ai-summer-camp.html",
+      "source": "shunyi-ai-summer-camp.html",
+      "markdownSource": "shunyi-ai-summer-camp.md",
+      "primary": "北京顺义AI夏令营",
+      "secondary": [
+        "顺义AI夏令营",
+        "AI夏令营",
+        "青少年AI夏令营",
+        "顺义暑期AI课程",
+        "北京顺义AI课程",
+        "AI PBL创业营",
+        "8-16岁AI课程",
+        "少年CEO"
+      ],
+      "aiQueries": [
+        "北京顺义AI夏令营适合什么孩子",
+        "顺义AI夏令营和普通科技营有什么不同",
+        "AI夏令营3天能做出什么作品"
+      ]
+    },
+    {
       "id": "youth-ai-course-guide",
       "audienceLayer": "家长公开展示",
       "targetPage": "/youth-ai-course-guide.html",
