@@ -1658,9 +1658,10 @@ function journeyItemRank(item: WallArtifact) {
   const ranks: Record<string, number> = {
     problem_card: 1,
     user_voice: 2,
-    product_definition: 3,
-    product_feedback: 4,
-    mentor_comment: 5
+    ai_validation: 3,
+    product_definition: 4,
+    product_feedback: 5,
+    mentor_comment: 6
   };
   return ranks[item.task_type] ?? 9;
 }
@@ -1963,6 +1964,10 @@ function journeyCopy(item: WallArtifact) {
   if (item.task_type === "user_voice") {
     return [
       ["听到", asText(item.payload.quote)],
+      ["多久一次", asText(item.payload.frequency)],
+      ["现在办法", asText(item.payload.current_solution)],
+      ["愿意试用吗", asText(item.payload.willingness)],
+      ["判断", asText(item.payload.signal)],
       ["发现", asText(item.payload.finding)]
     ];
   }
@@ -2940,10 +2945,17 @@ function TeacherD1Artifacts() {
 
   const stats = useMemo(() => {
     const problemCount = items.filter((item) => item.task_type === "problem_card").length;
-    const voiceCount = items.filter((item) => item.task_type === "user_voice").length;
+    const voiceItems = items.filter((item) => item.task_type === "user_voice");
+    const voiceCount = voiceItems.length;
     const validationCount = items.filter((item) => item.task_type === "ai_validation").length;
     const teamCount = new Set(items.map((item) => item.team_id || item.student_id || item.id)).size;
-    return { problemCount, voiceCount, validationCount, teamCount };
+    const voiceByTeam = new Map<string, number>();
+    voiceItems.forEach((item) => {
+      const key = item.team_id || item.team_name || item.student_id || item.id;
+      voiceByTeam.set(key, (voiceByTeam.get(key) || 0) + 1);
+    });
+    const interviewReadyCount = Array.from(voiceByTeam.values()).filter((count) => count >= 3).length;
+    return { problemCount, voiceCount, validationCount, teamCount, interviewReadyCount };
   }, [items]);
 
   const toggleWall = async (item: TaskSubmission) => {
@@ -2991,6 +3003,7 @@ function TeacherD1Artifacts() {
       <div className="artifact-stats">
         <span>{stats.problemCount} 张问题卡</span>
         <span>{stats.voiceCount} 条用户声音</span>
+        <span>{stats.interviewReadyCount} 组采访达标</span>
         <span>{stats.validationCount} 张验证卡</span>
         <span>{stats.teamCount} 个来源</span>
         <span>{voteCount} 张投票</span>
@@ -3018,6 +3031,7 @@ function TeacherD1Artifacts() {
               className={[
                 "d1-artifact-card",
                 isValidation ? "validation" : "",
+                !isProblem && !isValidation ? "voice" : "",
                 item.status === "ON_WALL" ? "on-wall" : ""
               ].filter(Boolean).join(" ")}
               key={item.id}
@@ -3047,7 +3061,12 @@ function TeacherD1Artifacts() {
                 </div>
               ) : (
                 <div className="artifact-lines">
+                  <p><strong>遇到过吗：</strong>{asText(item.payload.has_problem) || "还没写"}</p>
+                  <p><strong>多久一次：</strong>{asText(item.payload.frequency) || "还没写"}</p>
+                  <p><strong>现在办法：</strong>{asText(item.payload.current_solution) || "还没写"}</p>
                   <p><strong>听到：</strong>{asText(item.payload.quote) || "还没写"}</p>
+                  <p><strong>愿意试用吗：</strong>{asText(item.payload.willingness) || "还没写"}</p>
+                  <p><strong>判断：</strong>{asText(item.payload.signal) || "还没写"}</p>
                   <p><strong>发现：</strong>{asText(item.payload.finding) || "还没写"}</p>
                 </div>
               )}
@@ -6334,10 +6353,18 @@ function StudentUserVoiceTask({
   onLogout: () => void;
 }) {
   const [interviewee, setInterviewee] = useState("");
+  const [hasProblem, setHasProblem] = useState("遇到过");
+  const [frequency, setFrequency] = useState("");
+  const [currentSolution, setCurrentSolution] = useState("");
+  const [willingness, setWillingness] = useState("愿意试用");
+  const [signal, setSignal] = useState("绿灯：继续调查");
   const [quote, setQuote] = useState("");
   const [finding, setFinding] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
+  const hasProblemChoices = ["遇到过", "偶尔遇到", "还没遇到"];
+  const willingnessChoices = ["愿意试用", "看情况", "暂时不想"];
+  const signalChoices = ["绿灯：继续调查", "黄灯：缩小问题", "红灯：换个角度"];
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
@@ -6352,6 +6379,14 @@ function StudentUserVoiceTask({
       showMessage("error", "记下一句对方的原话。");
       return;
     }
+    if (!frequency.trim()) {
+      showMessage("error", "问一问这个麻烦多久出现一次。");
+      return;
+    }
+    if (!currentSolution.trim()) {
+      showMessage("error", "再记下对方现在怎么解决。");
+      return;
+    }
     setSubmitting(true);
     setMessage(null);
     try {
@@ -6360,6 +6395,11 @@ function StudentUserVoiceTask({
         title: taskTitle,
         payload: {
           interviewee: interviewee.trim(),
+          has_problem: hasProblem,
+          frequency: frequency.trim(),
+          current_solution: currentSolution.trim(),
+          willingness,
+          signal,
           quote: quote.trim(),
           finding: finding.trim(),
           team_name: student.team_name || ""
@@ -6367,6 +6407,11 @@ function StudentUserVoiceTask({
       });
       showMessage("success", "收到啦。这条用户声音会帮你们判断问题是不是真的。");
       setInterviewee("");
+      setHasProblem("遇到过");
+      setFrequency("");
+      setCurrentSolution("");
+      setWillingness("愿意试用");
+      setSignal("绿灯：继续调查");
       setQuote("");
       setFinding("");
       await refresh();
@@ -6382,8 +6427,8 @@ function StudentUserVoiceTask({
       <section className="student-shell">
         <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
         <h1>{taskTitle || "记录一个真实声音"}</h1>
-        <p>问一个真实的人，记下一句原话，再写下你发现了什么。</p>
-        <div className="student-card d1-task-card">
+        <p>问一个真实的人，带回一句原话、一个频率和一个现在办法。</p>
+        <div className="student-card d1-task-card interview-card">
           <div className="student-current">
             <div>
               <span>采访员</span>
@@ -6401,6 +6446,39 @@ function StudentUserVoiceTask({
               inputMode="text"
             />
           </label>
+          <div className="student-choice-block">
+            <span>TA 遇到过这个麻烦吗</span>
+            <div className="student-option-row">
+              {hasProblemChoices.map((choice) => (
+                <button
+                  className={hasProblem === choice ? "student-option active" : "student-option"}
+                  key={choice}
+                  type="button"
+                  onClick={() => setHasProblem(choice)}
+                >
+                  {choice}
+                </button>
+              ))}
+            </div>
+          </div>
+          <label>
+            这个麻烦多久出现一次
+            <input
+              value={frequency}
+              onChange={(event) => setFrequency(event.target.value)}
+              placeholder="例如：每天一次、每周两三次、考试前最明显"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            TA 现在怎么解决
+            <textarea
+              value={currentSolution}
+              onChange={(event) => setCurrentSolution(event.target.value)}
+              placeholder="例如：先问同学，或者用纸记下来"
+              rows={2}
+            />
+          </label>
           <label>
             对方的一句原话
             <textarea
@@ -6410,12 +6488,42 @@ function StudentUserVoiceTask({
               rows={3}
             />
           </label>
+          <div className="student-choice-block">
+            <span>如果有一个小工具，TA 愿意试用吗</span>
+            <div className="student-option-row">
+              {willingnessChoices.map((choice) => (
+                <button
+                  className={willingness === choice ? "student-option active" : "student-option"}
+                  key={choice}
+                  type="button"
+                  onClick={() => setWillingness(choice)}
+                >
+                  {choice}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="student-choice-block">
+            <span>这条线索现在是什么灯</span>
+            <div className="student-option-row signal">
+              {signalChoices.map((choice) => (
+                <button
+                  className={signal === choice ? "student-option active" : "student-option"}
+                  key={choice}
+                  type="button"
+                  onClick={() => setSignal(choice)}
+                >
+                  {choice}
+                </button>
+              ))}
+            </div>
+          </div>
           <label>
             我发现
             <textarea
               value={finding}
               onChange={(event) => setFinding(event.target.value)}
-              placeholder="例如：这个麻烦发生得很频繁，而且会浪费时间"
+              placeholder="例如：这个问题值得继续做，因为发生频率高，对方也愿意试用"
               rows={3}
             />
           </label>
@@ -7992,7 +8100,11 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                 </>
               ) : (
                 <>
+                  <p><b>多久一次</b>{asText(item.payload.frequency) || "还没写"}</p>
+                  <p><b>现在办法</b>{asText(item.payload.current_solution) || "还没写"}</p>
                   <p><b>听到</b>{asText(item.payload.quote) || "还没写"}</p>
+                  <p><b>愿意试用吗</b>{asText(item.payload.willingness) || "还没写"}</p>
+                  <p><b>判断</b>{asText(item.payload.signal) || "还在整理"}</p>
                   <p><b>发现</b>{asText(item.payload.finding) || "还在整理"}</p>
                 </>
               )}
