@@ -843,6 +843,7 @@ function taskTypeForAction(action: string, page: DesignedLessonPage) {
   if (/五句提示词卡|改一版再试|对 AI 说：不对，再改/.test(page.title)) return "prompt_card";
   if (/功能先发散|只留下一个核心动作|最小可行产品|明天要做出的第一版/.test(page.title)) return "feature_scope";
   if (/选择今天能完成的路线|用户打开后第一步做什么|流程图检查/.test(page.title)) return "tech_route";
+  if (/反馈进作品|改出 V2/.test(page.title)) return "iteration_plan";
   if (action === "进入评分") return "score";
   if (action === "发起互动") return "interaction";
   if (action === "打开看板") return "board";
@@ -961,6 +962,17 @@ function isTechRouteTask(camp: Camp | null) {
   );
 }
 
+function isIterationPlanTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const activityType = camp?.active_task?.activity_type || "";
+  const payloadType = asText(camp?.active_task?.payload?.task_type);
+  return (
+    activityType === "iteration_plan" ||
+    payloadType === "iteration_plan" ||
+    /反馈进作品|改出 V2|迭代清单/.test(title)
+  );
+}
+
 function isProductDefinitionTask(camp: Camp | null) {
   const title = activeTaskTitle(camp);
   const moduleId = camp?.active_task?.module_id || "";
@@ -989,7 +1001,7 @@ function isGrowthReflectionTask(camp: Camp | null) {
 function isPeerFeedbackTask(camp: Camp | null) {
   const title = activeTaskTitle(camp);
   const moduleId = camp?.active_task?.module_id || "";
-  return /试玩|试用|互测|反馈进作品|改出 V2/.test(title) || moduleId === "user-testing";
+  return !isIterationPlanTask(camp) && (/先看别人怎么用|试玩|试用|互测/.test(title) || moduleId === "user-testing");
 }
 
 function isObserverScoreTask(camp: Camp | null) {
@@ -1728,7 +1740,8 @@ function journeyItemRank(item: WallArtifact) {
     feature_scope: 7,
     tech_route: 8,
     product_feedback: 9,
-    mentor_comment: 10
+    iteration_plan: 10,
+    mentor_comment: 11
   };
   return ranks[item.task_type] ?? 9;
 }
@@ -2008,6 +2021,7 @@ function journeyTitle(item: WallArtifact) {
   if (item.task_type === "feature_scope") return asText(item.payload.core_action) || "留下核心动作";
   if (item.task_type === "tech_route") return techRouteLabel(item.payload.route_choice);
   if (item.task_type === "product_feedback") return asText(item.payload.product_name) || "收到试用反馈";
+  if (item.task_type === "iteration_plan") return asText(item.payload.v2_plan) || asText(item.payload.product_name) || "写出下一版计划";
   if (item.task_type === "mentor_comment") return asText(item.payload.product_name) || "导师点评";
   return item.title || "项目记录";
 }
@@ -2023,6 +2037,7 @@ function journeyLabel(item: WallArtifact) {
     feature_scope: "核心动作",
     tech_route: "路线流程",
     product_feedback: "收到反馈",
+    iteration_plan: "迭代清单",
     mentor_comment: "导师点评"
   };
   return labels[item.task_type] || "项目记录";
@@ -2105,6 +2120,16 @@ function journeyCopy(item: WallArtifact) {
     return [
       ["有用的地方", asText(item.payload.most_useful)],
       ["下一版建议", asText(item.payload.suggestion)]
+    ];
+  }
+  if (item.task_type === "iteration_plan") {
+    return [
+      ["产品", asText(item.payload.product_name)],
+      ["必须改", iterationListSummary(item.payload.must_change_items, item.payload.must_change_summary)],
+      ["建议改", iterationListSummary(item.payload.should_change_items, item.payload.should_change_summary)],
+      ["暂不改", iterationListSummary(item.payload.later_items, item.payload.later_summary)],
+      ["V2 先改", asText(item.payload.v2_plan)],
+      ["再试一次", asText(item.payload.test_again)]
     ];
   }
   if (item.task_type === "mentor_comment") {
@@ -2490,6 +2515,7 @@ function TeacherApp({
         <TeacherTechRoutes />
         <TeacherProjectSubmissions />
         <TeacherPeerFeedback />
+        <TeacherIterationPlans />
         <TeacherFinalShowcase />
         <TeacherScoringCenter />
         <TeacherMentorComments />
@@ -2540,6 +2566,10 @@ function userFlowSummary(payload: Record<string, unknown>, limit = 5) {
   return steps.slice(0, limit).join(" → ") || asText(payload.user_flow_summary);
 }
 
+function iterationListSummary(value: unknown, fallback?: unknown, limit = 3) {
+  return asTextList(value).slice(0, limit).join(" / ") || asText(fallback);
+}
+
 function asNumber(value: unknown) {
   const numberValue = Number(value);
   return Number.isFinite(numberValue) ? numberValue : 0;
@@ -2574,6 +2604,7 @@ const progressMilestones = [
   { key: "tech_route", label: "路线流程", target: 1, unit: "张" },
   { key: "product_link", label: "作品入口", target: 1, unit: "个" },
   { key: "product_feedback", label: "互测反馈", target: 2, unit: "条" },
+  { key: "iteration_plan", label: "迭代清单", target: 1, unit: "张" },
   { key: "final_showcase", label: "展示卡", target: 1, unit: "张" }
 ] as const;
 
@@ -2864,6 +2895,7 @@ function nextSupportAction(
   if (firstMissing.key === "market_scout") return "先补一张侦察卡：AI 改写、用户声音、已有方案、继续验证。";
   if (firstMissing.key === "user_voice") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条用户声音，先补真实采访。`;
   if (firstMissing.key === "product_feedback") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条互测反馈，安排别组打开作品试用。`;
+  if (firstMissing.key === "iteration_plan") return "请小组把反馈分成必须改、建议改、暂不改，再定 V2 先改哪一处。";
   if (firstMissing.key === "product_link") return "先确认作品链接能打开，再准备上台展示。";
   if (firstMissing.key === "final_showcase") return "请小组把最终展示卡补齐。";
   if (firstMissing.key === "product_definition") return "先把产品一句话写清楚：帮谁、解决什么、怎么解决。";
@@ -2946,10 +2978,11 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
     const withPrompt = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "prompt_card")).length;
     const withFeatureScope = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "feature_scope")).length;
     const withTechRoute = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "tech_route")).length;
+    const withIteration = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "iteration_plan")).length;
     const interviewReady = teamSummaries.filter((item) => item.userVoiceCount >= 3).length;
     const feedbackReady = teamSummaries.filter((item) => item.feedbackCount >= 2).length;
     const needsSupport = teamSummaries.filter((item) => item.needsSupport).length;
-    return { activeBlockers, readyTeams, withScout, withProduct, withPrompt, withFeatureScope, withTechRoute, interviewReady, feedbackReady, needsSupport };
+    return { activeBlockers, readyTeams, withScout, withProduct, withPrompt, withFeatureScope, withTechRoute, withIteration, interviewReady, feedbackReady, needsSupport };
   }, [teamSummaries]);
 
   const toggleBlocker = async (item: TaskSubmission) => {
@@ -2981,6 +3014,7 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
         <span>{totals.withTechRoute} 组已有路线流程</span>
         <span>{totals.readyTeams} 组已有作品入口</span>
         <span>{totals.feedbackReady} 组收到互测反馈</span>
+        <span>{totals.withIteration} 组有迭代清单</span>
         <span>{totals.needsSupport} 组需要跟进</span>
         <span>{totals.activeBlockers} 个卡点待支援</span>
       </div>
@@ -3836,6 +3870,97 @@ function TeacherPeerFeedback() {
           );
         })}
         {!groups.length && <p className="empty">学生试玩后提交的反馈会出现在这里。</p>}
+      </div>
+    </section>
+  );
+}
+
+function TeacherIterationPlans() {
+  const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [message, setMessage] = useState("");
+  const [workingId, setWorkingId] = useState("");
+
+  const load = async () => {
+    try {
+      const result = await api.submissions();
+      setItems(result.task_submissions.filter((item) => item.task_type === "iteration_plan"));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const groupedCount = useMemo(
+    () => new Set(items.map((item) => item.team_id || item.student_id || item.id)).size,
+    [items]
+  );
+
+  const toggleWall = async (item: TaskSubmission) => {
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.setTaskSubmissionStatus(item.id, item.status === "ON_WALL" ? "SUBMITTED" : "ON_WALL");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "操作失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
+
+  return (
+    <section className="panel iteration-plan-panel">
+      <div className="panel-title">
+        <ClipboardCheck size={20} />
+        <h2>D2 迭代清单</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{items.length} 张迭代清单</span>
+        <span>{groupedCount} 个来源</span>
+        <span>{items.filter((item) => item.status === "ON_WALL").length} 张已上屏</span>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="d1-artifact-list">
+        {items.map((item) => {
+          const mustChange = iterationListSummary(item.payload.must_change_items, item.payload.must_change_summary);
+          const shouldChange = iterationListSummary(item.payload.should_change_items, item.payload.should_change_summary);
+          const later = iterationListSummary(item.payload.later_items, item.payload.later_summary);
+          return (
+            <article
+              className={[
+                "d1-artifact-card",
+                "iteration-plan",
+                item.status === "ON_WALL" ? "on-wall" : ""
+              ].filter(Boolean).join(" ")}
+              key={item.id}
+            >
+              <header>
+                <div>
+                  <span>迭代清单</span>
+                  <strong>{asText(item.payload.v2_plan) || asText(item.payload.product_name) || "下一版计划"}</strong>
+                  <small>{item.team_name || item.student_name || "学生提交"}</small>
+                </div>
+                <button disabled={workingId === item.id} onClick={() => toggleWall(item)}>
+                  {item.status === "ON_WALL" ? "从大屏移开" : "放到大屏"}
+                </button>
+              </header>
+              <div className="artifact-lines">
+                <p><strong>产品：</strong>{asText(item.payload.product_name) || "还没写"}</p>
+                <p><strong>必须改：</strong>{mustChange || "还没写"}</p>
+                <p><strong>建议改：</strong>{shouldChange || "还没写"}</p>
+                <p><strong>暂不改：</strong>{later || "还没写"}</p>
+                <p><strong>V2 先改：</strong>{asText(item.payload.v2_plan) || "还没写"}</p>
+                <p><strong>再试一次：</strong>{asText(item.payload.test_again) || "还没写"}</p>
+              </div>
+            </article>
+          );
+        })}
+        {!items.length && <p className="empty">学生提交迭代清单后，会出现在这里。</p>}
       </div>
     </section>
   );
@@ -6090,6 +6215,7 @@ function StudentApp({
   const promptCardTask = isPromptCardTask(camp);
   const featureScopeTask = isFeatureScopeTask(camp);
   const techRouteTask = isTechRouteTask(camp);
+  const iterationPlanTask = isIterationPlanTask(camp);
   const productDefinitionTask = isProductDefinitionTask(camp);
   const blockerTask = isBlockerTask(camp);
   const observerScoreTask = isObserverScoreTask(camp);
@@ -6106,6 +6232,7 @@ function StudentApp({
     promptCardTask ||
     featureScopeTask ||
     techRouteTask ||
+    iterationPlanTask ||
     productDefinitionTask ||
     blockerTask ||
     observerScoreTask ||
@@ -6378,6 +6505,18 @@ function StudentApp({
   if (techRouteTask) {
     return (
       <StudentTechRouteTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (iterationPlanTask) {
+    return (
+      <StudentIterationPlanTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -8766,6 +8905,180 @@ function StudentPeerFeedbackTask({
   );
 }
 
+function StudentIterationPlanTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [productName, setProductName] = useState("");
+  const [mustChange, setMustChange] = useState("");
+  const [shouldChange, setShouldChange] = useState("");
+  const [later, setLater] = useState("");
+  const [v2Plan, setV2Plan] = useState("");
+  const [testAgain, setTestAgain] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+  const mustChangeItems = useMemo(() => asTextList(mustChange), [mustChange]);
+  const shouldChangeItems = useMemo(() => asTextList(shouldChange), [shouldChange]);
+  const laterItems = useMemo(() => asTextList(later), [later]);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!productName.trim()) {
+      showMessage("error", "先写作品名。");
+      return;
+    }
+    if (!mustChangeItems.length) {
+      showMessage("error", "先写至少一条必须改的地方。");
+      return;
+    }
+    if (!shouldChangeItems.length) {
+      showMessage("error", "再写至少一条建议改的地方。");
+      return;
+    }
+    if (!laterItems.length) {
+      showMessage("error", "把现在先不改的想法也收起来。");
+      return;
+    }
+    if (!v2Plan.trim()) {
+      showMessage("error", "选出 V2 最先改的一处。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "iteration_plan",
+        title: taskTitle,
+        payload: {
+          product_name: productName.trim(),
+          must_change_items: mustChangeItems,
+          must_change_summary: mustChangeItems.join(" / "),
+          should_change_items: shouldChangeItems,
+          should_change_summary: shouldChangeItems.join(" / "),
+          later_items: laterItems,
+          later_summary: laterItems.join(" / "),
+          v2_plan: v2Plan.trim(),
+          test_again: testAgain.trim(),
+          team_id: student.team_id || "",
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。现在你们知道下一版先改哪里了。");
+      setProductName("");
+      setMustChange("");
+      setShouldChange("");
+      setLater("");
+      setV2Plan("");
+      setTestAgain("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "迭代清单"}</h1>
+        <p>把刚才听到的反馈分成三类，再决定 V2 先改哪一处。</p>
+        <div className="student-card iteration-plan-card">
+          <div className="student-current">
+            <div>
+              <span>产品小组</span>
+              <strong>{student.team_name || student.nickname}</strong>
+              <small>{student.student_no ? `${student.nickname} · 学号 ${student.student_no}` : student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            作品名
+            <input
+              value={productName}
+              onChange={(event) => setProductName(event.target.value)}
+              placeholder="例如：午餐选择器"
+              inputMode="text"
+            />
+          </label>
+          <div className="iteration-bucket-grid">
+            <label>
+              必须改
+              <textarea
+                value={mustChange}
+                onChange={(event) => setMustChange(event.target.value)}
+                placeholder={"例如：\n开始按钮不明显\n结果页看不出下一步"}
+                rows={5}
+              />
+            </label>
+            <label>
+              建议改
+              <textarea
+                value={shouldChange}
+                onChange={(event) => setShouldChange(event.target.value)}
+                placeholder={"例如：\n颜色可以更舒服\n说明文字再短一点"}
+                rows={5}
+              />
+            </label>
+            <label>
+              暂不改
+              <textarea
+                value={later}
+                onChange={(event) => setLater(event.target.value)}
+                placeholder={"例如：\n登录功能\n更多动画\n历史记录"}
+                rows={5}
+              />
+            </label>
+          </div>
+          <div className="iteration-bucket-preview" aria-label="迭代清单预览">
+            <span>必须改 {mustChangeItems.length} 条</span>
+            <span>建议改 {shouldChangeItems.length} 条</span>
+            <span>暂不改 {laterItems.length} 条</span>
+          </div>
+          <label>
+            V2 最先改的一处
+            <textarea
+              value={v2Plan}
+              onChange={(event) => setV2Plan(event.target.value)}
+              placeholder="例如：把开始按钮放到第一屏中间，文字改成“开始选择”"
+              rows={3}
+            />
+          </label>
+          <label>
+            再找谁试一次（可选）
+            <input
+              value={testAgain}
+              onChange={(event) => setTestAgain(event.target.value)}
+              placeholder="例如：请刚才试用过的第 3 组再打开一次"
+              inputMode="text"
+              enterKeyHint="done"
+            />
+          </label>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <ClipboardCheck size={18} />}
+            提交
+          </button>
+          <p className="hint">好的迭代不是全都改，而是先改最影响别人使用的一处。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
 function ScoreRating({
   value,
   onChange
@@ -9247,13 +9560,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   const hasPrompt = artifacts.some((item) => item.task_type === "prompt_card");
   const hasFeature = artifacts.some((item) => item.task_type === "feature_scope");
   const hasTech = artifacts.some((item) => item.task_type === "tech_route");
+  const hasIteration = artifacts.some((item) => item.task_type === "iteration_plan");
   const hasValidation = artifacts.some((item) => item.task_type === "ai_validation");
   const hasScout = artifacts.some((item) => item.task_type === "market_scout");
   return (
     <section className="wall-artifacts">
       <div className="wall-section-title">
-        <span className="eyebrow">{hasProduct ? "产品卡片" : hasTech ? "路线流程" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
-        <h2>{hasProduct ? "从问题到产品" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
+        <span className="eyebrow">{hasProduct ? "产品卡片" : hasIteration ? "迭代清单" : hasTech ? "路线流程" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
+        <h2>{hasProduct ? "从问题到产品" : hasIteration ? "把反馈改成下一版" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
       </div>
       <div className="wall-artifact-grid">
         {artifacts.map((item) => {
@@ -9264,11 +9578,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
           const isPrompt = item.task_type === "prompt_card";
           const isFeature = item.task_type === "feature_scope";
           const isTech = item.task_type === "tech_route";
+          const isIteration = item.task_type === "iteration_plan";
           return (
             <article
               className={
                 isProduct
                   ? "wall-artifact-card product"
+                  : isIteration
+                  ? "wall-artifact-card iteration-plan"
                   : isTech
                   ? "wall-artifact-card tech-route"
                   : isFeature
@@ -9285,10 +9602,12 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
               }
               key={item.id}
             >
-              <span>{isProduct ? "产品卡" : isTech ? "路线流程卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
+              <span>{isProduct ? "产品卡" : isIteration ? "迭代清单" : isTech ? "路线流程卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
               <strong>
                 {isProduct
                   ? asText(item.payload.product_name) || "一个产品想法"
+                  : isIteration
+                  ? asText(item.payload.v2_plan) || asText(item.payload.product_name) || "下一版计划"
                   : isTech
                   ? techRouteLabel(item.payload.route_choice)
                   : isFeature
@@ -9309,6 +9628,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                   <p><b>问题</b>{asText(item.payload.core_problem) || "还没写"}</p>
                   <p><b>办法</b>{asText(item.payload.solution) || "还没写"}</p>
                   <p><b>一句话</b>{asText(item.payload.one_liner) || "还在打磨"}</p>
+                </>
+              ) : isIteration ? (
+                <>
+                  <p><b>产品</b>{asText(item.payload.product_name) || "还没写"}</p>
+                  <p><b>必须改</b>{iterationListSummary(item.payload.must_change_items, item.payload.must_change_summary) || "还没写"}</p>
+                  <p><b>建议改</b>{iterationListSummary(item.payload.should_change_items, item.payload.should_change_summary) || "还没写"}</p>
+                  <p><b>暂不改</b>{iterationListSummary(item.payload.later_items, item.payload.later_summary) || "还没写"}</p>
+                  <p><b>再试一次</b>{asText(item.payload.test_again) || "还没写"}</p>
                 </>
               ) : isTech ? (
                 <>

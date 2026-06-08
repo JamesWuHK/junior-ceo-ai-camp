@@ -458,7 +458,7 @@ function wallTaskArtifacts(): TaskArtifact[] {
        LEFT JOIN teams t ON t.id = ts.team_id
       WHERE ts.camp_id = ?
         AND ts.status = 'ON_WALL'
-        AND ts.task_type IN ('problem_card', 'market_scout', 'user_voice', 'ai_validation', 'product_definition', 'prompt_card', 'feature_scope', 'tech_route', 'final_showcase')
+        AND ts.task_type IN ('problem_card', 'market_scout', 'user_voice', 'ai_validation', 'product_definition', 'prompt_card', 'feature_scope', 'tech_route', 'iteration_plan', 'final_showcase')
       ORDER BY ts.updated_at DESC, ts.created_at DESC`,
     campId()
   ).map((artifact): TaskArtifact => {
@@ -511,7 +511,7 @@ function projectJourneyItems() {
        LEFT JOIN teams t ON t.id = ts.team_id
       WHERE ts.camp_id = ?
         AND ts.status = 'ON_WALL'
-        AND ts.task_type IN ('problem_card', 'market_scout', 'user_voice', 'ai_validation', 'product_definition', 'prompt_card', 'feature_scope', 'tech_route', 'product_feedback', 'mentor_comment')
+        AND ts.task_type IN ('problem_card', 'market_scout', 'user_voice', 'ai_validation', 'product_definition', 'prompt_card', 'feature_scope', 'tech_route', 'product_feedback', 'iteration_plan', 'mentor_comment')
       ORDER BY ts.updated_at ASC, ts.created_at ASC`,
     campId()
   ).map((artifact): TaskArtifact => {
