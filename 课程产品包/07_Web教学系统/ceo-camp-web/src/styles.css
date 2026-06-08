@@ -453,6 +453,8 @@ button:disabled {
 
 .lesson-canvas {
   margin-top: 14px;
+  width: 100%;
+  max-width: 100%;
   min-height: 420px;
   border: 1px solid #e7e2d2;
   border-radius: 8px;
@@ -2294,6 +2296,16 @@ button:disabled {
   box-shadow: 0 0 0 2px rgba(239, 125, 88, 0.1);
 }
 
+.progress-team-card.watching {
+  border-color: #e5c266;
+  box-shadow: 0 0 0 2px rgba(229, 194, 102, 0.1);
+}
+
+.progress-team-card.ready {
+  border-color: #9ccb8c;
+  box-shadow: 0 0 0 2px rgba(156, 203, 140, 0.12);
+}
+
 .progress-team-card header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -2332,6 +2344,43 @@ button:disabled {
   color: #9b3d1c;
 }
 
+.progress-team-card.watching header em {
+  background: #fff6d8;
+  color: #7d5a10;
+}
+
+.progress-team-card.ready header em {
+  background: #edf6e8;
+  color: #1f6f50;
+}
+
+.progress-signal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.progress-signal-grid span {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #60705f;
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.progress-signal-grid b {
+  color: #172018;
+  font-size: 16px;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
 .progress-milestones {
   display: flex;
   flex-wrap: wrap;
@@ -2351,10 +2400,22 @@ button:disabled {
   gap: 4px;
 }
 
+.progress-milestones span.partial {
+  border-color: #f0d889;
+  background: #fff9e8;
+  color: #7d5a10;
+}
+
 .progress-milestones span.done {
   border-color: #cde4c5;
   background: #edf6e8;
   color: #1f6f50;
+}
+
+.progress-milestones small {
+  color: inherit;
+  font-size: 11px;
+  opacity: 0.75;
 }
 
 .progress-card-foot {
@@ -2373,6 +2434,13 @@ button:disabled {
   display: block;
   color: #172018;
   margin-bottom: 3px;
+}
+
+.next-support-action {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
 }
 
 .blocker-note {
@@ -4815,6 +4883,7 @@ button:disabled {
   .observer-code-form,
   .progress-board-grid,
   .progress-team-card header,
+  .progress-signal-grid,
   .blocker-note,
   .project-journey-card,
   .teacher-grid,

@@ -2318,12 +2318,12 @@ function sortByDisplayOrder<T extends TaskSubmission | WallArtifact>(items: T[])
 }
 
 const progressMilestones = [
-  { key: "problem_card", label: "问题卡" },
-  { key: "user_voice", label: "用户声音" },
-  { key: "product_definition", label: "产品一句话" },
-  { key: "product_link", label: "作品链接" },
-  { key: "product_feedback", label: "互测反馈" },
-  { key: "final_showcase", label: "展示卡" }
+  { key: "problem_card", label: "问题卡", target: 1, unit: "张" },
+  { key: "user_voice", label: "用户声音", target: 3, unit: "条" },
+  { key: "product_definition", label: "产品一句话", target: 1, unit: "条" },
+  { key: "product_link", label: "作品入口", target: 1, unit: "个" },
+  { key: "product_feedback", label: "互测反馈", target: 2, unit: "条" },
+  { key: "final_showcase", label: "展示卡", target: 1, unit: "张" }
 ] as const;
 
 const teamRoleLabels = ["采访", "产品", "AI", "展示"] as const;
@@ -2580,6 +2580,44 @@ function latestTask(items: TaskSubmission[]) {
   return [...items].sort((a, b) => taskUpdatedAt(b).localeCompare(taskUpdatedAt(a)))[0];
 }
 
+type ProgressMilestone = (typeof progressMilestones)[number];
+
+function milestoneCount(teamSubmissions: TaskSubmission[], milestone: ProgressMilestone) {
+  if (milestone.key === "product_link") {
+    return teamSubmissions.filter((item) =>
+      ["product_link", "final_showcase"].includes(item.task_type) && Boolean(asText(item.payload.access_url))
+    ).length;
+  }
+  return teamSubmissions.filter((item) => item.task_type === milestone.key).length;
+}
+
+function showcaseStatusLabel(status?: string) {
+  return showcaseStatusOptions.find((option) => option.value === status)?.label || "草稿";
+}
+
+function projectStatusLabel(status?: string) {
+  return projectStatusOptions.find((option) => option.value === status)?.label || "未开始";
+}
+
+function nextSupportAction(
+  milestoneStates: Array<ProgressMilestone & { count: number; done: boolean }>,
+  activeBlockers: TaskSubmission[],
+  team: Team
+) {
+  if (activeBlockers.length) {
+    const blocker = activeBlockers[0];
+    return `先去 ${team.table_no || team.group_no} 号桌看卡点：${asText(blocker.payload.where_stuck) || "请他们说清卡在哪里"}`;
+  }
+  const firstMissing = milestoneStates.find((milestone) => !milestone.done);
+  if (!firstMissing) return "可以安排彩排或进入作品秀顺序。";
+  if (firstMissing.key === "user_voice") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条用户声音，先补真实采访。`;
+  if (firstMissing.key === "product_feedback") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条互测反馈，安排别组打开作品试用。`;
+  if (firstMissing.key === "product_link") return "先确认作品链接能打开，再准备上台展示。";
+  if (firstMissing.key === "final_showcase") return "请小组把最终展示卡补齐。";
+  if (firstMissing.key === "product_definition") return "先把产品一句话写清楚：帮谁、解决什么、怎么解决。";
+  return "先补一张真实问题卡。";
+}
+
 function TeacherProgressBoard({ students }: { students: Student[] }) {
   const [teams, setTeams] = useState<Team[]>([]);
   const [submissions, setSubmissions] = useState<TaskSubmission[]>([]);
@@ -2606,29 +2644,41 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
     return teams.map((team) => {
       const teamMembers = students.filter((student) => student.team_id === team.id || student.team_name === team.name);
       const teamSubmissions = submissions.filter((item) => submissionMatchesTeam(item, team));
-      const done = progressMilestones.filter((milestone) => {
-        if (milestone.key === "product_link") {
-          return teamSubmissions.some((item) =>
-            ["product_link", "final_showcase"].includes(item.task_type) && Boolean(asText(item.payload.access_url))
-          );
-        }
-        return teamSubmissions.some((item) => item.task_type === milestone.key);
+      const milestoneStates = progressMilestones.map((milestone) => {
+        const count = milestoneCount(teamSubmissions, milestone);
+        return {
+          ...milestone,
+          count,
+          done: count >= milestone.target,
+          partial: count > 0 && count < milestone.target
+        };
       });
+      const done = milestoneStates.filter((milestone) => milestone.done);
       const blockers = teamSubmissions
         .filter((item) => item.task_type === "blocker_note")
         .sort((a, b) => taskUpdatedAt(b).localeCompare(taskUpdatedAt(a)));
       const activeBlockers = blockers.filter((item) => item.status !== "ON_WALL");
       const latest = latestTask(teamSubmissions.filter((item) => item.task_type !== "blocker_note"));
+      const userVoiceCount = milestoneStates.find((item) => item.key === "user_voice")?.count ?? 0;
+      const feedbackCount = milestoneStates.find((item) => item.key === "product_feedback")?.count ?? 0;
       const readyForDemo = done.some((item) => item.key === "product_link") || done.some((item) => item.key === "final_showcase");
+      const allDone = milestoneStates.every((item) => item.done);
+      const needsSupport = Boolean(activeBlockers.length || milestoneStates.some((item) => !item.done));
       return {
         team,
         members: teamMembers,
         submissions: teamSubmissions,
+        milestoneStates,
         done,
         blockers,
         activeBlockers,
         latest,
-        readyForDemo
+        userVoiceCount,
+        feedbackCount,
+        readyForDemo,
+        allDone,
+        needsSupport,
+        nextAction: nextSupportAction(milestoneStates, activeBlockers, team)
       };
     });
   }, [students, submissions, teams]);
@@ -2637,7 +2687,10 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
     const activeBlockers = teamSummaries.reduce((total, item) => total + item.activeBlockers.length, 0);
     const readyTeams = teamSummaries.filter((item) => item.readyForDemo).length;
     const withProduct = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "product_definition")).length;
-    return { activeBlockers, readyTeams, withProduct };
+    const interviewReady = teamSummaries.filter((item) => item.userVoiceCount >= 3).length;
+    const feedbackReady = teamSummaries.filter((item) => item.feedbackCount >= 2).length;
+    const needsSupport = teamSummaries.filter((item) => item.needsSupport).length;
+    return { activeBlockers, readyTeams, withProduct, interviewReady, feedbackReady, needsSupport };
   }, [teamSummaries]);
 
   const toggleBlocker = async (item: TaskSubmission) => {
@@ -2661,8 +2714,11 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
       </div>
       <div className="artifact-stats">
         <span>{teamSummaries.length} 个团队</span>
+        <span>{totals.interviewReady}/{teamSummaries.length} 组采访达标</span>
         <span>{totals.withProduct} 组已有产品一句话</span>
         <span>{totals.readyTeams} 组已有作品入口</span>
+        <span>{totals.feedbackReady} 组收到互测反馈</span>
+        <span>{totals.needsSupport} 组需要跟进</span>
         <span>{totals.activeBlockers} 个卡点待支援</span>
       </div>
       {message && <p className="hint">{message}</p>}
@@ -2670,9 +2726,14 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
         {teamSummaries.map((summary) => {
           const completion = `${summary.done.length}/${progressMilestones.length}`;
           const latestBlocker = summary.activeBlockers[0] || summary.blockers[0];
+          const cardClass = summary.activeBlockers.length
+            ? "progress-team-card needs-help"
+            : summary.allDone
+              ? "progress-team-card ready"
+              : "progress-team-card watching";
           return (
             <article
-              className={summary.activeBlockers.length ? "progress-team-card needs-help" : "progress-team-card"}
+              className={cardClass}
               key={summary.team.id}
             >
               <header>
@@ -2681,23 +2742,49 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
                   <strong>{summary.team.name}</strong>
                   <small>{summary.members.length} 名学生 · 完成 {completion}</small>
                 </div>
-                <em>{summary.activeBlockers.length ? "需要支援" : summary.readyForDemo ? "可演示" : "进行中"}</em>
+                <em>{summary.activeBlockers.length ? "需要支援" : summary.allDone ? "可彩排" : summary.readyForDemo ? "可演示" : "进行中"}</em>
               </header>
+              <div className="progress-signal-grid">
+                <span>
+                  <b>{summary.userVoiceCount}/3</b>
+                  用户声音
+                </span>
+                <span>
+                  <b>{summary.feedbackCount}/2</b>
+                  互测反馈
+                </span>
+                <span>
+                  <b>{summary.readyForDemo ? "有" : "缺"}</b>
+                  作品入口
+                </span>
+                <span>
+                  <b>{showcaseStatusLabel(summary.team.showcase_status)}</b>
+                  展示准备
+                </span>
+              </div>
               <div className="progress-milestones">
-                {progressMilestones.map((milestone) => {
-                  const active = summary.done.some((item) => item.key === milestone.key);
+                {summary.milestoneStates.map((milestone) => {
                   return (
-                    <span key={milestone.key} className={active ? "done" : ""}>
-                      {active && <CheckCircle2 size={13} />}
+                    <span key={milestone.key} className={milestone.done ? "done" : milestone.partial ? "partial" : ""}>
+                      {milestone.done && <CheckCircle2 size={13} />}
                       {milestone.label}
+                      <small>{milestone.count}/{milestone.target}{milestone.unit}</small>
                     </span>
                   );
                 })}
               </div>
               <div className="progress-card-foot">
                 <p>
+                  <b>现场阶段</b>
+                  {projectStatusLabel(summary.team.project_status)} · {showcaseStatusLabel(summary.team.showcase_status)}
+                </p>
+                <p>
                   <b>最近进展</b>
                   {summary.latest ? `${summary.latest.student_name || "学生"}提交了${summary.latest.title}` : "还没有提交记录"}
+                </p>
+                <p className="next-support-action">
+                  <b>下一步支援</b>
+                  {summary.nextAction}
                 </p>
                 {latestBlocker ? (
                   <div className={latestBlocker.status === "ON_WALL" ? "blocker-note resolved" : "blocker-note"}>
