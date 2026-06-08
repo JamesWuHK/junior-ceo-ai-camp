@@ -52,6 +52,28 @@
       ]
     },
     {
+      "id": "youth-ai-course-guide",
+      "audienceLayer": "家长公开展示",
+      "targetPage": "/youth-ai-course-guide.html",
+      "source": "youth-ai-course-guide.html",
+      "markdownSource": "youth-ai-course-guide.md",
+      "primary": "青少年AI课程",
+      "secondary": [
+        "儿童AI课程",
+        "AI课程怎么选",
+        "AI PBL创业营",
+        "北京顺义AI课程",
+        "AI产品原型课程",
+        "少年CEO",
+        "AI判断力"
+      ],
+      "aiQueries": [
+        "青少年AI课程怎么选",
+        "儿童AI课程只学工具够吗",
+        "AI PBL课程适合什么孩子"
+      ]
+    },
+    {
       "id": "shunyi-parent-class",
       "audienceLayer": "家长公开展示",
       "targetPage": "/shunyi-ai-parent-class.html",

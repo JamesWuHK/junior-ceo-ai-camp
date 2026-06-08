@@ -15,6 +15,7 @@ Status | Cluster | Page | Primary keyword | Primary locations | Secondary covera
 --- | --- | --- | --- | --- | --- | --- | --- | ---
 PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | yes | yes | n/a
 PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | ai-pbl-camp.md
+PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | youth-ai-course-guide.md
 PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | yes | yes | shunyi-ai-parent-class.md
 PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | yes | yes | partner-ai-pbl-camp.md
 
@@ -24,6 +25,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 
 - https://camps.wanli.wiki/
 - https://camps.wanli.wiki/ai-pbl-camp.html
+- https://camps.wanli.wiki/youth-ai-course-guide.html
 - https://camps.wanli.wiki/shunyi-ai-parent-class.html
 - https://camps.wanli.wiki/partner-ai-pbl-camp.html
 
@@ -65,6 +67,20 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Secondary matches measured: 7/7 (青少年AI课程, AI产品原型课程, 少年CEO, AI创业营, 8-16岁AI课程, PBL项目制学习, 提示词实践)
 - JSON-LD types measured: Course, FAQPage
 - AI query coverage targets: AI PBL 创业营适合什么孩子 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上
+- Status: PASS
+- Failures: none
+- Warnings: none
+
+### youth-ai-course-guide
+
+- Audience layer: 家长公开展示
+- Target page: https://camps.wanli.wiki/youth-ai-course-guide.html
+- Source: youth-ai-course-guide.html
+- Primary keyword: 青少年AI课程
+- Primary locations measured: title, description, keywords, h1, h2, body, jsonLd
+- Secondary matches measured: 7/7 (儿童AI课程, AI课程怎么选, AI PBL创业营, 北京顺义AI课程, AI产品原型课程, 少年CEO, AI判断力)
+- JSON-LD types measured: Article, FAQPage
+- AI query coverage targets: 青少年AI课程怎么选 | 儿童AI课程只学工具够吗 | AI PBL课程适合什么孩子
 - Status: PASS
 - Failures: none
 - Warnings: none
