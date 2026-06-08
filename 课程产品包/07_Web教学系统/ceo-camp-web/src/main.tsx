@@ -472,11 +472,11 @@ const statusText: Record<Student["display_status"], string> = {
 };
 
 const photoWallStatusText: Record<Student["display_status"], string> = {
-  WAITING: "等待进入",
-  GENERATING: "正在生成",
+  WAITING: "等你来拍",
+  GENERATING: "照片在路上",
   AWAITING_REVIEW: "即将亮相",
   ON_WALL: "已亮相",
-  SAVED_ONLY: "已保存"
+  SAVED_ONLY: "稍后再看"
 };
 
 function fallbackPagesFor(module: CourseModule): LessonPage[] {
@@ -687,12 +687,24 @@ function futurePhotoHint(item: FuturePhotoSubmission) {
   if (!item.review_note) return "";
   try {
     const note = JSON.parse(item.review_note) as { status?: string; message?: string };
-    if (note.status === "queued") return "已加入生成队列";
-    if (note.status === "failed") return "上游生成失败，可稍后重试";
+    if (note.status === "queued") return "正在排队生成";
+    if (note.status === "failed") return "生成服务暂时失败，可稍后重试";
   } catch {
     if (item.review_note.includes("FUTURE_PHOTO_DAILY_LIMIT_REACHED")) return "今日自动出图已达上限";
   }
   return "";
+}
+
+function futurePhotoStatusLabel(status: FuturePhotoSubmission["status"]) {
+  const labels: Record<FuturePhotoSubmission["status"], string> = {
+    SUBMITTED: "已提交",
+    GENERATING: "生成中",
+    AWAITING_REVIEW: "待确认",
+    APPROVED: "已上墙",
+    REJECTED: "未上墙",
+    SAVED_ONLY: "只保存"
+  };
+  return labels[status] ?? status;
 }
 
 function useInitialData(active: "student" | "wall") {
@@ -844,7 +856,7 @@ function TeacherRoute() {
   }, []);
 
   useEffect(() => {
-    if (authStatus === "authed" && data.error === "UNAUTHORIZED") {
+    if (authStatus === "authed" && (data.error === "UNAUTHORIZED" || data.error === "登录已过期，请重新进入。")) {
       clearTeacherToken();
       setTeacher(null);
       setAuthStatus("guest");
@@ -961,7 +973,7 @@ function TeacherApp({
         title: selectedModule.title,
         activity_type: "lesson"
       });
-      setActionMessage("已发布当前环节。");
+      setActionMessage("当前环节已发到学生端。");
       await refresh();
     } catch (err) {
       setActionMessage(err instanceof Error ? err.message : "发布失败");
@@ -983,7 +995,7 @@ function TeacherApp({
           summary: selectedPage.content_summary || selectedModule.subtitle || ""
         }
       });
-      setActionMessage(`已发布本页任务：${lessonPageTitle(selectedModule, selectedPage)}。`);
+      setActionMessage(`本页任务已发出：${lessonPageTitle(selectedModule, selectedPage)}。`);
       await refresh();
     } catch (err) {
       setActionMessage(err instanceof Error ? err.message : "发布失败");
@@ -1014,12 +1026,12 @@ function TeacherApp({
     if (!selectedPage) return;
     const minutes = timerMinutesForPage(selectedPage);
     setTimerSeconds(minutes * 60);
-    setActionMessage(`已启动 ${minutes} 分钟课堂计时。`);
+    setActionMessage(`${minutes} 分钟计时开始了。`);
   };
 
   const openWall = () => {
     window.open("/wall", "_blank", "noopener,noreferrer");
-    setActionMessage("已打开大屏页面。");
+    setActionMessage("大屏页面已打开。");
   };
 
   const handlePageAction = async (action: string) => {
@@ -1047,7 +1059,7 @@ function TeacherApp({
       <aside className="sidebar">
         <div className="brand">
           <span>{camp?.name || "少年CEO AI 创业营"}</span>
-          <small>{camp?.location || "北京顺义站"} · 教学总控</small>
+          <small>{camp?.location || "北京顺义站"} · 三天课程台</small>
         </div>
         <div className="day-switcher">
           {[1, 2, 3].map((day) => (
@@ -1092,7 +1104,7 @@ function TeacherApp({
         <section className="lesson-panel">
           <div className="lesson-title">
             <div>
-              <span className="eyebrow">当前课件</span>
+              <span className="eyebrow">正在讲的课件</span>
               <h1>{selectedModule?.title || "未来照相馆"}</h1>
               <p>{selectedModule?.subtitle}</p>
             </div>
@@ -1103,7 +1115,7 @@ function TeacherApp({
               </button>
               <button className="primary" onClick={publishCurrentModule}>
                 <Play size={18} />
-                发布当前环节
+                发到学生端
               </button>
             </div>
           </div>
@@ -1187,24 +1199,24 @@ function TeacherLessonControls({
   return (
     <section className="lesson-operator" aria-label="教师授课操作">
       <article className="operator-card">
-        <small>本页动作</small>
+        <small>这一页做什么</small>
         <strong>{teacherMoveForPage(page)}</strong>
         <span>{module.time_range || `D${module.day}`} · 第 {page.page_no} 页</span>
       </article>
       <article className="operator-card">
-        <small>看见的产出</small>
+        <small>下课前看到什么</small>
         <strong>{expectedOutputForPage(page)}</strong>
         <span>{page.content_summary || module.subtitle}</span>
       </article>
       <article className={timerSeconds ? "operator-card operator-timer running" : "operator-card operator-timer"}>
         <small>建议计时</small>
         <strong>{timerLabel}</strong>
-        <span>{timerSeconds ? "正在计时" : "按本页课堂动作估算"}</span>
+        <span>{timerSeconds ? "正在计时" : "按这一页估算"}</span>
       </article>
       <div className="operator-actions">
         <button className="primary" onClick={onPublishPage}>
           <Play size={16} />
-          发布本页任务
+          发本页任务
         </button>
         {quickActions.map((action) => (
           <button key={action} className="operator-action" onClick={() => onAction(action)}>
@@ -1251,8 +1263,6 @@ function TeacherLogin({
       <form className="teacher-login-card" onSubmit={login}>
         <span className="eyebrow">{camp?.location || "北京顺义站"}</span>
         <h1>教师端</h1>
-        <p>进入三天教学总控、课件演示、活动发起、大屏控制和后台管理。</p>
-        <p className="login-api-hint">当前 API：{API_BASE}</p>
         <label>
           教师账号
           <input
@@ -1282,7 +1292,7 @@ function TeacherLogin({
               setError("");
             }}
           >
-            填入本地教师账号
+            填入本地测试账号
           </button>
         )}
         <button className="primary" disabled={loading} type="submit">
@@ -1389,7 +1399,11 @@ function TeacherStudents({ students, refresh }: { students: Student[]; refresh: 
       const created = result.students[0];
       setNickname("");
       setAge("");
-      setMessage(created?.username ? `已加入大屏占位。学生账号：${created.username}` : "已加入大屏占位。");
+      setMessage(
+        created?.username
+          ? `名单已加入，照片墙会先显示名字。学生账号：${created.username}`
+          : "名单已加入，照片墙会先显示名字。"
+      );
       await Promise.all([loadStudents(), refresh()]);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "添加失败");
@@ -1445,7 +1459,7 @@ function TeacherStudents({ students, refresh }: { students: Student[]; refresh: 
             </button>
           </div>
         ))}
-        {!visibleStudents.length && <p className="empty">先录入学员，大屏会显示名字占位。</p>}
+        {!visibleStudents.length && <p className="empty">先加学员，照片墙会先出现他们的名字。</p>}
       </div>
     </section>
   );
@@ -1477,10 +1491,10 @@ function ShowcaseGallery({ items, variant = "panel" }: { items: ShowcaseItem[]; 
             <div>
               <span>{item.track || item.team_name || "作品卡"}</span>
               <strong>{item.product_name}</strong>
-              <p>{item.one_liner || "点开看看这个产品怎么帮助用户。"}</p>
+              <p>{item.one_liner || "点开看看它怎么帮到用户。"}</p>
             </div>
             <footer>
-              <small>{item.publish_status === "PUBLISHED" ? "已展示" : "准备中"}</small>
+              <small>{item.publish_status === "PUBLISHED" ? "展示中" : "待展示"}</small>
               {href && (
                 <span>
                   <ExternalLink size={16} />
@@ -1504,7 +1518,7 @@ function ShowcaseGallery({ items, variant = "panel" }: { items: ShowcaseItem[]; 
         <article className="showcase-empty">
           <Package size={34} />
           <strong>作品卡会出现在这里</strong>
-          <span>产品部署好以后，卡片可以跳转到作品链接。</span>
+          <span>作品准备好后，会变成可以点开的卡片。</span>
         </article>
       )}
     </div>
@@ -1552,7 +1566,7 @@ function TeacherShowcase() {
       setTrack("");
       setOneLiner("");
       setAccessUrl("");
-      setMessage("作品卡已加入展示区。");
+      setMessage("作品卡已放进展示区。");
       await load();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "保存失败");
@@ -1606,7 +1620,7 @@ function FuturePhotoReview({ refresh }: { refresh: () => Promise<void> }) {
     try {
       if (action === "generate") {
         await api.markGenerated(item.id);
-        setMessage("已加入生成队列，生成完成后会进入审核。");
+        setMessage("已开始生成，完成后会等老师确认。");
       } else {
         await api.reviewFuturePhoto(item.id, action);
       }
@@ -1631,25 +1645,25 @@ function FuturePhotoReview({ refresh }: { refresh: () => Promise<void> }) {
             <div>
               <strong>{item.student_name}</strong>
               <span>{item.career_text}</span>
-              <small>{item.status}</small>
+              <small>{futurePhotoStatusLabel(item.status)}</small>
               {futurePhotoHint(item) && <small>{futurePhotoHint(item)}</small>}
             </div>
             <div className="review-actions">
               {(item.status === "GENERATING" || item.status === "SUBMITTED") && (
                 <button disabled={loading} onClick={() => act(item, "generate")}>
-                  {loading ? "处理中" : "加入生成队列"}
+                  {loading ? "处理中" : "开始生成"}
                 </button>
               )}
               {item.status === "AWAITING_REVIEW" && (
                 <>
-                  <button disabled={loading} onClick={() => act(item, "approve")}>上墙</button>
+                  <button disabled={loading} onClick={() => act(item, "approve")}>点亮照片墙</button>
                   <button disabled={loading} onClick={() => act(item, "save-only")}>只保存</button>
                 </>
               )}
             </div>
           </article>
         ))}
-        {!items.length && <p className="empty">学生提交后会出现在这里。</p>}
+        {!items.length && <p className="empty">学生提交后，这里会出现待处理照片。</p>}
       </div>
     </section>
   );
@@ -1771,7 +1785,7 @@ function specialCardsForPage(page: DesignedLessonPage): LessonCard[] | null {
       { title: "再提要求", text: "把修改要求说得更清楚" }
     ],
     "作品可以有很多样子": [
-      { title: "多种形态", text: "工具、游戏、问答、生成器都可以" },
+      { title: "不只一种样子", text: "工具、游戏、问答、生成器都可以" },
       { title: "浏览器能打开", text: "别人点开链接就能体验" },
       { title: "放进作品卡", text: "卡片展示名字、截图和入口" }
     ],
@@ -1787,7 +1801,7 @@ function specialCardsForPage(page: DesignedLessonPage): LessonCard[] | null {
       { title: "为什么值得", text: "它帮别人少烦了什么" }
     ],
     "别人愿意交换，是因为真的有用": [
-      { title: "星星币", text: "我愿意为它付出一点资源" },
+      { title: "星星币", text: "我愿意为它花一点星星币" },
       { title: "时间", text: "我愿意花时间继续使用" },
       { title: "推荐", text: "我愿意告诉别人来试试" }
     ],
@@ -2025,12 +2039,12 @@ function LessonArtifact({
       <div className="timeline-artifact artifact-revise">
         <article>
           <small>第一版</small>
-          <strong>哪里还不像给真实用户用？</strong>
+          <strong>哪里还不够好用？</strong>
         </article>
         <span>再改</span>
         <article>
           <small>第二版</small>
-          <strong>更清楚，更贴近证据</strong>
+          <strong>更清楚，更贴近真实反馈</strong>
         </article>
       </div>
     );
@@ -2116,7 +2130,7 @@ function LessonArtifact({
   if (kind === "pricing-ticket") {
     return (
       <div className="timeline-artifact artifact-ticket">
-        <header>价值票据</header>
+        <header>价值小票</header>
         {["谁会用", "付出什么", "为什么值得"].map((item) => (
           <article key={item}>
             <strong>{item}</strong>
@@ -2547,7 +2561,7 @@ function CoursePhotoWall({
       {!students.length && (
         <article className="wall-empty">
           <CheckCircle2 size={42} />
-          名单准备好后，这里会显示每位同学的位置。
+          同学名单准备好后，这里会先亮起名字。
         </article>
       )}
     </section>
@@ -2690,7 +2704,7 @@ function StudentApp({
         headers: target.headers,
         body: file
       });
-      if (!uploadResponse.ok) throw new Error("照片保存失败，请重试");
+      if (!uploadResponse.ok) throw new Error("照片没传好，请再试一次。");
     }
     setPhotoKey(target.objectKey);
   };
@@ -2711,13 +2725,13 @@ function StudentApp({
         career_source: "choice",
         source_photo_key: photoKey
       });
-      setResult("已提交。照片生成后，老师看过就会点亮照片墙。");
+      setResult("收到啦。未来照片正在路上，老师看过后会点亮照片墙。");
       await refresh();
       const me = await api.studentMe();
       setStudent(me.student);
       setStudentToken(window.localStorage.getItem("ceo_camp_student_token") || "", me.student);
     } catch (err) {
-      setResult(err instanceof Error ? err.message : "提交失败，请找老师帮忙。");
+      setResult(err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
     } finally {
       setSubmitting(false);
     }
@@ -2733,7 +2747,7 @@ function StudentApp({
     return (
       <main className="loading-screen">
         <Loader2 className="spin" />
-        <span>正在进入学生端</span>
+        <span>正在进入课堂任务</span>
       </main>
     );
   }
@@ -2750,11 +2764,11 @@ function StudentApp({
       <section className="student-shell">
         <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
         <h1>{taskTitle}</h1>
-        <p>上传照片，告诉未来照相馆：你理想的未来职业是？</p>
+        <p>先上传照片，再告诉未来照相馆：你理想的未来职业是？</p>
         <div className="student-card">
           <div className="student-current">
             <div>
-              <span>当前同学</span>
+              <span>今天的你</span>
               <strong>{student.nickname}</strong>
               <small>{student.student_no ? `学号 ${student.student_no}` : student.username}</small>
             </div>
@@ -2777,14 +2791,14 @@ function StudentApp({
           </div>
           <button className="voice-button" onClick={() => setCareer("我长大想成为动物医生")}>
             <Mic size={18} />
-            按住说出你的理想职业
+            说出你理想中的未来职业
           </button>
           <p className="hint">例如：我长大想成为动物医生</p>
           <button className="submit-button" disabled={submitting} onClick={submit}>
             {submitting ? <Loader2 className="spin" size={18} /> : <Sparkles size={18} />}
             提交
           </button>
-          <p className="hint">提交后先生成照片，老师看过后会点亮照片墙。</p>
+          <p className="hint">提交后，未来照片会先被画出来；老师看过后，照片墙就会亮。</p>
           {result && <p className="success">{result}</p>}
         </div>
       </section>
@@ -2818,8 +2832,8 @@ function StudentLogin({ camp, onLoggedIn }: { camp: Camp | null; onLoggedIn: (st
     <main className="student-page">
       <section className="student-shell student-login-shell">
         <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
-        <h1>学生端</h1>
-        <p>登录后进入当前课堂任务。</p>
+        <h1>进入课堂任务</h1>
+        <p>输入老师给你的账号，就能打开今天的任务。</p>
         <form className="student-card student-login-card" onSubmit={login}>
           <label>
             学生账号
@@ -2842,7 +2856,7 @@ function StudentLogin({ camp, onLoggedIn }: { camp: Camp | null; onLoggedIn: (st
           </label>
           <button className="submit-button" disabled={loading} type="submit">
             {loading ? <Loader2 className="spin" size={18} /> : <Sparkles size={18} />}
-            进入学生端
+            进入课堂任务
           </button>
           {error && <p className="error">{error}</p>}
         </form>
@@ -2871,14 +2885,14 @@ function WallApp({
         </div>
         <div className="wall-clock">
           <Clock3 size={20} />
-          实时更新
+          正在亮起
         </div>
       </header>
       <CoursePhotoWall students={students} variant="wall" onOpenPhoto={setSelectedPhoto} />
       <section className="wall-showcase">
         <div className="wall-section-title">
           <span className="eyebrow">作品发布会</span>
-          <h2>可以点开的产品卡</h2>
+          <h2>点开就能体验的产品卡</h2>
         </div>
         <ShowcaseGallery items={showcaseItems} variant="wall" />
       </section>

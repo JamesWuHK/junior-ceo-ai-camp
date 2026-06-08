@@ -44,12 +44,27 @@ function studentHeaders(auth = false) {
   return base;
 }
 
+function friendlyErrorMessage(raw: unknown, status: number) {
+  const text = String(raw || `HTTP ${status}`);
+  if (text === "INVALID_CREDENTIALS") return "账号或密码不对，请再试一次。";
+  if (text === "UNAUTHORIZED") return "登录已过期，请重新进入。";
+  if (text === "SOURCE_PHOTO_REQUIRED") return "先上传照片，再提交。";
+  if (text === "INVALID_UPLOAD_KEY" || text === "INVALID_UPLOAD_BODY") return "照片没有传好，请重新选择一次。";
+  if (text === "QINGYUN_MODEL_NOT_CONFIGURED") return "出图服务还没准备好，请联系现场老师。";
+  if (text === "FUTURE_PHOTO_QUEUE_FAILED") return "未来照片暂时没有开始生成，请稍后再试。";
+  if (text.startsWith("FUTURE_PHOTO_DAILY_LIMIT_REACHED")) {
+    return "今天的自动出图次数用完了，请老师帮忙处理。";
+  }
+  if (/^HTTP \d+/.test(text)) return `连接不太顺畅（${text}），请稍后再试。`;
+  return text;
+}
+
 async function request<T>(path: string, options: RequestInit = {}) {
   const response = await fetch(`${API_BASE}${path}`, options);
   const text = await response.text();
   const data = text ? JSON.parse(text) : {};
   if (!response.ok) {
-    throw new Error(data?.message || data?.error || `HTTP ${response.status}`);
+    throw new Error(friendlyErrorMessage(data?.message || data?.error, response.status));
   }
   return data as T;
 }
