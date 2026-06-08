@@ -1622,7 +1622,8 @@ function journeyItemRank(item: WallArtifact) {
     problem_card: 1,
     user_voice: 2,
     product_definition: 3,
-    product_feedback: 4
+    product_feedback: 4,
+    mentor_comment: 5
   };
   return ranks[item.task_type] ?? 9;
 }
@@ -1684,9 +1685,11 @@ function PublicProjectDetail({
   const screenshot = asText(finalItem?.payload.screenshot_url) || showcaseItem?.screenshot_url || "";
   const scoreSummary = scoreSummaries.find(matchesProject(projectId, finalItem, productName, teamId, teamName)) || null;
   const projectAwards = awardResults.filter((award) => awardMatchesProject(award, projectId, finalItem, productName, teamId));
-  const projectJourneyItems = sortProjectJourney(
+  const allProjectJourneyItems = sortProjectJourney(
     projectJourney.filter((item) => journeyItemMatchesProject(item, productName, teamId, teamName))
   );
+  const mentorComments = allProjectJourneyItems.filter((item) => item.task_type === "mentor_comment");
+  const projectJourneyItems = allProjectJourneyItems.filter((item) => item.task_type !== "mentor_comment");
   const projectGrowthReflections = growthReflections.filter((reflection) => {
     const reflectionTeamId = reflection.team_id || asText(reflection.payload.team_id);
     const reflectionTeamName = reflection.team_name || asText(reflection.payload.team_name);
@@ -1773,6 +1776,14 @@ function PublicProjectDetail({
 
       <section className="project-section">
         <div className="public-section-title">
+          <span>导师点评</span>
+          <h2>被看见的作品亮点</h2>
+        </div>
+        <MentorCommentGallery comments={mentorComments} />
+      </section>
+
+      <section className="project-section">
+        <div className="public-section-title">
           <span>证书卡</span>
           <h2>每个人的贡献</h2>
         </div>
@@ -1810,6 +1821,32 @@ function PublicProjectDetail({
         <AwardGallery awards={projectAwards} />
       </section>
     </main>
+  );
+}
+
+function MentorCommentGallery({ comments }: { comments: WallArtifact[] }) {
+  if (!comments.length) {
+    return (
+      <article className="public-empty mentor-empty">
+        <MessageSquareText size={34} />
+        <strong>导师点评会出现在这里</strong>
+        <span>老师写下作品亮点和下一版建议后，这里会慢慢点亮。</span>
+      </article>
+    );
+  }
+
+  return (
+    <div className="mentor-comment-grid">
+      {comments.map((comment) => (
+        <article className="mentor-comment-card" key={comment.id}>
+          <span>{asText(comment.payload.mentor_name) || "主讲老师"}</span>
+          <strong>{asText(comment.payload.comment) || "这组作品有清楚的用户线索。"}</strong>
+          {asText(comment.payload.next_step) && (
+            <p><b>下一版建议</b>{asText(comment.payload.next_step)}</p>
+          )}
+        </article>
+      ))}
+    </div>
   );
 }
 
@@ -1861,6 +1898,7 @@ function journeyTitle(item: WallArtifact) {
   if (item.task_type === "user_voice") return asText(item.payload.interviewee) || "听见一位用户";
   if (item.task_type === "product_definition") return asText(item.payload.product_name) || "写出产品一句话";
   if (item.task_type === "product_feedback") return asText(item.payload.product_name) || "收到试用反馈";
+  if (item.task_type === "mentor_comment") return asText(item.payload.product_name) || "导师点评";
   return item.title || "项目记录";
 }
 
@@ -1869,7 +1907,8 @@ function journeyLabel(item: WallArtifact) {
     problem_card: "发现问题",
     user_voice: "听见用户",
     product_definition: "产品一句话",
-    product_feedback: "收到反馈"
+    product_feedback: "收到反馈",
+    mentor_comment: "导师点评"
   };
   return labels[item.task_type] || "项目记录";
 }
@@ -1900,6 +1939,13 @@ function journeyCopy(item: WallArtifact) {
     return [
       ["有用的地方", asText(item.payload.most_useful)],
       ["下一版建议", asText(item.payload.suggestion)]
+    ];
+  }
+  if (item.task_type === "mentor_comment") {
+    return [
+      ["看见的亮点", asText(item.payload.comment)],
+      ["下一版建议", asText(item.payload.next_step)],
+      ["点评人", asText(item.payload.mentor_name)]
     ];
   }
   return [["记录", item.title]];
@@ -2277,6 +2323,7 @@ function TeacherApp({
         <TeacherPeerFeedback />
         <TeacherFinalShowcase />
         <TeacherScoringCenter />
+        <TeacherMentorComments />
         <TeacherGrowthReflections />
         <TeacherShowcase />
       </section>
@@ -3613,6 +3660,208 @@ function TeacherScoringCenter() {
             </button>
           </article>
         ))}
+      </div>
+    </section>
+  );
+}
+
+type MentorDraft = {
+  mentor_name: string;
+  comment: string;
+  next_step: string;
+  status: "SUBMITTED" | "ON_WALL";
+};
+
+function mentorCommentForShowcase(comments: TaskSubmission[], item: ShowcaseItem) {
+  const itemTeamName = item.team_name || item.track || "";
+  return (
+    comments.find((comment) => {
+      const payloadShowcaseId = asText(comment.payload.showcase_item_id);
+      const payloadTeamId = asText(comment.payload.team_id);
+      const payloadTeamName = asText(comment.payload.team_name);
+      const payloadProductName = asText(comment.payload.product_name);
+      return (
+        payloadShowcaseId === item.id ||
+        comment.id === `mentor-${item.id}` ||
+        (!!item.team_id && (comment.team_id === item.team_id || payloadTeamId === item.team_id)) ||
+        (!!itemTeamName && (comment.team_name === itemTeamName || payloadTeamName === itemTeamName)) ||
+        (!!item.product_name && payloadProductName === item.product_name)
+      );
+    }) || null
+  );
+}
+
+function draftFromMentorComment(comment?: TaskSubmission | null): MentorDraft {
+  return {
+    mentor_name: asText(comment?.payload?.mentor_name) || "主讲老师",
+    comment: asText(comment?.payload?.comment),
+    next_step: asText(comment?.payload?.next_step),
+    status: comment?.status === "ON_WALL" ? "ON_WALL" : "SUBMITTED"
+  };
+}
+
+function TeacherMentorComments() {
+  const [showcaseItems, setShowcaseItems] = useState<ShowcaseItem[]>([]);
+  const [comments, setComments] = useState<TaskSubmission[]>([]);
+  const [drafts, setDrafts] = useState<Record<string, MentorDraft>>({});
+  const [message, setMessage] = useState("");
+  const [workingId, setWorkingId] = useState("");
+
+  const load = async () => {
+    try {
+      const [showcaseResult, commentResult] = await Promise.all([api.manageShowcase(), api.mentorComments()]);
+      const nextShowcaseItems = [...showcaseResult.showcase_items].sort((a, b) =>
+        String(a.product_name || "").localeCompare(String(b.product_name || ""), "zh-Hans-CN")
+      );
+      setShowcaseItems(nextShowcaseItems);
+      setComments(commentResult.mentor_comments);
+      setDrafts((current) => {
+        const next = { ...current };
+        nextShowcaseItems.forEach((item) => {
+          const currentDraft = next[item.id];
+          if (currentDraft?.comment || currentDraft?.next_step) return;
+          next[item.id] = draftFromMentorComment(mentorCommentForShowcase(commentResult.mentor_comments, item));
+        });
+        return next;
+      });
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 6000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const updateDraft = (itemId: string, patch: Partial<MentorDraft>) => {
+    const fallbackDraft: MentorDraft = {
+      mentor_name: "主讲老师",
+      comment: "",
+      next_step: "",
+      status: "SUBMITTED"
+    };
+    setDrafts((current) => ({
+      ...current,
+      [itemId]: {
+        ...(current[itemId] || fallbackDraft),
+        ...patch
+      }
+    }));
+  };
+
+  const saveComment = async (item: ShowcaseItem) => {
+    const existing = mentorCommentForShowcase(comments, item);
+    const draft = drafts[item.id] || draftFromMentorComment(existing);
+    const comment = draft.comment.trim();
+    if (!comment) {
+      setMessage("先写一段导师点评。");
+      return;
+    }
+    setWorkingId(item.id);
+    setMessage("");
+    try {
+      await api.saveMentorComment({
+        id: existing?.id || `mentor-${item.id}`,
+        showcase_item_id: item.id,
+        product_name: item.product_name,
+        team_id: item.team_id || null,
+        team_name: item.team_name || item.track || null,
+        access_url: item.access_url || null,
+        mentor_name: draft.mentor_name.trim() || "主讲老师",
+        comment,
+        next_step: draft.next_step.trim(),
+        status: draft.status
+      });
+      setMessage(draft.status === "ON_WALL" ? "点评已放到成果页。" : "点评已保存为草稿。");
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setWorkingId("");
+    }
+  };
+
+  return (
+    <section className="panel mentor-comments-panel">
+      <div className="panel-title">
+        <MessageSquareText size={20} />
+        <h2>导师点评</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{showcaseItems.length} 张作品卡</span>
+        <span>{comments.filter((comment) => comment.status === "ON_WALL").length} 条在成果页</span>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="mentor-comment-manage-list">
+        {showcaseItems.map((item) => {
+          const existing = mentorCommentForShowcase(comments, item);
+          const draft = drafts[item.id] || draftFromMentorComment(existing);
+          const teamName = item.team_name || item.track || "项目团队";
+          return (
+            <article className="mentor-comment-manage-row" key={item.id}>
+              <header>
+                <div>
+                  <span className={draft.status === "ON_WALL" ? "showcase-status live" : "showcase-status draft"}>
+                    {draft.status === "ON_WALL" ? "成果页展示" : "草稿"}
+                  </span>
+                  <strong>{item.product_name}</strong>
+                  <small>{teamName}</small>
+                </div>
+                {item.access_url && (
+                  <a href={normalizeShowcaseUrl(item.access_url)} target="_blank" rel="noreferrer">
+                    <ExternalLink size={15} />
+                    打开作品
+                  </a>
+                )}
+              </header>
+              <div className="mentor-comment-form">
+                <label>
+                  点评人
+                  <input
+                    value={draft.mentor_name}
+                    onChange={(event) => updateDraft(item.id, { mentor_name: event.target.value })}
+                  />
+                </label>
+                <label>
+                  显示状态
+                  <select
+                    value={draft.status}
+                    onChange={(event) => updateDraft(item.id, { status: event.target.value === "ON_WALL" ? "ON_WALL" : "SUBMITTED" })}
+                  >
+                    <option value="SUBMITTED">先保存草稿</option>
+                    <option value="ON_WALL">放到成果页</option>
+                  </select>
+                </label>
+                <label className="mentor-comment-wide">
+                  作品亮点
+                  <textarea
+                    value={draft.comment}
+                    onChange={(event) => updateDraft(item.id, { comment: event.target.value })}
+                    placeholder="例如：你们把用户问题讲清楚了，作品也能让别人完成一个真实动作。"
+                    rows={3}
+                  />
+                </label>
+                <label className="mentor-comment-wide">
+                  下一版建议
+                  <textarea
+                    value={draft.next_step}
+                    onChange={(event) => updateDraft(item.id, { next_step: event.target.value })}
+                    placeholder="例如：下一版可以补一张用户试用截图，让别人更快看懂效果。"
+                    rows={2}
+                  />
+                </label>
+              </div>
+              <div className="mentor-comment-actions">
+                <button disabled={workingId === item.id} onClick={() => saveComment(item)}>
+                  保存点评
+                </button>
+              </div>
+            </article>
+          );
+        })}
+        {!showcaseItems.length && <p className="empty">作品卡生成后，就可以在这里写导师点评。</p>}
       </div>
     </section>
   );

@@ -190,6 +190,7 @@ export interface StatePayload {
   showcase_items?: ShowcaseItem[];
   wall_artifacts?: WallArtifact[];
   growth_reflections?: WallArtifact[];
+  project_journey?: WallArtifact[];
   award_results?: AwardResult[];
   score_summaries?: ScoreSummary[];
 }

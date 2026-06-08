@@ -87,6 +87,7 @@ function friendlyErrorMessage(raw: unknown, status: number) {
   if (text === "SHOWCASE_ITEM_NOT_FOUND") return "这个作品暂时不能评分，请换一个作品。";
   if (text === "SCORE_REQUIRED") return "五组星星都点一下。";
   if (text === "SCORE_NOTE_REQUIRED") return "亮点和下一步建议都写一下。";
+  if (text === "MENTOR_COMMENT_REQUIRED") return "先写一段导师点评。";
   if (text === "SOURCE_PHOTO_REQUIRED") return "先上传照片，再提交。";
   if (text === "INVALID_UPLOAD_KEY" || text === "INVALID_UPLOAD_BODY") return "照片没有传好，请重新选择一次。";
   if (text === "QINGYUN_MODEL_NOT_CONFIGURED") return "出图服务还没准备好，请联系现场老师。";
@@ -252,6 +253,27 @@ export const api = {
       headers: headers(true),
       body: JSON.stringify(payload)
     }),
+  mentorComments: () =>
+    request<{ mentor_comments: TaskSubmission[] }>("/mentor-comments/manage", {
+      headers: headers(true)
+    }),
+  saveMentorComment: (payload: {
+    id?: string;
+    showcase_item_id?: string;
+    product_name?: string;
+    team_id?: string | null;
+    team_name?: string | null;
+    access_url?: string | null;
+    mentor_name?: string;
+    comment: string;
+    next_step?: string;
+    status?: "SUBMITTED" | "ON_WALL";
+  }) =>
+    request<{ mentor_comment: TaskSubmission }>("/mentor-comments", {
+      method: "POST",
+      headers: headers(true),
+      body: JSON.stringify(payload)
+    }),
   submissions: () =>
     request<{
       future_photo_submissions: FuturePhotoSubmission[];
@@ -297,6 +319,7 @@ export function connectEvents(onState: (payload: StatePayload) => void) {
   source.addEventListener("task.display.changed", handler);
   source.addEventListener("score.submitted", handler);
   source.addEventListener("publish.changed", handler);
+  source.addEventListener("mentor_comment.changed", handler);
   return () => source.close();
 }
 

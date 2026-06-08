@@ -2138,6 +2138,115 @@ button:disabled {
   gap: 12px;
 }
 
+.mentor-comments-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.mentor-comment-manage-list {
+  display: grid;
+  gap: 12px;
+}
+
+.mentor-comment-manage-row {
+  border: 1px solid #e2dcc9;
+  border-radius: 8px;
+  background: #fffdf6;
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.mentor-comment-manage-row header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.mentor-comment-manage-row header div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.mentor-comment-manage-row strong {
+  color: #172018;
+  font-size: 19px;
+  line-height: 1.2;
+}
+
+.mentor-comment-manage-row small {
+  color: #60705f;
+  font-weight: 800;
+}
+
+.mentor-comment-manage-row a,
+.mentor-comment-actions button {
+  border: 0;
+  border-radius: 6px;
+  background: #172018;
+  color: #fffdf6;
+  padding: 10px 12px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.mentor-comment-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.mentor-comment-form {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.6fr) minmax(160px, 0.6fr) minmax(260px, 1.4fr) minmax(260px, 1.4fr);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.mentor-comment-form label {
+  color: #536151;
+  font-size: 12px;
+  font-weight: 900;
+  display: grid;
+  gap: 6px;
+}
+
+.mentor-comment-form input,
+.mentor-comment-form select,
+.mentor-comment-form textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d9d4c4;
+  border-radius: 6px;
+  background: #fff;
+  color: #172018;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+}
+
+.mentor-comment-form textarea {
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.mentor-comment-wide {
+  min-width: 0;
+}
+
+.mentor-comment-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .growth-manage-list .d1-artifact-card {
   border-top: 6px solid #78b7e8;
 }
@@ -4662,6 +4771,52 @@ button:disabled {
   line-height: 1.45;
 }
 
+.mentor-comment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.mentor-comment-card {
+  min-height: 210px;
+  border: 1px solid #e7e2d2;
+  border-top: 8px solid #78b7e8;
+  border-radius: 8px;
+  background: #fffdf6;
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.mentor-comment-card span {
+  color: #1f6f50;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.mentor-comment-card strong {
+  color: #172018;
+  font-size: clamp(22px, 2.3vw, 32px);
+  line-height: 1.12;
+}
+
+.mentor-comment-card p {
+  margin: 0;
+  border-top: 1px solid #e7e2d2;
+  padding-top: 12px;
+  color: #536151;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.mentor-comment-card b {
+  display: block;
+  color: #1f6f50;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
 .certificate-card {
   min-height: 210px;
   padding: 18px;
@@ -4719,6 +4874,7 @@ button:disabled {
   .slide-strip,
   .lesson-operator,
   .showcase-form,
+  .mentor-comment-form,
   .lesson-canvas,
   .teacher-grid,
   .team-workspace-grid,
@@ -4869,6 +5025,7 @@ button:disabled {
   .lesson-page-nav,
   .lesson-operator,
   .showcase-form,
+  .mentor-comment-form,
   .score-dimension,
   .showcase-manage-row,
   .award-manage-row,
@@ -4897,10 +5054,17 @@ button:disabled {
     justify-content: stretch;
   }
 
+  .mentor-comment-manage-row header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .showcase-actions button,
   .showcase-manage-row button,
   .award-manage-row button,
   .showcase-manage-row a,
+  .mentor-comment-manage-row a,
+  .mentor-comment-actions button,
   .project-submission-row button,
   .project-submission-row a,
   .feedback-summary-card header a,

@@ -501,7 +501,7 @@ function projectJourneyItems() {
        LEFT JOIN teams t ON t.id = ts.team_id
       WHERE ts.camp_id = ?
         AND ts.status = 'ON_WALL'
-        AND ts.task_type IN ('problem_card', 'user_voice', 'product_definition', 'product_feedback')
+        AND ts.task_type IN ('problem_card', 'user_voice', 'product_definition', 'product_feedback', 'mentor_comment')
       ORDER BY ts.updated_at ASC, ts.created_at ASC`,
     campId()
   ).map((artifact): TaskArtifact => {
@@ -509,6 +509,28 @@ function projectJourneyItems() {
     return {
       ...base,
       task_type: String(base.task_type ?? ""),
+      payload: jsonParse<TaskPayload>(base.payload, {})
+    };
+  });
+}
+
+function mentorCommentItems(includeAll = false) {
+  const statusClause = includeAll ? "" : "AND ts.status = 'ON_WALL'";
+  return rows<Record<string, any> & { payload?: string }>(
+    `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
+       FROM task_submissions ts
+       LEFT JOIN students s ON s.id = ts.student_id
+       LEFT JOIN teams t ON t.id = ts.team_id
+      WHERE ts.camp_id = ?
+        ${statusClause}
+        AND ts.task_type = 'mentor_comment'
+      ORDER BY ts.updated_at DESC, ts.created_at DESC`,
+    campId()
+  ).map((artifact): TaskArtifact => {
+    const base = artifact as Record<string, any>;
+    return {
+      ...base,
+      task_type: "mentor_comment",
       payload: jsonParse<TaskPayload>(base.payload, {})
     };
   });
@@ -636,6 +658,7 @@ function emitState(event = "state.changed") {
     showcase_items: showcaseItems(false),
     wall_artifacts: wallTaskArtifacts(),
     growth_reflections: growthReflectionItems(),
+    project_journey: projectJourneyItems(),
     award_results: awardResults(false),
     score_summaries: scoreSummaries()
   });
@@ -1707,6 +1730,87 @@ app.get("/showcase/manage", async (request, reply) => {
   };
 });
 
+app.get("/mentor-comments/manage", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  return {
+    mentor_comments: mentorCommentItems(true)
+  };
+});
+
+app.post("/mentor-comments", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const body = request.body as Record<string, unknown>;
+  const showcaseItemId = String(body.showcase_item_id ?? "").trim();
+  const comment = String(body.comment ?? "").trim();
+  const nextStep = String(body.next_step ?? "").trim();
+  if (!comment) return reply.code(400).send({ error: "MENTOR_COMMENT_REQUIRED" });
+  const showcaseItem = showcaseItemId
+    ? row<Record<string, any>>(
+        `SELECT s.*, t.name AS team_name
+           FROM showcase_items s
+           LEFT JOIN teams t ON t.id = s.team_id
+          WHERE s.id = ?
+            AND s.camp_id = ?`,
+        [showcaseItemId, campId()]
+      )
+    : null;
+  if (showcaseItemId && !showcaseItem) return reply.code(404).send({ error: "SHOWCASE_ITEM_NOT_FOUND" });
+  const productName = String(body.product_name ?? showcaseItem?.product_name ?? "未命名作品").trim();
+  const teamId = body.team_id ? String(body.team_id) : showcaseItem?.team_id ?? null;
+  const teamName = String(body.team_name ?? showcaseItem?.team_name ?? showcaseItem?.track ?? "").trim();
+  const accessUrl = String(body.access_url ?? showcaseItem?.access_url ?? "").trim();
+  const mentorName = String(body.mentor_name ?? "主讲老师").trim().slice(0, 40) || "主讲老师";
+  const id = String(body.id ?? (showcaseItemId ? `mentor-${showcaseItemId}` : randomUUID()));
+  const nextStatus = String(body.status ?? "ON_WALL");
+  const status = nextStatus === "ON_WALL" ? "ON_WALL" : "SUBMITTED";
+  const payload: TaskPayload = {
+    showcase_item_id: showcaseItemId,
+    product_name: productName,
+    team_id: teamId ?? "",
+    team_name: teamName,
+    access_url: accessUrl,
+    mentor_name: mentorName,
+    comment,
+    next_step: nextStep
+  };
+  const record = {
+    id,
+    camp_id: campId(),
+    student_id: null,
+    team_id: teamId,
+    task_type: "mentor_comment",
+    title: "导师点评",
+    payload: JSON.stringify(payload),
+    status,
+    updated_at: nowSql()
+  };
+  db.prepare(
+    `INSERT INTO task_submissions
+      (id, camp_id, student_id, team_id, task_type, title, payload, status, updated_at)
+     VALUES
+      (@id, @camp_id, @student_id, @team_id, @task_type, @title, @payload, @status, @updated_at)
+     ON CONFLICT(id) DO UPDATE SET
+      team_id = excluded.team_id,
+      title = excluded.title,
+      payload = excluded.payload,
+      status = excluded.status,
+      updated_at = excluded.updated_at`
+  ).run(record);
+  audit("mentor_comment.save", "task_submissions", id, {
+    showcase_item_id: showcaseItemId,
+    product_name: productName,
+    status
+  });
+  emitState("mentor_comment.changed");
+  return {
+    mentor_comment: {
+      ...record,
+      team_name: teamName || null,
+      payload
+    }
+  };
+});
+
 app.get("/media/object", async (request, reply) => {
   const query = request.query as { key?: string };
   const objectKey = String(query.key ?? "");
@@ -1748,6 +1852,7 @@ app.get("/events", async (request, reply) => {
     showcase_items: showcaseItems(false),
     wall_artifacts: wallTaskArtifacts(),
     growth_reflections: growthReflectionItems(),
+    project_journey: projectJourneyItems(),
     award_results: awardResults(false),
     score_summaries: scoreSummaries()
   });
