@@ -1,6 +1,6 @@
 # Baidu Ranking / GEO Tracking Plan
 
-Generated: 2026-06-09T13:37:15+08:00
+Generated: 2026-06-09T13:51:27+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
 
@@ -20,6 +20,7 @@ site:camps.wanli.wiki | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki | ind
 site:camps.wanli.wiki 少年CEO AI 创业营 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%B0%91%E5%B9%B4CEO+AI+%E5%88%9B%E4%B8%9A%E8%90%A5 | indexed page count, visible target URLs, unexpected missing pages
 site:camps.wanli.wiki AI PBL 创业营 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+AI+PBL+%E5%88%9B%E4%B8%9A%E8%90%A5 | indexed page count, visible target URLs, unexpected missing pages
 site:camps.wanli.wiki AI产品原型课程 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+AI%E4%BA%A7%E5%93%81%E5%8E%9F%E5%9E%8B%E8%AF%BE%E7%A8%8B | indexed page count, visible target URLs, unexpected missing pages
+site:camps.wanli.wiki 北京顺义AI课程 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B | indexed page count, visible target URLs, unexpected missing pages
 site:camps.wanli.wiki 北京顺义青少年AI课程 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | indexed page count, visible target URLs, unexpected missing pages
 site:camps.wanli.wiki 北京顺义儿童AI课程 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B | indexed page count, visible target URLs, unexpected missing pages
 site:camps.wanli.wiki 北京顺义AI夏令营 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%A4%8F%E4%BB%A4%E8%90%A5 | indexed page count, visible target URLs, unexpected missing pages
@@ -32,6 +33,7 @@ site:camps.wanli.wiki 青少年AI课程 | https://www.baidu.com/s?wd=site%3Acamp
 - https://camps.wanli.wiki/
 - https://camps.wanli.wiki/ai-pbl-camp.html
 - https://camps.wanli.wiki/ai-product-prototype-course.html
+- https://camps.wanli.wiki/beijing-shunyi-ai-course.html
 - https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html
 - https://camps.wanli.wiki/shunyi-children-ai-course.html
 - https://camps.wanli.wiki/shunyi-ai-summer-camp.html
@@ -77,6 +79,17 @@ ai-product-prototype-course | secondary | AI PBL创业营 | https://camps.wanli.
 ai-product-prototype-course | secondary | 8-16岁AI课程 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=8-16%E5%B2%81AI%E8%AF%BE%E7%A8%8B | N/A | N/A
 ai-product-prototype-course | secondary | 提示词实践 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=%E6%8F%90%E7%A4%BA%E8%AF%8D%E5%AE%9E%E8%B7%B5 | N/A | N/A
 ai-product-prototype-course | secondary | 产品设计 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=%E4%BA%A7%E5%93%81%E8%AE%BE%E8%AE%A1 | N/A | N/A
+beijing-shunyi-ai-course | primary | 北京顺义AI课程 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B | N/A | N/A
+beijing-shunyi-ai-course | brand-assisted | 北京顺义AI课程 少年CEO | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B+%E5%B0%91%E5%B9%B4CEO | N/A | N/A
+beijing-shunyi-ai-course | site-restricted | site:camps.wanli.wiki 北京顺义AI课程 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B | N/A | N/A
+beijing-shunyi-ai-course | secondary | 顺义AI课程 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B | N/A | N/A
+beijing-shunyi-ai-course | secondary | 北京顺义青少年AI课程 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A
+beijing-shunyi-ai-course | secondary | 北京顺义儿童AI课程 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B | N/A | N/A
+beijing-shunyi-ai-course | secondary | 顺义儿童AI课程 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B | N/A | N/A
+beijing-shunyi-ai-course | secondary | 北京顺义AI夏令营 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%A4%8F%E4%BB%A4%E8%90%A5 | N/A | N/A
+beijing-shunyi-ai-course | secondary | 顺义少儿AI课 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89%E5%B0%91%E5%84%BFAI%E8%AF%BE | N/A | N/A
+beijing-shunyi-ai-course | secondary | AI PBL创业营 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=AI+PBL%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A
+beijing-shunyi-ai-course | secondary | 少年CEO | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO | N/A | N/A
 beijing-shunyi-youth-ai-course | primary | 北京顺义青少年AI课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A
 beijing-shunyi-youth-ai-course | brand-assisted | 北京顺义青少年AI课程 少年CEO | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B+%E5%B0%91%E5%B9%B4CEO | N/A | N/A
 beijing-shunyi-youth-ai-course | site-restricted | site:camps.wanli.wiki 北京顺义青少年AI课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A
@@ -186,6 +199,9 @@ ai-pbl-camp | 青少年AI产品原型课程怎么上 | https://camps.wanli.wiki/
 ai-product-prototype-course | AI产品原型课程是什么 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://camps.wanli.wiki/ai-product-prototype-course.md | https://www.baidu.com/s?wd=AI%E4%BA%A7%E5%93%81%E5%8E%9F%E5%9E%8B%E8%AF%BE%E7%A8%8B%E6%98%AF%E4%BB%80%E4%B9%88 | N/A
 ai-product-prototype-course | 孩子做AI产品需要会编程吗 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://camps.wanli.wiki/ai-product-prototype-course.md | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E5%81%9AAI%E4%BA%A7%E5%93%81%E9%9C%80%E8%A6%81%E4%BC%9A%E7%BC%96%E7%A8%8B%E5%90%97 | N/A
 ai-product-prototype-course | AI产品原型课程和AI工具课有什么不同 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://camps.wanli.wiki/ai-product-prototype-course.md | https://www.baidu.com/s?wd=AI%E4%BA%A7%E5%93%81%E5%8E%9F%E5%9E%8B%E8%AF%BE%E7%A8%8B%E5%92%8CAI%E5%B7%A5%E5%85%B7%E8%AF%BE%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E5%90%8C | N/A
+beijing-shunyi-ai-course | 北京顺义AI课程怎么选 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B%E6%80%8E%E4%B9%88%E9%80%89 | N/A
+beijing-shunyi-ai-course | 顺义AI课程适合什么孩子 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%AD%A9%E5%AD%90 | N/A
+beijing-shunyi-ai-course | 北京顺义AI课程有哪些形式 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B%E6%9C%89%E5%93%AA%E4%BA%9B%E5%BD%A2%E5%BC%8F | N/A
 beijing-shunyi-youth-ai-course | 北京顺义青少年AI课程适合什么孩子 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%AD%A9%E5%AD%90 | N/A
 beijing-shunyi-youth-ai-course | 顺义AI课程和普通工具体验课有什么不同 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B%E5%92%8C%E6%99%AE%E9%80%9A%E5%B7%A5%E5%85%B7%E4%BD%93%E9%AA%8C%E8%AF%BE%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E5%90%8C | N/A
 beijing-shunyi-youth-ai-course | 顺义家长如何判断一门青少年AI课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89%E5%AE%B6%E9%95%BF%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E9%97%A8%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A
@@ -221,6 +237,7 @@ Date | Cluster | Query | Target page indexed? | Baidu rank | Impressions | Click
 YYYY-MM-DD | brand-home | 少年CEO AI 创业营 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | ai-pbl-camp | AI PBL 创业营 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | ai-product-prototype-course | AI产品原型课程 | N/A | N/A | N/A | N/A | N/A | -
+YYYY-MM-DD | beijing-shunyi-ai-course | 北京顺义AI课程 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | beijing-shunyi-youth-ai-course | 北京顺义青少年AI课程 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | shunyi-children-ai-course | 北京顺义儿童AI课程 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | shunyi-ai-summer-camp | 北京顺义AI夏令营 | N/A | N/A | N/A | N/A | N/A | -

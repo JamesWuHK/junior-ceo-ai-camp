@@ -1,6 +1,6 @@
 # Baidu Measured Evidence Report
 
-Generated: 2026-06-09T13:37:32+08:00
+Generated: 2026-06-09T13:51:55+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_MEASURED_DATA
 
@@ -13,11 +13,11 @@ Overall status: NEEDS_MEASURED_DATA
 
 ## Summary
 
-- URL index evidence: 0/12 indexed, 0 measured not indexed, 12 missing evidence.
-- URL metric evidence: 0/12 measured, 12 missing evidence.
-- Primary keyword rank evidence: 0/12 ranked, 0 measured no rank, 12 missing evidence.
-- Tracked keyword rank evidence: 0/126 ranked, 0 measured no rank, 126 missing evidence.
-- GEO answer evidence: 0/36 pass, 0 needs repair, 36 missing evidence.
+- URL index evidence: 0/13 indexed, 0 measured not indexed, 13 missing evidence.
+- URL metric evidence: 0/13 measured, 13 missing evidence.
+- Primary keyword rank evidence: 0/13 ranked, 0 measured no rank, 13 missing evidence.
+- Tracked keyword rank evidence: 0/137 ranked, 0 measured no rank, 137 missing evidence.
+- GEO answer evidence: 0/39 pass, 0 needs repair, 39 missing evidence.
 
 ## How To Use This File
 
@@ -34,6 +34,7 @@ Status | URL | Evidence date | Source | Notes
 MISSING_EVIDENCE | https://camps.wanli.wiki/ | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/ai-pbl-camp.html | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/ai-product-prototype-course.html | N/A | N/A | -
+MISSING_EVIDENCE | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/shunyi-children-ai-course.html | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | N/A | N/A | -
@@ -51,6 +52,7 @@ Status | URL | Impressions | Clicks | CTR | Average rank | Crawl count | Evidenc
 MISSING_EVIDENCE | https://camps.wanli.wiki/ | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/ai-pbl-camp.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/ai-product-prototype-course.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/shunyi-children-ai-course.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
@@ -68,6 +70,7 @@ Status | Cluster | Query | Target page | Rank | Impressions | Clicks | Evidence 
 MISSING_EVIDENCE | brand-home | 少年CEO AI 创业营 | https://camps.wanli.wiki/ | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-pbl-camp | AI PBL 创业营 | https://camps.wanli.wiki/ai-pbl-camp.html | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-product-prototype-course | AI产品原型课程 | https://camps.wanli.wiki/ai-product-prototype-course.html | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | 北京顺义AI课程 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | 北京顺义青少年AI课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | shunyi-children-ai-course | 北京顺义儿童AI课程 | https://camps.wanli.wiki/shunyi-children-ai-course.html | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | shunyi-ai-summer-camp | 北京顺义AI夏令营 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | N/A | N/A | N/A | N/A | N/A | -
@@ -115,6 +118,17 @@ MISSING_EVIDENCE | ai-product-prototype-course | secondary | AI PBL创业营 | h
 MISSING_EVIDENCE | ai-product-prototype-course | secondary | 8-16岁AI课程 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=8-16%E5%B2%81AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-product-prototype-course | secondary | 提示词实践 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=%E6%8F%90%E7%A4%BA%E8%AF%8D%E5%AE%9E%E8%B7%B5 | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-product-prototype-course | secondary | 产品设计 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://www.baidu.com/s?wd=%E4%BA%A7%E5%93%81%E8%AE%BE%E8%AE%A1 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | primary | 北京顺义AI课程 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | brand-assisted | 北京顺义AI课程 少年CEO | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B+%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | site-restricted | site:camps.wanli.wiki 北京顺义AI课程 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | secondary | 顺义AI课程 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | secondary | 北京顺义青少年AI课程 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | secondary | 北京顺义儿童AI课程 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | secondary | 顺义儿童AI课程 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | secondary | 北京顺义AI夏令营 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%A4%8F%E4%BB%A4%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | secondary | 顺义少儿AI课 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89%E5%B0%91%E5%84%BFAI%E8%AF%BE | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | secondary | AI PBL创业营 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=AI+PBL%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | secondary | 少年CEO | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | primary | 北京顺义青少年AI课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | brand-assisted | 北京顺义青少年AI课程 少年CEO | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B+%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | site-restricted | site:camps.wanli.wiki 北京顺义青少年AI课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
@@ -224,6 +238,9 @@ MISSING_EVIDENCE | ai-pbl-camp | 青少年AI产品原型课程怎么上 | https:
 MISSING_EVIDENCE | ai-product-prototype-course | AI产品原型课程是什么 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://camps.wanli.wiki/ai-product-prototype-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-product-prototype-course | 孩子做AI产品需要会编程吗 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://camps.wanli.wiki/ai-product-prototype-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-product-prototype-course | AI产品原型课程和AI工具课有什么不同 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://camps.wanli.wiki/ai-product-prototype-course.md | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | 北京顺义AI课程怎么选 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | 顺义AI课程适合什么孩子 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | 北京顺义AI课程有哪些形式 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | 北京顺义青少年AI课程适合什么孩子 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | 顺义AI课程和普通工具体验课有什么不同 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | 顺义家长如何判断一门青少年AI课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | N/A | N/A | N/A | N/A | N/A | -

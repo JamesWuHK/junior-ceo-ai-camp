@@ -16,6 +16,7 @@ Status | Cluster | Page | Primary keyword | Primary locations | Secondary covera
 PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | entity-shaonian-ceo-ai-camp.md
 PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | ai-pbl-camp.md
 PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产品原型课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | ai-product-prototype-course.md
+PASS | beijing-shunyi-ai-course | /beijing-shunyi-ai-course.html | 北京顺义AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | beijing-shunyi-ai-course.md
 PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | 北京顺义青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | beijing-shunyi-youth-ai-course.md
 PASS | shunyi-children-ai-course | /shunyi-children-ai-course.html | 北京顺义儿童AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | shunyi-children-ai-course.md
 PASS | shunyi-ai-summer-camp | /shunyi-ai-summer-camp.html | 北京顺义AI夏令营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | shunyi-ai-summer-camp.md
@@ -33,6 +34,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - https://camps.wanli.wiki/
 - https://camps.wanli.wiki/ai-pbl-camp.html
 - https://camps.wanli.wiki/ai-product-prototype-course.html
+- https://camps.wanli.wiki/beijing-shunyi-ai-course.html
 - https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html
 - https://camps.wanli.wiki/shunyi-children-ai-course.html
 - https://camps.wanli.wiki/shunyi-ai-summer-camp.html
@@ -104,6 +106,23 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Visible HTML answer blocks measured: 3/3 (AI产品原型课程是什么 | 孩子做AI产品需要会编程吗 | AI产品原型课程和AI工具课有什么不同)
 - JSON-LD answer blocks measured: 3/3 (AI产品原型课程是什么 | 孩子做AI产品需要会编程吗 | AI产品原型课程和AI工具课有什么不同)
 - AI query answer blocks measured: 3/3 (AI产品原型课程是什么 | 孩子做AI产品需要会编程吗 | AI产品原型课程和AI工具课有什么不同)
+- Status: PASS
+- Failures: none
+- Warnings: none
+
+### beijing-shunyi-ai-course
+
+- Audience layer: 家长公开展示
+- Target page: https://camps.wanli.wiki/beijing-shunyi-ai-course.html
+- Source: beijing-shunyi-ai-course.html
+- Primary keyword: 北京顺义AI课程
+- Primary locations measured: title, description, keywords, h1, body, jsonLd
+- Secondary matches measured: 8/8 (顺义AI课程, 北京顺义青少年AI课程, 北京顺义儿童AI课程, 顺义儿童AI课程, 北京顺义AI夏令营, 顺义少儿AI课, AI PBL创业营, 少年CEO)
+- JSON-LD types measured: BreadcrumbList, CollectionPage, FAQPage
+- AI query coverage targets: 北京顺义AI课程怎么选 | 顺义AI课程适合什么孩子 | 北京顺义AI课程有哪些形式
+- Visible HTML answer blocks measured: 3/3 (北京顺义AI课程怎么选 | 顺义AI课程适合什么孩子 | 北京顺义AI课程有哪些形式)
+- JSON-LD answer blocks measured: 3/3 (北京顺义AI课程怎么选 | 顺义AI课程适合什么孩子 | 北京顺义AI课程有哪些形式)
+- AI query answer blocks measured: 3/3 (北京顺义AI课程怎么选 | 顺义AI课程适合什么孩子 | 北京顺义AI课程有哪些形式)
 - Status: PASS
 - Failures: none
 - Warnings: none
