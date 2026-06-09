@@ -1786,6 +1786,85 @@ function splitList(value: unknown) {
     .filter(Boolean);
 }
 
+type PersonalContributionCard = {
+  name: string;
+  contribution: string;
+  tag: string;
+  nextPractice?: string;
+};
+
+const contributionAbilityTags = ["共情力", "提问力", "创造力", "判断力", "领导力", "团队贡献"];
+
+function contributionTagAt(index: number) {
+  return contributionAbilityTags[index % contributionAbilityTags.length];
+}
+
+function normalizeContributionCards(value: unknown): PersonalContributionCard[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index) => {
+      const source = item && typeof item === "object" ? item as Record<string, unknown> : {};
+      const name = asText(source.name).trim();
+      const contribution = asText(source.contribution).trim();
+      const tag = asText(source.tag).trim() || asText(source.ability_tag).trim() || contributionTagAt(index);
+      const nextPractice = asText(source.nextPractice).trim() || asText(source.next_practice).trim();
+      return { name, contribution, tag, nextPractice };
+    })
+    .filter((item) => item.name || item.contribution);
+}
+
+function contributionCardsFromPayload(payload: Record<string, unknown> | undefined, awards: AwardResult[] = []) {
+  const structuredCards = normalizeContributionCards(payload?.personal_contribution_cards);
+  if (structuredCards.length) return structuredCards;
+  const contributionLines = splitList(payload?.personal_contributions);
+  if (contributionLines.length) {
+    return contributionLines.map((line, index) => {
+      const [name, ...rest] = line.split(/[：:]/);
+      return {
+        name: (rest.length ? name : line).trim(),
+        contribution: rest.join("：").trim() || "为团队作品贡献了自己的力量",
+        tag: awards[index % Math.max(awards.length, 1)]?.award_type || contributionTagAt(index),
+        nextPractice: ""
+      };
+    });
+  }
+  return splitList(payload?.team_members).map((member, index) => ({
+    name: member,
+    contribution: index === 0 ? "把团队想法带到台前" : "和团队一起完成作品展示",
+    tag: awards[index % Math.max(awards.length, 1)]?.award_type || "团队贡献",
+    nextPractice: ""
+  }));
+}
+
+function contributionSummaryText(cards: PersonalContributionCard[]) {
+  return cards
+    .map((card) => {
+      const name = card.name.trim() || "一位成员";
+      const contribution = card.contribution.trim() || "完成了团队任务";
+      const tag = card.tag.trim();
+      return tag ? `${name}：${contribution}（${tag}）` : `${name}：${contribution}`;
+    })
+    .join("\n");
+}
+
+function blankContributionCard(index = 0): PersonalContributionCard {
+  return { name: "", contribution: "", tag: contributionTagAt(index) };
+}
+
+function cleanContributionDrafts(cards: PersonalContributionCard[]) {
+  return cards
+    .map((card, index) => ({
+      name: card.name.trim(),
+      contribution: card.contribution.trim(),
+      tag: card.tag.trim() || contributionTagAt(index)
+    }))
+    .filter((card) => card.name || card.contribution);
+}
+
+function contributionDraftsFromNames(names: string[]) {
+  return names.length ? names.map((name, index) => ({ name, contribution: "", tag: contributionTagAt(index) })) : [blankContributionCard()];
+}
+
 function contributionCards(finalItem: WallArtifact | null, awards: AwardResult[], reflections: WallArtifact[] = []) {
   const reflectionCards = reflections.map((reflection) => {
     const ability = asText(reflection.payload.ability_tag) || awards[0]?.award_type || "能力标签";
@@ -1800,27 +1879,7 @@ function contributionCards(finalItem: WallArtifact | null, awards: AwardResult[]
       nextPractice
     };
   });
-  const contributionLines = splitList(finalItem?.payload.personal_contributions);
-  if (contributionLines.length) {
-    const fallbackCards = contributionLines.map((line) => {
-      const [name, ...rest] = line.split(/[：:]/);
-      return {
-        name: (rest.length ? name : line).trim(),
-        contribution: rest.join("：").trim() || "为团队作品贡献了自己的力量",
-        tag: awards[0]?.award_type || "能力标签",
-        nextPractice: ""
-      };
-    });
-    const reflectedNames = new Set(reflectionCards.map((card) => card.name));
-    return [...reflectionCards, ...fallbackCards.filter((card) => !reflectedNames.has(card.name))];
-  }
-  const members = splitList(finalItem?.payload.team_members);
-  const fallbackCards = members.map((member, index) => ({
-    name: member,
-    contribution: index === 0 ? "把团队想法带到台前" : "和团队一起完成作品展示",
-    tag: awards[index % Math.max(awards.length, 1)]?.award_type || "团队贡献",
-    nextPractice: ""
-  }));
+  const fallbackCards = contributionCardsFromPayload(finalItem?.payload, awards);
   const reflectedNames = new Set(reflectionCards.map((card) => card.name));
   return [...reflectionCards, ...fallbackCards.filter((card) => !reflectedNames.has(card.name))];
 }
@@ -5162,6 +5221,7 @@ function TeacherFinalShowcase() {
         {items.map((item, index) => {
           const productName = asText(item.payload.product_name) || "未命名作品";
           const accessUrl = asText(item.payload.access_url);
+          const contributionItems = contributionCardsFromPayload(item.payload);
           return (
             <article className={item.status === "ON_WALL" ? "d1-artifact-card on-wall" : "d1-artifact-card"} key={item.id}>
               <header>
@@ -5192,7 +5252,16 @@ function TeacherFinalShowcase() {
               </header>
               <div className="artifact-lines">
                 <p><strong>成员：</strong>{asText(item.payload.team_members) || "还没写"}</p>
-                <p><strong>贡献：</strong>{asText(item.payload.personal_contributions) || "还没写"}</p>
+                <div className="artifact-contribution-list">
+                  <strong>个人贡献</strong>
+                  {contributionItems.length ? contributionItems.map((card, cardIndex) => (
+                    <article key={`${card.name}-${cardIndex}`}>
+                      <span>{card.tag}</span>
+                      <b>{card.name || "一位成员"}</b>
+                      <p>{card.contribution || "完成了团队任务"}</p>
+                    </article>
+                  )) : <p>还没写</p>}
+                </div>
                 <p><strong>用户：</strong>{asText(item.payload.target_user) || "还没写"}</p>
                 <p><strong>问题：</strong>{asText(item.payload.core_problem) || "还没写"}</p>
                 <p><strong>价值：</strong>{asText(item.payload.value_line) || "还没写"}</p>
@@ -10084,7 +10153,7 @@ function StudentFinalShowcaseTask({
 }) {
   const [productName, setProductName] = useState("");
   const [teamMembers, setTeamMembers] = useState("");
-  const [personalContributions, setPersonalContributions] = useState("");
+  const [contributionDrafts, setContributionDrafts] = useState<PersonalContributionCard[]>([blankContributionCard()]);
   const [targetUser, setTargetUser] = useState("");
   const [coreProblem, setCoreProblem] = useState("");
   const [accessUrl, setAccessUrl] = useState("");
@@ -10100,13 +10169,121 @@ function StudentFinalShowcaseTask({
     setMessage({ tone, text });
   };
 
+  useEffect(() => {
+    let alive = true;
+    api.studentWorkspace()
+      .then((workspace) => {
+        if (!alive) return;
+        const latestFinal = latestTeamSubmission(workspace, "final_showcase");
+        const latestProduct = latestTeamSubmission(workspace, "product_definition");
+        const latestLink = latestTeamSubmission(workspace, "product_link");
+        const latestPackaging = latestTeamSubmission(workspace, "product_packaging");
+        const latestStory = latestTeamSubmission(workspace, "story_pitch");
+        const latestProblem = latestTeamSubmission(workspace, "problem_card");
+        const memberNames = workspace.team_members.map((member) => member.nickname).filter(Boolean);
+        const memberText = memberNames.join("、") || asText(latestFinal?.payload.team_members).trim();
+        const savedContributions = contributionCardsFromPayload(latestFinal?.payload);
+
+        setTeamMembers((current) => current.trim() || memberText);
+        setContributionDrafts((current) => {
+          if (cleanContributionDrafts(current).length) return current;
+          if (savedContributions.length) return savedContributions;
+          if (memberNames.length) return contributionDraftsFromNames(memberNames);
+          return current;
+        });
+        setProductName((current) =>
+          current.trim() ||
+          asText(latestFinal?.payload.product_name).trim() ||
+          asText(latestProduct?.payload.product_name).trim() ||
+          asText(latestLink?.payload.product_name).trim() ||
+          asText(latestPackaging?.payload.product_name).trim()
+        );
+        setTargetUser((current) =>
+          current.trim() ||
+          asText(latestFinal?.payload.target_user).trim() ||
+          asText(latestProduct?.payload.target_user).trim() ||
+          asText(latestPackaging?.payload.target_user).trim()
+        );
+        setCoreProblem((current) =>
+          current.trim() ||
+          asText(latestFinal?.payload.core_problem).trim() ||
+          asText(latestProduct?.payload.core_problem).trim() ||
+          asText(latestProblem?.payload.problem_scene).trim() ||
+          asText(latestStory?.payload.user_scene).trim()
+        );
+        setAccessUrl((current) =>
+          current.trim() ||
+          asText(latestFinal?.payload.access_url).trim() ||
+          asText(latestLink?.payload.access_url).trim() ||
+          asText(latestPackaging?.payload.access_url).trim()
+        );
+        setScreenshotKey((current) =>
+          current ||
+          asText(latestFinal?.payload.screenshot_key).trim() ||
+          asText(latestLink?.payload.screenshot_key).trim() ||
+          asText(latestPackaging?.payload.poster_key).trim()
+        );
+        setScreenshotUrl((current) =>
+          current.trim() ||
+          asText(latestFinal?.payload.screenshot_url).trim() ||
+          asText(latestLink?.payload.screenshot_url).trim() ||
+          asText(latestPackaging?.payload.poster_url).trim()
+        );
+        setRecordingKey((current) =>
+          current ||
+          asText(latestFinal?.payload.recording_key).trim() ||
+          asText(latestLink?.payload.recording_key).trim()
+        );
+        setRecordingUrl((current) =>
+          current.trim() ||
+          asText(latestFinal?.payload.recording_url).trim() ||
+          asText(latestLink?.payload.recording_url).trim()
+        );
+        setValueLine((current) =>
+          current.trim() ||
+          asText(latestFinal?.payload.value_line).trim() ||
+          asText(latestProduct?.payload.one_liner).trim() ||
+          asText(latestLink?.payload.one_liner).trim() ||
+          asText(latestPackaging?.payload.slogan).trim() ||
+          asText(latestStory?.payload.story_hook).trim()
+        );
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const updateContributionDraft = (index: number, field: keyof PersonalContributionCard, value: string) => {
+    setContributionDrafts((current) =>
+      current.map((card, cardIndex) => cardIndex === index ? { ...card, [field]: value } : card)
+    );
+  };
+
+  const addContributionDraft = () => {
+    setContributionDrafts((current) => [...current, blankContributionCard(current.length)]);
+  };
+
+  const removeContributionDraft = (index: number) => {
+    setContributionDrafts((current) => {
+      const next = current.filter((_, cardIndex) => cardIndex !== index);
+      return next.length ? next : [blankContributionCard()];
+    });
+  };
+
   const submit = async () => {
+    const contributionCards = cleanContributionDrafts(contributionDrafts);
+    const teamMembersText = teamMembers.trim() || contributionCards.map((card) => card.name).filter(Boolean).join("、");
     if (!productName.trim()) {
       showMessage("error", "先写产品名称。");
       return;
     }
-    if (!teamMembers.trim()) {
+    if (!teamMembersText) {
       showMessage("error", "写上团队成员。");
+      return;
+    }
+    if (!contributionCards.some((card) => card.contribution)) {
+      showMessage("error", "至少写一位成员做了什么。");
       return;
     }
     if (!targetUser.trim()) {
@@ -10133,8 +10310,9 @@ function StudentFinalShowcaseTask({
         title: taskTitle,
         payload: {
           product_name: productName.trim(),
-          team_members: teamMembers.trim(),
-          personal_contributions: personalContributions.trim(),
+          team_members: teamMembersText,
+          personal_contribution_cards: contributionCards,
+          personal_contributions: contributionSummaryText(contributionCards),
           target_user: targetUser.trim(),
           core_problem: coreProblem.trim(),
           access_url: normalizeShowcaseUrl(accessUrl),
@@ -10150,7 +10328,7 @@ function StudentFinalShowcaseTask({
       showMessage("success", "收到啦。这张展示卡可以上台使用。");
       setProductName("");
       setTeamMembers("");
-      setPersonalContributions("");
+      setContributionDrafts([blankContributionCard()]);
       setTargetUser("");
       setCoreProblem("");
       setAccessUrl("");
@@ -10200,15 +10378,57 @@ function StudentFinalShowcaseTask({
               inputMode="text"
             />
           </label>
-          <label>
-            每个人的贡献
-            <textarea
-              value={personalContributions}
-              onChange={(event) => setPersonalContributions(event.target.value)}
-              placeholder={"例如：\\n小宇：采访同学，整理问题\\n小安：做产品页面和按钮\\n小林：准备故事发布"}
-              rows={4}
-            />
-          </label>
+          <div className="contribution-editor">
+            <header>
+              <div>
+                <span>个人贡献</span>
+                <strong>谁让作品前进一步？</strong>
+              </div>
+              <button type="button" onClick={addContributionDraft}>
+                <UsersRound size={16} />
+                加一位
+              </button>
+            </header>
+            {contributionDrafts.map((card, index) => (
+              <div className="contribution-row" key={index}>
+                <label>
+                  名字
+                  <input
+                    value={card.name}
+                    onChange={(event) => updateContributionDraft(index, "name", event.target.value)}
+                    placeholder="小宇"
+                    inputMode="text"
+                  />
+                </label>
+                <label className="contribution-main">
+                  做了什么
+                  <textarea
+                    value={card.contribution}
+                    onChange={(event) => updateContributionDraft(index, "contribution", event.target.value)}
+                    placeholder="例如：采访同学，整理出大家最常遇到的问题"
+                    rows={2}
+                  />
+                </label>
+                <label>
+                  能力标签
+                  <select value={card.tag} onChange={(event) => updateContributionDraft(index, "tag", event.target.value)}>
+                    {contributionAbilityTags.map((tag) => (
+                      <option value={tag} key={tag}>{tag}</option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  className="contribution-remove"
+                  disabled={contributionDrafts.length === 1}
+                  aria-label={`移除${card.name || "这一位"}`}
+                  onClick={() => removeContributionDraft(index)}
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
           <label>
             目标用户
             <input
