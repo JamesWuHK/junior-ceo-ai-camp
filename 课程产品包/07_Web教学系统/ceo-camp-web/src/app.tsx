@@ -1193,45 +1193,6 @@ function useTeacherData(enabled: boolean) {
   return { camp, modules, students, loading, error, refresh };
 }
 
-type AppPage = "home" | "teacher" | "student" | "wall" | "public-showcase";
-
-function pageFromPath(pathname: string): AppPage {
-  if (pathname.startsWith("/teacher")) return "teacher";
-  if (pathname.startsWith("/student")) return "student";
-  if (pathname.startsWith("/wall")) return "wall";
-  if (pathname.startsWith("/showcase") || pathname.startsWith("/parents")) return "public-showcase";
-  return "home";
-}
-
-export function HomeRoute() {
-  const entries = [
-    { title: "教师入口", text: "打开三天课程总控和课件。", href: "/teacher.html", icon: <Monitor size={22} /> },
-    { title: "学生入口", text: "进入当前课堂任务。", href: "/student.html", icon: <UsersRound size={22} /> },
-    { title: "课堂大屏", text: "展示照片墙和作品秀。", href: "/wall.html", icon: <Maximize2 size={22} /> },
-    { title: "作品展", text: "查看结营路演作品。", href: "/showcase.html", icon: <Package size={22} /> },
-    { title: "家长观察", text: "打开作品展示和观察评分。", href: "/parents.html", icon: <Star size={22} /> }
-  ];
-
-  return (
-    <main className="home-page">
-      <section className="home-hero">
-        <span className="eyebrow">少年CEO AI 创业营</span>
-        <h1>课堂系统入口</h1>
-        <p>首页保留为轻入口；教师端、学生端、大屏、作品展和家长观察各自独立打开。</p>
-      </section>
-      <section className="home-entry-grid" aria-label="课堂入口">
-        {entries.map((entry) => (
-          <a className="home-entry-card" href={entry.href} key={entry.href}>
-            {entry.icon}
-            <strong>{entry.title}</strong>
-            <span>{entry.text}</span>
-          </a>
-        ))}
-      </section>
-    </main>
-  );
-}
-
 function LiveDataRoute({ active }: { active: "student" | "wall" }) {
   const data = useInitialData(active);
 
@@ -1278,15 +1239,6 @@ export function StudentRoute() {
 
 export function WallRoute() {
   return <LiveDataRoute active="wall" />;
-}
-
-export function App() {
-  const page = pageFromPath(window.location.pathname || "/");
-  if (page === "teacher") return <TeacherRoute />;
-  if (page === "student") return <StudentRoute />;
-  if (page === "wall") return <WallRoute />;
-  if (page === "public-showcase") return <PublicShowcaseRoute />;
-  return <HomeRoute />;
 }
 
 export function TeacherRoute() {
