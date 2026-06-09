@@ -1,6 +1,6 @@
 # Baidu Ranking / GEO Tracking Plan
 
-Generated: 2026-06-09T22:03:05+08:00
+Generated: 2026-06-09T22:07:48+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
 
@@ -225,6 +225,7 @@ youth-ai-course-guide | AI课程怎么选 | https://camps.wanli.wiki/youth-ai-co
 youth-ai-course-guide | 儿童AI课程只学工具够吗 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | https://www.baidu.com/s?wd=%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B%E5%8F%AA%E5%AD%A6%E5%B7%A5%E5%85%B7%E5%A4%9F%E5%90%97 | N/A
 youth-ai-course-guide | AI PBL课程适合什么孩子 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | https://www.baidu.com/s?wd=AI+PBL%E8%AF%BE%E7%A8%8B%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%AD%A9%E5%AD%90 | N/A
 ai-course-vs-coding | 少儿编程和AI课程区别是什么 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://camps.wanli.wiki/ai-course-vs-coding.md | https://www.baidu.com/s?wd=%E5%B0%91%E5%84%BF%E7%BC%96%E7%A8%8B%E5%92%8CAI%E8%AF%BE%E7%A8%8B%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88 | N/A
+ai-course-vs-coding | AI课程和编程课区别 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://camps.wanli.wiki/ai-course-vs-coding.md | https://www.baidu.com/s?wd=AI%E8%AF%BE%E7%A8%8B%E5%92%8C%E7%BC%96%E7%A8%8B%E8%AF%BE%E5%8C%BA%E5%88%AB | N/A
 ai-course-vs-coding | 孩子该学AI还是编程 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://camps.wanli.wiki/ai-course-vs-coding.md | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E8%AF%A5%E5%AD%A6AI%E8%BF%98%E6%98%AF%E7%BC%96%E7%A8%8B | N/A
 ai-course-vs-coding | 不会编程能学AI课程吗 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://camps.wanli.wiki/ai-course-vs-coding.md | https://www.baidu.com/s?wd=%E4%B8%8D%E4%BC%9A%E7%BC%96%E7%A8%8B%E8%83%BD%E5%AD%A6AI%E8%AF%BE%E7%A8%8B%E5%90%97 | N/A
 shunyi-parent-class | 北京顺义AI家长公益课讲什么 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://camps.wanli.wiki/shunyi-ai-parent-class.md | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%AE%B6%E9%95%BF%E5%85%AC%E7%9B%8A%E8%AF%BE%E8%AE%B2%E4%BB%80%E4%B9%88 | N/A

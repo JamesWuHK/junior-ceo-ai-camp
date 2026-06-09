@@ -2590,6 +2590,18 @@
     },
     {
       "cluster": "ai-course-vs-coding",
+      "query": "AI课程和编程课区别",
+      "targetPage": "https://camps.wanli.wiki/ai-course-vs-coding.html",
+      "markdownUrl": "https://camps.wanli.wiki/ai-course-vs-coding.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "ai-course-vs-coding",
       "query": "孩子该学AI还是编程",
       "targetPage": "https://camps.wanli.wiki/ai-course-vs-coding.html",
       "markdownUrl": "https://camps.wanli.wiki/ai-course-vs-coding.md",

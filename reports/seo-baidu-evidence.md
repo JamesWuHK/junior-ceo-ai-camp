@@ -1,6 +1,6 @@
 # Baidu Measured Evidence Report
 
-Generated: 2026-06-09T22:03:21+08:00
+Generated: 2026-06-09T22:08:01+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_MEASURED_DATA
 
@@ -17,7 +17,7 @@ Overall status: NEEDS_MEASURED_DATA
 - URL metric evidence: 0/14 measured, 14 missing evidence.
 - Primary keyword rank evidence: 0/13 ranked, 0 measured no rank, 13 missing evidence.
 - Tracked keyword rank evidence: 0/137 ranked, 0 measured no rank, 137 missing evidence.
-- GEO answer evidence: 0/42 pass, 0 needs repair, 42 missing evidence.
+- GEO answer evidence: 0/43 pass, 0 needs repair, 43 missing evidence.
 
 ## How To Use This File
 
@@ -265,6 +265,7 @@ MISSING_EVIDENCE | youth-ai-course-guide | AI课程怎么选 | https://camps.wan
 MISSING_EVIDENCE | youth-ai-course-guide | 儿童AI课程只学工具够吗 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | youth-ai-course-guide | AI PBL课程适合什么孩子 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-course-vs-coding | 少儿编程和AI课程区别是什么 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://camps.wanli.wiki/ai-course-vs-coding.md | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-course-vs-coding | AI课程和编程课区别 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://camps.wanli.wiki/ai-course-vs-coding.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-course-vs-coding | 孩子该学AI还是编程 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://camps.wanli.wiki/ai-course-vs-coding.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-course-vs-coding | 不会编程能学AI课程吗 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://camps.wanli.wiki/ai-course-vs-coding.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | shunyi-parent-class | 北京顺义AI家长公益课讲什么 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://camps.wanli.wiki/shunyi-ai-parent-class.md | N/A | N/A | N/A | N/A | N/A | -
