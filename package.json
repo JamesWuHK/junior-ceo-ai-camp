@@ -30,6 +30,7 @@
     "seo:baidu:rank-plan": "node scripts/seo/baidu-seo.mjs rank-plan",
     "seo:geo:queries": "node scripts/seo/baidu-seo.mjs rank-plan",
     "seo:geo:prompts": "node scripts/seo/baidu-seo.mjs geo-prompts",
+    "seo:geo:readiness": "node scripts/seo/baidu-seo.mjs geo-readiness",
     "seo:submission": "node scripts/seo/baidu-seo.mjs submission",
     "seo:baidu:submission": "node scripts/seo/baidu-seo.mjs submission",
     "seo:submit-list": "node scripts/seo/baidu-seo.mjs submit-list",

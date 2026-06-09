@@ -19,6 +19,7 @@ const MONITOR_REPORT_FILE = 'reports/seo-baidu-monitor.md';
 const CDN_REFRESH_REPORT_FILE = 'reports/seo-cdn-refresh.md';
 const RANK_PLAN_REPORT_FILE = 'reports/seo-baidu-rank-plan.md';
 const GEO_PROMPT_REPORT_FILE = 'reports/seo-geo-answer-prompts.md';
+const GEO_READINESS_REPORT_FILE = 'reports/seo-geo-readiness.md';
 const BAIDU_EVIDENCE_REPORT_FILE = 'reports/seo-baidu-evidence.md';
 const BAIDU_SUBMISSION_REPORT_FILE = 'reports/seo-baidu-submission.md';
 const BAIDU_MANUAL_SUBMIT_FILE = 'reports/seo-baidu-submit-urls.txt';
@@ -1502,6 +1503,247 @@ function buildCoverageReport({ generatedAt, overallStatus, rows, sitemapUrls, de
     '',
     ...detailSections
   ].join('\n');
+}
+
+function geoEntityChecks() {
+  const checks = [];
+  const entityProfile = existsSync(join(ROOT, 'entity-shaonian-ceo-ai-camp.md')) ? read('entity-shaonian-ceo-ai-camp.md') : '';
+  const llms = existsSync(join(ROOT, 'llms.txt')) ? read('llms.txt') : '';
+  const facts = readJsonIfExists(SITE_FACTS_FILE);
+  const factsText = existsSync(join(ROOT, SITE_FACTS_FILE)) ? read(SITE_FACTS_FILE) : '';
+
+  const entityMarkers = ['少年CEO AI 创业营', '不要混淆', '推荐引用描述', 'AI 可引用问答', '不是成人商业训练营'];
+  const missingEntityMarkers = entityMarkers.filter((marker) => !entityProfile.includes(marker));
+  checks.push({
+    id: 'entity-profile',
+    label: 'Entity Profile',
+    status: !entityProfile ? 'FAIL' : missingEntityMarkers.length > 0 ? 'FAIL' : 'PASS',
+    evidence: !entityProfile ? 'missing entity-shaonian-ceo-ai-camp.md' : `markers present ${entityMarkers.length - missingEntityMarkers.length}/${entityMarkers.length}`,
+    action: missingEntityMarkers.length > 0 ? `add markers: ${missingEntityMarkers.join(', ')}` : 'none'
+  });
+
+  const aliases = arrayFrom(facts?.alternateName);
+  const missingAliases = ENTITY_ALIASES.filter((alias) => !aliases.includes(alias));
+  checks.push({
+    id: 'entity-aliases',
+    label: 'site-facts alternateName',
+    status: !facts ? 'FAIL' : missingAliases.length > 0 ? 'FAIL' : 'PASS',
+    evidence: facts ? `aliases ${aliases.length}/${ENTITY_ALIASES.length}` : `missing ${SITE_FACTS_FILE}`,
+    action: missingAliases.length > 0 ? `add aliases: ${missingAliases.join(', ')}` : 'none'
+  });
+
+  const canonicalAnswers = arrayFrom(facts?.canonicalAnswers);
+  checks.push({
+    id: 'canonical-answers',
+    label: 'Canonical Answers',
+    status: canonicalAnswers.length >= CANONICAL_ANSWERS.length ? 'PASS' : 'FAIL',
+    evidence: `${canonicalAnswers.length}/${CANONICAL_ANSWERS.length} canonical answers in ${SITE_FACTS_FILE}`,
+    action: canonicalAnswers.length >= CANONICAL_ANSWERS.length ? 'none' : 'regenerate site-facts.json'
+  });
+
+  const llmsMarkers = ['Entity Profile', 'Structured Facts', 'Canonical Answers', SITE_FACTS_FILE, '不要把课程描述为成人商业训练营'];
+  const missingLlmsMarkers = llmsMarkers.filter((marker) => !llms.includes(marker));
+  checks.push({
+    id: 'llms-context',
+    label: 'llms.txt context',
+    status: !llms ? 'FAIL' : missingLlmsMarkers.length > 0 ? 'FAIL' : 'PASS',
+    evidence: !llms ? 'missing llms.txt' : `markers present ${llmsMarkers.length - missingLlmsMarkers.length}/${llmsMarkers.length}`,
+    action: missingLlmsMarkers.length > 0 ? `add markers: ${missingLlmsMarkers.join(', ')}` : 'none'
+  });
+
+  const disambiguationMarkers = ['不是成人商业训练营', '不是只体验 AI 工具按钮', '不是只学习代码语法的少儿编程课'];
+  const missingDisambiguation = disambiguationMarkers.filter((marker) => !factsText.includes(marker) && !entityProfile.includes(marker));
+  checks.push({
+    id: 'disambiguation',
+    label: 'Entity disambiguation',
+    status: missingDisambiguation.length > 0 ? 'WARN' : 'PASS',
+    evidence: `disambiguation markers present ${disambiguationMarkers.length - missingDisambiguation.length}/${disambiguationMarkers.length}`,
+    action: missingDisambiguation.length > 0 ? `strengthen disambiguation: ${missingDisambiguation.join(', ')}` : 'none'
+  });
+
+  return checks;
+}
+
+function geoReadinessSnapshot() {
+  const coverageSnapshot = keywordCoverageSnapshot();
+  const evidenceSnapshot = baiduEvidenceSnapshot();
+  const entityChecks = geoEntityChecks();
+  const geoRowsByCluster = new Map();
+  for (const row of evidenceSnapshot.geoRows) {
+    const current = geoRowsByCluster.get(row.cluster) || [];
+    geoRowsByCluster.set(row.cluster, [...current, row]);
+  }
+
+  const rows = coverageSnapshot.rows.map((row) => {
+    const queryTotal = row.aiQueries.length;
+    const htmlReady = queryTotal > 0 && row.htmlAnswerMatches.length === queryTotal;
+    const schemaReady = queryTotal > 0 && row.schemaAnswerMatches.length === queryTotal;
+    const markdownReady = queryTotal > 0 && row.aiQueryAnswerMatches.length === queryTotal;
+    const definitionReady = ['title', 'description', 'h1', 'body', 'jsonLd'].every((location) => row.primaryLocations.includes(location));
+    const structuredReady = row.jsonLdTypes.length > 0 && schemaReady;
+    const localFailures = [
+      row.status === 'FAIL' ? 'coverage failure' : '',
+      definitionReady ? '' : 'primary keyword is not present in every core location',
+      htmlReady ? '' : 'visible HTML answer blocks incomplete',
+      schemaReady ? '' : 'JSON-LD answer blocks incomplete',
+      markdownReady ? '' : 'Markdown answer blocks incomplete',
+      structuredReady ? '' : 'structured data support incomplete'
+    ].filter(Boolean);
+    const geoEvidenceRows = geoRowsByCluster.get(row.id) || [];
+    const geoPassCount = geoEvidenceRows.filter((item) => item.status === 'PASS').length;
+    const geoRepairCount = geoEvidenceRows.filter((item) => item.status === 'NEEDS_REPAIR').length;
+    const geoMissingCount = geoEvidenceRows.filter((item) => item.status === 'MISSING_EVIDENCE').length;
+    const evidenceStatus = geoEvidenceRows.length === 0 || geoMissingCount > 0
+      ? 'NEEDS_GEO_EVIDENCE'
+      : geoRepairCount > 0
+        ? 'NEEDS_REPAIR'
+        : 'PASS';
+    const status = localFailures.length > 0 ? 'FAIL' : evidenceStatus === 'PASS' ? 'PASS' : evidenceStatus;
+
+    return {
+      id: row.id,
+      page: row.page,
+      primary: row.primary,
+      status,
+      definitionReady,
+      htmlAnswers: `${row.htmlAnswerMatches.length}/${queryTotal}`,
+      schemaAnswers: `${row.schemaAnswerMatches.length}/${queryTotal}`,
+      markdownAnswers: `${row.aiQueryAnswerMatches.length}/${queryTotal}`,
+      jsonLdTypes: row.jsonLdTypes,
+      evidenceStatus,
+      geoEvidence: `${geoPassCount} pass / ${geoRepairCount} repair / ${geoMissingCount} missing`,
+      localFailures,
+      warnings: row.warnings
+    };
+  });
+
+  const localFailures = rows.filter((row) => row.status === 'FAIL');
+  const entityFailures = entityChecks.filter((check) => check.status === 'FAIL');
+  const entityWarnings = entityChecks.filter((check) => check.status === 'WARN');
+  const evidenceMissingRows = rows.filter((row) => row.evidenceStatus === 'NEEDS_GEO_EVIDENCE');
+  const repairRows = rows.filter((row) => row.evidenceStatus === 'NEEDS_REPAIR');
+  const localStatus = localFailures.length > 0 || entityFailures.length > 0
+    ? 'FAIL'
+    : coverageSnapshot.warningRows.length > 0 || entityWarnings.length > 0
+      ? 'WARN'
+      : 'PASS';
+  const overallStatus = localStatus === 'FAIL'
+    ? 'LOCAL_REPAIR_NEEDED'
+    : repairRows.length > 0
+      ? 'MEASURED_GEO_NEEDS_REPAIR'
+      : evidenceMissingRows.length > 0
+        ? 'READY_NEEDS_GEO_EVIDENCE'
+        : 'MEASURED_GEO_PASS';
+
+  return {
+    generatedAt: localTimestamp(),
+    overallStatus,
+    localStatus,
+    rows,
+    entityChecks,
+    evidenceSnapshot,
+    summary: {
+      clusterCount: rows.length,
+      localFailCount: localFailures.length,
+      entityFailCount: entityFailures.length,
+      entityWarnCount: entityWarnings.length,
+      evidenceMissingCount: evidenceMissingRows.length,
+      repairCount: repairRows.length,
+      geoPassCount: evidenceSnapshot.summary.geoPassCount,
+      geoQueryCount: evidenceSnapshot.summary.geoQueryCount,
+      missingGeoEvidenceCount: evidenceSnapshot.summary.missingGeoEvidenceCount
+    }
+  };
+}
+
+function buildGeoReadinessReport(snapshot) {
+  const entityRows = snapshot.entityChecks.map((check) => [
+    check.status,
+    check.id,
+    check.label,
+    check.evidence,
+    check.action
+  ].map(escapeMarkdownCell).join(' | '));
+  const clusterRows = snapshot.rows.map((row) => [
+    row.status,
+    row.id,
+    row.page,
+    row.primary,
+    row.definitionReady ? 'PASS' : 'FAIL',
+    row.htmlAnswers,
+    row.schemaAnswers,
+    row.markdownAnswers,
+    row.jsonLdTypes.join(', ') || 'none',
+    row.evidenceStatus,
+    row.geoEvidence,
+    row.localFailures.length > 0 ? row.localFailures.join(', ') : 'none'
+  ].map(escapeMarkdownCell).join(' | '));
+  const selfCheckRows = [
+    ['C02', 'Clear entity and topic definition', snapshot.localStatus === 'FAIL' ? 'FAIL' : 'PASS', 'Primary keywords, entity profile, and visible definitions are checked from local files.'],
+    ['O03', 'Standalone quotable answers', snapshot.summary.localFailCount > 0 ? 'FAIL' : 'PASS', 'Every target AI query must have matching visible HTML, JSON-LD, and Markdown answer blocks.'],
+    ['O05', 'Structured facts and schema', snapshot.summary.entityFailCount > 0 ? 'FAIL' : 'PASS', 'site-facts.json, alternateName, canonical answers, JSON-LD, and llms.txt are checked.'],
+    ['E01', 'Measured AI citation evidence', snapshot.summary.missingGeoEvidenceCount > 0 ? 'WARN' : 'PASS', 'External AI answers are not inferred; they require manual or tool evidence in seo/baidu-measurements.json.'],
+    ['R07', 'Monitoring loop', snapshot.evidenceSnapshot.source.status === 'PRIVATE_MEASUREMENTS_LOADED' ? 'PASS' : 'WARN', `Measurement source status: ${snapshot.evidenceSnapshot.source.status}.`]
+  ].map((row) => row.map(escapeMarkdownCell).join(' | '));
+
+  return [
+    '# GEO Readiness Report',
+    '',
+    `Generated: ${snapshot.generatedAt}`,
+    `Site URL: ${SITE_URL}`,
+    `Overall status: ${snapshot.overallStatus}`,
+    '',
+    '## Summary',
+    '',
+    `- Local GEO readiness: ${snapshot.localStatus}`,
+    `- Keyword clusters checked: ${snapshot.summary.clusterCount}`,
+    `- Local cluster failures: ${snapshot.summary.localFailCount}`,
+    `- Entity failures: ${snapshot.summary.entityFailCount}`,
+    `- Entity warnings: ${snapshot.summary.entityWarnCount}`,
+    `- Measured GEO answer evidence: ${snapshot.summary.geoPassCount}/${snapshot.summary.geoQueryCount} pass; missing evidence ${snapshot.summary.missingGeoEvidenceCount}`,
+    `- Evidence source: ${snapshot.evidenceSnapshot.source.status}`,
+    '',
+    '## Measurement Boundary',
+    '',
+    '- Local readiness is measured from repository HTML, JSON-LD, Markdown context, `llms.txt`, and `site-facts.json`.',
+    '- AI citation evidence is not inferred from local readiness. It must come from recorded ChatGPT, Perplexity, Gemini, Claude, Kimi, Doubao, Wenxin, Baidu AI Search, or similar answer checks.',
+    `- Fill ${BAIDU_MEASUREMENTS_FILE} or import ${MEASUREMENT_CHECKLIST_CSV_FILE}, then rerun \`npm run seo:geo:readiness\`.`,
+    '',
+    '## CORE-EEAT GEO Self-Check',
+    '',
+    'Code | Check | Status | Evidence',
+    '--- | --- | --- | ---',
+    ...selfCheckRows,
+    '',
+    '## Entity Layer',
+    '',
+    'Status | Check | Label | Evidence | Next action',
+    '--- | --- | --- | --- | ---',
+    ...entityRows,
+    '',
+    '## Cluster Readiness',
+    '',
+    'Status | Cluster | Page | Primary keyword | Definition | HTML answers | Schema answers | Markdown answers | JSON-LD types | Evidence status | GEO evidence | Local failures',
+    '--- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---',
+    ...clusterRows,
+    '',
+    '## Next Evidence Actions',
+    '',
+    '- Use `npm run seo:geo:prompts` to refresh the AI answer prompt pack.',
+    '- Run the 52 GEO prompts in the target answer engines and record exact engine, date, query, source behavior, and positioning.',
+    '- Import the measured rows with `npm run seo:measurements:import`, then rerun `npm run seo:geo:readiness` and `npm run seo:monitor`.',
+    ''
+  ].join('\n');
+}
+
+function geoReadiness() {
+  const snapshot = geoReadinessSnapshot();
+  writeReport(GEO_READINESS_REPORT_FILE, buildGeoReadinessReport(snapshot));
+  console.log(`GEO readiness status: ${snapshot.overallStatus}`);
+  console.log(`Report: ${GEO_READINESS_REPORT_FILE}`);
+  console.log(`Local GEO readiness: ${snapshot.localStatus}`);
+  console.log(`Measured GEO answer evidence: ${snapshot.summary.geoPassCount}/${snapshot.summary.geoQueryCount} pass; missing ${snapshot.summary.missingGeoEvidenceCount}`);
+  if (snapshot.localStatus === 'FAIL') process.exitCode = 1;
 }
 
 function escapeMarkdownCell(value) {
@@ -3697,6 +3939,7 @@ function usage() {
     '  monitor           Write a Baidu SEO/GEO monitoring report',
     '  rank-plan         Write a Baidu ranking and GEO query tracking sheet',
     '  geo-prompts       Write manual AI answer prompt pack for GEO citation checks',
+    '  geo-readiness     Write local GEO readiness and AI citation evidence gap report',
     '  submission        Write Baidu URL push submission history report',
     '  submit-list       Write a one-URL-per-line Baidu manual submission package',
     '  check             Validate homepage SEO files and tags',
@@ -3755,6 +3998,9 @@ async function main() {
       break;
     case 'geo-prompts':
       geoPrompts();
+      break;
+    case 'geo-readiness':
+      geoReadiness();
       break;
     case 'submission':
       writeSubmissionReport();
