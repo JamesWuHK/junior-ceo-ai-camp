@@ -113,6 +113,33 @@ const growthAbilityHints: Record<(typeof growthAbilityTags)[number], string> = {
   领导力: "带着团队把作品推出去"
 };
 
+const productTrackOptions = [
+  {
+    value: "life-helper",
+    label: "生活帮手",
+    hint: "家里、生活、照护、饮食、整理里的小麻烦",
+    directions: ["宠物/家庭照护", "饮食/烹饪", "失物/寻物"]
+  },
+  {
+    value: "learning-tool",
+    label: "学习工具",
+    hint: "作业、复习、背诵、错题、口语里的卡点",
+    directions: ["错题/作业辅导", "口语/语言练习", "考试/复习规划"]
+  },
+  {
+    value: "creative-studio",
+    label: "创意工坊",
+    hint: "写故事、画漫画、做歌、做视频的灵感和修改",
+    directions: ["故事/阅读", "漫画创作", "歌词/音乐创作"]
+  },
+  {
+    value: "campus-community",
+    label: "校园社区",
+    hint: "班级信息、活动、趣事、表扬和互助",
+    directions: ["校园夸夸墙", "趣事/排行", "校园新闻/资讯"]
+  }
+] as const;
+
 const techRouteOptions = [
   { value: "standard", label: "标准路线", hint: "用课堂推荐工具做出来" },
   { value: "light", label: "轻量路线", hint: "先做成可点击页面或表单" },
@@ -1022,7 +1049,14 @@ function isStoryPitchTask(camp: Camp | null) {
 function isProductDefinitionTask(camp: Camp | null) {
   const title = activeTaskTitle(camp);
   const moduleId = camp?.active_task?.module_id || "";
-  return moduleId === "project-launch" || /产品一句话|产品定义|把线索变成产品一句话|产品卡片/.test(title);
+  const activityType = camp?.active_task?.activity_type || "";
+  const payloadType = asText(camp?.active_task?.payload?.task_type);
+  return (
+    activityType === "product_definition" ||
+    payloadType === "product_definition" ||
+    moduleId === "project-launch" ||
+    /产品一句话|产品定义|把线索变成产品一句话|产品卡片|选一条赛道|真实用户|赛道地图/.test(title)
+  );
 }
 
 function isFinalShowcaseTask(camp: Camp | null) {
@@ -2357,9 +2391,12 @@ function journeyCopy(item: WallArtifact) {
   }
   if (item.task_type === "product_definition") {
     return [
+      ["赛道", productTrackText(item.payload)],
       ["帮谁", asText(item.payload.target_user)],
+      ["场景", asText(item.payload.use_scene)],
       ["问题", asText(item.payload.core_problem)],
-      ["办法", asText(item.payload.solution)],
+      ["核心动作", asText(item.payload.core_action) || asText(item.payload.solution)],
+      ["证据", asText(item.payload.interview_evidence)],
       ["一句话", asText(item.payload.one_liner)]
     ];
   }
@@ -2984,6 +3021,21 @@ function TeacherViewPanels({
 
 function asText(value: unknown) {
   return typeof value === "string" ? value : "";
+}
+
+function productTrackLabel(value: unknown) {
+  const text = asText(value);
+  return productTrackOptions.find((item) => item.value === text)?.label || text;
+}
+
+function productDirectionOptions(track: string) {
+  return productTrackOptions.find((item) => item.value === track)?.directions ?? [];
+}
+
+function productTrackText(payload: Record<string, unknown>) {
+  const label = asText(payload.track_label) || productTrackLabel(payload.track);
+  const direction = asText(payload.direction);
+  return [label, direction].filter(Boolean).join(" · ");
 }
 
 function asTextList(value: unknown) {
@@ -4367,6 +4419,7 @@ function TeacherProductDefinitions() {
     const oneLiner = asText(item.payload.one_liner).trim();
     const targetUser = asText(item.payload.target_user).trim();
     const coreProblem = asText(item.payload.core_problem).trim();
+    const trackText = productTrackText(item.payload).trim();
     if (!productName) {
       setMessage("这条提交缺少产品名。");
       return;
@@ -4377,8 +4430,9 @@ function TeacherProductDefinitions() {
       await api.publishShowcase({
         id: `definition-${item.id}`,
         team_id: item.team_id || undefined,
+        team_name: item.team_name || item.student_name || undefined,
         product_name: productName,
-        track: item.team_name || item.student_name || targetUser || undefined,
+        track: trackText || targetUser || undefined,
         one_liner: oneLiner || (targetUser && coreProblem ? `${targetUser}：${coreProblem}` : undefined),
         publish_status: "PUBLISHED"
       });
@@ -4406,6 +4460,15 @@ function TeacherProductDefinitions() {
         {items.map((item) => {
           const productName = asText(item.payload.product_name) || "未命名产品";
           const oneLiner = asText(item.payload.one_liner);
+          const trackText = productTrackText(item.payload);
+          const targetUser = asText(item.payload.target_user);
+          const action = asText(item.payload.core_action) || asText(item.payload.solution);
+          const teacherHints = [
+            !targetUser ? "缺真实用户" : /大家|所有人|全部人|所有用户/.test(targetUser) ? "用户还可以更具体" : "",
+            !asText(item.payload.interview_evidence) ? "缺采访证据" : "",
+            !action ? "缺核心动作" : "",
+            /万能|全能|什么都|所有功能|一站式/.test(`${productName}${oneLiner}${asText(item.payload.direction)}`) ? "方向可能过大" : ""
+          ].filter(Boolean);
           return (
             <article className={item.status === "ON_WALL" ? "d1-artifact-card on-wall" : "d1-artifact-card"} key={item.id}>
               <header>
@@ -4424,10 +4487,16 @@ function TeacherProductDefinitions() {
                 </div>
               </header>
               <div className="artifact-lines">
+                <p><strong>赛道：</strong>{trackText || "还没选"}</p>
                 <p><strong>帮谁：</strong>{asText(item.payload.target_user) || "还没写"}</p>
+                <p><strong>场景：</strong>{asText(item.payload.use_scene) || "还没写"}</p>
                 <p><strong>问题：</strong>{asText(item.payload.core_problem) || "还没写"}</p>
-                <p><strong>办法：</strong>{asText(item.payload.solution) || "还没写"}</p>
+                <p><strong>核心动作：</strong>{action || "还没写"}</p>
+                <p><strong>采访证据：</strong>{asText(item.payload.interview_evidence) || "还没写"}</p>
                 <p><strong>一句话：</strong>{oneLiner || "还没生成"}</p>
+                {teacherHints.length > 0 && (
+                  <p><strong>教师提醒：</strong>{teacherHints.join(" / ")}</p>
+                )}
                 {asText(item.payload.source_problem_title) && (
                   <p><strong>来源线索：</strong>{asText(item.payload.source_problem_title)}{asNumber(item.payload.source_problem_votes) > 0 ? ` · ${asNumber(item.payload.source_problem_votes)} 票` : ""}</p>
                 )}
@@ -9963,9 +10032,13 @@ function StudentProductDefinitionTask({
   onLogout: () => void;
 }) {
   const [productName, setProductName] = useState("");
+  const [track, setTrack] = useState("");
+  const [direction, setDirection] = useState("");
   const [targetUser, setTargetUser] = useState("");
+  const [useScene, setUseScene] = useState("");
   const [coreProblem, setCoreProblem] = useState("");
   const [solution, setSolution] = useState("");
+  const [interviewEvidence, setInterviewEvidence] = useState("");
   const [problemOptions, setProblemOptions] = useState<WallArtifact[]>([]);
   const [problemVotes, setProblemVotes] = useState<Record<string, number>>({});
   const [teamProblemId, setTeamProblemId] = useState("");
@@ -9973,10 +10046,11 @@ function StudentProductDefinitionTask({
   const [selectedProblemTitle, setSelectedProblemTitle] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
+  const directionOptions = useMemo(() => productDirectionOptions(track), [track]);
   const oneLiner = useMemo(() => {
-    if (!targetUser.trim() || !coreProblem.trim() || !solution.trim()) return "";
-    return `我们为${targetUser.trim()}，用${solution.trim()}，解决${coreProblem.trim()}。`;
-  }, [targetUser, coreProblem, solution]);
+    if (!targetUser.trim() || !useScene.trim() || !coreProblem.trim() || !solution.trim()) return "";
+    return `我们想帮${targetUser.trim()}，在${useScene.trim()}的时候解决${coreProblem.trim()}，先做一个可以${solution.trim()}的产品。`;
+  }, [targetUser, useScene, coreProblem, solution]);
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
@@ -10018,8 +10092,12 @@ function StudentProductDefinitionTask({
     const problemTitle = asText(item.payload.problem_scene) || asText(item.payload.trouble) || "一个真实问题";
     const problemUser = asText(item.payload.target_user);
     const problemTrouble = asText(item.payload.trouble) || problemTitle;
+    const problemScene = asText(item.payload.problem_scene);
+    const problemEvidence = asText(item.payload.evidence) || asText(item.payload.user_quote) || asText(item.payload.answer);
     if (problemUser) setTargetUser(problemUser);
     if (problemTrouble) setCoreProblem(problemTrouble);
+    if (problemScene) setUseScene(problemScene);
+    if (problemEvidence) setInterviewEvidence(problemEvidence);
     setSelectedProblemId(item.id);
     setSelectedProblemTitle(problemTitle);
   };
@@ -10029,8 +10107,20 @@ function StudentProductDefinitionTask({
       showMessage("error", "先给产品起一个名字。");
       return;
     }
+    if (!track.trim()) {
+      showMessage("error", "先选一条主赛道。");
+      return;
+    }
+    if (!direction.trim()) {
+      showMessage("error", "写一个具体方向。");
+      return;
+    }
     if (!targetUser.trim()) {
       showMessage("error", "写清楚这个产品帮谁。");
+      return;
+    }
+    if (!useScene.trim()) {
+      showMessage("error", "写清楚这个人在哪个场景里会用。");
       return;
     }
     if (!coreProblem.trim()) {
@@ -10038,7 +10128,7 @@ function StudentProductDefinitionTask({
       return;
     }
     if (!solution.trim()) {
-      showMessage("error", "写清楚你们准备用什么方式解决。");
+      showMessage("error", "写清楚明天先做的核心动作。");
       return;
     }
     setSubmitting(true);
@@ -10049,9 +10139,15 @@ function StudentProductDefinitionTask({
         title: taskTitle,
         payload: {
           product_name: productName.trim(),
+          track: track.trim(),
+          track_label: productTrackLabel(track),
+          direction: direction.trim(),
           target_user: targetUser.trim(),
+          use_scene: useScene.trim(),
           core_problem: coreProblem.trim(),
+          core_action: solution.trim(),
           solution: solution.trim(),
+          interview_evidence: interviewEvidence.trim(),
           one_liner: oneLiner,
           source_problem_id: selectedProblemId,
           source_problem_title: selectedProblemTitle,
@@ -10061,9 +10157,13 @@ function StudentProductDefinitionTask({
       });
       showMessage("success", "收到啦。这句话可以变成你们的第一张产品卡。");
       setProductName("");
+      setTrack("");
+      setDirection("");
       setTargetUser("");
+      setUseScene("");
       setCoreProblem("");
       setSolution("");
+      setInterviewEvidence("");
       setSelectedProblemId("");
       setSelectedProblemTitle("");
       await refresh();
@@ -10114,6 +10214,40 @@ function StudentProductDefinitionTask({
               </div>
             </div>
           )}
+          <div className="product-source-panel">
+            <span>主赛道</span>
+            <div className="route-choice-grid product-track-grid">
+              {productTrackOptions.map((option) => (
+                <button
+                  className={track === option.value ? "active" : ""}
+                  key={option.value}
+                  onClick={() => {
+                    setTrack(option.value);
+                    if (!option.directions.some((item) => item === direction)) setDirection("");
+                  }}
+                  type="button"
+                >
+                  <strong>{option.label}</strong>
+                  <span>{option.hint}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <label>
+            具体方向
+            <input
+              value={direction}
+              onChange={(event) => setDirection(event.target.value)}
+              placeholder={track ? "从方向里选，也可以自己写" : "先选主赛道，再写方向"}
+              inputMode="text"
+              list="product-direction-options"
+            />
+            <datalist id="product-direction-options">
+              {directionOptions.map((item) => (
+                <option key={item} value={item} />
+              ))}
+            </datalist>
+          </label>
           <label>
             产品名
             <input
@@ -10133,7 +10267,16 @@ function StudentProductDefinitionTask({
             />
           </label>
           <label>
-            解决什么问题
+            发生场景
+            <input
+              value={useScene}
+              onChange={(event) => setUseScene(event.target.value)}
+              placeholder="例如：午饭前站在菜单前"
+              inputMode="text"
+            />
+          </label>
+          <label>
+            这个场景里有什么麻烦
             <textarea
               value={coreProblem}
               onChange={(event) => setCoreProblem(event.target.value)}
@@ -10142,7 +10285,16 @@ function StudentProductDefinitionTask({
             />
           </label>
           <label>
-            用什么方式解决
+            采访证据
+            <textarea
+              value={interviewEvidence}
+              onChange={(event) => setInterviewEvidence(event.target.value)}
+              placeholder="例如：有同学说，每次排队前都想先知道哪一队更快"
+              rows={2}
+            />
+          </label>
+          <label>
+            明天先做的核心动作
             <textarea
               value={solution}
               onChange={(event) => setSolution(event.target.value)}
@@ -10152,14 +10304,17 @@ function StudentProductDefinitionTask({
           </label>
           <div className="product-sentence-preview">
             <span>产品一句话</span>
-            <strong>{oneLiner || "填完上面三格，这里会出现一句完整介绍。"}</strong>
+            <strong>{oneLiner || "填完用户、场景、麻烦和核心动作，这里会出现一句完整介绍。"}</strong>
+            {[productTrackLabel(track), direction].filter(Boolean).length > 0 && (
+              <small>{[productTrackLabel(track), direction].filter(Boolean).join(" · ")}</small>
+            )}
             {selectedProblemTitle && <small>来自线索：{selectedProblemTitle}</small>}
           </div>
           <button className="submit-button" disabled={submitting} onClick={submit}>
             {submitting ? <Loader2 className="spin" size={18} /> : <Target size={18} />}
             提交
           </button>
-          <p className="hint">先说清楚帮谁，再说怎么帮，产品就会更像真的。</p>
+          <p className="hint">先写一个真正会用的人，再让一个动作先跑起来。</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -12320,6 +12475,8 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
           const isValue = item.task_type === "value_card";
           const isStory = item.task_type === "story_pitch";
           const qaPairs = isStory ? storyQaPairs(item.payload) : [];
+          const trackText = isProduct ? productTrackText(item.payload) : "";
+          const productAction = isProduct ? asText(item.payload.core_action) || asText(item.payload.solution) : "";
           return (
             <article
               className={
@@ -12377,9 +12534,12 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
               </strong>
               {isProduct ? (
                 <>
+                  <p><b>赛道</b>{trackText || "正在选择"}</p>
                   <p><b>帮谁</b>{asText(item.payload.target_user) || "还没写"}</p>
+                  <p><b>场景</b>{asText(item.payload.use_scene) || "还没写"}</p>
                   <p><b>问题</b>{asText(item.payload.core_problem) || "还没写"}</p>
-                  <p><b>办法</b>{asText(item.payload.solution) || "还没写"}</p>
+                  <p><b>先做动作</b>{productAction || "还在打磨"}</p>
+                  <p><b>证据</b>{asText(item.payload.interview_evidence) || "还在收集"}</p>
                   <p><b>一句话</b>{asText(item.payload.one_liner) || "还在打磨"}</p>
                 </>
               ) : isPackaging ? (
