@@ -1567,6 +1567,27 @@ function onlineTargets() {
   ];
 }
 
+function expectedContentTypesForUrl(url) {
+  const pathname = new URL(url).pathname;
+  if (pathname === '/' || pathname.endsWith('.html')) return ['text/html'];
+  if (pathname.endsWith('.xml')) return ['application/xml', 'text/xml'];
+  if (pathname.endsWith('.json')) return ['application/json'];
+  if (pathname.endsWith('.md')) return ['text/markdown', 'text/plain'];
+  if (pathname.endsWith('.txt')) return ['text/plain'];
+  return [];
+}
+
+function normalizedContentType(value) {
+  return String(value || '').split(';')[0].trim().toLowerCase();
+}
+
+function missingContentTypeMarkers(actual, expected) {
+  if (!expected.length) return [];
+  const normalized = normalizedContentType(actual);
+  if (expected.includes(normalized)) return [];
+  return [`content-type=${actual || 'missing'} expected ${expected.join(' or ')}`];
+}
+
 async function fetchOnlineTarget(target) {
   try {
     const response = await fetch(target.url, { redirect: 'follow' });
@@ -1575,7 +1596,10 @@ async function fetchOnlineTarget(target) {
     const warningMarkers = target.warningMarkers || [];
     const missingMarkers = markers.filter((marker) => !body.includes(marker));
     const missingWarningMarkers = warningMarkers.filter((marker) => !body.includes(marker));
-    const ok = response.ok && missingMarkers.length === 0;
+    const contentType = response.headers.get('content-type') || '';
+    const expectedContentTypes = target.contentTypes || expectedContentTypesForUrl(target.url);
+    const missingContentTypes = missingContentTypeMarkers(contentType, expectedContentTypes);
+    const ok = response.ok && missingMarkers.length === 0 && missingContentTypes.length === 0;
     const warning = ok && missingWarningMarkers.length > 0;
     const cacheHeaders = target.includeCacheHeaders ? cacheHeaderSummary(response.headers) : '';
     return {
@@ -1583,8 +1607,10 @@ async function fetchOnlineTarget(target) {
       url: target.url,
       status: response.status,
       bytes: body.length,
+      contentType,
       missingMarkers,
       missingWarningMarkers,
+      missingContentTypes,
       cacheHeaders,
       ok,
       warning,
@@ -1596,8 +1622,10 @@ async function fetchOnlineTarget(target) {
       url: target.url,
       status: 0,
       bytes: 0,
+      contentType: '',
       missingMarkers: target.markers || [],
       missingWarningMarkers: target.warningMarkers || [],
+      missingContentTypes: [],
       cacheHeaders: '',
       ok: false,
       warning: false,
@@ -2352,7 +2380,9 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     result.url,
     result.status || 'n/a',
     result.bytes,
+    result.contentType || '-',
     result.cacheHeaders || '-',
+    result.missingContentTypes.length > 0 ? result.missingContentTypes.join(', ') : 'none',
     result.missingMarkers.length > 0 ? result.missingMarkers.join(', ') : 'none',
     result.missingWarningMarkers.length > 0 ? result.missingWarningMarkers.join(', ') : 'none',
     result.error || '-'
@@ -2387,7 +2417,7 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     '',
     '## Measurement Boundary',
     '',
-    '- Measured now: local page metadata, sitemap membership, JSON-LD presence, public copy internal-term scan, live HTTP status, live marker presence, and Baidu push URL set.',
+    '- Measured now: local page metadata, sitemap membership, JSON-LD presence, public copy internal-term scan, live HTTP status, HTTP content type, live marker presence, and Baidu push URL set.',
     '- Internal link graph checks verify that public sitemap pages are reachable from the homepage and connected with descriptive links to related topic pages.',
     '- Measured Baidu index count, search impressions, clicks, crawler frequency, keyword ranking positions, and AI citation frequency require `seo/baidu-measurements.json` populated from Baidu Search Resource Platform exports, a compliant rank monitor, reproducible manual checks, or manual AI answer checks.',
     '- Baidu URL submission helps Baidu discover URLs faster; it does not guarantee inclusion or ranking. Treat successful push as discovery support, not as proof of indexed status.',
@@ -2424,8 +2454,8 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     '',
     '## Online Targets',
     '',
-    'Status | Target | URL | HTTP | Bytes | Cache / headers | Missing required | Missing warning | Error',
-    '--- | --- | --- | --- | --- | --- | --- | --- | ---',
+    'Status | Target | URL | HTTP | Bytes | Content-Type | Cache / headers | Content-Type error | Missing required | Missing warning | Error',
+    '--- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---',
     ...onlineRows,
     '',
     '## AI Query Targets',
@@ -3330,7 +3360,7 @@ async function monitor() {
   console.log(`Baidu SEO/GEO monitor: local=${coverageSnapshot.status}, links=${linkSnapshot.status}, online=${onlineStatus}, token=${baidu.tokenConfigured ? 'configured' : 'missing'}, evidence=${evidenceSnapshot.summary.overallStatus}, submission=${submissionSnapshot.summary.latestStatus}`);
   console.log(`Report: ${MONITOR_REPORT_FILE}`);
   for (const result of onlineResults) {
-    console.log(`- ${onlineResultStatus(result)} ${result.label ? `${result.label} ` : ''}${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
+    console.log(`- ${onlineResultStatus(result)} ${result.label ? `${result.label} ` : ''}${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}, content-type=${result.contentType || 'n/a'}`);
   }
 
   if (coverageSnapshot.status === 'FAIL' || linkSnapshot.status === 'FAIL' || onlineStatus === 'FAIL') {
@@ -3344,10 +3374,13 @@ async function checkOnline() {
 
   for (const target of onlineTargets()) {
     const result = await fetchOnlineTarget(target);
-    console.log(`${onlineResultStatus(result)} ${result.label ? `${result.label} ` : ''}${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
+    console.log(`${onlineResultStatus(result)} ${result.label ? `${result.label} ` : ''}${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}, content-type=${result.contentType || 'n/a'}`);
     const targetLabel = result.label ? `${result.label} ${result.url}` : result.url;
     if (result.error) failures.push(`${targetLabel} fetch failed: ${result.error}`);
     if (result.status && result.status >= 400) failures.push(`${targetLabel} returned HTTP ${result.status}`);
+    for (const marker of result.missingContentTypes) {
+      failures.push(`${targetLabel} ${marker}`);
+    }
     for (const marker of result.missingMarkers) {
       failures.push(`${targetLabel} missing marker: ${marker}`);
     }
