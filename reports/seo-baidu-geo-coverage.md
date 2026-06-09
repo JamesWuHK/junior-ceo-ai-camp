@@ -20,7 +20,7 @@ PASS | beijing-shunyi-ai-course | /beijing-shunyi-ai-course.html | 北京顺义A
 PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | 北京顺义青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | beijing-shunyi-youth-ai-course.md
 PASS | shunyi-children-ai-course | /shunyi-children-ai-course.html | 北京顺义儿童AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | shunyi-children-ai-course.md
 PASS | shunyi-ai-summer-camp | /shunyi-ai-summer-camp.html | 北京顺义AI夏令营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | shunyi-ai-summer-camp.md
-PASS | ai-era-skills-for-kids | /ai-era-skills-for-kids.html | AI时代孩子需要什么能力 | title, description, keywords, h1, body, jsonLd | 7/8 | 3/3 | 3/3 | 3/3 | yes | yes | ai-era-skills-for-kids.md
+PASS | ai-era-skills-for-kids | /ai-era-skills-for-kids.html | AI时代孩子需要什么能力 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | ai-era-skills-for-kids.md
 PASS | ai-judgement-for-kids | /ai-judgement-for-kids.html | 孩子AI判断力 | title, description, keywords, h1, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | ai-judgement-for-kids.md
 PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | youth-ai-course-guide.md
 PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | ai-course-vs-coding.md
@@ -186,7 +186,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Source: ai-era-skills-for-kids.html
 - Primary keyword: AI时代孩子需要什么能力
 - Primary locations measured: title, description, keywords, h1, body, jsonLd
-- Secondary matches measured: 7/8 (孩子学AI有什么用, AI判断力, 提问力, 青少年AI教育, 北京顺义AI家长课, AI PBL创业营, 少年CEO)
+- Secondary matches measured: 8/8 (孩子学AI有什么用, AI时代儿童能力, AI判断力, 提问力, 青少年AI教育, 北京顺义AI家长课, AI PBL创业营, 少年CEO)
 - JSON-LD types measured: Article, BreadcrumbList, FAQPage
 - AI query coverage targets: AI时代孩子需要什么能力 | 孩子学AI有什么用 | 家长如何培养孩子AI判断力
 - Visible HTML answer blocks measured: 3/3 (AI时代孩子需要什么能力 | 孩子学AI有什么用 | 家长如何培养孩子AI判断力)
