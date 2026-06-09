@@ -2705,8 +2705,7 @@ function TeacherApp({
   };
 
   const openWall = () => {
-    window.open("/wall", "_blank", "noopener,noreferrer");
-    setActionMessage("大屏页面已打开。");
+    window.location.href = "/wall";
   };
 
   const openProgressBoard = () => {
@@ -2728,8 +2727,12 @@ function TeacherApp({
   };
 
   const handlePageAction = async (action: string) => {
-    if (action === "全屏演示" || action === "投屏展示") {
+    if (action === "全屏演示") {
       await openPresentation();
+      return;
+    }
+    if (action === "投屏展示") {
+      openWall();
       return;
     }
     if (action === "启动计时") {
