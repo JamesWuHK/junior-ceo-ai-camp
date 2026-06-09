@@ -138,6 +138,7 @@ const scoreDimensions: ScoreDimension[] = [
   "team_pitch"
 ];
 const progressMilestones = [
+  { key: "team_card", label: "团队名片", target: 1, unit: "张" },
   { key: "problem_card", label: "问题卡", target: 1, unit: "张" },
   { key: "market_scout", label: "侦察卡", target: 1, unit: "张" },
   { key: "user_voice", label: "用户声音", target: 3, unit: "条" },
@@ -509,7 +510,7 @@ function wallTaskArtifacts(): TaskArtifact[] {
        LEFT JOIN teams t ON t.id = ts.team_id
       WHERE ts.camp_id = ?
         AND ts.status = 'ON_WALL'
-        AND ts.task_type IN ('problem_card', 'market_scout', 'user_voice', 'ai_validation', 'product_definition', 'prompt_card', 'feature_scope', 'tech_route', 'iteration_plan', 'value_card', 'product_packaging', 'story_pitch', 'final_showcase')
+        AND ts.task_type IN ('team_card', 'problem_card', 'market_scout', 'user_voice', 'ai_validation', 'product_definition', 'prompt_card', 'feature_scope', 'tech_route', 'iteration_plan', 'value_card', 'product_packaging', 'story_pitch', 'final_showcase')
       ORDER BY ts.updated_at DESC, ts.created_at DESC`,
     campId()
   ).map((artifact): TaskArtifact => {
@@ -562,7 +563,7 @@ function projectJourneyItems() {
        LEFT JOIN teams t ON t.id = ts.team_id
       WHERE ts.camp_id = ?
         AND ts.status = 'ON_WALL'
-        AND ts.task_type IN ('problem_card', 'market_scout', 'user_voice', 'ai_validation', 'product_definition', 'prompt_card', 'feature_scope', 'tech_route', 'product_feedback', 'iteration_plan', 'value_card', 'product_packaging', 'story_pitch', 'mentor_comment')
+        AND ts.task_type IN ('team_card', 'problem_card', 'market_scout', 'user_voice', 'ai_validation', 'product_definition', 'prompt_card', 'feature_scope', 'tech_route', 'product_feedback', 'iteration_plan', 'value_card', 'product_packaging', 'story_pitch', 'mentor_comment')
       ORDER BY ts.updated_at ASC, ts.created_at ASC`,
     campId()
   ).map((artifact): TaskArtifact => {
@@ -750,9 +751,10 @@ function nextSupportAction(
     const blocker = activeBlockers[0];
     return `先去 ${team.table_no || team.group_no} 号桌看卡点：${textValue(blocker.payload.where_stuck) || "请他们说清卡在哪里"}`;
   }
-  if (!team.selected_problem_id) return "先从问题卡里给小组定一个要继续调查的问题。";
   const firstMissing = milestoneStates.find((milestone) => !milestone.done);
   if (!firstMissing) return "可以安排彩排或进入作品秀顺序。";
+  if (firstMissing.key === "team_card") return "请小组先补一张团队名片：团队名、四个责任和一句亮相。";
+  if (!team.selected_problem_id) return "先从问题卡里给小组定一个要继续调查的问题。";
   if (firstMissing.key === "market_scout") return "先补一张侦察卡：AI 改写、用户声音、已有方案、继续验证。";
   if (firstMissing.key === "user_voice") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条用户声音，先补真实采访。`;
   if (firstMissing.key === "product_feedback") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条互测反馈，安排别组打开作品试用。`;

@@ -869,6 +869,7 @@ function formatTimer(seconds: number) {
 
 function taskTypeForAction(action: string, page: DesignedLessonPage) {
   if (page.title.includes("下一次我怎么指挥 AI")) return "growth_reflection";
+  if (/团队名片|四个责任放上桌|给团队起名|找到你的桌号/.test(page.title)) return "team_card";
   if (/AI 给答案，先看证据|真假侦探实验|证据比声音更有力/.test(page.title)) return "ai_validation";
   if (/把候选问题改清楚|AI 市场侦察卡|竞品观察三格/.test(page.title)) return "market_scout";
   if (/五句提示词卡|改一版再试|对 AI 说：不对，再改/.test(page.title)) return "prompt_card";
@@ -887,6 +888,19 @@ function taskTypeForAction(action: string, page: DesignedLessonPage) {
 
 function activeTaskTitle(camp: Camp | null) {
   return camp?.active_task?.title || "";
+}
+
+function isTeamCardTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  const activityType = camp?.active_task?.activity_type || "";
+  const payloadType = asText(camp?.active_task?.payload?.task_type);
+  return (
+    activityType === "team_card" ||
+    payloadType === "team_card" ||
+    moduleId === "team-formation" ||
+    /团队名片|四个责任放上桌|给团队起名|找到你的桌号/.test(title)
+  );
 }
 
 function isProductLinkTask(camp: Camp | null) {
@@ -2316,6 +2330,7 @@ function GrowthReflectionGallery({ reflections }: { reflections: WallArtifact[] 
 }
 
 function journeyTitle(item: WallArtifact) {
+  if (item.task_type === "team_card") return asText(item.payload.team_name) || item.team_name || "团队名片";
   if (item.task_type === "problem_card") return asText(item.payload.problem_scene) || "发现一个真实问题";
   if (item.task_type === "market_scout") return asText(item.payload.ai_rewrite) || asText(item.payload.original_problem) || "完成一次市场侦察";
   if (item.task_type === "user_voice") return asText(item.payload.interviewee) || "听见一位用户";
@@ -2335,6 +2350,7 @@ function journeyTitle(item: WallArtifact) {
 
 function journeyLabel(item: WallArtifact) {
   const labels: Record<string, string> = {
+    team_card: "团队名片",
     problem_card: "发现问题",
     market_scout: "市场侦察",
     user_voice: "听见用户",
@@ -2354,6 +2370,16 @@ function journeyLabel(item: WallArtifact) {
 }
 
 function journeyCopy(item: WallArtifact) {
+  if (item.task_type === "team_card") {
+    return [
+      ["团队", asText(item.payload.team_name) || item.team_name || ""],
+      ["采访", asText(item.payload.interview_owner)],
+      ["产品", asText(item.payload.product_owner)],
+      ["AI", asText(item.payload.ai_owner)],
+      ["展示", asText(item.payload.showcase_owner)],
+      ["亮相", asText(item.payload.launch_line)]
+    ];
+  }
   if (item.task_type === "problem_card") {
     return [
       ["用户", asText(item.payload.target_user)],
@@ -3134,6 +3160,7 @@ function sortByDisplayOrder<T extends TaskSubmission | WallArtifact>(items: T[])
 }
 
 const progressMilestones = [
+  { key: "team_card", label: "团队名片", target: 1, unit: "张" },
   { key: "problem_card", label: "问题卡", target: 1, unit: "张" },
   { key: "market_scout", label: "侦察卡", target: 1, unit: "张" },
   { key: "user_voice", label: "用户声音", target: 3, unit: "条" },
@@ -3161,7 +3188,7 @@ const progressFocusTabs: Array<{ key: ProgressFocusKey; label: string }> = [
 ];
 
 const progressFocusMilestones: Record<Exclude<ProgressFocusKey, "current">, Array<(typeof progressMilestones)[number]["key"]>> = {
-  d1: ["problem_card", "market_scout", "user_voice", "product_definition"],
+  d1: ["team_card", "problem_card", "market_scout", "user_voice", "product_definition"],
   d2: ["prompt_card", "feature_scope", "tech_route", "product_link", "product_feedback", "iteration_plan"],
   d3: ["value_card", "product_packaging", "story_pitch", "final_showcase"],
   all: progressMilestones.map((milestone) => milestone.key)
@@ -3530,6 +3557,7 @@ const studentWorkspaceTabs: Array<{ key: StudentWorkspaceTab; label: string; ico
 ];
 
 const studentTaskTypeLabels: Record<string, string> = {
+  team_card: "团队名片",
   problem_card: "问题卡",
   problem_vote: "问题选择",
   market_scout: "侦察卡",
@@ -3859,9 +3887,10 @@ function nextSupportAction(
     const blocker = activeBlockers[0];
     return `先去 ${team.table_no || team.group_no} 号桌看卡点：${asText(blocker.payload.where_stuck) || "请他们说清卡在哪里"}`;
   }
-  if (!team.selected_problem_id) return "先从问题卡里给小组定一个要继续调查的问题。";
   const firstMissing = milestoneStates.find((milestone) => !milestone.done);
   if (!firstMissing) return "可以安排彩排或进入作品秀顺序。";
+  if (firstMissing.key === "team_card") return "请小组先补一张团队名片：团队名、四个责任和一句亮相。";
+  if (!team.selected_problem_id) return "先从问题卡里给小组定一个要继续调查的问题。";
   if (firstMissing.key === "market_scout") return "先补一张侦察卡：AI 改写、用户声音、已有方案、继续验证。";
   if (firstMissing.key === "user_voice") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条用户声音，先补真实采访。`;
   if (firstMissing.key === "product_feedback") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条互测反馈，安排别组打开作品试用。`;
@@ -8211,6 +8240,7 @@ function StudentApp({
   const speechRef = useRef<SpeechRecognitionLike | null>(null);
   const loadedSourcePhotoRef = useRef("");
   const taskTitle = camp?.active_task?.title || "未来照相馆";
+  const teamCardTask = isTeamCardTask(camp);
   const problemVoteTask = isProblemVoteTask(camp);
   const problemTask = isProblemDiscoveryTask(camp);
   const userVoiceTask = isUserVoiceTask(camp);
@@ -8231,6 +8261,7 @@ function StudentApp({
   const productLinkTask = isProductLinkTask(camp);
   const peerFeedbackTask = isPeerFeedbackTask(camp);
   const textTask =
+    teamCardTask ||
     problemVoteTask ||
     problemTask ||
     userVoiceTask ||
@@ -8441,6 +8472,18 @@ function StudentApp({
         camp={camp}
         active={activeStudentView}
         student={student}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (teamCardTask) {
+    return withStudentNav(
+      <StudentTeamCardTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
         onLogout={logout}
       />
     );
@@ -8764,6 +8807,194 @@ function StudentApp({
             {checkingPhoto ? "正在看照片" : "提交"}
           </button>
           <p className="hint">提交后，未来照片会先被画出来；老师看过后，照片墙就会亮。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+const teamRoleFields = [
+  { key: "interview_owner", label: "采访", hint: "去听真实故事" },
+  { key: "product_owner", label: "产品", hint: "守住用户和核心动作" },
+  { key: "ai_owner", label: "AI", hint: "把提示词和结果管清楚" },
+  { key: "showcase_owner", label: "展示", hint: "让别人看懂作品" }
+] as const;
+
+type TeamRoleKey = (typeof teamRoleFields)[number]["key"];
+
+const emptyTeamRoles: Record<TeamRoleKey, string> = {
+  interview_owner: "",
+  product_owner: "",
+  ai_owner: "",
+  showcase_owner: ""
+};
+
+function StudentTeamCardTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const [teamName, setTeamName] = useState(student.team_name || "");
+  const [teamMembers, setTeamMembers] = useState<string[]>([]);
+  const [roles, setRoles] = useState<Record<TeamRoleKey, string>>(emptyTeamRoles);
+  const [launchLine, setLaunchLine] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  useEffect(() => {
+    let alive = true;
+    api.studentWorkspace()
+      .then((workspace) => {
+        if (!alive) return;
+        const latestTeamCard = latestTeamSubmission(workspace, "team_card");
+        const members = workspace.team_members.map((member) => member.nickname).filter(Boolean);
+        setTeamMembers(members);
+        setTeamName((current) =>
+          current.trim() ||
+          asText(latestTeamCard?.payload.team_name).trim() ||
+          workspace.team?.name ||
+          student.team_name ||
+          ""
+        );
+        setRoles((current) => ({
+          interview_owner: current.interview_owner || asText(latestTeamCard?.payload.interview_owner).trim(),
+          product_owner: current.product_owner || asText(latestTeamCard?.payload.product_owner).trim(),
+          ai_owner: current.ai_owner || asText(latestTeamCard?.payload.ai_owner).trim(),
+          showcase_owner: current.showcase_owner || asText(latestTeamCard?.payload.showcase_owner).trim()
+        }));
+        setLaunchLine((current) => current.trim() || asText(latestTeamCard?.payload.launch_line).trim());
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [student.team_name]);
+
+  const updateRole = (key: TeamRoleKey, value: string) => {
+    setRoles((current) => ({ ...current, [key]: value }));
+  };
+
+  const submit = async () => {
+    if (!teamName.trim()) {
+      showMessage("error", "先给团队起一个能被记住的名字。");
+      return;
+    }
+    if (!teamRoleFields.every((field) => roles[field.key].trim())) {
+      showMessage("error", "把四个责任都放上桌。");
+      return;
+    }
+    if (!launchLine.trim()) {
+      showMessage("error", "写一句团队亮相。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "team_card",
+        title: taskTitle,
+        payload: {
+          team_name: teamName.trim(),
+          team_members: teamMembers.join("、") || student.nickname,
+          interview_owner: roles.interview_owner.trim(),
+          product_owner: roles.product_owner.trim(),
+          ai_owner: roles.ai_owner.trim(),
+          showcase_owner: roles.showcase_owner.trim(),
+          launch_line: launchLine.trim(),
+          team_id: student.team_id || "",
+          class_team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。团队名片已经放进今天的项目起点。");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{taskTitle || "团队名片"}</h1>
+        <p>给团队起名，把四个责任放上桌，再用一句话亮相。</p>
+        <div className="student-card d1-task-card team-card-form">
+          <div className="student-current">
+            <div>
+              <span>团队</span>
+              <strong>{teamName || student.team_name || student.nickname}</strong>
+              <small>{teamMembers.length ? teamMembers.join("、") : student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            团队名
+            <input
+              value={teamName}
+              onChange={(event) => setTeamName(event.target.value)}
+              placeholder="例如：闪电产品队"
+              inputMode="text"
+            />
+          </label>
+          <div className="student-team-role-grid">
+            {teamRoleFields.map((field) => (
+              <label key={field.key}>
+                {field.label}
+                <input
+                  value={roles[field.key]}
+                  onChange={(event) => updateRole(field.key, event.target.value)}
+                  placeholder={field.hint}
+                  inputMode="text"
+                />
+              </label>
+            ))}
+          </div>
+          {teamMembers.length > 0 && (
+            <div className="team-member-chips" aria-label="团队成员">
+              {teamMembers.map((member) => (
+                <span key={member}>{member}</span>
+              ))}
+            </div>
+          )}
+          <label>
+            一句话亮相
+            <textarea
+              value={launchLine}
+              onChange={(event) => setLaunchLine(event.target.value)}
+              placeholder="例如：我们想把一个真实小麻烦，变成大家能试玩的作品。"
+              rows={3}
+            />
+          </label>
+          <div className="team-card-preview" aria-label="团队名片预览">
+            <span>团队名片</span>
+            <strong>{teamName.trim() || "还没起名"}</strong>
+            <div>
+              {teamRoleFields.map((field) => (
+                <p key={field.key}><b>{field.label}</b>{roles[field.key].trim() || "待认领"}</p>
+              ))}
+            </div>
+            <small>{launchLine.trim() || "写一句团队亮相"}</small>
+          </div>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <UsersRound size={18} />}
+            提交
+          </button>
+          <p className="hint">一个人可以负责多个位置，关键是每个责任都有人接住。</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -12512,6 +12743,7 @@ function ProblemVoteWall({ summaries }: { summaries: ProblemVoteSummary[] }) {
 
 function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   if (!artifacts.length) return null;
+  const hasTeam = artifacts.some((item) => item.task_type === "team_card");
   const hasProduct = artifacts.some((item) => item.task_type === "product_definition");
   const hasPackaging = artifacts.some((item) => item.task_type === "product_packaging");
   const hasPrompt = artifacts.some((item) => item.task_type === "prompt_card");
@@ -12525,11 +12757,12 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   return (
     <section className="wall-artifacts">
       <div className="wall-section-title">
-        <span className="eyebrow">{hasProduct ? "产品卡片" : hasPackaging ? "产品海报" : hasStory ? "故事发布" : hasValue ? "价值交换" : hasIteration ? "迭代清单" : hasTech ? "路线流程" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : "真实线索"}</span>
-        <h2>{hasProduct ? "从问题到产品" : hasPackaging ? "一眼看懂作品" : hasStory ? "让大家听懂作品" : hasValue ? "作品为什么值得" : hasIteration ? "把反馈改成下一版" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : "问题和用户声音"}</h2>
+        <span className="eyebrow">{hasProduct ? "产品卡片" : hasPackaging ? "产品海报" : hasStory ? "故事发布" : hasValue ? "价值交换" : hasIteration ? "迭代清单" : hasTech ? "路线流程" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : hasTeam ? "团队名片" : "真实线索"}</span>
+        <h2>{hasProduct ? "从问题到产品" : hasPackaging ? "一眼看懂作品" : hasStory ? "让大家听懂作品" : hasValue ? "作品为什么值得" : hasIteration ? "把反馈改成下一版" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : hasTeam ? "四个责任放上桌" : "问题和用户声音"}</h2>
       </div>
       <div className="wall-artifact-grid">
         {artifacts.map((item) => {
+          const isTeam = item.task_type === "team_card";
           const isProblem = item.task_type === "problem_card";
           const isScout = item.task_type === "market_scout";
           const isValidation = item.task_type === "ai_validation";
@@ -12569,11 +12802,13 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                   ? "wall-artifact-card validation"
                   : isProblem
                   ? "wall-artifact-card problem"
+                  : isTeam
+                  ? "wall-artifact-card team-card"
                   : "wall-artifact-card voice"
               }
               key={item.id}
             >
-              <span>{isProduct ? "产品卡" : isPackaging ? "产品海报卡" : isStory ? "故事发布卡" : isValue ? "价值卡" : isIteration ? "迭代清单" : isTech ? "路线流程卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : "用户声音"}</span>
+              <span>{isProduct ? "产品卡" : isPackaging ? "产品海报卡" : isStory ? "故事发布卡" : isValue ? "价值卡" : isIteration ? "迭代清单" : isTech ? "路线流程卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : isTeam ? "团队名片" : "用户声音"}</span>
               <strong>
                 {isProduct
                   ? asText(item.payload.product_name) || "一个产品想法"
@@ -12597,6 +12832,8 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                   ? asText(item.payload.doubt) || asText(item.payload.revised_conclusion) || "用证据检查 AI"
                   : isProblem
                   ? asText(item.payload.problem_scene) || asText(item.payload.trouble) || "一个真实问题"
+                  : isTeam
+                  ? asText(item.payload.team_name) || item.team_name || "一个新团队"
                   : asText(item.payload.interviewee) || "一次真实采访"}
               </strong>
               {isProduct ? (
@@ -12694,6 +12931,14 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                   <p><b>用户</b>{asText(item.payload.target_user) || "还没写"}</p>
                   <p><b>麻烦</b>{asText(item.payload.trouble) || "还没写"}</p>
                   <p><b>现在办法</b>{asText(item.payload.current_solution) || "还没写"}</p>
+                </>
+              ) : isTeam ? (
+                <>
+                  <p><b>采访</b>{asText(item.payload.interview_owner) || "还没写"}</p>
+                  <p><b>产品</b>{asText(item.payload.product_owner) || "还没写"}</p>
+                  <p><b>AI</b>{asText(item.payload.ai_owner) || "还没写"}</p>
+                  <p><b>展示</b>{asText(item.payload.showcase_owner) || "还没写"}</p>
+                  <p><b>亮相</b>{asText(item.payload.launch_line) || "还在准备"}</p>
                 </>
               ) : (
                 <>

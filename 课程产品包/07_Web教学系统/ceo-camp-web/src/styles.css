@@ -4072,6 +4072,10 @@ button:disabled {
   max-width: 820px;
 }
 
+.team-card-form {
+  max-width: 900px;
+}
+
 .ai-validation-card {
   max-width: 860px;
 }
@@ -4106,6 +4110,75 @@ button:disabled {
 
 .story-pitch-form {
   max-width: 940px;
+}
+
+.student-team-role-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.team-member-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.team-member-chips span {
+  border: 1px solid #dce5ef;
+  border-radius: 999px;
+  background: #f6f8fb;
+  color: #26333d;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 7px 10px;
+}
+
+.team-card-preview {
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  background: #f6f8fb;
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.team-card-preview span {
+  color: #42586a;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.team-card-preview strong {
+  color: #172018;
+  font-size: 22px;
+}
+
+.team-card-preview div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.team-card-preview p {
+  margin: 0;
+  border: 1px solid #e4ebf2;
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+  color: #172018;
+}
+
+.team-card-preview b {
+  display: block;
+  color: #5d7280;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.team-card-preview small {
+  color: #42586a;
+  font-weight: 800;
 }
 
 .prompt-preview {
@@ -5417,6 +5490,10 @@ button:disabled {
 
 .wall-artifact-card.voice {
   border-top-color: #78b7e8;
+}
+
+.wall-artifact-card.team-card {
+  border-top-color: #7ba57b;
 }
 
 .wall-artifact-card.scout {
@@ -6891,11 +6968,13 @@ button:disabled {
   .member-assignment-row,
   .observer-link-box,
   .observer-code-form,
-  .progress-board-grid,
-  .progress-team-card header,
-  .progress-signal-grid,
-  .blocker-note,
-  .project-journey-card,
+	  .progress-board-grid,
+	  .progress-team-card header,
+	  .progress-signal-grid,
+	  .blocker-note,
+	  .student-team-role-grid,
+	  .team-card-preview div,
+	  .project-journey-card,
   .teacher-grid,
   .career-grid,
   .student-form {
