@@ -1417,7 +1417,7 @@ function onlineTargets() {
   const markdownAiQueryMarkers = markdownAiQueryMarkersBySource();
   const htmlAiQueryMarkers = htmlAiQueryMarkersBySource();
   return [
-    { url: siteUrl('/'), markers: [`<link rel="canonical" href="${siteUrl('/')}">`, 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('index.html'), ...schemaMarkersForSource('index.html'), ...(htmlAiQueryMarkers.get('index.html') || [])] },
+    { label: 'home', url: siteUrl('/'), markers: [`<link rel="canonical" href="${siteUrl('/')}">`, 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('index.html'), ...schemaMarkersForSource('index.html'), ...(htmlAiQueryMarkers.get('index.html') || [])] },
     { url: siteUrl('/ai-pbl-camp.html'), markers: ['AI PBL 创业营', 'application/ld+json', 'AI产品原型课程', ...alternateMarkersForSource('ai-pbl-camp.html'), ...schemaMarkersForSource('ai-pbl-camp.html'), ...(htmlAiQueryMarkers.get('ai-pbl-camp.html') || [])] },
     { url: siteUrl('/ai-product-prototype-course.html'), markers: ['AI产品原型课程', 'application/ld+json', '孩子做AI产品', ...alternateMarkersForSource('ai-product-prototype-course.html'), ...schemaMarkersForSource('ai-product-prototype-course.html'), ...(htmlAiQueryMarkers.get('ai-product-prototype-course.html') || [])] },
     { url: siteUrl('/beijing-shunyi-ai-course.html'), markers: ['北京顺义AI课程', 'application/ld+json', '顺义AI课程', ...alternateMarkersForSource('beijing-shunyi-ai-course.html'), ...schemaMarkersForSource('beijing-shunyi-ai-course.html'), ...(htmlAiQueryMarkers.get('beijing-shunyi-ai-course.html') || [])] },
@@ -1431,7 +1431,8 @@ function onlineTargets() {
     { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子', ...alternateMarkersForSource('shunyi-ai-parent-class.html'), ...schemaMarkersForSource('shunyi-ai-parent-class.html'), ...(htmlAiQueryMarkers.get('shunyi-ai-parent-class.html') || [])] },
     { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html'), ...schemaMarkersForSource('partner-ai-pbl-camp.html'), ...(htmlAiQueryMarkers.get('partner-ai-pbl-camp.html') || [])] },
     { url: siteUrl('/course-navigation.html'), markers: ['少年CEO AI 创业营课程导航', 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('course-navigation.html'), ...schemaMarkersForSource('course-navigation.html')] },
-    { url: siteUrl('/robots.txt'), markers: robotsRequiredMarkers() },
+    { label: 'robots canonical', url: siteUrl('/robots.txt'), markers: robotsRequiredMarkers() },
+    { label: 'robots source-bypass', url: siteUrl('/robots.txt?seo-monitor=source'), markers: robotsRequiredMarkers() },
     { url: siteUrl('/sitemap-index.xml'), markers: [`<loc>${siteUrl('/sitemap.xml')}</loc>`, `<loc>${siteUrl('/sitemap-context.xml')}</loc>`] },
     { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },
     { url: siteUrl('/sitemap-context.xml'), markers: [`<loc>${siteUrl('/llms.txt')}</loc>`, ...MARKDOWN_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`)] },
@@ -1446,24 +1447,41 @@ async function fetchOnlineTarget(target) {
     const body = await response.text();
     const missingMarkers = target.markers.filter((marker) => !body.includes(marker));
     const ok = response.ok && missingMarkers.length === 0;
+    const cacheHeaders = cacheHeaderSummary(response.headers);
     return {
+      label: target.label || '',
       url: target.url,
       status: response.status,
       bytes: body.length,
       missingMarkers,
+      cacheHeaders,
       ok,
       error: ''
     };
   } catch (error) {
     return {
+      label: target.label || '',
       url: target.url,
       status: 0,
       bytes: 0,
       missingMarkers: target.markers,
+      cacheHeaders: '',
       ok: false,
       error: error.message
     };
   }
+}
+
+function cacheHeaderSummary(headers) {
+  const entries = [
+    ['cache-control', headers.get('cache-control')],
+    ['etag', headers.get('etag')],
+    ['last-modified', headers.get('last-modified')],
+    ['age', headers.get('age')],
+    ['x-cache-lookup', headers.get('x-cache-lookup')],
+    ['server', headers.get('server')]
+  ].filter(([, value]) => value);
+  return entries.map(([key, value]) => `${key}=${value}`).join('; ');
 }
 
 function isConfiguredSecret(value) {
@@ -2142,9 +2160,11 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
 
   const onlineRows = onlineResults.map((result) => [
     result.ok ? 'PASS' : 'FAIL',
+    result.label || '-',
     result.url,
     result.status || 'n/a',
     result.bytes,
+    result.cacheHeaders || '-',
     result.error || (result.missingMarkers.length > 0 ? result.missingMarkers.join(', ') : 'none')
   ].map(escapeMarkdownCell).join(' | '));
 
@@ -2209,8 +2229,8 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     '',
     '## Online Targets',
     '',
-    'Status | URL | HTTP | Bytes | Missing markers / error',
-    '--- | --- | --- | --- | ---',
+    'Status | Target | URL | HTTP | Bytes | Cache / headers | Missing markers / error',
+    '--- | --- | --- | --- | --- | --- | ---',
     ...onlineRows,
     '',
     '## AI Query Targets',
@@ -3114,7 +3134,7 @@ async function monitor() {
   console.log(`Baidu SEO/GEO monitor: local=${coverageSnapshot.status}, links=${linkSnapshot.status}, online=${onlineStatus}, token=${baidu.tokenConfigured ? 'configured' : 'missing'}, evidence=${evidenceSnapshot.summary.overallStatus}, submission=${submissionSnapshot.summary.latestStatus}`);
   console.log(`Report: ${MONITOR_REPORT_FILE}`);
   for (const result of onlineResults) {
-    console.log(`- ${result.ok ? 'PASS' : 'FAIL'} ${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
+    console.log(`- ${result.ok ? 'PASS' : 'FAIL'} ${result.label ? `${result.label} ` : ''}${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
   }
 
   if (coverageSnapshot.status === 'FAIL' || linkSnapshot.status === 'FAIL' || onlineStatus === 'FAIL') {
@@ -3127,11 +3147,12 @@ async function checkOnline() {
 
   for (const target of onlineTargets()) {
     const result = await fetchOnlineTarget(target);
-    console.log(`${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
-    if (result.error) failures.push(`${result.url} fetch failed: ${result.error}`);
-    if (result.status && result.status >= 400) failures.push(`${result.url} returned HTTP ${result.status}`);
+    console.log(`${result.label ? `${result.label} ` : ''}${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
+    const targetLabel = result.label ? `${result.label} ${result.url}` : result.url;
+    if (result.error) failures.push(`${targetLabel} fetch failed: ${result.error}`);
+    if (result.status && result.status >= 400) failures.push(`${targetLabel} returned HTTP ${result.status}`);
     for (const marker of result.missingMarkers) {
-      failures.push(`${result.url} missing marker: ${marker}`);
+      failures.push(`${targetLabel} missing marker: ${marker}`);
     }
   }
 
