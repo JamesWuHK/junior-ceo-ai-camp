@@ -1,6 +1,6 @@
 # Baidu Ranking / GEO Tracking Plan
 
-Generated: 2026-06-09T13:19:33+08:00
+Generated: 2026-06-09T13:37:15+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
 
@@ -24,6 +24,7 @@ site:camps.wanli.wiki 北京顺义青少年AI课程 | https://www.baidu.com/s?wd
 site:camps.wanli.wiki 北京顺义儿童AI课程 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B | indexed page count, visible target URLs, unexpected missing pages
 site:camps.wanli.wiki 北京顺义AI夏令营 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%A4%8F%E4%BB%A4%E8%90%A5 | indexed page count, visible target URLs, unexpected missing pages
 site:camps.wanli.wiki AI时代孩子需要什么能力 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+AI%E6%97%B6%E4%BB%A3%E5%AD%A9%E5%AD%90%E9%9C%80%E8%A6%81%E4%BB%80%E4%B9%88%E8%83%BD%E5%8A%9B | indexed page count, visible target URLs, unexpected missing pages
+site:camps.wanli.wiki 孩子AI判断力 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%AD%A9%E5%AD%90AI%E5%88%A4%E6%96%AD%E5%8A%9B | indexed page count, visible target URLs, unexpected missing pages
 site:camps.wanli.wiki 青少年AI课程 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | indexed page count, visible target URLs, unexpected missing pages
 
 ## Sitemap Submission Set
@@ -35,6 +36,7 @@ site:camps.wanli.wiki 青少年AI课程 | https://www.baidu.com/s?wd=site%3Acamp
 - https://camps.wanli.wiki/shunyi-children-ai-course.html
 - https://camps.wanli.wiki/shunyi-ai-summer-camp.html
 - https://camps.wanli.wiki/ai-era-skills-for-kids.html
+- https://camps.wanli.wiki/ai-judgement-for-kids.html
 - https://camps.wanli.wiki/youth-ai-course-guide.html
 - https://camps.wanli.wiki/ai-course-vs-coding.html
 - https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -119,6 +121,16 @@ ai-era-skills-for-kids | secondary | 青少年AI教育 | https://camps.wanli.wik
 ai-era-skills-for-kids | secondary | 北京顺义AI家长课 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%AE%B6%E9%95%BF%E8%AF%BE | N/A | N/A
 ai-era-skills-for-kids | secondary | AI PBL创业营 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=AI+PBL%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A
 ai-era-skills-for-kids | secondary | 少年CEO | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO | N/A | N/A
+ai-judgement-for-kids | primary | 孩子AI判断力 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90AI%E5%88%A4%E6%96%AD%E5%8A%9B | N/A | N/A
+ai-judgement-for-kids | brand-assisted | 孩子AI判断力 少年CEO | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90AI%E5%88%A4%E6%96%AD%E5%8A%9B+%E5%B0%91%E5%B9%B4CEO | N/A | N/A
+ai-judgement-for-kids | site-restricted | site:camps.wanli.wiki 孩子AI判断力 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%AD%A9%E5%AD%90AI%E5%88%A4%E6%96%AD%E5%8A%9B | N/A | N/A
+ai-judgement-for-kids | secondary | AI判断力 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=AI%E5%88%A4%E6%96%AD%E5%8A%9B | N/A | N/A
+ai-judgement-for-kids | secondary | 家长如何培养孩子AI判断力 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=%E5%AE%B6%E9%95%BF%E5%A6%82%E4%BD%95%E5%9F%B9%E5%85%BB%E5%AD%A9%E5%AD%90AI%E5%88%A4%E6%96%AD%E5%8A%9B | N/A | N/A
+ai-judgement-for-kids | secondary | AI答案可靠吗 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=AI%E7%AD%94%E6%A1%88%E5%8F%AF%E9%9D%A0%E5%90%97 | N/A | N/A
+ai-judgement-for-kids | secondary | 孩子如何使用AI | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8AI | N/A | N/A
+ai-judgement-for-kids | secondary | AI时代孩子能力 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=AI%E6%97%B6%E4%BB%A3%E5%AD%A9%E5%AD%90%E8%83%BD%E5%8A%9B | N/A | N/A
+ai-judgement-for-kids | secondary | 青少年AI课程 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A
+ai-judgement-for-kids | secondary | 少年CEO | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO | N/A | N/A
 youth-ai-course-guide | primary | 青少年AI课程 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A
 youth-ai-course-guide | brand-assisted | 青少年AI课程 少年CEO | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B+%E5%B0%91%E5%B9%B4CEO | N/A | N/A
 youth-ai-course-guide | site-restricted | site:camps.wanli.wiki 青少年AI课程 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A
@@ -186,6 +198,9 @@ shunyi-ai-summer-camp | AI夏令营3天能做出什么作品 | https://camps.wan
 ai-era-skills-for-kids | AI时代孩子需要什么能力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | https://www.baidu.com/s?wd=AI%E6%97%B6%E4%BB%A3%E5%AD%A9%E5%AD%90%E9%9C%80%E8%A6%81%E4%BB%80%E4%B9%88%E8%83%BD%E5%8A%9B | N/A
 ai-era-skills-for-kids | 孩子学AI有什么用 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E5%AD%A6AI%E6%9C%89%E4%BB%80%E4%B9%88%E7%94%A8 | N/A
 ai-era-skills-for-kids | 家长如何培养孩子AI判断力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | https://www.baidu.com/s?wd=%E5%AE%B6%E9%95%BF%E5%A6%82%E4%BD%95%E5%9F%B9%E5%85%BB%E5%AD%A9%E5%AD%90AI%E5%88%A4%E6%96%AD%E5%8A%9B | N/A
+ai-judgement-for-kids | 孩子AI判断力怎么培养 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90AI%E5%88%A4%E6%96%AD%E5%8A%9B%E6%80%8E%E4%B9%88%E5%9F%B9%E5%85%BB | N/A
+ai-judgement-for-kids | 孩子如何判断AI答案是否可靠 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%ADAI%E7%AD%94%E6%A1%88%E6%98%AF%E5%90%A6%E5%8F%AF%E9%9D%A0 | N/A
+ai-judgement-for-kids | 家长如何陪孩子使用AI | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | https://www.baidu.com/s?wd=%E5%AE%B6%E9%95%BF%E5%A6%82%E4%BD%95%E9%99%AA%E5%AD%A9%E5%AD%90%E4%BD%BF%E7%94%A8AI | N/A
 youth-ai-course-guide | 青少年AI课程怎么选 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B%E6%80%8E%E4%B9%88%E9%80%89 | N/A
 youth-ai-course-guide | 儿童AI课程只学工具够吗 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | https://www.baidu.com/s?wd=%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B%E5%8F%AA%E5%AD%A6%E5%B7%A5%E5%85%B7%E5%A4%9F%E5%90%97 | N/A
 youth-ai-course-guide | AI PBL课程适合什么孩子 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | https://www.baidu.com/s?wd=AI+PBL%E8%AF%BE%E7%A8%8B%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%AD%A9%E5%AD%90 | N/A
@@ -210,6 +225,7 @@ YYYY-MM-DD | beijing-shunyi-youth-ai-course | 北京顺义青少年AI课程 | N/
 YYYY-MM-DD | shunyi-children-ai-course | 北京顺义儿童AI课程 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | shunyi-ai-summer-camp | 北京顺义AI夏令营 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | ai-era-skills-for-kids | AI时代孩子需要什么能力 | N/A | N/A | N/A | N/A | N/A | -
+YYYY-MM-DD | ai-judgement-for-kids | 孩子AI判断力 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | youth-ai-course-guide | 青少年AI课程 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | ai-course-vs-coding | 少儿编程和AI课程区别 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | shunyi-parent-class | 北京顺义 AI 家长公益课 | N/A | N/A | N/A | N/A | N/A | -

@@ -167,6 +167,28 @@
       ]
     },
     {
+      "id": "ai-judgement-for-kids",
+      "audienceLayer": "家长公开展示",
+      "targetPage": "/ai-judgement-for-kids.html",
+      "source": "ai-judgement-for-kids.html",
+      "markdownSource": "ai-judgement-for-kids.md",
+      "primary": "孩子AI判断力",
+      "secondary": [
+        "AI判断力",
+        "家长如何培养孩子AI判断力",
+        "AI答案可靠吗",
+        "孩子如何使用AI",
+        "AI时代孩子能力",
+        "青少年AI课程",
+        "少年CEO"
+      ],
+      "aiQueries": [
+        "孩子AI判断力怎么培养",
+        "孩子如何判断AI答案是否可靠",
+        "家长如何陪孩子使用AI"
+      ]
+    },
+    {
       "id": "youth-ai-course-guide",
       "audienceLayer": "家长公开展示",
       "targetPage": "/youth-ai-course-guide.html",

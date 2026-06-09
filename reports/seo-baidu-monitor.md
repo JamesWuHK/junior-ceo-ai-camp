@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-09T13:27:51+08:00
+Generated: 2026-06-09T13:41:41+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -10,7 +10,7 @@ Site URL: https://camps.wanli.wiki
 - Online crawl target check: PASS
 - Baidu push token configured: no
 - Baidu site parameter: https://camps.wanli.wiki
-- Baidu submit URL count: 11
+- Baidu submit URL count: 12
 - Baidu push readiness: WAITING (BAIDU_TOKEN is not configured)
 - Baidu measured evidence: NEEDS_MEASURED_DATA
 - Baidu evidence file: seo/baidu-measurements.json missing
@@ -41,6 +41,7 @@ Run `npm run seo:submit:baidu -- --dry-run` to print this same URL set without s
 - https://camps.wanli.wiki/shunyi-children-ai-course.html
 - https://camps.wanli.wiki/shunyi-ai-summer-camp.html
 - https://camps.wanli.wiki/ai-era-skills-for-kids.html
+- https://camps.wanli.wiki/ai-judgement-for-kids.html
 - https://camps.wanli.wiki/youth-ai-course-guide.html
 - https://camps.wanli.wiki/ai-course-vs-coding.html
 - https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -57,6 +58,7 @@ PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | �
 PASS | shunyi-children-ai-course | /shunyi-children-ai-course.html | 北京顺义儿童AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | BreadcrumbList, Course, FAQPage
 PASS | shunyi-ai-summer-camp | /shunyi-ai-summer-camp.html | 北京顺义AI夏令营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | BreadcrumbList, Course, FAQPage
 PASS | ai-era-skills-for-kids | /ai-era-skills-for-kids.html | AI时代孩子需要什么能力 | title, description, keywords, h1, body, jsonLd | 7/8 | 3/3 | 3/3 | 3/3 | Article, BreadcrumbList, FAQPage
+PASS | ai-judgement-for-kids | /ai-judgement-for-kids.html | 孩子AI判断力 | title, description, keywords, h1, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | Article, BreadcrumbList, FAQPage
 PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | Article, BreadcrumbList, FAQPage
 PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | Article, BreadcrumbList, FAQPage
 PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | Article, BreadcrumbList, FAQPage
@@ -66,7 +68,7 @@ PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构�
 
 - Status: PASS
 - Report: reports/seo-internal-links.md
-- Public sitemap pages checked: 11
+- Public sitemap pages checked: 12
 - Failures: none
 - Warnings: none
 
@@ -74,33 +76,35 @@ PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构�
 
 Status | URL | HTTP | Bytes | Missing markers / error
 --- | --- | --- | --- | ---
-PASS | https://camps.wanli.wiki/ | 200 | 50981 | none
+PASS | https://camps.wanli.wiki/ | 200 | 51079 | none
 PASS | https://camps.wanli.wiki/ai-pbl-camp.html | 200 | 11063 | none
 PASS | https://camps.wanli.wiki/ai-product-prototype-course.html | 200 | 12154 | none
 PASS | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | 200 | 12837 | none
-PASS | https://camps.wanli.wiki/shunyi-children-ai-course.html | 200 | 12720 | none
+PASS | https://camps.wanli.wiki/shunyi-children-ai-course.html | 200 | 13115 | none
 PASS | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | 200 | 11716 | none
-PASS | https://camps.wanli.wiki/ai-era-skills-for-kids.html | 200 | 12341 | none
-PASS | https://camps.wanli.wiki/youth-ai-course-guide.html | 200 | 12925 | none
+PASS | https://camps.wanli.wiki/ai-era-skills-for-kids.html | 200 | 12745 | none
+PASS | https://camps.wanli.wiki/ai-judgement-for-kids.html | 200 | 11622 | none
+PASS | https://camps.wanli.wiki/youth-ai-course-guide.html | 200 | 13320 | none
 PASS | https://camps.wanli.wiki/ai-course-vs-coding.html | 200 | 11174 | none
 PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.html | 200 | 9792 | none
 PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.html | 200 | 10295 | none
 PASS | https://camps.wanli.wiki/robots.txt | 200 | 265 | none
 PASS | https://camps.wanli.wiki/sitemap-index.xml | 200 | 352 | none
-PASS | https://camps.wanli.wiki/sitemap.xml | 200 | 2121 | none
-PASS | https://camps.wanli.wiki/sitemap-context.xml | 200 | 2291 | none
-PASS | https://camps.wanli.wiki/llms.txt | 200 | 5167 | none
+PASS | https://camps.wanli.wiki/sitemap.xml | 200 | 2306 | none
+PASS | https://camps.wanli.wiki/sitemap-context.xml | 200 | 2473 | none
+PASS | https://camps.wanli.wiki/llms.txt | 200 | 5541 | none
 PASS | https://camps.wanli.wiki/ai-pbl-camp.md | 200 | 743 | none
 PASS | https://camps.wanli.wiki/ai-product-prototype-course.md | 200 | 775 | none
 PASS | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | 200 | 877 | none
 PASS | https://camps.wanli.wiki/shunyi-children-ai-course.md | 200 | 1301 | none
 PASS | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | 200 | 736 | none
 PASS | https://camps.wanli.wiki/ai-era-skills-for-kids.md | 200 | 1368 | none
+PASS | https://camps.wanli.wiki/ai-judgement-for-kids.md | 200 | 1423 | none
 PASS | https://camps.wanli.wiki/youth-ai-course-guide.md | 200 | 731 | none
 PASS | https://camps.wanli.wiki/ai-course-vs-coding.md | 200 | 771 | none
 PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.md | 200 | 641 | none
 PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.md | 200 | 593 | none
-PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 2771 | none
+PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 3041 | none
 
 ## AI Query Targets
 
@@ -181,6 +185,18 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 2771 | no
 - Page: https://camps.wanli.wiki/ai-era-skills-for-kids.html
 - Primary keyword: AI时代孩子需要什么能力
 - Target answer queries: AI时代孩子需要什么能力 | 孩子学AI有什么用 | 家长如何培养孩子AI判断力
+- Visible HTML answer coverage: 3/3
+- JSON-LD answer coverage: 3/3
+- Markdown answer coverage: 3/3
+- Status: PASS
+- Failures: none
+- Warnings: none
+
+### ai-judgement-for-kids
+
+- Page: https://camps.wanli.wiki/ai-judgement-for-kids.html
+- Primary keyword: 孩子AI判断力
+- Target answer queries: 孩子AI判断力怎么培养 | 孩子如何判断AI答案是否可靠 | 家长如何陪孩子使用AI
 - Visible HTML answer coverage: 3/3
 - JSON-LD answer coverage: 3/3
 - Markdown answer coverage: 3/3

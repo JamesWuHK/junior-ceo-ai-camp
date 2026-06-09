@@ -1,9 +1,9 @@
 # GEO AI Answer Prompt Pack
 
-Generated: 2026-06-09T13:19:36+08:00
+Generated: 2026-06-09T13:37:15+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
-Prompt count: 33
+Prompt count: 36
 
 ## Purpose
 
@@ -265,7 +265,40 @@ AI时代孩子需要什么能力
 家长如何培养孩子AI判断力
 ```
 
-### 22. youth-ai-course-guide
+### 22. ai-judgement-for-kids
+
+- Query: 孩子AI判断力怎么培养
+- Target page: https://camps.wanli.wiki/ai-judgement-for-kids.html
+- Markdown context: https://camps.wanli.wiki/ai-judgement-for-kids.md
+- Baidu SERP check: https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90AI%E5%88%A4%E6%96%AD%E5%8A%9B%E6%80%8E%E4%B9%88%E5%9F%B9%E5%85%BB
+
+```text
+孩子AI判断力怎么培养
+```
+
+### 23. ai-judgement-for-kids
+
+- Query: 孩子如何判断AI答案是否可靠
+- Target page: https://camps.wanli.wiki/ai-judgement-for-kids.html
+- Markdown context: https://camps.wanli.wiki/ai-judgement-for-kids.md
+- Baidu SERP check: https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%ADAI%E7%AD%94%E6%A1%88%E6%98%AF%E5%90%A6%E5%8F%AF%E9%9D%A0
+
+```text
+孩子如何判断AI答案是否可靠
+```
+
+### 24. ai-judgement-for-kids
+
+- Query: 家长如何陪孩子使用AI
+- Target page: https://camps.wanli.wiki/ai-judgement-for-kids.html
+- Markdown context: https://camps.wanli.wiki/ai-judgement-for-kids.md
+- Baidu SERP check: https://www.baidu.com/s?wd=%E5%AE%B6%E9%95%BF%E5%A6%82%E4%BD%95%E9%99%AA%E5%AD%A9%E5%AD%90%E4%BD%BF%E7%94%A8AI
+
+```text
+家长如何陪孩子使用AI
+```
+
+### 25. youth-ai-course-guide
 
 - Query: 青少年AI课程怎么选
 - Target page: https://camps.wanli.wiki/youth-ai-course-guide.html
@@ -276,7 +309,7 @@ AI时代孩子需要什么能力
 青少年AI课程怎么选
 ```
 
-### 23. youth-ai-course-guide
+### 26. youth-ai-course-guide
 
 - Query: 儿童AI课程只学工具够吗
 - Target page: https://camps.wanli.wiki/youth-ai-course-guide.html
@@ -287,7 +320,7 @@ AI时代孩子需要什么能力
 儿童AI课程只学工具够吗
 ```
 
-### 24. youth-ai-course-guide
+### 27. youth-ai-course-guide
 
 - Query: AI PBL课程适合什么孩子
 - Target page: https://camps.wanli.wiki/youth-ai-course-guide.html
@@ -298,7 +331,7 @@ AI时代孩子需要什么能力
 AI PBL课程适合什么孩子
 ```
 
-### 25. ai-course-vs-coding
+### 28. ai-course-vs-coding
 
 - Query: 少儿编程和AI课程区别是什么
 - Target page: https://camps.wanli.wiki/ai-course-vs-coding.html
@@ -309,7 +342,7 @@ AI PBL课程适合什么孩子
 少儿编程和AI课程区别是什么
 ```
 
-### 26. ai-course-vs-coding
+### 29. ai-course-vs-coding
 
 - Query: 孩子该学AI还是编程
 - Target page: https://camps.wanli.wiki/ai-course-vs-coding.html
@@ -320,7 +353,7 @@ AI PBL课程适合什么孩子
 孩子该学AI还是编程
 ```
 
-### 27. ai-course-vs-coding
+### 30. ai-course-vs-coding
 
 - Query: 不会编程能学AI课程吗
 - Target page: https://camps.wanli.wiki/ai-course-vs-coding.html
@@ -331,7 +364,7 @@ AI PBL课程适合什么孩子
 不会编程能学AI课程吗
 ```
 
-### 28. shunyi-parent-class
+### 31. shunyi-parent-class
 
 - Query: 北京顺义AI家长公益课讲什么
 - Target page: https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -342,7 +375,7 @@ AI PBL课程适合什么孩子
 北京顺义AI家长公益课讲什么
 ```
 
-### 29. shunyi-parent-class
+### 32. shunyi-parent-class
 
 - Query: AI时代孩子需要什么能力
 - Target page: https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -353,7 +386,7 @@ AI PBL课程适合什么孩子
 AI时代孩子需要什么能力
 ```
 
-### 30. shunyi-parent-class
+### 33. shunyi-parent-class
 
 - Query: 顺义家长怎么理解孩子学AI
 - Target page: https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -364,7 +397,7 @@ AI时代孩子需要什么能力
 顺义家长怎么理解孩子学AI
 ```
 
-### 31. partner-cooperation
+### 34. partner-cooperation
 
 - Query: 培训机构如何合作开展AI PBL创业营
 - Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html
@@ -375,7 +408,7 @@ AI时代孩子需要什么能力
 培训机构如何合作开展AI PBL创业营
 ```
 
-### 32. partner-cooperation
+### 35. partner-cooperation
 
 - Query: 青少年AI营地合作课程方案
 - Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html
@@ -386,7 +419,7 @@ AI时代孩子需要什么能力
 青少年AI营地合作课程方案
 ```
 
-### 33. partner-cooperation
+### 36. partner-cooperation
 
 - Query: AI创业营机构合作支持什么
 - Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html

@@ -1,6 +1,6 @@
 # Baidu Measured Evidence Report
 
-Generated: 2026-06-09T13:19:45+08:00
+Generated: 2026-06-09T13:37:32+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_MEASURED_DATA
 
@@ -13,11 +13,11 @@ Overall status: NEEDS_MEASURED_DATA
 
 ## Summary
 
-- URL index evidence: 0/11 indexed, 0 measured not indexed, 11 missing evidence.
-- URL metric evidence: 0/11 measured, 11 missing evidence.
-- Primary keyword rank evidence: 0/11 ranked, 0 measured no rank, 11 missing evidence.
-- Tracked keyword rank evidence: 0/116 ranked, 0 measured no rank, 116 missing evidence.
-- GEO answer evidence: 0/33 pass, 0 needs repair, 33 missing evidence.
+- URL index evidence: 0/12 indexed, 0 measured not indexed, 12 missing evidence.
+- URL metric evidence: 0/12 measured, 12 missing evidence.
+- Primary keyword rank evidence: 0/12 ranked, 0 measured no rank, 12 missing evidence.
+- Tracked keyword rank evidence: 0/126 ranked, 0 measured no rank, 126 missing evidence.
+- GEO answer evidence: 0/36 pass, 0 needs repair, 36 missing evidence.
 
 ## How To Use This File
 
@@ -38,6 +38,7 @@ MISSING_EVIDENCE | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html 
 MISSING_EVIDENCE | https://camps.wanli.wiki/shunyi-children-ai-course.html | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/ai-era-skills-for-kids.html | N/A | N/A | -
+MISSING_EVIDENCE | https://camps.wanli.wiki/ai-judgement-for-kids.html | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/youth-ai-course-guide.html | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/ai-course-vs-coding.html | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/shunyi-ai-parent-class.html | N/A | N/A | -
@@ -54,6 +55,7 @@ MISSING_EVIDENCE | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html 
 MISSING_EVIDENCE | https://camps.wanli.wiki/shunyi-children-ai-course.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/ai-era-skills-for-kids.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | https://camps.wanli.wiki/ai-judgement-for-kids.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/youth-ai-course-guide.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/ai-course-vs-coding.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/shunyi-ai-parent-class.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
@@ -70,6 +72,7 @@ MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | 北京顺义青少年AI课�
 MISSING_EVIDENCE | shunyi-children-ai-course | 北京顺义儿童AI课程 | https://camps.wanli.wiki/shunyi-children-ai-course.html | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | shunyi-ai-summer-camp | 北京顺义AI夏令营 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-era-skills-for-kids | AI时代孩子需要什么能力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-judgement-for-kids | 孩子AI判断力 | https://camps.wanli.wiki/ai-judgement-for-kids.html | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | youth-ai-course-guide | 青少年AI课程 | https://camps.wanli.wiki/youth-ai-course-guide.html | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-course-vs-coding | 少儿编程和AI课程区别 | https://camps.wanli.wiki/ai-course-vs-coding.html | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | shunyi-parent-class | 北京顺义 AI 家长公益课 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | N/A | N/A | N/A | N/A | N/A | -
@@ -156,6 +159,16 @@ MISSING_EVIDENCE | ai-era-skills-for-kids | secondary | 青少年AI教育 | http
 MISSING_EVIDENCE | ai-era-skills-for-kids | secondary | 北京顺义AI家长课 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%AE%B6%E9%95%BF%E8%AF%BE | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-era-skills-for-kids | secondary | AI PBL创业营 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=AI+PBL%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-era-skills-for-kids | secondary | 少年CEO | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-judgement-for-kids | primary | 孩子AI判断力 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90AI%E5%88%A4%E6%96%AD%E5%8A%9B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-judgement-for-kids | brand-assisted | 孩子AI判断力 少年CEO | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90AI%E5%88%A4%E6%96%AD%E5%8A%9B+%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-judgement-for-kids | site-restricted | site:camps.wanli.wiki 孩子AI判断力 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%AD%A9%E5%AD%90AI%E5%88%A4%E6%96%AD%E5%8A%9B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-judgement-for-kids | secondary | AI判断力 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=AI%E5%88%A4%E6%96%AD%E5%8A%9B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-judgement-for-kids | secondary | 家长如何培养孩子AI判断力 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=%E5%AE%B6%E9%95%BF%E5%A6%82%E4%BD%95%E5%9F%B9%E5%85%BB%E5%AD%A9%E5%AD%90AI%E5%88%A4%E6%96%AD%E5%8A%9B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-judgement-for-kids | secondary | AI答案可靠吗 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=AI%E7%AD%94%E6%A1%88%E5%8F%AF%E9%9D%A0%E5%90%97 | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-judgement-for-kids | secondary | 孩子如何使用AI | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8AI | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-judgement-for-kids | secondary | AI时代孩子能力 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=AI%E6%97%B6%E4%BB%A3%E5%AD%A9%E5%AD%90%E8%83%BD%E5%8A%9B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-judgement-for-kids | secondary | 青少年AI课程 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-judgement-for-kids | secondary | 少年CEO | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | youth-ai-course-guide | primary | 青少年AI课程 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | youth-ai-course-guide | brand-assisted | 青少年AI课程 少年CEO | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B+%E5%B0%91%E5%B9%B4CEO | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | youth-ai-course-guide | site-restricted | site:camps.wanli.wiki 青少年AI课程 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A | N/A | N/A | N/A | -
@@ -223,6 +236,9 @@ MISSING_EVIDENCE | shunyi-ai-summer-camp | AI夏令营3天能做出什么作品 
 MISSING_EVIDENCE | ai-era-skills-for-kids | AI时代孩子需要什么能力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-era-skills-for-kids | 孩子学AI有什么用 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-era-skills-for-kids | 家长如何培养孩子AI判断力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-judgement-for-kids | 孩子AI判断力怎么培养 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-judgement-for-kids | 孩子如何判断AI答案是否可靠 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-judgement-for-kids | 家长如何陪孩子使用AI | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | youth-ai-course-guide | 青少年AI课程怎么选 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | youth-ai-course-guide | 儿童AI课程只学工具够吗 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | youth-ai-course-guide | AI PBL课程适合什么孩子 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | N/A | N/A | N/A | N/A | N/A | -

@@ -1,9 +1,9 @@
 # Baidu Manual URL Submission Package
 
-Generated: 2026-06-09T13:19:56+08:00
+Generated: 2026-06-09T13:37:32+08:00
 Site URL: https://camps.wanli.wiki
 URL list file: reports/seo-baidu-submit-urls.txt
-URL count: 11
+URL count: 12
 
 ## Purpose
 
@@ -28,6 +28,7 @@ URL count: 11
 - https://camps.wanli.wiki/shunyi-children-ai-course.html
 - https://camps.wanli.wiki/shunyi-ai-summer-camp.html
 - https://camps.wanli.wiki/ai-era-skills-for-kids.html
+- https://camps.wanli.wiki/ai-judgement-for-kids.html
 - https://camps.wanli.wiki/youth-ai-course-guide.html
 - https://camps.wanli.wiki/ai-course-vs-coding.html
 - https://camps.wanli.wiki/shunyi-ai-parent-class.html
