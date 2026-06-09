@@ -337,6 +337,14 @@ function robotsRequiredMarkers() {
   ];
 }
 
+function robotsCanonicalRequiredMarkers() {
+  return robotsRequiredMarkers().filter((marker) => marker !== 'User-agent: Baiduspider');
+}
+
+function robotsRecommendedMarkers() {
+  return ['User-agent: Baiduspider'];
+}
+
 function buildLlmsTxt() {
   return [
     '# 少年CEO AI 创业营',
@@ -1431,7 +1439,7 @@ function onlineTargets() {
     { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子', ...alternateMarkersForSource('shunyi-ai-parent-class.html'), ...schemaMarkersForSource('shunyi-ai-parent-class.html'), ...(htmlAiQueryMarkers.get('shunyi-ai-parent-class.html') || [])] },
     { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html'), ...schemaMarkersForSource('partner-ai-pbl-camp.html'), ...(htmlAiQueryMarkers.get('partner-ai-pbl-camp.html') || [])] },
     { url: siteUrl('/course-navigation.html'), markers: ['少年CEO AI 创业营课程导航', 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('course-navigation.html'), ...schemaMarkersForSource('course-navigation.html')] },
-    { label: 'robots canonical', url: siteUrl('/robots.txt'), markers: robotsRequiredMarkers(), includeCacheHeaders: true },
+    { label: 'robots canonical', url: siteUrl('/robots.txt'), markers: robotsCanonicalRequiredMarkers(), warningMarkers: robotsRecommendedMarkers(), includeCacheHeaders: true },
     { label: 'robots source-bypass', url: siteUrl('/robots.txt?seo-monitor=source'), markers: robotsRequiredMarkers(), includeCacheHeaders: true },
     { url: siteUrl('/sitemap-index.xml'), markers: [`<loc>${siteUrl('/sitemap.xml')}</loc>`, `<loc>${siteUrl('/sitemap-context.xml')}</loc>`] },
     { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },
@@ -1445,8 +1453,12 @@ async function fetchOnlineTarget(target) {
   try {
     const response = await fetch(target.url, { redirect: 'follow' });
     const body = await response.text();
-    const missingMarkers = target.markers.filter((marker) => !body.includes(marker));
+    const markers = target.markers || [];
+    const warningMarkers = target.warningMarkers || [];
+    const missingMarkers = markers.filter((marker) => !body.includes(marker));
+    const missingWarningMarkers = warningMarkers.filter((marker) => !body.includes(marker));
     const ok = response.ok && missingMarkers.length === 0;
+    const warning = ok && missingWarningMarkers.length > 0;
     const cacheHeaders = target.includeCacheHeaders ? cacheHeaderSummary(response.headers) : '';
     return {
       label: target.label || '',
@@ -1454,8 +1466,10 @@ async function fetchOnlineTarget(target) {
       status: response.status,
       bytes: body.length,
       missingMarkers,
+      missingWarningMarkers,
       cacheHeaders,
       ok,
+      warning,
       error: ''
     };
   } catch (error) {
@@ -1464,12 +1478,19 @@ async function fetchOnlineTarget(target) {
       url: target.url,
       status: 0,
       bytes: 0,
-      missingMarkers: target.markers,
+      missingMarkers: target.markers || [],
+      missingWarningMarkers: target.warningMarkers || [],
       cacheHeaders: '',
       ok: false,
+      warning: false,
       error: error.message
     };
   }
+}
+
+function onlineResultStatus(result) {
+  if (!result.ok) return 'FAIL';
+  return result.warning ? 'WARN' : 'PASS';
 }
 
 function cacheHeaderSummary(headers) {
@@ -2155,31 +2176,37 @@ function robotsCacheDiagnosis(onlineResults) {
   }
 
   let status = 'UNKNOWN';
-  if (canonical?.ok) {
+  if (canonical?.ok && !canonical.warning) {
     status = 'CANONICAL_PASS';
   } else if (sourceBypass?.ok) {
     status = 'EDGE_CACHE_STALE';
+  } else if (canonical?.ok) {
+    status = 'CANONICAL_WARN_SOURCE_FAIL';
   } else {
     status = 'SOURCE_AND_CANONICAL_FAIL';
   }
 
   const canonicalMissing = canonical?.missingMarkers?.length ? canonical.missingMarkers.join(', ') : 'none';
+  const canonicalWarningMissing = canonical?.missingWarningMarkers?.length ? canonical.missingWarningMarkers.join(', ') : 'none';
   const sourceMissing = sourceBypass?.missingMarkers?.length ? sourceBypass.missingMarkers.join(', ') : 'none';
+  const sourceWarningMissing = sourceBypass?.missingWarningMarkers?.length ? sourceBypass.missingWarningMarkers.join(', ') : 'none';
   const action = status === 'EDGE_CACHE_STALE'
     ? 'Purge https://camps.wanli.wiki/robots.txt in the CDN/DNSPod account that controls camps.wanli.wiki.cdn.dnsv1.com, or wait for the edge cache to expire.'
     : status === 'SOURCE_AND_CANONICAL_FAIL'
       ? 'Fix and redeploy the COS robots.txt object, then rerun seo:monitor.'
-      : 'No robots cache repair needed.';
+      : status === 'CANONICAL_WARN_SOURCE_FAIL'
+        ? 'Verify the source-bypass URL from COS/CDN origin; canonical crawl rules are not blocking, but the intended explicit Baiduspider rule is not confirmed online.'
+        : 'No robots cache repair needed.';
 
   return {
     status,
     lines: [
       `- Status: ${status}`,
       `- Canonical URL: ${canonical?.url || 'N/A'}`,
-      `- Canonical result: ${canonical?.ok ? 'PASS' : 'FAIL'}; HTTP ${canonical?.status || 'n/a'}; bytes=${canonical?.bytes ?? 'n/a'}; missing=${canonicalMissing}`,
+      `- Canonical result: ${canonical ? onlineResultStatus(canonical) : 'N/A'}; HTTP ${canonical?.status || 'n/a'}; bytes=${canonical?.bytes ?? 'n/a'}; missing required=${canonicalMissing}; missing warning=${canonicalWarningMissing}`,
       `- Canonical cache evidence: ${canonical?.cacheHeaders || 'N/A'}`,
       `- Source-bypass URL: ${sourceBypass?.url || 'N/A'}`,
-      `- Source-bypass result: ${sourceBypass?.ok ? 'PASS' : 'FAIL'}; HTTP ${sourceBypass?.status || 'n/a'}; bytes=${sourceBypass?.bytes ?? 'n/a'}; missing=${sourceMissing}`,
+      `- Source-bypass result: ${sourceBypass ? onlineResultStatus(sourceBypass) : 'N/A'}; HTTP ${sourceBypass?.status || 'n/a'}; bytes=${sourceBypass?.bytes ?? 'n/a'}; missing required=${sourceMissing}; missing warning=${sourceWarningMissing}`,
       `- Source-bypass cache evidence: ${sourceBypass?.cacheHeaders || 'N/A'}`,
       `- Recommended action: ${action}`
     ]
@@ -2202,13 +2229,15 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
   ].map(escapeMarkdownCell).join(' | '));
 
   const onlineRows = onlineResults.map((result) => [
-    result.ok ? 'PASS' : 'FAIL',
+    onlineResultStatus(result),
     result.label || '-',
     result.url,
     result.status || 'n/a',
     result.bytes,
     result.cacheHeaders || '-',
-    result.error || (result.missingMarkers.length > 0 ? result.missingMarkers.join(', ') : 'none')
+    result.missingMarkers.length > 0 ? result.missingMarkers.join(', ') : 'none',
+    result.missingWarningMarkers.length > 0 ? result.missingWarningMarkers.join(', ') : 'none',
+    result.error || '-'
   ].map(escapeMarkdownCell).join(' | '));
 
   const baiduReadiness = [
@@ -2277,8 +2306,8 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     '',
     '## Online Targets',
     '',
-    'Status | Target | URL | HTTP | Bytes | Cache / headers | Missing markers / error',
-    '--- | --- | --- | --- | --- | --- | ---',
+    'Status | Target | URL | HTTP | Bytes | Cache / headers | Missing required | Missing warning | Error',
+    '--- | --- | --- | --- | --- | --- | --- | --- | ---',
     ...onlineRows,
     '',
     '## AI Query Targets',
@@ -3159,7 +3188,8 @@ async function monitor() {
   }
 
   const onlineFailures = onlineResults.filter((result) => !result.ok);
-  const onlineStatus = statusLabel(onlineFailures.length, 0);
+  const onlineWarnings = onlineResults.filter((result) => result.warning);
+  const onlineStatus = statusLabel(onlineFailures.length, onlineWarnings.length);
   const baidu = {
     site: process.env.BAIDU_SITE || SITE_URL,
     tokenConfigured: isConfiguredSecret(process.env.BAIDU_TOKEN)
@@ -3182,7 +3212,7 @@ async function monitor() {
   console.log(`Baidu SEO/GEO monitor: local=${coverageSnapshot.status}, links=${linkSnapshot.status}, online=${onlineStatus}, token=${baidu.tokenConfigured ? 'configured' : 'missing'}, evidence=${evidenceSnapshot.summary.overallStatus}, submission=${submissionSnapshot.summary.latestStatus}`);
   console.log(`Report: ${MONITOR_REPORT_FILE}`);
   for (const result of onlineResults) {
-    console.log(`- ${result.ok ? 'PASS' : 'FAIL'} ${result.label ? `${result.label} ` : ''}${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
+    console.log(`- ${onlineResultStatus(result)} ${result.label ? `${result.label} ` : ''}${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
   }
 
   if (coverageSnapshot.status === 'FAIL' || linkSnapshot.status === 'FAIL' || onlineStatus === 'FAIL') {
@@ -3192,15 +3222,19 @@ async function monitor() {
 
 async function checkOnline() {
   const failures = [];
+  const warnings = [];
 
   for (const target of onlineTargets()) {
     const result = await fetchOnlineTarget(target);
-    console.log(`${result.label ? `${result.label} ` : ''}${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
+    console.log(`${onlineResultStatus(result)} ${result.label ? `${result.label} ` : ''}${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}`);
     const targetLabel = result.label ? `${result.label} ${result.url}` : result.url;
     if (result.error) failures.push(`${targetLabel} fetch failed: ${result.error}`);
     if (result.status && result.status >= 400) failures.push(`${targetLabel} returned HTTP ${result.status}`);
     for (const marker of result.missingMarkers) {
       failures.push(`${targetLabel} missing marker: ${marker}`);
+    }
+    for (const marker of result.missingWarningMarkers) {
+      warnings.push(`${targetLabel} missing recommended marker: ${marker}`);
     }
   }
 
@@ -3208,6 +3242,11 @@ async function checkOnline() {
     console.log('Online SEO check failed:');
     for (const failure of failures) console.log(`- ${failure}`);
     process.exitCode = 1;
+    return;
+  }
+  if (warnings.length > 0) {
+    console.log('Online SEO check passed with warnings:');
+    for (const warning of warnings) console.log(`- ${warning}`);
     return;
   }
   console.log('Online SEO check passed.');
