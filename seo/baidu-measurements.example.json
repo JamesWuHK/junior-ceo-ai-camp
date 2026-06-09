@@ -94,6 +94,13 @@
       "evidenceDate": null,
       "source": "Baidu Search Resource Platform or reproducible site: result",
       "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/course-navigation.html",
+      "indexed": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform or reproducible site: result",
+      "notes": ""
     }
   ],
   "urlMetrics": [
@@ -231,6 +238,17 @@
     },
     {
       "url": "https://camps.wanli.wiki/partner-ai-pbl-camp.html",
+      "impressions": null,
+      "clicks": null,
+      "ctr": null,
+      "avgRank": null,
+      "crawlCount": null,
+      "evidenceDate": null,
+      "source": "Baidu Search Resource Platform",
+      "notes": ""
+    },
+    {
+      "url": "https://camps.wanli.wiki/course-navigation.html",
       "impressions": null,
       "clicks": null,
       "ctr": null,

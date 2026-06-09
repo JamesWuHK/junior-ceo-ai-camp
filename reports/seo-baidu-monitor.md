@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-09T13:58:08+08:00
+Generated: 2026-06-09T14:40:31+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -10,7 +10,7 @@ Site URL: https://camps.wanli.wiki
 - Online crawl target check: PASS
 - Baidu push token configured: no
 - Baidu site parameter: https://camps.wanli.wiki
-- Baidu submit URL count: 13
+- Baidu submit URL count: 14
 - Baidu push readiness: WAITING (BAIDU_TOKEN is not configured)
 - Baidu measured evidence: NEEDS_MEASURED_DATA
 - Baidu evidence file: seo/baidu-measurements.json missing
@@ -47,6 +47,7 @@ Run `npm run seo:submit:baidu -- --dry-run` to print this same URL set without s
 - https://camps.wanli.wiki/ai-course-vs-coding.html
 - https://camps.wanli.wiki/shunyi-ai-parent-class.html
 - https://camps.wanli.wiki/partner-ai-pbl-camp.html
+- https://camps.wanli.wiki/course-navigation.html
 
 ## Keyword / GEO Coverage
 
@@ -70,7 +71,7 @@ PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构�
 
 - Status: PASS
 - Report: reports/seo-internal-links.md
-- Public sitemap pages checked: 13
+- Public sitemap pages checked: 14
 - Failures: none
 - Warnings: none
 
@@ -78,7 +79,7 @@ PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构�
 
 Status | URL | HTTP | Bytes | Missing markers / error
 --- | --- | --- | --- | ---
-PASS | https://camps.wanli.wiki/ | 200 | 51181 | none
+PASS | https://camps.wanli.wiki/ | 200 | 51272 | none
 PASS | https://camps.wanli.wiki/ai-pbl-camp.html | 200 | 11063 | none
 PASS | https://camps.wanli.wiki/ai-product-prototype-course.html | 200 | 12154 | none
 PASS | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | 200 | 12415 | none
@@ -91,11 +92,12 @@ PASS | https://camps.wanli.wiki/youth-ai-course-guide.html | 200 | 13725 | none
 PASS | https://camps.wanli.wiki/ai-course-vs-coding.html | 200 | 11174 | none
 PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.html | 200 | 9907 | none
 PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.html | 200 | 10295 | none
+PASS | https://camps.wanli.wiki/course-navigation.html | 200 | 10022 | none
 PASS | https://camps.wanli.wiki/robots.txt | 200 | 265 | none
 PASS | https://camps.wanli.wiki/sitemap-index.xml | 200 | 352 | none
-PASS | https://camps.wanli.wiki/sitemap.xml | 200 | 2494 | none
+PASS | https://camps.wanli.wiki/sitemap.xml | 200 | 2675 | none
 PASS | https://camps.wanli.wiki/sitemap-context.xml | 200 | 2658 | none
-PASS | https://camps.wanli.wiki/llms.txt | 200 | 5921 | none
+PASS | https://camps.wanli.wiki/llms.txt | 200 | 6009 | none
 PASS | https://camps.wanli.wiki/ai-pbl-camp.md | 200 | 743 | none
 PASS | https://camps.wanli.wiki/ai-product-prototype-course.md | 200 | 775 | none
 PASS | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | 200 | 1183 | none

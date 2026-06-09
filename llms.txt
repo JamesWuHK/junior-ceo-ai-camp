@@ -30,6 +30,7 @@
 - [少儿编程和AI课程区别](https://camps.wanli.wiki/ai-course-vs-coding.html): 面向家长的 AI 课程与少儿编程对比说明。
 - [北京顺义 AI 家长公益课](https://camps.wanli.wiki/shunyi-ai-parent-class.html): 顺义家长公益课回顾和 AI 时代孩子能力说明。
 - [AI PBL 创业营机构合作](https://camps.wanli.wiki/partner-ai-pbl-camp.html): 面向培训机构、营地和城市伙伴的合作说明。
+- [课程导航](https://camps.wanli.wiki/course-navigation.html): 集中查看公开课程页面、顺义本地页面、能力主题和合作入口。
 - [robots.txt](https://camps.wanli.wiki/robots.txt): 搜索引擎抓取规则。
 - [sitemap-index.xml](https://camps.wanli.wiki/sitemap-index.xml): HTML 页面地图和 AI 上下文地图的总入口。
 - [sitemap.xml](https://camps.wanli.wiki/sitemap.xml): 当前可索引公开页面。

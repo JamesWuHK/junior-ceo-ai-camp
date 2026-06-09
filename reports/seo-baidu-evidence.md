@@ -1,6 +1,6 @@
 # Baidu Measured Evidence Report
 
-Generated: 2026-06-09T13:51:55+08:00
+Generated: 2026-06-09T14:06:04+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_MEASURED_DATA
 
@@ -13,8 +13,8 @@ Overall status: NEEDS_MEASURED_DATA
 
 ## Summary
 
-- URL index evidence: 0/13 indexed, 0 measured not indexed, 13 missing evidence.
-- URL metric evidence: 0/13 measured, 13 missing evidence.
+- URL index evidence: 0/14 indexed, 0 measured not indexed, 14 missing evidence.
+- URL metric evidence: 0/14 measured, 14 missing evidence.
 - Primary keyword rank evidence: 0/13 ranked, 0 measured no rank, 13 missing evidence.
 - Tracked keyword rank evidence: 0/137 ranked, 0 measured no rank, 137 missing evidence.
 - GEO answer evidence: 0/39 pass, 0 needs repair, 39 missing evidence.
@@ -44,6 +44,7 @@ MISSING_EVIDENCE | https://camps.wanli.wiki/youth-ai-course-guide.html | N/A | N
 MISSING_EVIDENCE | https://camps.wanli.wiki/ai-course-vs-coding.html | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/shunyi-ai-parent-class.html | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/partner-ai-pbl-camp.html | N/A | N/A | -
+MISSING_EVIDENCE | https://camps.wanli.wiki/course-navigation.html | N/A | N/A | -
 
 ## URL Metric Evidence
 
@@ -62,6 +63,7 @@ MISSING_EVIDENCE | https://camps.wanli.wiki/youth-ai-course-guide.html | N/A | N
 MISSING_EVIDENCE | https://camps.wanli.wiki/ai-course-vs-coding.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/shunyi-ai-parent-class.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | https://camps.wanli.wiki/partner-ai-pbl-camp.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | https://camps.wanli.wiki/course-navigation.html | N/A | N/A | N/A | N/A | N/A | N/A | N/A | -
 
 ## Primary Keyword Rank Evidence
 

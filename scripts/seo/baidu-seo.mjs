@@ -104,6 +104,12 @@ const SITEMAP_ENTRIES = [
     source: 'partner-ai-pbl-camp.html',
     changefreq: 'monthly',
     priority: '0.8'
+  },
+  {
+    path: '/course-navigation.html',
+    source: 'course-navigation.html',
+    changefreq: 'monthly',
+    priority: '0.75'
   }
 ];
 const MARKDOWN_ENTRIES = [
@@ -240,6 +246,7 @@ const LLM_MARKERS = [
   '北京顺义AI夏令营',
   'AI时代孩子需要什么能力',
   '孩子AI判断力',
+  '课程导航',
   '机构合作',
   'Entity Profile',
   'Markdown Context'
@@ -335,6 +342,7 @@ function buildLlmsTxt() {
     `- [少儿编程和AI课程区别](${siteUrl('/ai-course-vs-coding.html')}): 面向家长的 AI 课程与少儿编程对比说明。`,
     `- [北京顺义 AI 家长公益课](${siteUrl('/shunyi-ai-parent-class.html')}): 顺义家长公益课回顾和 AI 时代孩子能力说明。`,
     `- [AI PBL 创业营机构合作](${siteUrl('/partner-ai-pbl-camp.html')}): 面向培训机构、营地和城市伙伴的合作说明。`,
+    `- [课程导航](${siteUrl('/course-navigation.html')}): 集中查看公开课程页面、顺义本地页面、能力主题和合作入口。`,
     `- [robots.txt](${siteUrl('/robots.txt')}): 搜索引擎抓取规则。`,
     `- [sitemap-index.xml](${siteUrl('/sitemap-index.xml')}): HTML 页面地图和 AI 上下文地图的总入口。`,
     `- [sitemap.xml](${siteUrl('/sitemap.xml')}): 当前可索引公开页面。`,
@@ -1390,6 +1398,7 @@ function onlineTargets() {
     { url: siteUrl('/ai-course-vs-coding.html'), markers: ['少儿编程和AI课程区别', 'application/ld+json', '孩子该学AI还是编程', ...alternateMarkersForSource('ai-course-vs-coding.html'), ...schemaMarkersForSource('ai-course-vs-coding.html'), ...(htmlAiQueryMarkers.get('ai-course-vs-coding.html') || [])] },
     { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子', ...alternateMarkersForSource('shunyi-ai-parent-class.html'), ...schemaMarkersForSource('shunyi-ai-parent-class.html'), ...(htmlAiQueryMarkers.get('shunyi-ai-parent-class.html') || [])] },
     { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html'), ...schemaMarkersForSource('partner-ai-pbl-camp.html'), ...(htmlAiQueryMarkers.get('partner-ai-pbl-camp.html') || [])] },
+    { url: siteUrl('/course-navigation.html'), markers: ['少年CEO AI 创业营课程导航', 'application/ld+json', '北京顺义AI课程', ...schemaMarkersForSource('course-navigation.html')] },
     { url: siteUrl('/robots.txt'), markers: [`Sitemap: ${siteUrl('/sitemap-index.xml')}`, `Sitemap: ${siteUrl('/sitemap.xml')}`, `Sitemap: ${siteUrl('/sitemap-context.xml')}`] },
     { url: siteUrl('/sitemap-index.xml'), markers: [`<loc>${siteUrl('/sitemap.xml')}</loc>`, `<loc>${siteUrl('/sitemap-context.xml')}</loc>`] },
     { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },

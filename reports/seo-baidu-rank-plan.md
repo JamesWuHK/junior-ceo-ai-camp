@@ -1,6 +1,6 @@
 # Baidu Ranking / GEO Tracking Plan
 
-Generated: 2026-06-09T13:51:27+08:00
+Generated: 2026-06-09T14:05:31+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
 
@@ -43,6 +43,7 @@ site:camps.wanli.wiki 青少年AI课程 | https://www.baidu.com/s?wd=site%3Acamp
 - https://camps.wanli.wiki/ai-course-vs-coding.html
 - https://camps.wanli.wiki/shunyi-ai-parent-class.html
 - https://camps.wanli.wiki/partner-ai-pbl-camp.html
+- https://camps.wanli.wiki/course-navigation.html
 
 ## Keyword Ranking Matrix
 

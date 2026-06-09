@@ -44,6 +44,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - https://camps.wanli.wiki/ai-course-vs-coding.html
 - https://camps.wanli.wiki/shunyi-ai-parent-class.html
 - https://camps.wanli.wiki/partner-ai-pbl-camp.html
+- https://camps.wanli.wiki/course-navigation.html
 
 ## GEO Notes
 
