@@ -1241,12 +1241,75 @@ export function WallRoute() {
   return <LiveDataRoute active="wall" />;
 }
 
-export function TeacherRoute() {
+export type TeacherView = "lesson" | "workspace" | "progress" | "students" | "submissions" | "showcase";
+
+const teacherViewMeta: Record<TeacherView, { label: string; title: string; description: string; href: string }> = {
+  lesson: {
+    label: "授课首页",
+    title: "三天课程授课台",
+    description: "按教学时间线切课件、发任务、投屏和计时。",
+    href: "/teacher.html"
+  },
+  workspace: {
+    label: "团队空间",
+    title: "团队空间",
+    description: "看分组、角色、项目状态和团队当前材料。",
+    href: "/teacher-workspace.html"
+  },
+  progress: {
+    label: "进度看板",
+    title: "团队进度看板",
+    description: "快速看到每组提交、卡点和需要现场支援的地方。",
+    href: "/teacher-progress.html"
+  },
+  students: {
+    label: "学员与照片",
+    title: "学员与照片",
+    description: "维护学生账号，处理未来照相馆作品上墙。",
+    href: "/teacher-students.html"
+  },
+  submissions: {
+    label: "课堂提交",
+    title: "课堂提交汇总",
+    description: "查看问题、提示词、路线、作品入口、反馈和迭代记录。",
+    href: "/teacher-submissions.html"
+  },
+  showcase: {
+    label: "作品与评分",
+    title: "作品与评分",
+    description: "整理最终展示卡、观察员评分、分享链接和公开作品区。",
+    href: "/teacher-showcase-admin.html"
+  }
+};
+
+const teacherViewLinks: Array<{ key: TeacherView; icon: React.ReactNode }> = [
+  { key: "lesson", icon: <Play size={18} /> },
+  { key: "workspace", icon: <UsersRound size={18} /> },
+  { key: "progress", icon: <ClipboardCheck size={18} /> },
+  { key: "students", icon: <ShieldCheck size={18} /> },
+  { key: "submissions", icon: <StickyNote size={18} /> },
+  { key: "showcase", icon: <Trophy size={18} /> }
+];
+
+function teacherViewFromLocation(): TeacherView {
+  const searchView = new URLSearchParams(window.location.search).get("view");
+  if (searchView && searchView in teacherViewMeta) return searchView as TeacherView;
+  const path = window.location.pathname;
+  if (path.includes("teacher-workspace")) return "workspace";
+  if (path.includes("teacher-progress")) return "progress";
+  if (path.includes("teacher-students")) return "students";
+  if (path.includes("teacher-submissions")) return "submissions";
+  if (path.includes("teacher-showcase-admin")) return "showcase";
+  return "lesson";
+}
+
+export function TeacherRoute({ initialView }: { initialView?: TeacherView } = {}) {
   const [authStatus, setAuthStatus] = useState<"checking" | "guest" | "authed">(
     hasTeacherToken() ? "checking" : "guest"
   );
   const [teacher, setTeacher] = useState<TeacherAccount | null>(getTeacherAccount());
   const data = useTeacherData(authStatus === "authed");
+  const view = initialView || teacherViewFromLocation();
 
   useEffect(() => {
     let alive = true;
@@ -1332,6 +1395,7 @@ export function TeacherRoute() {
       students={data.students}
       refresh={data.refresh}
       teacher={teacher}
+      view={view}
       onLoggedOut={() => {
         clearTeacherToken();
         setTeacher(null);
@@ -2519,6 +2583,7 @@ function TeacherApp({
   students,
   refresh,
   teacher,
+  view,
   onLoggedOut
 }: {
   camp: Camp | null;
@@ -2526,10 +2591,15 @@ function TeacherApp({
   students: Student[];
   refresh: () => Promise<void>;
   teacher: TeacherAccount | null;
+  view: TeacherView;
   onLoggedOut: () => void;
 }) {
-  const [selectedDay, setSelectedDay] = useState(1);
-  const [selectedModuleId, setSelectedModuleId] = useState("future-photo-studio");
+  const initialSearchParams = new URLSearchParams(window.location.search);
+  const initialDay = Number(initialSearchParams.get("day"));
+  const [selectedDay, setSelectedDay] = useState(initialDay >= 1 && initialDay <= 3 ? initialDay : 1);
+  const [selectedModuleId, setSelectedModuleId] = useState(
+    initialSearchParams.get("module") || "future-photo-studio"
+  );
   const [selectedPageIndex, setSelectedPageIndex] = useState(0);
   const [presenting, setPresenting] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<Student | null>(null);
@@ -2640,6 +2710,10 @@ function TeacherApp({
   };
 
   const openProgressBoard = () => {
+    if (view !== "progress") {
+      window.location.href = teacherViewMeta.progress.href;
+      return;
+    }
     const board = document.getElementById("teacher-progress-board");
     board?.scrollIntoView({ behavior: "smooth", block: "start" });
     setProgressBoardPulse(true);
@@ -2702,7 +2776,13 @@ function TeacherApp({
               <button
                 key={module.id}
                 className={module.id === selectedModuleId ? "module active" : "module"}
-                onClick={() => setSelectedModuleId(module.id)}
+                onClick={() => {
+                  if (view === "lesson") {
+                    setSelectedModuleId(module.id);
+                    return;
+                  }
+                  window.location.href = `/teacher.html?day=${module.day}&module=${encodeURIComponent(module.id)}`;
+                }}
               >
                 <span>{module.time_range}</span>
                 <strong>{module.title}</strong>
@@ -2720,78 +2800,68 @@ function TeacherApp({
             onLoggedOut();
           }}
         />
-        <section className="lesson-panel">
-          <div className="lesson-title">
-            <div>
-              <span className="eyebrow">正在讲的课件</span>
-              <h1>{selectedModule?.title || "未来照相馆"}</h1>
-              <p>{selectedModule?.subtitle}</p>
+        <TeacherFunctionLinks active={view} />
+        {view === "lesson" ? (
+          <section className="lesson-panel">
+            <div className="lesson-title">
+              <div>
+                <span className="eyebrow">正在讲的课件</span>
+                <h1>{selectedModule?.title || "未来照相馆"}</h1>
+                <p>{selectedModule?.subtitle}</p>
+              </div>
+              <div className="lesson-actions">
+                <button className="secondary" onClick={openPresentation}>
+                  <Maximize2 size={18} />
+                  全屏演示
+                </button>
+                <button className="primary" onClick={publishCurrentModule}>
+                  <Play size={18} />
+                  发到学生端
+                </button>
+              </div>
             </div>
-            <div className="lesson-actions">
-              <button className="secondary" onClick={openPresentation}>
-                <Maximize2 size={18} />
-                全屏演示
-              </button>
-              <button className="primary" onClick={publishCurrentModule}>
-                <Play size={18} />
-                发到学生端
-              </button>
+            {actionMessage && <p className="hint">{actionMessage}</p>}
+            <div className="lesson-page-nav">
+              {lessonPages.map((page, index) => (
+                <button
+                  key={page.id}
+                  className={index === selectedPageIndex ? "active" : ""}
+                  onClick={() => setSelectedPageIndex(index)}
+                >
+                  <span>{page.page_no}</span>
+                  {lessonPageTitle(selectedModule, page)}
+                </button>
+              ))}
             </div>
-          </div>
-          {actionMessage && <p className="hint">{actionMessage}</p>}
-          <div className="lesson-page-nav">
-            {lessonPages.map((page, index) => (
-              <button
-                key={page.id}
-                className={index === selectedPageIndex ? "active" : ""}
-                onClick={() => setSelectedPageIndex(index)}
-              >
-                <span>{page.page_no}</span>
-                {lessonPageTitle(selectedModule, page)}
-              </button>
-            ))}
-          </div>
-          {selectedModule && selectedPage && (
-            <TeacherLessonControls
-              module={selectedModule}
-              page={selectedPage}
-              timerSeconds={timerSeconds}
-              onPublishPage={() => publishCurrentPage("发布任务")}
-              onAction={handlePageAction}
-            />
-          )}
-          {selectedModule && selectedPage && (
-            <LessonPageCanvas
-              module={selectedModule}
-              page={selectedPage}
+            {selectedModule && selectedPage && (
+              <TeacherLessonControls
+                module={selectedModule}
+                page={selectedPage}
+                timerSeconds={timerSeconds}
+                onPublishPage={() => publishCurrentPage("发布任务")}
+                onAction={handlePageAction}
+              />
+            )}
+            {selectedModule && selectedPage && (
+              <LessonPageCanvas
+                module={selectedModule}
+                page={selectedPage}
+                students={students}
+                onOpenPhoto={setSelectedPhoto}
+              />
+            )}
+          </section>
+        ) : (
+          <TeacherStandalonePage view={view}>
+            <TeacherViewPanels
+              view={view}
               students={students}
-              onOpenPhoto={setSelectedPhoto}
+              refresh={refresh}
+              selectedModuleId={selectedModule?.id}
+              highlighted={progressBoardPulse}
             />
-          )}
-        </section>
-        <TeacherTeamWorkspace students={students} refresh={refresh} />
-        <TeacherProgressBoard selectedModuleId={selectedModule?.id} highlighted={progressBoardPulse} />
-        <section className="teacher-grid">
-          <TeacherStudents students={students} refresh={refresh} />
-          <FuturePhotoReview refresh={refresh} />
-        </section>
-        <TeacherD1Artifacts />
-        <TeacherProductDefinitions />
-        <TeacherPromptCards />
-        <TeacherFeatureScopes />
-        <TeacherTechRoutes />
-        <TeacherProjectSubmissions />
-        <TeacherPeerFeedback />
-        <TeacherIterationPlans />
-        <TeacherValueCards />
-        <TeacherProductPackaging />
-        <TeacherStoryPitches />
-        <TeacherFinalShowcase />
-        <TeacherScoringCenter />
-        <TeacherMentorComments />
-        <TeacherShareCenter />
-        <TeacherGrowthReflections />
-        <TeacherShowcase />
+          </TeacherStandalonePage>
+        )}
       </section>
       {presenting && selectedModule && (
         <PresentationOverlay
@@ -2805,6 +2875,107 @@ function TeacherApp({
       )}
       {selectedPhoto && <PhotoLightbox student={selectedPhoto} onClose={() => setSelectedPhoto(null)} />}
     </main>
+  );
+}
+
+function TeacherFunctionLinks({ active }: { active: TeacherView }) {
+  return (
+    <nav className="teacher-page-nav" aria-label="教师功能页">
+      {teacherViewLinks.map((item) => {
+        const meta = teacherViewMeta[item.key];
+        return (
+          <a key={item.key} className={active === item.key ? "active" : ""} href={meta.href}>
+            {item.icon}
+            <span>{meta.label}</span>
+          </a>
+        );
+      })}
+    </nav>
+  );
+}
+
+function TeacherStandalonePage({ view, children }: { view: Exclude<TeacherView, "lesson">; children: React.ReactNode }) {
+  const meta = teacherViewMeta[view];
+  return (
+    <div className="teacher-feature-page">
+      <div className="teacher-feature-heading">
+        <div>
+          <span className="eyebrow">教师功能页</span>
+          <h1>{meta.title}</h1>
+          <p>{meta.description}</p>
+        </div>
+        <a className="secondary" href={teacherViewMeta.lesson.href}>
+          <Play size={18} />
+          回到授课首页
+        </a>
+      </div>
+      <div className="teacher-feature-content">{children}</div>
+    </div>
+  );
+}
+
+function TeacherViewPanels({
+  view,
+  students,
+  refresh,
+  selectedModuleId,
+  highlighted
+}: {
+  view: Exclude<TeacherView, "lesson">;
+  students: Student[];
+  refresh: () => Promise<void>;
+  selectedModuleId?: string;
+  highlighted?: boolean;
+}) {
+  if (view === "workspace") {
+    return (
+      <>
+        <TeacherTeamWorkspace students={students} refresh={refresh} />
+        <TeacherProgressBoard selectedModuleId={selectedModuleId} highlighted={highlighted} />
+      </>
+    );
+  }
+
+  if (view === "progress") {
+    return <TeacherProgressBoard selectedModuleId={selectedModuleId} highlighted={highlighted} />;
+  }
+
+  if (view === "students") {
+    return (
+      <section className="teacher-grid">
+        <TeacherStudents students={students} refresh={refresh} />
+        <FuturePhotoReview refresh={refresh} />
+      </section>
+    );
+  }
+
+  if (view === "submissions") {
+    return (
+      <>
+        <TeacherD1Artifacts />
+        <TeacherProductDefinitions />
+        <TeacherPromptCards />
+        <TeacherFeatureScopes />
+        <TeacherTechRoutes />
+        <TeacherProjectSubmissions />
+        <TeacherPeerFeedback />
+        <TeacherIterationPlans />
+        <TeacherValueCards />
+        <TeacherProductPackaging />
+        <TeacherStoryPitches />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <TeacherFinalShowcase />
+      <TeacherScoringCenter />
+      <TeacherMentorComments />
+      <TeacherShareCenter />
+      <TeacherGrowthReflections />
+      <TeacherShowcase />
+    </>
   );
 }
 

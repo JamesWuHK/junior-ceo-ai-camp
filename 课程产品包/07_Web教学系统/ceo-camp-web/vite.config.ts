@@ -9,6 +9,11 @@ export default defineConfig({
       input: {
         index: resolve(__dirname, "index.html"),
         teacher: resolve(__dirname, "teacher.html"),
+        teacherWorkspace: resolve(__dirname, "teacher-workspace.html"),
+        teacherProgress: resolve(__dirname, "teacher-progress.html"),
+        teacherStudents: resolve(__dirname, "teacher-students.html"),
+        teacherSubmissions: resolve(__dirname, "teacher-submissions.html"),
+        teacherShowcaseAdmin: resolve(__dirname, "teacher-showcase-admin.html"),
         student: resolve(__dirname, "student.html"),
         wall: resolve(__dirname, "wall.html"),
         showcase: resolve(__dirname, "showcase.html"),
