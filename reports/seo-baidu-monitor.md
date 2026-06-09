@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-09T22:42:58+08:00
+Generated: 2026-06-09T23:13:18+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -54,7 +54,7 @@ Run `npm run seo:submit:baidu -- --dry-run` to print this same URL set without s
 Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | HTML answers | Schema answers | Markdown answers | JSON-LD types
 --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
 PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | Course, FAQPage, Organization, WebSite
-PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | BreadcrumbList, Course, FAQPage
+PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | BreadcrumbList, Course, FAQPage
 PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产品原型课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | Article, BreadcrumbList, FAQPage
 PASS | beijing-shunyi-ai-course | /beijing-shunyi-ai-course.html | 北京顺义AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | BreadcrumbList, CollectionPage, FAQPage
 PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | 北京顺义青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | BreadcrumbList, Course, FAQPage
@@ -80,7 +80,7 @@ PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构�
 Status | URL | HTTP | Bytes | Missing markers / error
 --- | --- | --- | --- | ---
 PASS | https://camps.wanli.wiki/ | 200 | 51272 | none
-PASS | https://camps.wanli.wiki/ai-pbl-camp.html | 200 | 11063 | none
+PASS | https://camps.wanli.wiki/ai-pbl-camp.html | 200 | 11592 | none
 PASS | https://camps.wanli.wiki/ai-product-prototype-course.html | 200 | 12154 | none
 PASS | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | 200 | 12415 | none
 PASS | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | 200 | 13243 | none
@@ -98,7 +98,7 @@ PASS | https://camps.wanli.wiki/sitemap-index.xml | 200 | 352 | none
 PASS | https://camps.wanli.wiki/sitemap.xml | 200 | 2675 | none
 PASS | https://camps.wanli.wiki/sitemap-context.xml | 200 | 2836 | none
 PASS | https://camps.wanli.wiki/llms.txt | 200 | 6108 | none
-PASS | https://camps.wanli.wiki/ai-pbl-camp.md | 200 | 743 | none
+PASS | https://camps.wanli.wiki/ai-pbl-camp.md | 200 | 841 | none
 PASS | https://camps.wanli.wiki/ai-product-prototype-course.md | 200 | 775 | none
 PASS | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | 200 | 1183 | none
 PASS | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | 200 | 877 | none
@@ -131,10 +131,10 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 3316 | no
 
 - Page: https://camps.wanli.wiki/ai-pbl-camp.html
 - Primary keyword: AI PBL 创业营
-- Target answer queries: AI PBL 创业营适合什么孩子 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上
-- Visible HTML answer coverage: 3/3
-- JSON-LD answer coverage: 3/3
-- Markdown answer coverage: 3/3
+- Target answer queries: AI PBL 创业营适合什么孩子 | AI PBL创业营3天学什么 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上
+- Visible HTML answer coverage: 4/4
+- JSON-LD answer coverage: 4/4
+- Markdown answer coverage: 4/4
 - Status: PASS
 - Failures: none
 - Warnings: none

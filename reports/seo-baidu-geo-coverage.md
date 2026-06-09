@@ -14,7 +14,7 @@ Overall status: PASS
 Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | HTML answers | Schema answers | Markdown answers | Sitemap | llms.txt | Markdown context
 --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
 PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | entity-shaonian-ceo-ai-camp.md
-PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | ai-pbl-camp.md
+PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | yes | yes | ai-pbl-camp.md
 PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产品原型课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | ai-product-prototype-course.md
 PASS | beijing-shunyi-ai-course | /beijing-shunyi-ai-course.html | 北京顺义AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | beijing-shunyi-ai-course.md
 PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | 北京顺义青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | beijing-shunyi-youth-ai-course.md
@@ -86,10 +86,10 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Primary locations measured: title, description, keywords, h1, h2, body, jsonLd
 - Secondary matches measured: 7/7 (青少年AI课程, AI产品原型课程, 少年CEO, AI创业营, 8-16岁AI课程, PBL项目制学习, 提示词实践)
 - JSON-LD types measured: BreadcrumbList, Course, FAQPage
-- AI query coverage targets: AI PBL 创业营适合什么孩子 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上
-- Visible HTML answer blocks measured: 3/3 (AI PBL 创业营适合什么孩子 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上)
-- JSON-LD answer blocks measured: 3/3 (AI PBL 创业营适合什么孩子 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上)
-- AI query answer blocks measured: 3/3 (AI PBL 创业营适合什么孩子 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上)
+- AI query coverage targets: AI PBL 创业营适合什么孩子 | AI PBL创业营3天学什么 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上
+- Visible HTML answer blocks measured: 4/4 (AI PBL 创业营适合什么孩子 | AI PBL创业营3天学什么 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上)
+- JSON-LD answer blocks measured: 4/4 (AI PBL 创业营适合什么孩子 | AI PBL创业营3天学什么 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上)
+- AI query answer blocks measured: 4/4 (AI PBL 创业营适合什么孩子 | AI PBL创业营3天学什么 | 孩子不懂编程能参加AI创业营吗 | 青少年AI产品原型课程怎么上)
 - Status: PASS
 - Failures: none
 - Warnings: none
