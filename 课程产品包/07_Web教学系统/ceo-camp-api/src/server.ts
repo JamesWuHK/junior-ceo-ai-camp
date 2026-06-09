@@ -542,14 +542,14 @@ function growthReflectionItems() {
        LEFT JOIN teams t ON t.id = ts.team_id
       WHERE ts.camp_id = ?
         AND ts.status = 'ON_WALL'
-        AND ts.task_type = 'growth_reflection'
+        AND ts.task_type IN ('growth_reflection', 'contribution_card')
       ORDER BY ts.updated_at DESC, ts.created_at DESC`,
     campId()
   ).map((artifact): TaskArtifact => {
     const base = artifact as Record<string, any>;
     return {
       ...base,
-      task_type: "growth_reflection",
+      task_type: String(base.task_type ?? ""),
       payload: jsonParse<TaskPayload>(base.payload, {})
     };
   });
@@ -646,7 +646,7 @@ function studentWorkspace(principal: StudentPrincipal) {
           WHERE ts.camp_id = ?
             AND ts.team_id = ?
             AND ts.task_type IN (
-              'problem_card', 'market_scout', 'user_voice', 'ai_validation',
+              'team_card', 'problem_card', 'market_scout', 'user_voice', 'ai_validation',
               'product_definition', 'prompt_card', 'feature_scope', 'tech_route',
               'blocker_note', 'product_feedback', 'iteration_plan', 'value_card',
               'product_packaging', 'story_pitch', 'final_showcase', 'growth_reflection'
@@ -753,7 +753,7 @@ function nextSupportAction(
   }
   const firstMissing = milestoneStates.find((milestone) => !milestone.done);
   if (!firstMissing) return "可以安排彩排或进入作品秀顺序。";
-  if (firstMissing.key === "team_card") return "请小组先补一张团队名片：团队名、四个责任和一句亮相。";
+  if (firstMissing.key === "team_card") return "请小组先补一张团队名片：团队名、产品方向和一句亮相。";
   if (!team.selected_problem_id) return "先从问题卡里给小组定一个要继续调查的问题。";
   if (firstMissing.key === "market_scout") return "先补一张侦察卡：AI 改写、用户声音、已有方案、继续验证。";
   if (firstMissing.key === "user_voice") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条用户声音，先补真实采访。`;
@@ -2011,13 +2011,24 @@ app.post("/task-submissions", async (request, reply) => {
      VALUES
       (@id, @camp_id, @student_id, @team_id, @task_type, @title, @payload, @status, @updated_at)`
   ).run(record);
+  const submittedTeamName = textValue((payload as TaskPayload).team_name).trim();
+  const shouldUpdateTeamName = Boolean(record.task_type === "team_card" && student.team_id && submittedTeamName);
+  if (shouldUpdateTeamName) {
+    db.prepare("UPDATE teams SET name = ?, updated_at = ? WHERE id = ? AND camp_id = ?").run(
+      submittedTeamName,
+      nowSql(),
+      student.team_id,
+      campId()
+    );
+    emitState("teams.changed");
+  }
   audit("task.submit", "task_submissions", id, { student_id: student.id, team_id: student.team_id ?? null }, `student:${student.id}`);
   emitState("task.submitted");
   return {
     submission: {
       ...record,
       student_name: student.nickname,
-      team_name: student.team_name ?? null,
+      team_name: submittedTeamName || student.team_name || null,
       payload
     }
   };

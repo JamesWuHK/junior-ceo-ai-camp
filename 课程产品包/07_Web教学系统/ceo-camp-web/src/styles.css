@@ -4312,6 +4312,10 @@ button:disabled {
   max-width: 860px;
 }
 
+.contribution-card-form {
+  max-width: 860px;
+}
+
 .blocker-card {
   max-width: 820px;
 }
@@ -4748,6 +4752,38 @@ button:disabled {
   color: #60705f;
   font-size: 13px;
   line-height: 1.35;
+}
+
+.contribution-preview {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fff8eb;
+  padding: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.contribution-preview span {
+  color: #8c6414;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.contribution-preview strong {
+  color: #172018;
+  font-size: 22px;
+}
+
+.contribution-preview p {
+  margin: 0;
+  color: #172018;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.contribution-preview small {
+  color: #675321;
+  font-weight: 800;
 }
 
 .student-check {
