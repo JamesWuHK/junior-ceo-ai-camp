@@ -1449,6 +1449,7 @@ function PublicShowcaseRoute() {
         <div className="public-final-grid">
           {finalItems.map((item, index) => {
             const href = asText(item.payload.access_url);
+            const pitchDeckUrl = asText(item.payload.pitch_deck_url);
             const productName = asText(item.payload.product_name);
             const packagingItem = projectJourney.find((journeyItem) =>
               journeyItem.task_type === "product_packaging" &&
@@ -1506,6 +1507,12 @@ function PublicShowcaseRoute() {
                     <a href={normalizeShowcaseUrl(href)} target="_blank" rel="noreferrer">
                       <ExternalLink size={16} />
                       打开作品
+                    </a>
+                  )}
+                  {pitchDeckUrl && (
+                    <a href={normalizeShowcaseUrl(pitchDeckUrl)} target="_blank" rel="noreferrer">
+                      <ExternalLink size={16} />
+                      路演 PPT
                     </a>
                   )}
                 </div>
@@ -11891,6 +11898,7 @@ function FinalShowcaseRun({ artifacts }: { artifacts: WallArtifact[] }) {
 
   if (!active) return null;
   const href = asText(active.payload.access_url);
+  const pitchDeckUrl = asText(active.payload.pitch_deck_url);
   const screenshot = asText(active.payload.screenshot_url);
   const recording = asText(active.payload.recording_url);
   return (
@@ -11927,12 +11935,20 @@ function FinalShowcaseRun({ artifacts }: { artifacts: WallArtifact[] }) {
               <dd>{asText(active.payload.core_problem) || "还在介绍"}</dd>
             </div>
           </dl>
-          {href && (
-            <a href={normalizeShowcaseUrl(href)} target="_blank" rel="noreferrer">
-              <ExternalLink size={18} />
-              打开作品
-            </a>
-          )}
+          <div className="final-stage-links">
+            {href && (
+              <a href={normalizeShowcaseUrl(href)} target="_blank" rel="noreferrer">
+                <ExternalLink size={18} />
+                打开作品
+              </a>
+            )}
+            {pitchDeckUrl && (
+              <a href={normalizeShowcaseUrl(pitchDeckUrl)} target="_blank" rel="noreferrer">
+                <ExternalLink size={18} />
+                路演 PPT
+              </a>
+            )}
+          </div>
         </div>
       </article>
       {ordered.length > 1 && (

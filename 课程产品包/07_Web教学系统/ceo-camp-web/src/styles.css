@@ -5315,6 +5315,12 @@ button:disabled {
   color: #172018;
 }
 
+.final-stage-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .final-stage-copy a,
 .public-final-card a {
   width: fit-content;
