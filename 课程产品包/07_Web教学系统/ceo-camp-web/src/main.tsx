@@ -2813,6 +2813,10 @@ function storyQaSummary(payload: Record<string, unknown>, limit = 3) {
     .join(" / ");
 }
 
+function completeStoryQaCount(payload: Record<string, unknown>) {
+  return storyQaPairs(payload).filter((item) => item.question && item.answer).length;
+}
+
 function asNumber(value: unknown) {
   const numberValue = Number(value);
   return Number.isFinite(numberValue) ? numberValue : 0;
@@ -4558,13 +4562,16 @@ function TeacherProductPackaging() {
 
 function TeacherStoryPitches() {
   const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [message, setMessage] = useState("");
   const [workingId, setWorkingId] = useState("");
+  const [copiedLibrary, setCopiedLibrary] = useState(false);
 
   const load = async () => {
     try {
-      const result = await api.submissions();
+      const [result, teamResult] = await Promise.all([api.submissions(), api.teams()]);
       setItems(result.task_submissions.filter((item) => item.task_type === "story_pitch"));
+      setTeams(teamResult.teams);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "加载失败");
     }
@@ -4580,6 +4587,50 @@ function TeacherStoryPitches() {
     () => new Set(items.map((item) => item.team_id || item.student_id || item.id)).size,
     [items]
   );
+  const latestStoryByTeam = useMemo(() => {
+    const map = new Map<string, TaskSubmission>();
+    teams.forEach((team) => {
+      const teamItems = items.filter((item) => item.team_id === team.id || item.team_name === team.name);
+      const latest = latestTask(teamItems);
+      if (latest) map.set(team.id, latest);
+    });
+    return map;
+  }, [items, teams]);
+  const unassignedStoryItems = useMemo(
+    () => items.filter((item) => !teams.some((team) => item.team_id === team.id || item.team_name === team.name)),
+    [items, teams]
+  );
+  const rehearsalRows = useMemo(() => {
+    const teamRows = teams.map((team) => {
+      const item = latestStoryByTeam.get(team.id) || null;
+      const qaPairs = item ? storyQaPairs(item.payload) : [];
+      const completeCount = item ? completeStoryQaCount(item.payload) : 0;
+      return {
+        key: team.id,
+        label: team.name,
+        hint: team.table_no ? `${team.table_no} 号桌` : `第 ${team.group_no} 组`,
+        productName: item ? asText(item.payload.product_name) : "",
+        item,
+        qaPairs,
+        completeCount
+      };
+    });
+    const extraRows = unassignedStoryItems.map((item) => {
+      const qaPairs = storyQaPairs(item.payload);
+      return {
+        key: item.id,
+        label: item.team_name || item.student_name || "未分组提交",
+        hint: item.student_name || "故事卡",
+        productName: asText(item.payload.product_name),
+        item,
+        qaPairs,
+        completeCount: completeStoryQaCount(item.payload)
+      };
+    });
+    return [...teamRows, ...extraRows];
+  }, [latestStoryByTeam, teams, unassignedStoryItems]);
+  const readyTeamCount = rehearsalRows.filter((row) => row.completeCount >= 3).length;
+  const missingTeamCount = rehearsalRows.filter((row) => row.completeCount < 3).length;
 
   const toggleWall = async (item: TaskSubmission) => {
     setWorkingId(item.id);
@@ -4591,6 +4642,30 @@ function TeacherStoryPitches() {
       setMessage(err instanceof Error ? err.message : "操作失败");
     } finally {
       setWorkingId("");
+    }
+  };
+
+  const copyRehearsalLibrary = async () => {
+    const text = rehearsalRows
+      .map((row) => {
+        const lines = [
+          `${row.label}${row.productName ? `｜${row.productName}` : ""}`,
+          row.qaPairs.length
+            ? row.qaPairs.slice(0, 3).map((pair, index) => (
+              `${index + 1}. ${pair.question || "问题待补"}\n答：${pair.answer || "回答待补"}`
+            )).join("\n")
+            : "还没有预演问答"
+        ];
+        return lines.join("\n");
+      })
+      .join("\n\n");
+    try {
+      await copyToClipboard(`问答预演题库\n\n${text}`);
+      setCopiedLibrary(true);
+      setMessage("题库已复制。");
+      window.setTimeout(() => setCopiedLibrary(false), 2200);
+    } catch {
+      setMessage("复制失败，可以手动选中页面内容。");
     }
   };
 
@@ -4606,6 +4681,42 @@ function TeacherStoryPitches() {
         <span>{items.filter((item) => item.status === "ON_WALL").length} 张已上屏</span>
       </div>
       {message && <p className="hint">{message}</p>}
+      <div className="rehearsal-library">
+        <div className="rehearsal-library-title">
+          <div>
+            <span>问答预演题库</span>
+            <strong>{readyTeamCount} 组备齐，{missingTeamCount} 组还要补问题</strong>
+          </div>
+          <button type="button" disabled={!rehearsalRows.length} onClick={copyRehearsalLibrary}>
+            {copiedLibrary ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+            {copiedLibrary ? "已复制" : "复制题库"}
+          </button>
+        </div>
+        <div className="rehearsal-team-grid">
+          {rehearsalRows.map((row) => (
+            <article className={row.completeCount >= 3 ? "rehearsal-team-card ready" : "rehearsal-team-card"} key={row.key}>
+              <header>
+                <div>
+                  <span>{row.hint}</span>
+                  <strong>{row.label}</strong>
+                  <small>{row.productName || "还没写作品名"}</small>
+                </div>
+                <em>{row.completeCount}/3</em>
+              </header>
+              <div className="rehearsal-question-list">
+                {row.qaPairs.length ? row.qaPairs.slice(0, 3).map((pair, index) => (
+                  <p key={`${row.key}-library-${index}`}>
+                    <b>{index + 1}</b>
+                    <span>{pair.question || "问题待补"}</span>
+                    <small>{pair.answer || "回答待补"}</small>
+                  </p>
+                )) : <p className="empty">还没有预演问答。</p>}
+              </div>
+            </article>
+          ))}
+          {!rehearsalRows.length && <p className="empty">小组提交故事发布卡后，预演问题会出现在这里。</p>}
+        </div>
+      </div>
       <div className="d1-artifact-list">
         {items.map((item) => {
           const qaPairs = storyQaPairs(item.payload);
