@@ -137,6 +137,22 @@ const scoreDimensions: ScoreDimension[] = [
   "story_expression",
   "team_pitch"
 ];
+const progressMilestones = [
+  { key: "problem_card", label: "问题卡", target: 1, unit: "张" },
+  { key: "market_scout", label: "侦察卡", target: 1, unit: "张" },
+  { key: "user_voice", label: "用户声音", target: 3, unit: "条" },
+  { key: "product_definition", label: "产品一句话", target: 1, unit: "条" },
+  { key: "prompt_card", label: "提示词卡", target: 1, unit: "张" },
+  { key: "feature_scope", label: "核心动作", target: 1, unit: "张" },
+  { key: "tech_route", label: "路线流程", target: 1, unit: "张" },
+  { key: "product_link", label: "作品入口", target: 1, unit: "个" },
+  { key: "product_feedback", label: "互测反馈", target: 2, unit: "条" },
+  { key: "iteration_plan", label: "迭代清单", target: 1, unit: "张" },
+  { key: "value_card", label: "价值卡", target: 1, unit: "张" },
+  { key: "product_packaging", label: "海报卡", target: 1, unit: "张" },
+  { key: "story_pitch", label: "故事卡", target: 1, unit: "张" },
+  { key: "final_showcase", label: "展示卡", target: 1, unit: "张" }
+] as const;
 const classroomMediaAssetTypes = new Set([
   "product-screenshot",
   "product-poster",
@@ -568,7 +584,7 @@ function problemTitleFor(item: TaskArtifact | null | undefined) {
   return textValue(item.payload.problem_scene) || textValue(item.payload.trouble) || "一个真实问题";
 }
 
-function serializeTeam(team: Record<string, any>) {
+function serializeTeam(team: Record<string, any>): Record<string, any> {
   return {
     ...team,
     roles: jsonParse(team.roles, {}),
@@ -671,6 +687,178 @@ function studentWorkspace(principal: StudentPrincipal) {
     team_submissions: teamSubmissions,
     showcase_items: showcaseItems(false).filter(showcaseMatches),
     received_feedback: feedbackItems
+  };
+}
+
+type ProgressMilestone = (typeof progressMilestones)[number];
+
+function taskUpdatedAt(item: TaskArtifact) {
+  return String(item.updated_at ?? item.created_at ?? "");
+}
+
+function latestTask(items: TaskArtifact[]) {
+  return [...items].sort((a, b) => taskUpdatedAt(b).localeCompare(taskUpdatedAt(a)))[0] ?? null;
+}
+
+function submissionTeamId(item: TaskArtifact) {
+  return String(item.team_id ?? textValue(item.payload.team_id) ?? "");
+}
+
+function submissionTeamName(item: TaskArtifact) {
+  return String(item.team_name ?? textValue(item.payload.team_name) ?? "");
+}
+
+function taskMatchesTeam(item: TaskArtifact, team: Record<string, any>) {
+  const itemTeamId =
+    item.task_type === "product_feedback"
+      ? textValue(item.payload.team_id) || String(item.team_id ?? "")
+      : submissionTeamId(item);
+  const itemTeamName =
+    item.task_type === "product_feedback"
+      ? textValue(item.payload.team_name) || String(item.team_name ?? "")
+      : submissionTeamName(item);
+  return itemTeamId === String(team.id ?? "") || (!!itemTeamName && itemTeamName === String(team.name ?? ""));
+}
+
+function showcaseMatchesTeam(item: { team_id?: string | null; team_name?: string | null; track?: string | null }, team: Record<string, any>) {
+  const teamId = String(team.id ?? "");
+  const teamName = String(team.name ?? "");
+  return item.team_id === teamId || (!!teamName && (item.team_name === teamName || item.track === teamName));
+}
+
+function milestoneCount(
+  teamSubmissions: TaskArtifact[],
+  milestone: ProgressMilestone,
+  teamShowcaseItems: Array<{ access_url?: string | null }> = []
+) {
+  if (milestone.key === "product_link") {
+    const submittedLinks = teamSubmissions.filter((item) =>
+      ["product_link", "final_showcase"].includes(item.task_type) && Boolean(textValue(item.payload.access_url))
+    ).length;
+    const showcaseLinks = teamShowcaseItems.filter((item) => Boolean(item.access_url)).length;
+    return submittedLinks + showcaseLinks;
+  }
+  return teamSubmissions.filter((item) => item.task_type === milestone.key).length;
+}
+
+function nextSupportAction(
+  milestoneStates: Array<ProgressMilestone & { count: number; done: boolean }>,
+  activeBlockers: TaskArtifact[],
+  team: Record<string, any>
+) {
+  if (activeBlockers.length) {
+    const blocker = activeBlockers[0];
+    return `先去 ${team.table_no || team.group_no} 号桌看卡点：${textValue(blocker.payload.where_stuck) || "请他们说清卡在哪里"}`;
+  }
+  if (!team.selected_problem_id) return "先从问题卡里给小组定一个要继续调查的问题。";
+  const firstMissing = milestoneStates.find((milestone) => !milestone.done);
+  if (!firstMissing) return "可以安排彩排或进入作品秀顺序。";
+  if (firstMissing.key === "market_scout") return "先补一张侦察卡：AI 改写、用户声音、已有方案、继续验证。";
+  if (firstMissing.key === "user_voice") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条用户声音，先补真实采访。`;
+  if (firstMissing.key === "product_feedback") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条互测反馈，安排别组打开作品试用。`;
+  if (firstMissing.key === "iteration_plan") return "请小组把反馈分成必须改、建议改、暂不改，再定 V2 先改哪一处。";
+  if (firstMissing.key === "value_card") return "请小组补一张价值卡：帮谁少烦了什么，别人愿意用什么交换。";
+  if (firstMissing.key === "product_packaging") return "请小组补一张产品海报卡：产品名、标语、三个卖点、展示图。";
+  if (firstMissing.key === "story_pitch") return "请小组补一张故事发布五步卡：人物、麻烦、作品、证据、邀请。";
+  if (firstMissing.key === "product_link") return "先确认作品链接能打开，再准备上台展示。";
+  if (firstMissing.key === "final_showcase") return "请小组把最终展示卡补齐。";
+  if (firstMissing.key === "product_definition") return "先把产品一句话写清楚：帮谁、解决什么、怎么解决。";
+  if (firstMissing.key === "prompt_card") return "请小组补一张五句提示词卡：目标、用户、材料、限制、格式。";
+  if (firstMissing.key === "feature_scope") return "请小组补一张核心动作卡：功能清单、核心动作、第一版。";
+  if (firstMissing.key === "tech_route") return "请小组补一张路线流程卡：路线、工具、3 到 5 步流程。";
+  return "先补一张真实问题卡。";
+}
+
+function teacherProgressSnapshot() {
+  const teams = rows<Record<string, any>>(
+    "SELECT * FROM teams WHERE camp_id = ? ORDER BY group_no ASC, created_at ASC",
+    campId()
+  ).map(serializeTeam);
+  const students = rows<Record<string, any>>(
+    `SELECT s.*, t.name AS team_name
+       FROM students s
+       LEFT JOIN teams t ON t.id = s.team_id
+      WHERE s.camp_id = ?
+      ORDER BY COALESCE(s.student_no, s.created_at), s.created_at`,
+    campId()
+  ).map(serializeStudent);
+  const submissions = rows<Record<string, any>>(
+    `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
+       FROM task_submissions ts
+       LEFT JOIN students s ON s.id = ts.student_id
+       LEFT JOIN teams t ON t.id = ts.team_id
+      WHERE ts.camp_id = ?
+      ORDER BY ts.updated_at DESC, ts.created_at DESC`,
+    campId()
+  ).map(serializeTaskSubmission);
+  const allShowcaseItems = showcaseItems(true);
+
+  const summaries = teams.map((team) => {
+    const members = students.filter((student) => student.team_id === team.id || student.team_name === team.name);
+    const teamSubmissions = submissions.filter((item) => taskMatchesTeam(item, team));
+    const teamShowcaseItems = allShowcaseItems.filter((item) => showcaseMatchesTeam(item, team));
+    const milestoneStates = progressMilestones.map((milestone) => {
+      const count = milestoneCount(teamSubmissions, milestone, teamShowcaseItems);
+      return {
+        ...milestone,
+        count,
+        done: count >= milestone.target,
+        partial: count > 0 && count < milestone.target
+      };
+    });
+    const done = milestoneStates.filter((milestone) => milestone.done);
+    const blockers = teamSubmissions
+      .filter((item) => item.task_type === "blocker_note")
+      .sort((a, b) => taskUpdatedAt(b).localeCompare(taskUpdatedAt(a)));
+    const activeBlockers = blockers.filter((item) => item.status !== "ON_WALL");
+    const latest = latestTask(teamSubmissions.filter((item) => item.task_type !== "blocker_note"));
+    const userVoiceCount = milestoneStates.find((item) => item.key === "user_voice")?.count ?? 0;
+    const feedbackCount = milestoneStates.find((item) => item.key === "product_feedback")?.count ?? 0;
+    const readyForDemo =
+      done.some((item) => item.key === "product_link") || done.some((item) => item.key === "final_showcase");
+    const allDone = milestoneStates.every((item) => item.done);
+    const needsSupport = Boolean(activeBlockers.length || milestoneStates.some((item) => !item.done));
+    return {
+      team,
+      members,
+      submissions: teamSubmissions,
+      milestone_states: milestoneStates,
+      done_count: done.length,
+      completion_total: progressMilestones.length,
+      blockers,
+      active_blockers: activeBlockers,
+      latest_submission: latest,
+      user_voice_count: userVoiceCount,
+      feedback_count: feedbackCount,
+      ready_for_demo: readyForDemo,
+      all_done: allDone,
+      needs_support: needsSupport,
+      next_action: nextSupportAction(milestoneStates, activeBlockers, team)
+    };
+  });
+
+  const totals = {
+    team_count: summaries.length,
+    active_blockers: summaries.reduce((total, item) => total + item.active_blockers.length, 0),
+    ready_teams: summaries.filter((item) => item.ready_for_demo).length,
+    with_scout: summaries.filter((item) => item.milestone_states.some((milestone) => milestone.key === "market_scout" && milestone.done)).length,
+    with_product: summaries.filter((item) => item.milestone_states.some((milestone) => milestone.key === "product_definition" && milestone.done)).length,
+    with_prompt: summaries.filter((item) => item.milestone_states.some((milestone) => milestone.key === "prompt_card" && milestone.done)).length,
+    with_feature_scope: summaries.filter((item) => item.milestone_states.some((milestone) => milestone.key === "feature_scope" && milestone.done)).length,
+    with_tech_route: summaries.filter((item) => item.milestone_states.some((milestone) => milestone.key === "tech_route" && milestone.done)).length,
+    with_iteration: summaries.filter((item) => item.milestone_states.some((milestone) => milestone.key === "iteration_plan" && milestone.done)).length,
+    with_value_card: summaries.filter((item) => item.milestone_states.some((milestone) => milestone.key === "value_card" && milestone.done)).length,
+    with_packaging: summaries.filter((item) => item.milestone_states.some((milestone) => milestone.key === "product_packaging" && milestone.done)).length,
+    with_story_pitch: summaries.filter((item) => item.milestone_states.some((milestone) => milestone.key === "story_pitch" && milestone.done)).length,
+    interview_ready: summaries.filter((item) => item.user_voice_count >= 3).length,
+    feedback_ready: summaries.filter((item) => item.feedback_count >= 2).length,
+    needs_support: summaries.filter((item) => item.needs_support).length
+  };
+
+  return {
+    updated_at: nowSql(),
+    teams: summaries,
+    totals
   };
 }
 
@@ -2414,6 +2602,11 @@ app.get("/submissions", async (request, reply) => {
         payload: jsonParse(submission.payload, {})
       }))
   };
+});
+
+app.get("/teacher/progress", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  return teacherProgressSnapshot();
 });
 
 app.get("/problem-votes/manage", async (request, reply) => {

@@ -13,6 +13,7 @@ import type {
   StudentAccount,
   StudentWorkspace,
   TaskSubmission,
+  TeacherProgressSnapshot,
   TeacherAccount,
   Team,
   UploadTarget,
@@ -317,6 +318,7 @@ export const api = {
     }>("/submissions", {
       headers: headers(true)
     }),
+  teacherProgress: () => request<TeacherProgressSnapshot>("/teacher/progress", { headers: headers(true) }),
   submitTask: (payload: { task_type: string; title: string; payload: Record<string, unknown> }) =>
     request<{ submission: TaskSubmission }>("/task-submissions", {
       method: "POST",

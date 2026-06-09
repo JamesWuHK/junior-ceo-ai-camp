@@ -68,6 +68,7 @@ import type {
   StudentAccount,
   StudentWorkspace,
   TaskSubmission,
+  TeacherProgressSnapshot,
   Team,
   TeacherAccount,
   WallArtifact
@@ -2705,7 +2706,7 @@ function TeacherApp({
           )}
         </section>
         <TeacherTeamWorkspace students={students} refresh={refresh} />
-        <TeacherProgressBoard students={students} />
+        <TeacherProgressBoard />
         <section className="teacher-grid">
           <TeacherStudents students={students} refresh={refresh} />
           <FuturePhotoReview refresh={refresh} />
@@ -3515,17 +3516,33 @@ function nextSupportAction(
   return "先补一张真实问题卡。";
 }
 
-function TeacherProgressBoard({ students }: { students: Student[] }) {
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [submissions, setSubmissions] = useState<TaskSubmission[]>([]);
+const emptyProgressTotals: TeacherProgressSnapshot["totals"] = {
+  team_count: 0,
+  active_blockers: 0,
+  ready_teams: 0,
+  with_scout: 0,
+  with_product: 0,
+  with_prompt: 0,
+  with_feature_scope: 0,
+  with_tech_route: 0,
+  with_iteration: 0,
+  with_value_card: 0,
+  with_packaging: 0,
+  with_story_pitch: 0,
+  interview_ready: 0,
+  feedback_ready: 0,
+  needs_support: 0
+};
+
+function TeacherProgressBoard() {
+  const [snapshot, setSnapshot] = useState<TeacherProgressSnapshot | null>(null);
   const [message, setMessage] = useState("");
   const [workingId, setWorkingId] = useState("");
 
   const load = async () => {
     try {
-      const [teamResult, submissionResult] = await Promise.all([api.teams(), api.submissions()]);
-      setTeams(teamResult.teams);
-      setSubmissions(submissionResult.task_submissions);
+      const result = await api.teacherProgress();
+      setSnapshot(result);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "进度看板加载失败");
     }
@@ -3537,66 +3554,8 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
     return () => window.clearInterval(timer);
   }, []);
 
-  const teamSummaries = useMemo(() => {
-    return teams.map((team) => {
-      const teamMembers = students.filter((student) => student.team_id === team.id || student.team_name === team.name);
-      const teamSubmissions = submissions.filter((item) => submissionMatchesTeam(item, team));
-      const milestoneStates = progressMilestones.map((milestone) => {
-        const count = milestoneCount(teamSubmissions, milestone);
-        return {
-          ...milestone,
-          count,
-          done: count >= milestone.target,
-          partial: count > 0 && count < milestone.target
-        };
-      });
-      const done = milestoneStates.filter((milestone) => milestone.done);
-      const blockers = teamSubmissions
-        .filter((item) => item.task_type === "blocker_note")
-        .sort((a, b) => taskUpdatedAt(b).localeCompare(taskUpdatedAt(a)));
-      const activeBlockers = blockers.filter((item) => item.status !== "ON_WALL");
-      const latest = latestTask(teamSubmissions.filter((item) => item.task_type !== "blocker_note"));
-      const userVoiceCount = milestoneStates.find((item) => item.key === "user_voice")?.count ?? 0;
-      const feedbackCount = milestoneStates.find((item) => item.key === "product_feedback")?.count ?? 0;
-      const readyForDemo = done.some((item) => item.key === "product_link") || done.some((item) => item.key === "final_showcase");
-      const allDone = milestoneStates.every((item) => item.done);
-      const needsSupport = Boolean(activeBlockers.length || milestoneStates.some((item) => !item.done));
-      return {
-        team,
-        members: teamMembers,
-        submissions: teamSubmissions,
-        milestoneStates,
-        done,
-        blockers,
-        activeBlockers,
-        latest,
-        userVoiceCount,
-        feedbackCount,
-        readyForDemo,
-        allDone,
-        needsSupport,
-        nextAction: nextSupportAction(milestoneStates, activeBlockers, team)
-      };
-    });
-  }, [students, submissions, teams]);
-
-  const totals = useMemo(() => {
-    const activeBlockers = teamSummaries.reduce((total, item) => total + item.activeBlockers.length, 0);
-    const readyTeams = teamSummaries.filter((item) => item.readyForDemo).length;
-    const withScout = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "market_scout")).length;
-    const withProduct = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "product_definition")).length;
-    const withPrompt = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "prompt_card")).length;
-    const withFeatureScope = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "feature_scope")).length;
-    const withTechRoute = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "tech_route")).length;
-    const withIteration = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "iteration_plan")).length;
-    const withValueCard = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "value_card")).length;
-    const withPackaging = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "product_packaging")).length;
-    const withStoryPitch = teamSummaries.filter((item) => item.done.some((milestone) => milestone.key === "story_pitch")).length;
-    const interviewReady = teamSummaries.filter((item) => item.userVoiceCount >= 3).length;
-    const feedbackReady = teamSummaries.filter((item) => item.feedbackCount >= 2).length;
-    const needsSupport = teamSummaries.filter((item) => item.needsSupport).length;
-    return { activeBlockers, readyTeams, withScout, withProduct, withPrompt, withFeatureScope, withTechRoute, withIteration, withValueCard, withPackaging, withStoryPitch, interviewReady, feedbackReady, needsSupport };
-  }, [teamSummaries]);
+  const teamSummaries = snapshot?.teams ?? [];
+  const totals = snapshot?.totals ?? emptyProgressTotals;
 
   const toggleBlocker = async (item: TaskSubmission) => {
     setWorkingId(item.id);
@@ -3619,29 +3578,29 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
       </div>
       <div className="artifact-stats">
         <span>{teamSummaries.length} 个团队</span>
-        <span>{totals.withScout} 组已有侦察卡</span>
-        <span>{totals.interviewReady}/{teamSummaries.length} 组采访达标</span>
-        <span>{totals.withProduct} 组已有产品一句话</span>
-        <span>{totals.withPrompt} 组已有提示词卡</span>
-        <span>{totals.withFeatureScope} 组已有核心动作</span>
-        <span>{totals.withTechRoute} 组已有路线流程</span>
-        <span>{totals.readyTeams} 组已有作品入口</span>
-        <span>{totals.feedbackReady} 组收到互测反馈</span>
-        <span>{totals.withIteration} 组有迭代清单</span>
-        <span>{totals.withValueCard} 组有价值卡</span>
-        <span>{totals.withPackaging} 组有海报卡</span>
-        <span>{totals.withStoryPitch} 组有故事卡</span>
-        <span>{totals.needsSupport} 组需要跟进</span>
-        <span>{totals.activeBlockers} 个卡点待支援</span>
+        <span>{totals.with_scout} 组已有侦察卡</span>
+        <span>{totals.interview_ready}/{teamSummaries.length} 组采访达标</span>
+        <span>{totals.with_product} 组已有产品一句话</span>
+        <span>{totals.with_prompt} 组已有提示词卡</span>
+        <span>{totals.with_feature_scope} 组已有核心动作</span>
+        <span>{totals.with_tech_route} 组已有路线流程</span>
+        <span>{totals.ready_teams} 组已有作品入口</span>
+        <span>{totals.feedback_ready} 组收到互测反馈</span>
+        <span>{totals.with_iteration} 组有迭代清单</span>
+        <span>{totals.with_value_card} 组有价值卡</span>
+        <span>{totals.with_packaging} 组有海报卡</span>
+        <span>{totals.with_story_pitch} 组有故事卡</span>
+        <span>{totals.needs_support} 组需要跟进</span>
+        <span>{totals.active_blockers} 个卡点待支援</span>
       </div>
       {message && <p className="hint">{message}</p>}
       <div className="progress-board-grid">
         {teamSummaries.map((summary) => {
-          const completion = `${summary.done.length}/${progressMilestones.length}`;
-          const latestBlocker = summary.activeBlockers[0] || summary.blockers[0];
-          const cardClass = summary.activeBlockers.length
+          const completion = `${summary.done_count}/${summary.completion_total}`;
+          const latestBlocker = summary.active_blockers[0] || summary.blockers[0];
+          const cardClass = summary.active_blockers.length
             ? "progress-team-card needs-help"
-            : summary.allDone
+            : summary.all_done
               ? "progress-team-card ready"
               : "progress-team-card watching";
           return (
@@ -3655,19 +3614,19 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
                   <strong>{summary.team.name}</strong>
                   <small>{summary.members.length} 名学生 · 完成 {completion}</small>
                 </div>
-                <em>{summary.activeBlockers.length ? "需要支援" : summary.allDone ? "可彩排" : summary.readyForDemo ? "可演示" : "进行中"}</em>
+                <em>{summary.active_blockers.length ? "需要支援" : summary.all_done ? "可彩排" : summary.ready_for_demo ? "可演示" : "进行中"}</em>
               </header>
               <div className="progress-signal-grid">
                 <span>
-                  <b>{summary.userVoiceCount}/3</b>
+                  <b>{summary.user_voice_count}/3</b>
                   用户声音
                 </span>
                 <span>
-                  <b>{summary.feedbackCount}/2</b>
+                  <b>{summary.feedback_count}/2</b>
                   互测反馈
                 </span>
                 <span>
-                  <b>{summary.readyForDemo ? "有" : "缺"}</b>
+                  <b>{summary.ready_for_demo ? "有" : "缺"}</b>
                   作品入口
                 </span>
                 <span>
@@ -3676,7 +3635,7 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
                 </span>
               </div>
               <div className="progress-milestones">
-                {summary.milestoneStates.map((milestone) => {
+                {summary.milestone_states.map((milestone) => {
                   return (
                     <span key={milestone.key} className={milestone.done ? "done" : milestone.partial ? "partial" : ""}>
                       {milestone.done && <CheckCircle2 size={13} />}
@@ -3697,11 +3656,11 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
                 </p>
                 <p>
                   <b>最近进展</b>
-                  {summary.latest ? `${summary.latest.student_name || "学生"}提交了${summary.latest.title}` : "还没有提交记录"}
+                  {summary.latest_submission ? `${summary.latest_submission.student_name || "学生"}提交了${summary.latest_submission.title}` : "还没有提交记录"}
                 </p>
                 <p className="next-support-action">
                   <b>下一步支援</b>
-                  {summary.nextAction}
+                  {summary.next_action}
                 </p>
                 {latestBlocker ? (
                   <div className={latestBlocker.status === "ON_WALL" ? "blocker-note resolved" : "blocker-note"}>

@@ -183,6 +183,56 @@ export interface StudentWorkspace {
   received_feedback: TaskSubmission[];
 }
 
+export interface ProgressMilestoneState {
+  key: string;
+  label: string;
+  target: number;
+  unit: string;
+  count: number;
+  done: boolean;
+  partial: boolean;
+}
+
+export interface TeamProgressSummary {
+  team: Team;
+  members: Student[];
+  submissions: TaskSubmission[];
+  milestone_states: ProgressMilestoneState[];
+  done_count: number;
+  completion_total: number;
+  blockers: TaskSubmission[];
+  active_blockers: TaskSubmission[];
+  latest_submission: TaskSubmission | null;
+  user_voice_count: number;
+  feedback_count: number;
+  ready_for_demo: boolean;
+  all_done: boolean;
+  needs_support: boolean;
+  next_action: string;
+}
+
+export interface TeacherProgressSnapshot {
+  updated_at: string;
+  teams: TeamProgressSummary[];
+  totals: {
+    team_count: number;
+    active_blockers: number;
+    ready_teams: number;
+    with_scout: number;
+    with_product: number;
+    with_prompt: number;
+    with_feature_scope: number;
+    with_tech_route: number;
+    with_iteration: number;
+    with_value_card: number;
+    with_packaging: number;
+    with_story_pitch: number;
+    interview_ready: number;
+    feedback_ready: number;
+    needs_support: number;
+  };
+}
+
 export interface WallArtifact extends TaskSubmission {
   task_type: "problem_card" | "user_voice" | string;
 }
