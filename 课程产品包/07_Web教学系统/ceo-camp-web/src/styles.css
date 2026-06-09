@@ -4698,78 +4698,25 @@ button:disabled {
   font-weight: 800;
 }
 
-.contribution-editor {
-  display: grid;
-  gap: 12px;
-  border-top: 1px solid #e5eadf;
-  border-bottom: 1px solid #e5eadf;
-  padding: 14px 0;
-}
-
-.contribution-editor header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.contribution-editor header div {
-  display: grid;
-  gap: 2px;
-}
-
-.contribution-editor header span {
-  color: #1f6f50;
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.contribution-editor header strong {
-  color: #1f2a21;
-  font-size: 18px;
-}
-
-.contribution-editor header button {
-  border: 0;
-  border-radius: 6px;
-  background: #e9f5eb;
-  color: #1f6f50;
-  padding: 10px 12px;
-  font-weight: 900;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-
-.contribution-row {
-  display: grid;
-  grid-template-columns: minmax(110px, 0.7fr) minmax(260px, 1.5fr) minmax(130px, 0.7fr) 42px;
-  gap: 10px;
-  align-items: end;
-  border-top: 1px solid #edf1e7;
-  padding-top: 12px;
-}
-
-.contribution-row .contribution-main textarea {
-  min-height: 70px;
-}
-
-.contribution-remove {
-  width: 42px;
-  height: 42px;
+.final-showcase-autofill {
   border: 1px solid #e5eadf;
-  border-radius: 6px;
-  background: #fffdf6;
-  color: #6c7768;
+  border-radius: 8px;
+  background: #f7fbf2;
+  padding: 12px 14px;
   display: grid;
-  place-items: center;
-  cursor: pointer;
+  gap: 4px;
 }
 
-.contribution-remove:disabled {
-  opacity: 0.36;
-  cursor: not-allowed;
+.final-showcase-autofill span,
+.final-showcase-autofill small {
+  color: #657462;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.final-showcase-autofill strong {
+  color: #1f2a21;
+  font-size: 20px;
 }
 
 .student-upload-field {
@@ -6542,24 +6489,6 @@ button:disabled {
   .student-card {
     padding: 16px;
     gap: 12px;
-  }
-
-  .contribution-editor header {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .contribution-editor header button {
-    justify-content: center;
-  }
-
-  .contribution-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .contribution-remove {
-    width: 100%;
-    height: 40px;
   }
 
   .student-quick-nav {

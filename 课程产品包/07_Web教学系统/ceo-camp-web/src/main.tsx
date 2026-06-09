@@ -1836,35 +1836,6 @@ function contributionCardsFromPayload(payload: Record<string, unknown> | undefin
   }));
 }
 
-function contributionSummaryText(cards: PersonalContributionCard[]) {
-  return cards
-    .map((card) => {
-      const name = card.name.trim() || "一位成员";
-      const contribution = card.contribution.trim() || "完成了团队任务";
-      const tag = card.tag.trim();
-      return tag ? `${name}：${contribution}（${tag}）` : `${name}：${contribution}`;
-    })
-    .join("\n");
-}
-
-function blankContributionCard(index = 0): PersonalContributionCard {
-  return { name: "", contribution: "", tag: contributionTagAt(index) };
-}
-
-function cleanContributionDrafts(cards: PersonalContributionCard[]) {
-  return cards
-    .map((card, index) => ({
-      name: card.name.trim(),
-      contribution: card.contribution.trim(),
-      tag: card.tag.trim() || contributionTagAt(index)
-    }))
-    .filter((card) => card.name || card.contribution);
-}
-
-function contributionDraftsFromNames(names: string[]) {
-  return names.length ? names.map((name, index) => ({ name, contribution: "", tag: contributionTagAt(index) })) : [blankContributionCard()];
-}
-
 function contributionCards(finalItem: WallArtifact | null, awards: AwardResult[], reflections: WallArtifact[] = []) {
   const reflectionCards = reflections.map((reflection) => {
     const ability = asText(reflection.payload.ability_tag) || awards[0]?.award_type || "能力标签";
@@ -1989,6 +1960,7 @@ function PublicProjectDetail({
   const baseAccessUrl = asText(finalItem?.payload.access_url) || showcaseItem?.access_url || "";
   const baseScreenshot = asText(finalItem?.payload.screenshot_url) || showcaseItem?.screenshot_url || "";
   const baseRecording = asText(finalItem?.payload.recording_url) || showcaseItem?.recording_url || "";
+  const pitchDeckUrl = asText(finalItem?.payload.pitch_deck_url);
   const scoreSummary = scoreSummaries.find(matchesProject(projectId, finalItem, productName, teamId, teamName)) || null;
   const projectAwards = awardResults.filter((award) => awardMatchesProject(award, projectId, finalItem, productName, teamId));
   const allProjectJourneyItems = sortProjectJourney(
@@ -2053,6 +2025,12 @@ function PublicProjectDetail({
           <a className="project-open-link" href={normalizeShowcaseUrl(accessUrl)} target="_blank" rel="noreferrer">
             <ExternalLink size={18} />
             打开作品
+          </a>
+        )}
+        {pitchDeckUrl && (
+          <a className="project-open-link" href={normalizeShowcaseUrl(pitchDeckUrl)} target="_blank" rel="noreferrer">
+            <ExternalLink size={18} />
+            路演 PPT
           </a>
         )}
         <div className="project-share-bar">
@@ -5221,6 +5199,7 @@ function TeacherFinalShowcase() {
         {items.map((item, index) => {
           const productName = asText(item.payload.product_name) || "未命名作品";
           const accessUrl = asText(item.payload.access_url);
+          const pitchDeckUrl = asText(item.payload.pitch_deck_url);
           const contributionItems = contributionCardsFromPayload(item.payload);
           return (
             <article className={item.status === "ON_WALL" ? "d1-artifact-card on-wall" : "d1-artifact-card"} key={item.id}>
@@ -5269,6 +5248,12 @@ function TeacherFinalShowcase() {
                   <p>
                     <strong>链接：</strong>
                     <a href={normalizeShowcaseUrl(accessUrl)} target="_blank" rel="noreferrer">打开作品</a>
+                  </p>
+                )}
+                {pitchDeckUrl && (
+                  <p>
+                    <strong>路演 PPT：</strong>
+                    <a href={normalizeShowcaseUrl(pitchDeckUrl)} target="_blank" rel="noreferrer">打开 PPT</a>
                   </p>
                 )}
               </div>
@@ -10153,14 +10138,10 @@ function StudentFinalShowcaseTask({
 }) {
   const [productName, setProductName] = useState("");
   const [teamMembers, setTeamMembers] = useState("");
-  const [contributionDrafts, setContributionDrafts] = useState<PersonalContributionCard[]>([blankContributionCard()]);
   const [targetUser, setTargetUser] = useState("");
   const [coreProblem, setCoreProblem] = useState("");
   const [accessUrl, setAccessUrl] = useState("");
-  const [screenshotUrl, setScreenshotUrl] = useState("");
-  const [screenshotKey, setScreenshotKey] = useState("");
-  const [recordingUrl, setRecordingUrl] = useState("");
-  const [recordingKey, setRecordingKey] = useState("");
+  const [pitchDeckUrl, setPitchDeckUrl] = useState("");
   const [valueLine, setValueLine] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
@@ -10182,15 +10163,8 @@ function StudentFinalShowcaseTask({
         const latestProblem = latestTeamSubmission(workspace, "problem_card");
         const memberNames = workspace.team_members.map((member) => member.nickname).filter(Boolean);
         const memberText = memberNames.join("、") || asText(latestFinal?.payload.team_members).trim();
-        const savedContributions = contributionCardsFromPayload(latestFinal?.payload);
 
         setTeamMembers((current) => current.trim() || memberText);
-        setContributionDrafts((current) => {
-          if (cleanContributionDrafts(current).length) return current;
-          if (savedContributions.length) return savedContributions;
-          if (memberNames.length) return contributionDraftsFromNames(memberNames);
-          return current;
-        });
         setProductName((current) =>
           current.trim() ||
           asText(latestFinal?.payload.product_name).trim() ||
@@ -10217,27 +10191,10 @@ function StudentFinalShowcaseTask({
           asText(latestLink?.payload.access_url).trim() ||
           asText(latestPackaging?.payload.access_url).trim()
         );
-        setScreenshotKey((current) =>
-          current ||
-          asText(latestFinal?.payload.screenshot_key).trim() ||
-          asText(latestLink?.payload.screenshot_key).trim() ||
-          asText(latestPackaging?.payload.poster_key).trim()
-        );
-        setScreenshotUrl((current) =>
+        setPitchDeckUrl((current) =>
           current.trim() ||
-          asText(latestFinal?.payload.screenshot_url).trim() ||
-          asText(latestLink?.payload.screenshot_url).trim() ||
-          asText(latestPackaging?.payload.poster_url).trim()
-        );
-        setRecordingKey((current) =>
-          current ||
-          asText(latestFinal?.payload.recording_key).trim() ||
-          asText(latestLink?.payload.recording_key).trim()
-        );
-        setRecordingUrl((current) =>
-          current.trim() ||
-          asText(latestFinal?.payload.recording_url).trim() ||
-          asText(latestLink?.payload.recording_url).trim()
+          asText(latestFinal?.payload.pitch_deck_url).trim() ||
+          asText(latestStory?.payload.pitch_deck_url).trim()
         );
         setValueLine((current) =>
           current.trim() ||
@@ -10254,54 +10211,17 @@ function StudentFinalShowcaseTask({
     };
   }, []);
 
-  const updateContributionDraft = (index: number, field: keyof PersonalContributionCard, value: string) => {
-    setContributionDrafts((current) =>
-      current.map((card, cardIndex) => cardIndex === index ? { ...card, [field]: value } : card)
-    );
-  };
-
-  const addContributionDraft = () => {
-    setContributionDrafts((current) => [...current, blankContributionCard(current.length)]);
-  };
-
-  const removeContributionDraft = (index: number) => {
-    setContributionDrafts((current) => {
-      const next = current.filter((_, cardIndex) => cardIndex !== index);
-      return next.length ? next : [blankContributionCard()];
-    });
-  };
-
   const submit = async () => {
-    const contributionCards = cleanContributionDrafts(contributionDrafts);
-    const teamMembersText = teamMembers.trim() || contributionCards.map((card) => card.name).filter(Boolean).join("、");
-    if (!productName.trim()) {
-      showMessage("error", "先写产品名称。");
-      return;
-    }
-    if (!teamMembersText) {
-      showMessage("error", "写上团队成员。");
-      return;
-    }
-    if (!contributionCards.some((card) => card.contribution)) {
-      showMessage("error", "至少写一位成员做了什么。");
-      return;
-    }
-    if (!targetUser.trim()) {
-      showMessage("error", "写清楚这个产品帮谁。");
-      return;
-    }
-    if (!coreProblem.trim()) {
-      showMessage("error", "写清楚它解决什么问题。");
-      return;
-    }
     if (!accessUrl.trim()) {
       showMessage("error", "贴上能打开的作品链接。");
       return;
     }
-    if (!valueLine.trim()) {
-      showMessage("error", "写一句话价值。");
+    if (!pitchDeckUrl.trim()) {
+      showMessage("error", "贴上路演 PPT 链接。");
       return;
     }
+    const fallbackProductName = productName.trim() || student.team_name || `${student.nickname}的团队作品`;
+    const fallbackTeamMembers = teamMembers.trim() || student.nickname;
     setSubmitting(true);
     setMessage(null);
     try {
@@ -10309,17 +10229,12 @@ function StudentFinalShowcaseTask({
         task_type: "final_showcase",
         title: taskTitle,
         payload: {
-          product_name: productName.trim(),
-          team_members: teamMembersText,
-          personal_contribution_cards: contributionCards,
-          personal_contributions: contributionSummaryText(contributionCards),
+          product_name: fallbackProductName,
+          team_members: fallbackTeamMembers,
           target_user: targetUser.trim(),
           core_problem: coreProblem.trim(),
           access_url: normalizeShowcaseUrl(accessUrl),
-          screenshot_key: screenshotKey,
-          screenshot_url: screenshotUrl.trim() ? normalizeShowcaseUrl(screenshotUrl) : "",
-          recording_key: recordingKey,
-          recording_url: recordingUrl.trim() ? normalizeShowcaseUrl(recordingUrl) : "",
+          pitch_deck_url: normalizeShowcaseUrl(pitchDeckUrl),
           value_line: valueLine.trim(),
           team_id: student.team_id || "",
           team_name: student.team_name || ""
@@ -10328,14 +10243,10 @@ function StudentFinalShowcaseTask({
       showMessage("success", "收到啦。这张展示卡可以上台使用。");
       setProductName("");
       setTeamMembers("");
-      setContributionDrafts([blankContributionCard()]);
       setTargetUser("");
       setCoreProblem("");
       setAccessUrl("");
-      setScreenshotUrl("");
-      setScreenshotKey("");
-      setRecordingUrl("");
-      setRecordingKey("");
+      setPitchDeckUrl("");
       setValueLine("");
       await refresh();
     } catch (err) {
@@ -10350,7 +10261,7 @@ function StudentFinalShowcaseTask({
       <section className="student-shell">
         <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
         <h1>{taskTitle || "提交最终展示卡"}</h1>
-        <p>把你们准备上台展示的作品，整理成一张清楚的卡片。</p>
+        <p>把能打开的作品和路演 PPT 交上来，就可以准备上台。</p>
         <div className="student-card final-showcase-card">
           <div className="student-current">
             <div>
@@ -10360,93 +10271,11 @@ function StudentFinalShowcaseTask({
             </div>
             <button className="text-button" onClick={onLogout}>退出</button>
           </div>
-          <label>
-            产品名称
-            <input
-              value={productName}
-              onChange={(event) => setProductName(event.target.value)}
-              placeholder="例如：午餐选择器"
-              inputMode="text"
-            />
-          </label>
-          <label>
-            团队成员
-            <input
-              value={teamMembers}
-              onChange={(event) => setTeamMembers(event.target.value)}
-              placeholder="例如：小宇、小安、小林"
-              inputMode="text"
-            />
-          </label>
-          <div className="contribution-editor">
-            <header>
-              <div>
-                <span>个人贡献</span>
-                <strong>谁让作品前进一步？</strong>
-              </div>
-              <button type="button" onClick={addContributionDraft}>
-                <UsersRound size={16} />
-                加一位
-              </button>
-            </header>
-            {contributionDrafts.map((card, index) => (
-              <div className="contribution-row" key={index}>
-                <label>
-                  名字
-                  <input
-                    value={card.name}
-                    onChange={(event) => updateContributionDraft(index, "name", event.target.value)}
-                    placeholder="小宇"
-                    inputMode="text"
-                  />
-                </label>
-                <label className="contribution-main">
-                  做了什么
-                  <textarea
-                    value={card.contribution}
-                    onChange={(event) => updateContributionDraft(index, "contribution", event.target.value)}
-                    placeholder="例如：采访同学，整理出大家最常遇到的问题"
-                    rows={2}
-                  />
-                </label>
-                <label>
-                  能力标签
-                  <select value={card.tag} onChange={(event) => updateContributionDraft(index, "tag", event.target.value)}>
-                    {contributionAbilityTags.map((tag) => (
-                      <option value={tag} key={tag}>{tag}</option>
-                    ))}
-                  </select>
-                </label>
-                <button
-                  type="button"
-                  className="contribution-remove"
-                  disabled={contributionDrafts.length === 1}
-                  aria-label={`移除${card.name || "这一位"}`}
-                  onClick={() => removeContributionDraft(index)}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ))}
+          <div className="final-showcase-autofill">
+            <span>会自动带上</span>
+            <strong>{productName || student.team_name || "团队作品"}</strong>
+            <small>{teamMembers || "团队成员会从分组里带出"}</small>
           </div>
-          <label>
-            目标用户
-            <input
-              value={targetUser}
-              onChange={(event) => setTargetUser(event.target.value)}
-              placeholder="例如：每天在食堂纠结的同学"
-              inputMode="text"
-            />
-          </label>
-          <label>
-            解决的问题
-            <textarea
-              value={coreProblem}
-              onChange={(event) => setCoreProblem(event.target.value)}
-              placeholder="例如：选择太多，不知道今天吃什么"
-              rows={3}
-            />
-          </label>
           <label>
             作品链接
             <input
@@ -10456,36 +10285,20 @@ function StudentFinalShowcaseTask({
               inputMode="url"
             />
           </label>
-          <StudentImageUploadField
-            label="上传展示图（可选）"
-            value={screenshotUrl}
-            objectKey={screenshotKey}
-            assetType="final-showcase-screenshot"
-            onChange={setScreenshotUrl}
-            onObjectKeyChange={setScreenshotKey}
-          />
-          <StudentVideoUploadField
-            label="上传演示视频（可选）"
-            value={recordingUrl}
-            objectKey={recordingKey}
-            assetType="final-showcase-recording"
-            onChange={setRecordingUrl}
-            onObjectKeyChange={setRecordingKey}
-          />
           <label>
-            一句话价值
-            <textarea
-              value={valueLine}
-              onChange={(event) => setValueLine(event.target.value)}
-              placeholder="例如：它能让同学 10 秒选出今天最适合的午餐"
-              rows={3}
+            路演 PPT
+            <input
+              value={pitchDeckUrl}
+              onChange={(event) => setPitchDeckUrl(event.target.value)}
+              placeholder="https://..."
+              inputMode="url"
             />
           </label>
           <button className="submit-button" disabled={submitting} onClick={submit}>
             {submitting ? <Loader2 className="spin" size={18} /> : <Trophy size={18} />}
             提交
           </button>
-          <p className="hint">展示卡会帮助观众快速看懂：你们做了什么，它为什么有用。</p>
+          <p className="hint">其他内容会从你们前面完成的卡片里带出。</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
