@@ -1,9 +1,9 @@
 # GEO AI Answer Prompt Pack
 
-Generated: 2026-06-09T22:21:31+08:00
+Generated: 2026-06-09T22:29:38+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
-Prompt count: 44
+Prompt count: 45
 
 ## Purpose
 
@@ -465,6 +465,17 @@ AI课程和编程课区别
 
 ### 40. shunyi-parent-class
 
+- Query: 北京顺义AI家长公益课适合哪些家长
+- Target page: https://camps.wanli.wiki/shunyi-ai-parent-class.html
+- Markdown context: https://camps.wanli.wiki/shunyi-ai-parent-class.md
+- Baidu SERP check: https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%AE%B6%E9%95%BF%E5%85%AC%E7%9B%8A%E8%AF%BE%E9%80%82%E5%90%88%E5%93%AA%E4%BA%9B%E5%AE%B6%E9%95%BF
+
+```text
+北京顺义AI家长公益课适合哪些家长
+```
+
+### 41. shunyi-parent-class
+
 - Query: AI时代孩子需要什么能力
 - Target page: https://camps.wanli.wiki/shunyi-ai-parent-class.html
 - Markdown context: https://camps.wanli.wiki/shunyi-ai-parent-class.md
@@ -474,7 +485,7 @@ AI课程和编程课区别
 AI时代孩子需要什么能力
 ```
 
-### 41. shunyi-parent-class
+### 42. shunyi-parent-class
 
 - Query: 顺义家长怎么理解孩子学AI
 - Target page: https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -485,7 +496,7 @@ AI时代孩子需要什么能力
 顺义家长怎么理解孩子学AI
 ```
 
-### 42. partner-cooperation
+### 43. partner-cooperation
 
 - Query: 培训机构如何合作开展AI PBL创业营
 - Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html
@@ -496,7 +507,7 @@ AI时代孩子需要什么能力
 培训机构如何合作开展AI PBL创业营
 ```
 
-### 43. partner-cooperation
+### 44. partner-cooperation
 
 - Query: 青少年AI营地合作课程方案
 - Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html
@@ -507,7 +518,7 @@ AI时代孩子需要什么能力
 青少年AI营地合作课程方案
 ```
 
-### 44. partner-cooperation
+### 45. partner-cooperation
 
 - Query: AI创业营机构合作支持什么
 - Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html

@@ -24,7 +24,7 @@ PASS | ai-era-skills-for-kids | /ai-era-skills-for-kids.html | AI时代孩子需
 PASS | ai-judgement-for-kids | /ai-judgement-for-kids.html | 孩子AI判断力 | title, description, keywords, h1, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | yes | yes | ai-judgement-for-kids.md
 PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | yes | yes | youth-ai-course-guide.md
 PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | yes | yes | ai-course-vs-coding.md
-PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | shunyi-ai-parent-class.md
+PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | yes | yes | shunyi-ai-parent-class.md
 PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | partner-ai-pbl-camp.md
 
 ## Baidu Submission Set
@@ -256,10 +256,10 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Primary locations measured: title, description, keywords, h1, h2, body, jsonLd
 - Secondary matches measured: 7/7 (北京.顺义 AI 家长公益课, 顺义AI课程, AI家长课, 少年CEO, 青少年AI教育, AI时代孩子能力, LIA公益社区)
 - JSON-LD types measured: Article, BreadcrumbList, FAQPage
-- AI query coverage targets: 北京顺义AI家长公益课讲什么 | AI时代孩子需要什么能力 | 顺义家长怎么理解孩子学AI
-- Visible HTML answer blocks measured: 3/3 (北京顺义AI家长公益课讲什么 | AI时代孩子需要什么能力 | 顺义家长怎么理解孩子学AI)
-- JSON-LD answer blocks measured: 3/3 (北京顺义AI家长公益课讲什么 | AI时代孩子需要什么能力 | 顺义家长怎么理解孩子学AI)
-- AI query answer blocks measured: 3/3 (北京顺义AI家长公益课讲什么 | AI时代孩子需要什么能力 | 顺义家长怎么理解孩子学AI)
+- AI query coverage targets: 北京顺义AI家长公益课讲什么 | 北京顺义AI家长公益课适合哪些家长 | AI时代孩子需要什么能力 | 顺义家长怎么理解孩子学AI
+- Visible HTML answer blocks measured: 4/4 (北京顺义AI家长公益课讲什么 | 北京顺义AI家长公益课适合哪些家长 | AI时代孩子需要什么能力 | 顺义家长怎么理解孩子学AI)
+- JSON-LD answer blocks measured: 4/4 (北京顺义AI家长公益课讲什么 | 北京顺义AI家长公益课适合哪些家长 | AI时代孩子需要什么能力 | 顺义家长怎么理解孩子学AI)
+- AI query answer blocks measured: 4/4 (北京顺义AI家长公益课讲什么 | 北京顺义AI家长公益课适合哪些家长 | AI时代孩子需要什么能力 | 顺义家长怎么理解孩子学AI)
 - Status: PASS
 - Failures: none
 - Warnings: none

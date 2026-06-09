@@ -1,6 +1,6 @@
 # Baidu Ranking / GEO Tracking Plan
 
-Generated: 2026-06-09T22:21:27+08:00
+Generated: 2026-06-09T22:29:35+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
 
@@ -230,6 +230,7 @@ ai-course-vs-coding | AI课程和编程课区别 | https://camps.wanli.wiki/ai-c
 ai-course-vs-coding | 孩子该学AI还是编程 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://camps.wanli.wiki/ai-course-vs-coding.md | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E8%AF%A5%E5%AD%A6AI%E8%BF%98%E6%98%AF%E7%BC%96%E7%A8%8B | N/A
 ai-course-vs-coding | 不会编程能学AI课程吗 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://camps.wanli.wiki/ai-course-vs-coding.md | https://www.baidu.com/s?wd=%E4%B8%8D%E4%BC%9A%E7%BC%96%E7%A8%8B%E8%83%BD%E5%AD%A6AI%E8%AF%BE%E7%A8%8B%E5%90%97 | N/A
 shunyi-parent-class | 北京顺义AI家长公益课讲什么 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://camps.wanli.wiki/shunyi-ai-parent-class.md | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%AE%B6%E9%95%BF%E5%85%AC%E7%9B%8A%E8%AF%BE%E8%AE%B2%E4%BB%80%E4%B9%88 | N/A
+shunyi-parent-class | 北京顺义AI家长公益课适合哪些家长 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://camps.wanli.wiki/shunyi-ai-parent-class.md | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%AE%B6%E9%95%BF%E5%85%AC%E7%9B%8A%E8%AF%BE%E9%80%82%E5%90%88%E5%93%AA%E4%BA%9B%E5%AE%B6%E9%95%BF | N/A
 shunyi-parent-class | AI时代孩子需要什么能力 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://camps.wanli.wiki/shunyi-ai-parent-class.md | https://www.baidu.com/s?wd=AI%E6%97%B6%E4%BB%A3%E5%AD%A9%E5%AD%90%E9%9C%80%E8%A6%81%E4%BB%80%E4%B9%88%E8%83%BD%E5%8A%9B | N/A
 shunyi-parent-class | 顺义家长怎么理解孩子学AI | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://camps.wanli.wiki/shunyi-ai-parent-class.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89%E5%AE%B6%E9%95%BF%E6%80%8E%E4%B9%88%E7%90%86%E8%A7%A3%E5%AD%A9%E5%AD%90%E5%AD%A6AI | N/A
 partner-cooperation | 培训机构如何合作开展AI PBL创业营 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://camps.wanli.wiki/partner-ai-pbl-camp.md | https://www.baidu.com/s?wd=%E5%9F%B9%E8%AE%AD%E6%9C%BA%E6%9E%84%E5%A6%82%E4%BD%95%E5%90%88%E4%BD%9C%E5%BC%80%E5%B1%95AI+PBL%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A

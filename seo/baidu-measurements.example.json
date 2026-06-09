@@ -2650,6 +2650,18 @@
     },
     {
       "cluster": "shunyi-parent-class",
+      "query": "北京顺义AI家长公益课适合哪些家长",
+      "targetPage": "https://camps.wanli.wiki/shunyi-ai-parent-class.html",
+      "markdownUrl": "https://camps.wanli.wiki/shunyi-ai-parent-class.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "shunyi-parent-class",
       "query": "AI时代孩子需要什么能力",
       "targetPage": "https://camps.wanli.wiki/shunyi-ai-parent-class.html",
       "markdownUrl": "https://camps.wanli.wiki/shunyi-ai-parent-class.md",
