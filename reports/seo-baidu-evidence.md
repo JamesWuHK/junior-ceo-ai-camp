@@ -1,6 +1,6 @@
 # Baidu Measured Evidence Report
 
-Generated: 2026-06-09T22:46:53+08:00
+Generated: 2026-06-09T23:16:50+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_MEASURED_DATA
 
@@ -17,7 +17,7 @@ Overall status: NEEDS_MEASURED_DATA
 - URL metric evidence: 0/14 measured, 14 missing evidence.
 - Primary keyword rank evidence: 0/13 ranked, 0 measured no rank, 13 missing evidence.
 - Tracked keyword rank evidence: 0/137 ranked, 0 measured no rank, 137 missing evidence.
-- GEO answer evidence: 0/47 pass, 0 needs repair, 47 missing evidence.
+- GEO answer evidence: 0/48 pass, 0 needs repair, 48 missing evidence.
 
 ## How To Use This File
 
@@ -239,6 +239,7 @@ MISSING_EVIDENCE | ai-pbl-camp | AI PBL创业营3天学什么 | https://camps.wa
 MISSING_EVIDENCE | ai-pbl-camp | 孩子不懂编程能参加AI创业营吗 | https://camps.wanli.wiki/ai-pbl-camp.html | https://camps.wanli.wiki/ai-pbl-camp.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-pbl-camp | 青少年AI产品原型课程怎么上 | https://camps.wanli.wiki/ai-pbl-camp.html | https://camps.wanli.wiki/ai-pbl-camp.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-product-prototype-course | AI产品原型课程是什么 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://camps.wanli.wiki/ai-product-prototype-course.md | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-product-prototype-course | AI产品原型课程能做出什么作品 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://camps.wanli.wiki/ai-product-prototype-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-product-prototype-course | 孩子做AI产品需要会编程吗 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://camps.wanli.wiki/ai-product-prototype-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-product-prototype-course | AI产品原型课程和AI工具课有什么不同 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://camps.wanli.wiki/ai-product-prototype-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-ai-course | 北京顺义AI课程怎么选 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | N/A | N/A | N/A | N/A | N/A | -

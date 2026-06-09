@@ -2278,6 +2278,18 @@
     },
     {
       "cluster": "ai-product-prototype-course",
+      "query": "AI产品原型课程能做出什么作品",
+      "targetPage": "https://camps.wanli.wiki/ai-product-prototype-course.html",
+      "markdownUrl": "https://camps.wanli.wiki/ai-product-prototype-course.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "ai-product-prototype-course",
       "query": "孩子做AI产品需要会编程吗",
       "targetPage": "https://camps.wanli.wiki/ai-product-prototype-course.html",
       "markdownUrl": "https://camps.wanli.wiki/ai-product-prototype-course.md",
