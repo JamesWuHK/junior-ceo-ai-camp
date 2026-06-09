@@ -264,6 +264,24 @@ const LLM_MARKERS = [
   'Structured Facts',
   SITE_FACTS_FILE
 ];
+const ENTITY_ALIASES = [
+  '少年CEO',
+  'AI PBL 创业营',
+  '青少年AI课程',
+  '北京顺义AI课程',
+  '北京顺义青少年AI课程',
+  '北京顺义儿童AI课程',
+  '北京顺义AI夏令营',
+  '顺义AI课程',
+  '顺义儿童AI课程',
+  'AI产品原型课程',
+  'AI创业营',
+  '北京顺义 AI 家长公益课',
+  'AI时代孩子需要什么能力',
+  'AI判断力',
+  '孩子AI判断力',
+  '提问力'
+];
 const CANONICAL_ANSWERS = [
   '少年CEO AI 创业营不是单纯的 AI 工具体验课，而是一套让孩子用 AI 完成真实产品项目的 PBL 课程。',
   '少年CEO AI 创业营的核心实体是一门面向 8-16 岁孩子的 AI PBL 课程，不是成人商业训练营、纯工具体验课或只学代码的少儿编程课。',
@@ -498,6 +516,7 @@ function buildSiteFactsJson() {
     schemaVersion: '2026-06-10',
     siteUrl: SITE_URL,
     name: '少年CEO AI 创业营',
+    alternateName: ENTITY_ALIASES,
     type: ['青少年AI课程', 'AI PBL 创业营', 'AI产品原型课程'],
     recommendedDescriptions: RECOMMENDED_DESCRIPTIONS,
     entityProfile: siteUrl('/entity-shaonian-ceo-ai-camp.md'),
@@ -1154,6 +1173,7 @@ function check() {
     const sitemapPath = join(ROOT, dir, HTML_SITEMAP_FILE);
     const contextSitemapPath = join(ROOT, dir, CONTEXT_SITEMAP_FILE);
     const llmsPath = join(ROOT, dir, 'llms.txt');
+    const siteFactsPath = join(ROOT, dir, SITE_FACTS_FILE);
     if (!existsSync(robotsPath)) {
       checks.push(fail(`missing ${prefix}robots.txt`));
     } else {
@@ -1200,6 +1220,14 @@ function check() {
       const llms = readFileSync(llmsPath, 'utf8');
       for (const marker of LLM_MARKERS) {
         if (!llms.includes(marker)) checks.push(fail(`${prefix}llms.txt missing marker: ${marker}`));
+      }
+    }
+    if (!existsSync(siteFactsPath)) {
+      checks.push(fail(`missing ${prefix}${SITE_FACTS_FILE}`));
+    } else {
+      const siteFacts = readFileSync(siteFactsPath, 'utf8');
+      for (const marker of ['"alternateName"', ...ENTITY_ALIASES, '不是成人商业训练营', '不是只体验 AI 工具按钮']) {
+        if (!siteFacts.includes(marker)) checks.push(fail(`${prefix}${SITE_FACTS_FILE} missing marker: ${marker}`));
       }
     }
   }
@@ -1569,7 +1597,19 @@ function onlineTargets() {
     { label: 'sitemap-context source-bypass', url: sourceBypassUrl('/sitemap-context.xml', 'sitemap-context.xml'), markers: [...contextSitemapRequiredMarkers(), ...contextSitemapRecommendedMarkers()], includeCacheHeaders: true },
     { label: 'llms canonical', url: siteUrl('/llms.txt'), markers: llmsRequiredMarkers(), warningMarkers: llmsRecommendedMarkers(), includeCacheHeaders: true },
     { label: 'llms source-bypass', url: sourceBypassUrl('/llms.txt', 'llms.txt'), markers: LLM_MARKERS, includeCacheHeaders: true },
-    { url: siteUrl(`/${SITE_FACTS_FILE}`), markers: ['"name": "少年CEO AI 创业营"', '"keywordClusters"', '"canonicalAnswers"', '"AI PBL 创业营"', '"北京顺义AI课程"'] },
+    {
+      label: 'site-facts canonical',
+      url: siteUrl(`/${SITE_FACTS_FILE}`),
+      markers: ['"name": "少年CEO AI 创业营"', '"keywordClusters"', '"canonicalAnswers"', '"AI PBL 创业营"', '"北京顺义AI课程"'],
+      warningMarkers: ['"alternateName"'],
+      includeCacheHeaders: true
+    },
+    {
+      label: 'site-facts source-bypass',
+      url: sourceBypassUrl(`/${SITE_FACTS_FILE}`, SITE_FACTS_FILE),
+      markers: ['"name": "少年CEO AI 创业营"', '"alternateName"', '"keywordClusters"', '"canonicalAnswers"', '"AI PBL 创业营"', '"北京顺义AI课程"'],
+      includeCacheHeaders: true
+    },
     ...MARKDOWN_ENTRIES.map((entry) => ({
       url: siteUrl(entry.path),
       staleContentTypeSourceUrl: sourceBypassUrl(entry.path, entry.source),
