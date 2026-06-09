@@ -16,6 +16,7 @@ const CONTEXT_SITEMAP_FILE = 'sitemap-context.xml';
 const COVERAGE_REPORT_FILE = 'reports/seo-baidu-geo-coverage.md';
 const MONITOR_REPORT_FILE = 'reports/seo-baidu-monitor.md';
 const RANK_PLAN_REPORT_FILE = 'reports/seo-baidu-rank-plan.md';
+const GEO_PROMPT_REPORT_FILE = 'reports/seo-geo-answer-prompts.md';
 const BAIDU_EVIDENCE_REPORT_FILE = 'reports/seo-baidu-evidence.md';
 const BAIDU_SUBMISSION_REPORT_FILE = 'reports/seo-baidu-submission.md';
 const BAIDU_MANUAL_SUBMIT_FILE = 'reports/seo-baidu-submit-urls.txt';
@@ -2138,6 +2139,7 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     '- Record measured Baidu platform data weekly: indexed URLs, crawl frequency, search impressions, clicks, and keyword positions for each cluster.',
     '- Use `npm run seo:rank-plan` to generate the Baidu keyword and GEO query tracking sheet before weekly checks.',
     `- Use \`npm run seo:measurements:checklist\` when a CSV checklist is easier to fill or share; it writes ${MEASUREMENT_CHECKLIST_CSV_FILE}.`,
+    `- Use \`npm run seo:geo:prompts\` to generate ${GEO_PROMPT_REPORT_FILE} for manual AI answer citation checks.`,
     '- For GEO, run this monitor after each content change and keep every target query backed by a visible HTML answer, FAQ/schema match, Markdown context, and `llms.txt` link.',
     ''
   ].join('\n');
@@ -2440,6 +2442,81 @@ function buildRankPlanReport({ generatedAt, config, urls }) {
     '- When a GEO query misses the project, strengthen the visible answer block, FAQ schema, Markdown context, and `llms.txt` canonical answer for that query.',
     ''
   ].join('\n');
+}
+
+function buildGeoPromptReport({ generatedAt, config }) {
+  const rows = geoQueryRows(config);
+  return [
+    '# GEO AI Answer Prompt Pack',
+    '',
+    `Generated: ${generatedAt}`,
+    `Site URL: ${SITE_URL}`,
+    `Keyword map: ${KEYWORD_CONFIG_FILE}`,
+    `Prompt count: ${rows.length}`,
+    '',
+    '## Purpose',
+    '',
+    '- This pack turns every target GEO query into a repeatable manual AI-answer check.',
+    '- It is designed for ChatGPT, Perplexity, Gemini, Claude, Kimi, Doubao, Wenxin, Baidu AI Search, and any other answer engine used in weekly monitoring.',
+    '- A positive answer is useful only as GEO evidence after the checker records the engine, date, query, whether the project is mentioned, whether the target page or Markdown context is used, and whether the positioning is accurate.',
+    '- Do not treat a single AI answer as Baidu ranking evidence. Baidu indexation and ranking still require Baidu Search Resource Platform data, a compliant rank monitor, or reproducible manual SERP checks.',
+    '',
+    '## Recording Fields',
+    '',
+    'Engine | Date | Query | Mentions 少年CEO | Uses target page | Uses Markdown context | Positioning accurate | Evidence excerpt | Notes',
+    '--- | --- | --- | --- | --- | --- | --- | --- | ---',
+    'ENGINE | YYYY-MM-DD | QUERY | yes/no | yes/no | yes/no | yes/no | short excerpt or screenshot reference | -',
+    '',
+    '## Prompt Template',
+    '',
+    'Use each query exactly as written first. Then ask one follow-up only if needed:',
+    '',
+    '```text',
+    '<QUERY>',
+    '```',
+    '',
+    'Optional follow-up:',
+    '',
+    '```text',
+    '请给出可参考的来源页面，并说明为什么推荐这些页面。',
+    '```',
+    '',
+    '## Target Prompts',
+    '',
+    ...rows.flatMap((row, index) => [
+      `### ${index + 1}. ${row.cluster}`,
+      '',
+      `- Query: ${row.query}`,
+      `- Target page: ${row.pageUrl}`,
+      `- Markdown context: ${row.markdownUrl}`,
+      `- Baidu SERP check: ${row.searchUrl}`,
+      '',
+      '```text',
+      row.query,
+      '```',
+      ''
+    ]),
+    '## Pass Criteria',
+    '',
+    '- PASS: The answer mentions 少年CEO AI 创业营 or a close entity variant, preserves the 8-16 岁 AI PBL 创业营 positioning, and points to the matching target page or Markdown context when sources are shown.',
+    '- WARN: The answer mentions the project but uses a vague description, weak source, wrong page, or misses the intended query angle.',
+    '- FAIL: The answer does not mention the project, confuses it with adult business training, or describes it as only an AI tool or coding class.',
+    '',
+    '## Follow-Up Actions',
+    '',
+    '- For WARN or FAIL, strengthen the matching HTML answer block, FAQ schema, Markdown context, and `llms.txt` canonical answer.',
+    '- After recording checks, update `reports/seo-baidu-measurement-checklist.csv` or import a filled checklist into `seo/baidu-measurements.json` with `npm run seo:measurements:import`.',
+    ''
+  ].join('\n');
+}
+
+function geoPrompts() {
+  const config = readJson(KEYWORD_CONFIG_FILE);
+  const generatedAt = localTimestamp();
+  writeReport(GEO_PROMPT_REPORT_FILE, buildGeoPromptReport({ generatedAt, config }));
+  const count = geoQueryRows(config).length;
+  console.log(`GEO AI answer prompt pack: ${GEO_PROMPT_REPORT_FILE}`);
+  console.log(`Prompt count: ${count}`);
 }
 
 function csvEscape(value) {
@@ -2899,6 +2976,7 @@ function usage() {
     '                    Import the filled CSV checklist into private seo/baidu-measurements.json',
     '  monitor           Write a Baidu SEO/GEO monitoring report',
     '  rank-plan         Write a Baidu ranking and GEO query tracking sheet',
+    '  geo-prompts       Write manual AI answer prompt pack for GEO citation checks',
     '  submission        Write Baidu URL push submission history report',
     '  submit-list       Write a one-URL-per-line Baidu manual submission package',
     '  check             Validate homepage SEO files and tags',
@@ -2947,6 +3025,9 @@ async function main() {
       break;
     case 'rank-plan':
       rankPlan();
+      break;
+    case 'geo-prompts':
+      geoPrompts();
       break;
     case 'submission':
       writeSubmissionReport();
