@@ -3238,6 +3238,93 @@ button:disabled {
   gap: 8px;
 }
 
+.share-center-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.share-link-grid,
+.share-project-list {
+  display: grid;
+  gap: 10px;
+}
+
+.share-link-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.share-link-card,
+.share-project-row {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fffdf6;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.share-link-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.share-link-card span,
+.share-project-row span,
+.share-project-row small {
+  color: #60705f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.share-link-card input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #dfd6c1;
+  border-radius: 6px;
+  background: #fff;
+  color: #1d251c;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  margin-top: 6px;
+  padding: 10px;
+}
+
+.share-link-card button,
+.share-project-row button,
+.share-project-row a {
+  border: 0;
+  border-radius: 6px;
+  background: #172018;
+  color: #fffdf6;
+  padding: 10px 14px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.share-project-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.share-project-row strong {
+  display: block;
+  color: #172018;
+  font-size: 20px;
+  line-height: 1.15;
+  margin: 4px 0;
+}
+
+.share-project-row a {
+  background: #e9f5eb;
+  color: #1f6f50;
+}
+
 .student-table,
 .review-list {
   display: grid;
@@ -5119,6 +5206,48 @@ button:disabled {
   line-height: 1.45;
 }
 
+.public-share-bar,
+.project-share-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  max-width: 720px;
+}
+
+.public-share-bar input,
+.project-share-bar input {
+  min-width: 0;
+  border: 1px solid #dfd6c1;
+  border-radius: 6px;
+  background: #fffdf6;
+  color: #1d251c;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 11px 12px;
+}
+
+.public-share-bar button,
+.project-share-bar button,
+.public-final-actions button {
+  border: 0;
+  border-radius: 6px;
+  background: #e9f5eb;
+  color: #1f6f50;
+  padding: 10px 13px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.public-share-message {
+  color: #1f6f50;
+  font-weight: 900;
+}
+
 .public-section {
   display: grid;
   gap: 16px;
@@ -5212,6 +5341,7 @@ button:disabled {
 }
 
 .public-final-actions a,
+.public-final-actions button,
 .project-open-link,
 .project-not-found a,
 .project-hero > a:first-child {
@@ -5231,6 +5361,11 @@ button:disabled {
 .project-hero > a:first-child {
   background: #e9f5eb;
   color: #1f6f50;
+}
+
+.public-final-actions button {
+  background: #f4efe0;
+  color: #7c6130;
 }
 
 .public-empty {
@@ -5885,9 +6020,13 @@ button:disabled {
   .lesson-operator,
   .showcase-form,
   .mentor-comment-form,
+  .share-link-card,
   .score-dimension,
   .showcase-manage-row,
   .award-manage-row,
+  .share-project-row,
+  .public-share-bar,
+  .project-share-bar,
   .project-submission-row,
   .feedback-note,
   .team-workspace-grid,
@@ -5930,6 +6069,13 @@ button:disabled {
   .feedback-note button,
   .blocker-note button,
   .observer-link-box a,
+  .share-link-card button,
+  .share-project-row button,
+  .share-project-row a,
+  .public-share-bar button,
+  .project-share-bar button,
+  .public-final-actions button,
+  .public-final-actions a,
   .observer-code-form button,
   .feedback-product a {
     width: 100%;

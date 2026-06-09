@@ -9,9 +9,11 @@ import {
   Clock3,
   Coins,
   ClipboardCheck,
+  Copy,
   ExternalLink,
   Hammer,
   Image,
+  Link2,
   Lightbulb,
   Loader2,
   LogOut,
@@ -25,6 +27,7 @@ import {
   Rocket,
   Route,
   Search,
+  Share2,
   ShieldCheck,
   Sparkles,
   Star,
@@ -1358,7 +1361,20 @@ function PublicShowcaseRoute() {
   const [awardResults, setAwardResults] = useState<AwardResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [shareMessage, setShareMessage] = useState("");
   const selectedProjectId = searchParams.get("project") || "";
+  const publicRoute = window.location.pathname.startsWith("/parents") ? "/parents" : "/showcase";
+  const showcaseShareUrl = absoluteUrl(publicRoute);
+
+  const copyShareLink = async (url: string, label = "链接") => {
+    try {
+      await copyToClipboard(url);
+      setShareMessage(`${label}已复制。`);
+      window.setTimeout(() => setShareMessage(""), 2200);
+    } catch {
+      setShareMessage("复制失败，可以手动选中链接。");
+    }
+  };
 
   useEffect(() => {
     api.publicFinalShowcase()
@@ -1414,6 +1430,14 @@ function PublicShowcaseRoute() {
         <span>{camp?.location || "少年CEO AI 创业营"}</span>
         <h1>三天课程成果</h1>
         <p>孩子们从真实问题出发，采访用户，做出产品原型，并在结营路演中展示自己的作品。</p>
+        <div className="public-share-bar">
+          <input readOnly value={showcaseShareUrl} aria-label="作品展链接" onFocus={(event) => event.currentTarget.select()} />
+          <button type="button" onClick={() => copyShareLink(showcaseShareUrl, "作品展链接")}>
+            <Copy size={16} />
+            复制作品展链接
+          </button>
+        </div>
+        {shareMessage && <small className="public-share-message">{shareMessage}</small>}
       </header>
       <section className="public-section">
         <div className="public-section-title">
@@ -1436,6 +1460,7 @@ function PublicShowcaseRoute() {
             const recording = asText(item.payload.recording_url);
             const cardLine = asText(item.payload.value_line) || asText(packagingItem?.payload.slogan) || asText(storyItem?.payload.story_hook) || "这组作品正在整理介绍。";
             const projectHref = publicProjectUrl(item.id);
+            const projectShareUrl = absoluteUrl(publicProjectUrl(item.id, publicRoute));
             return (
               <article className="public-final-card" key={item.id}>
                 <div className="public-final-shot">
@@ -1471,6 +1496,10 @@ function PublicShowcaseRoute() {
                     <Package size={16} />
                     查看作品页
                   </a>
+                  <button type="button" onClick={() => copyShareLink(projectShareUrl, "作品页链接")}>
+                    <Copy size={16} />
+                    复制作品页
+                  </button>
                   {href && (
                     <a href={normalizeShowcaseUrl(href)} target="_blank" rel="noreferrer">
                       <ExternalLink size={16} />
@@ -1723,9 +1752,29 @@ function ParentObserverScoreRoute({ initialCode }: { initialCode: string }) {
   );
 }
 
-function publicProjectUrl(projectId: string) {
-  const route = window.location.pathname.startsWith("/parents") ? "/parents" : "/showcase";
+function publicProjectUrl(projectId: string, route = window.location.pathname.startsWith("/parents") ? "/parents" : "/showcase") {
   return `${route}?project=${encodeURIComponent(projectId)}`;
+}
+
+function absoluteUrl(path: string) {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${window.location.origin}${normalized}`;
+}
+
+async function copyToClipboard(text: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "true");
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  document.body.removeChild(textarea);
 }
 
 function splitList(value: unknown) {
@@ -1905,6 +1954,19 @@ function PublicProjectDetail({
     );
   });
   const certificates = contributionCards(finalItem, projectAwards, projectGrowthReflections);
+  const projectRoute = window.location.pathname.startsWith("/parents") ? "/parents" : "/showcase";
+  const projectShareUrl = absoluteUrl(publicProjectUrl(projectId, projectRoute));
+  const [shareMessage, setShareMessage] = useState("");
+
+  const copyProjectLink = async () => {
+    try {
+      await copyToClipboard(projectShareUrl);
+      setShareMessage("作品页链接已复制。");
+      window.setTimeout(() => setShareMessage(""), 2200);
+    } catch {
+      setShareMessage("复制失败，可以手动选中链接。");
+    }
+  };
 
   if (!finalItem && !showcaseItem) {
     return (
@@ -1932,6 +1994,14 @@ function PublicProjectDetail({
             打开作品
           </a>
         )}
+        <div className="project-share-bar">
+          <input readOnly value={projectShareUrl} aria-label="作品页链接" onFocus={(event) => event.currentTarget.select()} />
+          <button type="button" onClick={copyProjectLink}>
+            <Copy size={16} />
+            复制作品页
+          </button>
+        </div>
+        {shareMessage && <small className="public-share-message">{shareMessage}</small>}
       </header>
 
       <section className="project-story-grid">
@@ -2653,6 +2723,7 @@ function TeacherApp({
         <TeacherFinalShowcase />
         <TeacherScoringCenter />
         <TeacherMentorComments />
+        <TeacherShareCenter />
         <TeacherGrowthReflections />
         <TeacherShowcase />
       </section>
@@ -5134,6 +5205,123 @@ function TeacherMentorComments() {
           );
         })}
         {!showcaseItems.length && <p className="empty">作品卡生成后，就可以在这里写导师点评。</p>}
+      </div>
+    </section>
+  );
+}
+
+function TeacherShareCenter() {
+  const [items, setItems] = useState<ShowcaseItem[]>([]);
+  const [observerAccess, setObserverAccess] = useState<{ code: string; path: string } | null>(null);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [copiedKey, setCopiedKey] = useState("");
+  const parentShowcaseUrl = absoluteUrl("/parents");
+  const classroomShowcaseUrl = absoluteUrl("/showcase");
+  const wallUrl = absoluteUrl("/wall");
+
+  const load = async () => {
+    setLoading(true);
+    setMessage("");
+    try {
+      const [showcaseResult, observerResult] = await Promise.all([
+        api.manageShowcase(),
+        api.observerScoreAccess().catch(() => null)
+      ]);
+      setItems(showcaseResult.showcase_items);
+      setObserverAccess(observerResult);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "加载失败");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const copyLink = async (key: string, url: string) => {
+    try {
+      await copyToClipboard(url);
+      setCopiedKey(key);
+      setMessage("链接已复制。");
+      window.setTimeout(() => setCopiedKey(""), 2200);
+    } catch {
+      setMessage("复制失败，可以手动选中链接。");
+    }
+  };
+
+  const publishedItems = items
+    .filter((item) => item.publish_status === "PUBLISHED")
+    .sort((a, b) => String(a.product_name || "").localeCompare(String(b.product_name || ""), "zh-Hans-CN"));
+
+  const shareLinks = [
+    { key: "parents", label: "家长作品展", url: parentShowcaseUrl, icon: <Share2 size={16} /> },
+    { key: "showcase", label: "课堂作品展", url: classroomShowcaseUrl, icon: <Package size={16} /> },
+    { key: "wall", label: "展示大屏", url: wallUrl, icon: <Monitor size={16} /> }
+  ];
+  if (observerAccess?.path) {
+    shareLinks.push({
+      key: "score",
+      label: `家长评分 · ${observerAccess.code}`,
+      url: absoluteUrl(observerAccess.path),
+      icon: <Star size={16} />
+    });
+  }
+
+  return (
+    <section className="panel share-center-panel">
+      <div className="panel-title">
+        <Link2 size={20} />
+        <h2>成果分享</h2>
+      </div>
+      <div className="artifact-stats">
+        <span>{publishedItems.length} 张可分享作品卡</span>
+        <span>{observerAccess ? "家长评分已准备" : "家长评分稍后准备"}</span>
+      </div>
+      {message && <p className="hint">{message}</p>}
+      <div className="share-link-grid">
+        {shareLinks.map((link) => (
+          <article className="share-link-card" key={link.key}>
+            <div>
+              <span>{link.label}</span>
+              <input readOnly value={link.url} onFocus={(event) => event.currentTarget.select()} aria-label={`${link.label}链接`} />
+            </div>
+            <button type="button" onClick={() => copyLink(link.key, link.url)}>
+              {copiedKey === link.key ? <CheckCircle2 size={16} /> : link.icon}
+              {copiedKey === link.key ? "已复制" : "复制"}
+            </button>
+          </article>
+        ))}
+      </div>
+      <div className="share-project-list">
+        {publishedItems.map((item) => {
+          const url = absoluteUrl(publicProjectUrl(item.id, "/parents"));
+          const key = `project-${item.id}`;
+          return (
+            <article className="share-project-row" key={item.id}>
+              <div>
+                <span>{item.team_name || item.track || "项目团队"}</span>
+                <strong>{item.product_name}</strong>
+                <small>{item.one_liner || "家长可以打开这个作品页查看项目故事。"}</small>
+              </div>
+              <div className="row-actions">
+                <a href={url} target="_blank" rel="noreferrer">
+                  <ExternalLink size={15} />
+                  打开
+                </a>
+                <button type="button" onClick={() => copyLink(key, url)}>
+                  {copiedKey === key ? <CheckCircle2 size={15} /> : <Copy size={15} />}
+                  {copiedKey === key ? "已复制" : "复制作品页"}
+                </button>
+              </div>
+            </article>
+          );
+        })}
+        {!publishedItems.length && (
+          <p className="empty">{loading ? "正在读取作品卡。" : "作品卡放进展示区后，这里会出现可分享链接。"}</p>
+        )}
       </div>
     </section>
   );
