@@ -1,6 +1,6 @@
 # SEO Internal Link Report
 
-Generated: 2026-06-09T23:49:12+08:00
+Generated: 2026-06-10T00:04:49+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: PASS
 

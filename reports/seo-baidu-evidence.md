@@ -1,6 +1,6 @@
 # Baidu Measured Evidence Report
 
-Generated: 2026-06-09T23:46:47+08:00
+Generated: 2026-06-09T23:52:44+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_MEASURED_DATA
 
@@ -17,7 +17,7 @@ Overall status: NEEDS_MEASURED_DATA
 - URL metric evidence: 0/14 measured, 14 missing evidence.
 - Primary keyword rank evidence: 0/13 ranked, 0 measured no rank, 13 missing evidence.
 - Tracked keyword rank evidence: 0/137 ranked, 0 measured no rank, 137 missing evidence.
-- GEO answer evidence: 0/50 pass, 0 needs repair, 50 missing evidence.
+- GEO answer evidence: 0/51 pass, 0 needs repair, 51 missing evidence.
 
 ## How To Use This File
 
@@ -247,6 +247,7 @@ MISSING_EVIDENCE | beijing-shunyi-ai-course | 顺义AI课程一般学几天 | ht
 MISSING_EVIDENCE | beijing-shunyi-ai-course | 顺义AI课程适合什么孩子 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-ai-course | 北京顺义AI课程有哪些形式 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | 北京顺义青少年AI课程适合什么孩子 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | 北京顺义青少年AI课程费用怎么判断 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | 顺义AI课程和普通工具体验课有什么不同 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | 顺义家长如何判断一门青少年AI课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | shunyi-children-ai-course | 北京顺义儿童AI课程怎么选 | https://camps.wanli.wiki/shunyi-children-ai-course.html | https://camps.wanli.wiki/shunyi-children-ai-course.md | N/A | N/A | N/A | N/A | N/A | -

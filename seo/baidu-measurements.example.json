@@ -2374,6 +2374,18 @@
     },
     {
       "cluster": "beijing-shunyi-youth-ai-course",
+      "query": "北京顺义青少年AI课程费用怎么判断",
+      "targetPage": "https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html",
+      "markdownUrl": "https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "beijing-shunyi-youth-ai-course",
       "query": "顺义AI课程和普通工具体验课有什么不同",
       "targetPage": "https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html",
       "markdownUrl": "https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md",
