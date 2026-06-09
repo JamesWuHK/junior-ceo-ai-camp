@@ -2469,6 +2469,18 @@
       "notes": ""
     },
     {
+      "cluster": "ai-era-skills-for-kids",
+      "query": "AI时代儿童能力包括什么",
+      "targetPage": "https://camps.wanli.wiki/ai-era-skills-for-kids.html",
+      "markdownUrl": "https://camps.wanli.wiki/ai-era-skills-for-kids.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
       "cluster": "ai-judgement-for-kids",
       "query": "孩子AI判断力怎么培养",
       "targetPage": "https://camps.wanli.wiki/ai-judgement-for-kids.html",

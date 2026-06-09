@@ -1,6 +1,6 @@
 # Baidu Measured Evidence Report
 
-Generated: 2026-06-09T15:28:03+08:00
+Generated: 2026-06-09T19:00:19+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_MEASURED_DATA
 
@@ -17,7 +17,7 @@ Overall status: NEEDS_MEASURED_DATA
 - URL metric evidence: 0/14 measured, 14 missing evidence.
 - Primary keyword rank evidence: 0/13 ranked, 0 measured no rank, 13 missing evidence.
 - Tracked keyword rank evidence: 0/137 ranked, 0 measured no rank, 137 missing evidence.
-- GEO answer evidence: 0/39 pass, 0 needs repair, 39 missing evidence.
+- GEO answer evidence: 0/40 pass, 0 needs repair, 40 missing evidence.
 
 ## How To Use This File
 
@@ -255,6 +255,7 @@ MISSING_EVIDENCE | shunyi-ai-summer-camp | AI夏令营3天能做出什么作品 
 MISSING_EVIDENCE | ai-era-skills-for-kids | AI时代孩子需要什么能力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-era-skills-for-kids | 孩子学AI有什么用 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-era-skills-for-kids | 家长如何培养孩子AI判断力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | ai-era-skills-for-kids | AI时代儿童能力包括什么 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-judgement-for-kids | 孩子AI判断力怎么培养 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-judgement-for-kids | 孩子如何判断AI答案是否可靠 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-judgement-for-kids | 家长如何陪孩子使用AI | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | N/A | N/A | N/A | N/A | N/A | -
