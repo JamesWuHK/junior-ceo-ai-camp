@@ -205,6 +205,9 @@ export function initializeDatabase() {
       roles TEXT NOT NULL DEFAULT '{}',
       project_status TEXT NOT NULL DEFAULT 'NOT_STARTED',
       showcase_status TEXT NOT NULL DEFAULT 'DRAFT',
+      selected_problem_id TEXT,
+      selected_problem_title TEXT,
+      selected_problem_votes INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (camp_id) REFERENCES camp_offerings(id)
@@ -375,6 +378,7 @@ export function initializeDatabase() {
 
   migrateStudentAccounts();
   migrateFuturePhotoJobs();
+  migrateTeams();
   migrateShowcaseItems();
   seedDefaultCamp();
 }
@@ -398,6 +402,16 @@ function migrateFuturePhotoJobs() {
     CREATE INDEX IF NOT EXISTS idx_future_photo_jobs_submission
       ON future_photo_jobs(submission_id, created_at);
   `);
+}
+
+function migrateTeams() {
+  const columns = db.prepare("PRAGMA table_info(teams)").all() as { name: string }[];
+  const hasColumn = (name: string) => columns.some((column) => column.name === name);
+  if (!hasColumn("selected_problem_id")) db.exec("ALTER TABLE teams ADD COLUMN selected_problem_id TEXT");
+  if (!hasColumn("selected_problem_title")) db.exec("ALTER TABLE teams ADD COLUMN selected_problem_title TEXT");
+  if (!hasColumn("selected_problem_votes")) {
+    db.exec("ALTER TABLE teams ADD COLUMN selected_problem_votes INTEGER NOT NULL DEFAULT 0");
+  }
 }
 
 function migrateShowcaseItems() {

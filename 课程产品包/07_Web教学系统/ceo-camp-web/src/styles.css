@@ -2342,6 +2342,32 @@ button:disabled {
   line-height: 1.4;
 }
 
+.team-selected-problem {
+  border: 1px solid #d9ead8;
+  border-radius: 8px;
+  background: #f4fbf1;
+  padding: 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.team-selected-problem.empty {
+  background: #f7f3e8;
+  border-color: #eadfca;
+}
+
+.team-selected-problem span,
+.team-selected-problem small {
+  color: #60705f;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.team-selected-problem strong {
+  color: #172018;
+  line-height: 1.3;
+}
+
 .team-actions {
   display: flex;
   flex-wrap: wrap;
@@ -2638,6 +2664,87 @@ button:disabled {
   color: #60705f;
   font-size: 13px;
   font-weight: 800;
+}
+
+.team-problem-picker {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fffdf6;
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.team-problem-picker-title {
+  display: grid;
+  gap: 4px;
+}
+
+.team-problem-picker-title strong {
+  color: #172018;
+  font-size: 18px;
+}
+
+.team-problem-picker-title span {
+  color: #60705f;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.team-problem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.team-problem-card {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fffaf0;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.team-problem-card span,
+.team-problem-card small {
+  color: #60705f;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.team-problem-card strong {
+  display: block;
+  color: #172018;
+  font-size: 18px;
+  line-height: 1.15;
+  margin: 2px 0;
+}
+
+.team-problem-card select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #dfd6c1;
+  border-radius: 6px;
+  background: #fff;
+  color: #1d251c;
+  font: inherit;
+  font-weight: 800;
+  padding: 9px 10px;
+}
+
+.team-problem-card button {
+  border: 0;
+  border-radius: 6px;
+  background: #172018;
+  color: #fffdf6;
+  padding: 10px 13px;
+  font-weight: 900;
+}
+
+.team-problem-card button:disabled {
+  opacity: 0.55;
 }
 
 .problem-vote-leaderboard {

@@ -3042,6 +3042,11 @@ function TeacherTeamWorkspace({ students, refresh }: { students: Student[]; refr
                     </select>
                   </label>
                 </div>
+                <div className={team.selected_problem_title ? "team-selected-problem" : "team-selected-problem empty"}>
+                  <span>小组定题</span>
+                  <strong>{team.selected_problem_title || "还没选择要继续调查的问题"}</strong>
+                  {Number(team.selected_problem_votes || 0) > 0 && <small>{team.selected_problem_votes} 票线索</small>}
+                </div>
                 <footer>
                   <small>{members.length ? members.map((student) => student.nickname).join("、") : "还没有成员"}</small>
                   <button disabled={savingTeamId === team.id} onClick={() => void saveTeam(team)}>
@@ -3156,6 +3161,7 @@ function nextSupportAction(
     const blocker = activeBlockers[0];
     return `先去 ${team.table_no || team.group_no} 号桌看卡点：${asText(blocker.payload.where_stuck) || "请他们说清卡在哪里"}`;
   }
+  if (!team.selected_problem_id) return "先从问题卡里给小组定一个要继续调查的问题。";
   const firstMissing = milestoneStates.find((milestone) => !milestone.done);
   if (!firstMissing) return "可以安排彩排或进入作品秀顺序。";
   if (firstMissing.key === "market_scout") return "先补一张侦察卡：AI 改写、用户声音、已有方案、继续验证。";
@@ -3351,6 +3357,10 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
                   {projectStatusLabel(summary.team.project_status)} · {showcaseStatusLabel(summary.team.showcase_status)}
                 </p>
                 <p>
+                  <b>小组定题</b>
+                  {summary.team.selected_problem_title || "还没定题"}
+                </p>
+                <p>
                   <b>最近进展</b>
                   {summary.latest ? `${summary.latest.student_name || "学生"}提交了${summary.latest.title}` : "还没有提交记录"}
                 </p>
@@ -3387,18 +3397,29 @@ function TeacherProgressBoard({ students }: { students: Student[] }) {
 
 function TeacherD1Artifacts() {
   const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [voteSummaries, setVoteSummaries] = useState<ProblemVoteSummary[]>([]);
   const [voteCount, setVoteCount] = useState(0);
+  const [teamProblemDrafts, setTeamProblemDrafts] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [updatingId, setUpdatingId] = useState("");
+  const [savingProblemTeamId, setSavingProblemTeamId] = useState("");
   const [startingVote, setStartingVote] = useState(false);
 
   const load = async () => {
     try {
-      const [result, voteResult] = await Promise.all([api.submissions(), api.problemVotesManage()]);
+      const [result, voteResult, teamResult] = await Promise.all([api.submissions(), api.problemVotesManage(), api.teams()]);
       setItems(result.task_submissions.filter((item) => ["problem_card", "market_scout", "user_voice", "ai_validation"].includes(item.task_type)));
       setVoteSummaries(voteResult.summaries);
       setVoteCount(voteResult.votes.length);
+      setTeams(teamResult.teams);
+      setTeamProblemDrafts((current) => {
+        const next: Record<string, string> = {};
+        teamResult.teams.forEach((team) => {
+          next[team.id] = current[team.id] ?? team.selected_problem_id ?? "";
+        });
+        return next;
+      });
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "加载失败");
     }
@@ -3462,6 +3483,32 @@ function TeacherD1Artifacts() {
     }
   };
 
+  const problemCards = useMemo(() => {
+    const votes = new Map(voteSummaries.map((summary) => [summary.problem_id, summary.vote_count]));
+    return items
+      .filter((item) => item.task_type === "problem_card")
+      .sort((a, b) => {
+        const voteDelta = (votes.get(b.id) ?? 0) - (votes.get(a.id) ?? 0);
+        if (voteDelta) return voteDelta;
+        return (b.updated_at || b.created_at || "").localeCompare(a.updated_at || a.created_at || "");
+      });
+  }, [items, voteSummaries]);
+
+  const saveTeamProblem = async (team: Team) => {
+    const problemId = teamProblemDrafts[team.id] || null;
+    setSavingProblemTeamId(team.id);
+    setMessage("");
+    try {
+      await api.assignTeamProblem(team.id, problemId);
+      setMessage(problemId ? `${team.name} 已定题。` : `${team.name} 已清空定题。`);
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "定题保存失败");
+    } finally {
+      setSavingProblemTeamId("");
+    }
+  };
+
   return (
     <section className="panel d1-artifacts-panel">
       <div className="panel-title">
@@ -3485,6 +3532,46 @@ function TeacherD1Artifacts() {
         <span>学生最多选 3 张问题卡，系统按票数排序。</span>
       </div>
       <ProblemVoteLeaderboard summaries={voteSummaries} compact />
+      <div className="team-problem-picker">
+        <div className="team-problem-picker-title">
+          <strong>小组定题</strong>
+          <span>把一张问题卡交给小组继续调查，后面的产品一句话会优先带入这条线索。</span>
+        </div>
+        <div className="team-problem-grid">
+          {teams.map((team) => {
+            const selected = problemCards.find((item) => item.id === (teamProblemDrafts[team.id] || team.selected_problem_id));
+            return (
+              <article className="team-problem-card" key={team.id}>
+                <div>
+                  <span>{team.table_no ? `${team.table_no} 号桌` : `第 ${team.group_no} 组`}</span>
+                  <strong>{team.name}</strong>
+                  <small>{selected ? asText(selected.payload.problem_scene) || asText(selected.payload.trouble) || "一个真实问题" : "还没定题"}</small>
+                </div>
+                <select
+                  value={teamProblemDrafts[team.id] ?? team.selected_problem_id ?? ""}
+                  onChange={(event) => setTeamProblemDrafts((current) => ({ ...current, [team.id]: event.target.value }))}
+                  aria-label={`${team.name}的小组定题`}
+                >
+                  <option value="">先不选择</option>
+                  {problemCards.map((item) => {
+                    const summary = voteSummaries.find((vote) => vote.problem_id === item.id);
+                    const title = asText(item.payload.problem_scene) || asText(item.payload.trouble) || "一个真实问题";
+                    return (
+                      <option key={item.id} value={item.id}>
+                        {summary?.vote_count ? `${summary.vote_count} 票 · ` : ""}{title}
+                      </option>
+                    );
+                  })}
+                </select>
+                <button disabled={savingProblemTeamId === team.id} onClick={() => void saveTeamProblem(team)}>
+                  {savingProblemTeamId === team.id ? "保存中" : "保存定题"}
+                </button>
+              </article>
+            );
+          })}
+          {!teams.length && <p className="empty">创建小组后，可以在这里给每组定题。</p>}
+        </div>
+      </div>
       {message && <p className="hint">{message}</p>}
       <div className="d1-artifact-list">
         {items.map((item) => {
@@ -9038,6 +9125,7 @@ function StudentProductDefinitionTask({
   const [solution, setSolution] = useState("");
   const [problemOptions, setProblemOptions] = useState<WallArtifact[]>([]);
   const [problemVotes, setProblemVotes] = useState<Record<string, number>>({});
+  const [teamProblemId, setTeamProblemId] = useState("");
   const [selectedProblemId, setSelectedProblemId] = useState("");
   const [selectedProblemTitle, setSelectedProblemTitle] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -9058,6 +9146,7 @@ function StudentProductDefinitionTask({
         if (!alive) return;
         const voteMap = new Map(result.summaries.map((summary) => [summary.problem_id, summary.vote_count]));
         const byId = new Map(result.candidates.map((item) => [item.id, item]));
+        const teamProblem = result.team_problem ? [result.team_problem] : [];
         const sameTeam = result.candidates.filter((item) =>
           (!!student.team_id && item.team_id === student.team_id) ||
           (!!student.team_name && (item.team_name === student.team_name || asText(item.payload.team_name) === student.team_name))
@@ -9067,11 +9156,12 @@ function StudentProductDefinitionTask({
           .map((summary) => byId.get(summary.problem_id))
           .filter(Boolean) as WallArtifact[];
         const fallback = result.candidates.slice(0, 5);
-        const merged = [...sameTeam, ...voted, ...fallback].filter((item, index, list) =>
+        const merged = [...teamProblem, ...sameTeam, ...voted, ...fallback].filter((item, index, list) =>
           list.findIndex((candidate) => candidate.id === item.id) === index
         );
         setProblemOptions(merged.slice(0, 5));
         setProblemVotes(Object.fromEntries(voteMap.entries()));
+        setTeamProblemId(result.team_problem?.id || "");
       })
       .catch(() => {
         if (alive) setProblemOptions([]);
@@ -9172,7 +9262,7 @@ function StudentProductDefinitionTask({
                       key={item.id}
                       onClick={() => useProblemOption(item)}
                     >
-                      <small>{sameTeam ? "我们的问题卡" : votes > 0 ? `${votes} 票线索` : "问题线索"}</small>
+                      <small>{item.id === teamProblemId ? "本组定题" : sameTeam ? "我们的问题卡" : votes > 0 ? `${votes} 票线索` : "问题线索"}</small>
                       <strong>{title}</strong>
                       <em>{asText(item.payload.target_user) || "真实用户"}</em>
                     </button>

@@ -66,6 +66,9 @@ export interface Team {
   roles: Record<string, string>;
   project_status: string;
   showcase_status: string;
+  selected_problem_id?: string | null;
+  selected_problem_title?: string | null;
+  selected_problem_votes?: number;
 }
 
 export interface TeacherAccount {

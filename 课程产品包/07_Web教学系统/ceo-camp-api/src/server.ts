@@ -563,6 +563,19 @@ function textValue(value: unknown) {
   return typeof value === "string" ? value : "";
 }
 
+function problemTitleFor(item: TaskArtifact | null | undefined) {
+  if (!item) return "";
+  return textValue(item.payload.problem_scene) || textValue(item.payload.trouble) || "一个真实问题";
+}
+
+function serializeTeam(team: Record<string, any>) {
+  return {
+    ...team,
+    roles: jsonParse(team.roles, {}),
+    selected_problem_votes: Number(team.selected_problem_votes ?? 0)
+  };
+}
+
 function problemVoteCandidates() {
   return rows<Record<string, any> & { payload?: string }>(
     `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
@@ -581,6 +594,21 @@ function problemVoteCandidates() {
       payload: jsonParse<TaskPayload>(base.payload, {})
     };
   });
+}
+
+function problemVoteCount(problemId: string, activityId = "") {
+  return problemVoteSummaries(activityId).find((summary) => summary.problem_id === problemId)?.vote_count ?? 0;
+}
+
+function selectedProblemForTeam(teamId?: string | null) {
+  if (!teamId) return null;
+  const team = row<{ selected_problem_id?: string | null }>(
+    "SELECT selected_problem_id FROM teams WHERE id = ? AND camp_id = ?",
+    [teamId, campId()]
+  );
+  const problemId = String(team?.selected_problem_id ?? "");
+  if (!problemId) return null;
+  return problemVoteCandidates().find((candidate) => candidate.id === problemId) || null;
 }
 
 function problemVoteActivityId() {
@@ -1341,10 +1369,7 @@ app.post("/students/:id/team", async (request, reply) => {
 });
 
 app.get("/teams", async () => ({
-  teams: rows("SELECT * FROM teams WHERE camp_id = ? ORDER BY group_no", campId()).map((team) => ({
-    ...team,
-    roles: jsonParse(team.roles, {})
-  }))
+  teams: rows("SELECT * FROM teams WHERE camp_id = ? ORDER BY group_no", campId()).map(serializeTeam)
 }));
 
 app.post("/teams", async (request, reply) => {
@@ -1360,13 +1385,18 @@ app.post("/teams", async (request, reply) => {
     roles: JSON.stringify(body.roles ?? {}),
     project_status: String(body.project_status ?? "NOT_STARTED"),
     showcase_status: String(body.showcase_status ?? "DRAFT"),
+    selected_problem_id: body.selected_problem_id ? String(body.selected_problem_id) : null,
+    selected_problem_title: body.selected_problem_title ? String(body.selected_problem_title) : null,
+    selected_problem_votes: Number(body.selected_problem_votes ?? 0) || 0,
     updated_at: nowSql()
   };
   db.prepare(
     `INSERT INTO teams
-      (id, camp_id, group_no, name, table_no, roles, project_status, showcase_status, updated_at)
+      (id, camp_id, group_no, name, table_no, roles, project_status, showcase_status,
+       selected_problem_id, selected_problem_title, selected_problem_votes, updated_at)
      VALUES
-      (@id, @camp_id, @group_no, @name, @table_no, @roles, @project_status, @showcase_status, @updated_at)
+      (@id, @camp_id, @group_no, @name, @table_no, @roles, @project_status, @showcase_status,
+       @selected_problem_id, @selected_problem_title, @selected_problem_votes, @updated_at)
      ON CONFLICT(id) DO UPDATE SET
       group_no = excluded.group_no,
       name = excluded.name,
@@ -1374,11 +1404,48 @@ app.post("/teams", async (request, reply) => {
       roles = excluded.roles,
       project_status = excluded.project_status,
       showcase_status = excluded.showcase_status,
+      selected_problem_id = excluded.selected_problem_id,
+      selected_problem_title = excluded.selected_problem_title,
+      selected_problem_votes = excluded.selected_problem_votes,
       updated_at = excluded.updated_at`
   ).run(record);
   audit("teams.upsert", "teams", id, record);
   emitState("teams.changed");
-  return { team: { ...record, roles: jsonParse(record.roles, {}) } };
+  return { team: serializeTeam(record) };
+});
+
+app.post("/teams/:id/problem", async (request, reply) => {
+  if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const { id } = request.params as { id: string };
+  const body = request.body as Record<string, unknown>;
+  const team = row<Record<string, any>>("SELECT * FROM teams WHERE id = ? AND camp_id = ?", [id, campId()]);
+  if (!team) return reply.code(404).send({ error: "TEAM_NOT_FOUND" });
+  const problemId = String(body.problem_id ?? "").trim();
+  let problem: TaskArtifact | null = null;
+  if (problemId) {
+    problem = problemVoteCandidates().find((candidate) => candidate.id === problemId) || null;
+    if (!problem) return reply.code(404).send({ error: "PROBLEM_CARD_NOT_FOUND" });
+  }
+  const title = problemTitleFor(problem);
+  const votes = problem ? problemVoteCount(problem.id, problemVoteActivityId()) : 0;
+  db.prepare(
+    `UPDATE teams
+        SET selected_problem_id = ?,
+            selected_problem_title = ?,
+            selected_problem_votes = ?,
+            project_status = CASE WHEN project_status = 'NOT_STARTED' AND ? IS NOT NULL THEN 'DISCOVERY' ELSE project_status END,
+            updated_at = ?
+      WHERE id = ?
+        AND camp_id = ?`
+  ).run(problem?.id ?? null, title || null, votes, problem?.id ?? null, nowSql(), id, campId());
+  const updated = row<Record<string, any>>("SELECT * FROM teams WHERE id = ? AND camp_id = ?", [id, campId()]);
+  audit("teams.problem.select", "teams", id, {
+    selected_problem_id: problem?.id ?? null,
+    selected_problem_title: title || null,
+    selected_problem_votes: votes
+  });
+  emitState("teams.changed");
+  return { team: updated ? serializeTeam(updated) : null };
 });
 
 app.post("/future-photo/upload-token", async (request, reply) => {
@@ -1661,7 +1728,16 @@ app.post("/task-submissions", async (request, reply) => {
 });
 
 app.get("/problem-votes/brief", async (request, reply) => {
-  const student = requireStudent(request);
+  const principal = requireStudent(request);
+  if (!principal) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const student = row<{ id: string; team_id?: string | null; team_name?: string | null }>(
+    `SELECT s.id, s.team_id, t.name AS team_name
+       FROM students s
+       LEFT JOIN teams t ON t.id = s.team_id
+      WHERE s.id = ?
+        AND s.camp_id = ?`,
+    [principal.id, campId()]
+  );
   if (!student) return reply.code(401).send({ error: "UNAUTHORIZED" });
   const activityId = problemVoteActivityId();
   const votes = problemVoteItems(activityId);
@@ -1669,7 +1745,8 @@ app.get("/problem-votes/brief", async (request, reply) => {
   return {
     candidates: problemVoteCandidates(),
     summaries: problemVoteSummaries(activityId),
-    my_vote: myVote
+    my_vote: myVote,
+    team_problem: selectedProblemForTeam(student.team_id)
   };
 });
 

@@ -149,6 +149,12 @@ export const api = {
       headers: headers(true),
       body: JSON.stringify(payload)
     }),
+  assignTeamProblem: (id: string, problemId: string | null) =>
+    request<{ team: Team | null }>(`/teams/${encodeURIComponent(id)}/problem`, {
+      method: "POST",
+      headers: headers(true),
+      body: JSON.stringify({ problem_id: problemId })
+    }),
   assignStudentTeam: (id: string, teamId: string | null) =>
     request<{ student: Student }>(`/students/${encodeURIComponent(id)}/team`, {
       method: "POST",
@@ -228,7 +234,7 @@ export const api = {
       award_results: AwardResult[];
     }>("/public/final-showcase"),
   problemVoteBrief: () =>
-    request<{ candidates: WallArtifact[]; summaries: ProblemVoteSummary[]; my_vote: TaskSubmission | null }>("/problem-votes/brief", {
+    request<{ candidates: WallArtifact[]; summaries: ProblemVoteSummary[]; my_vote: TaskSubmission | null; team_problem?: WallArtifact | null }>("/problem-votes/brief", {
       headers: studentHeaders(true)
     }),
   submitProblemVote: (payload: { problem_ids: string[] }) =>
