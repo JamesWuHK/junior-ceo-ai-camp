@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-10T00:57:58+08:00
+Generated: 2026-06-10T01:06:11+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -109,8 +109,11 @@ WARN | robots canonical | https://camps.wanli.wiki/robots.txt | 200 | 265 | etag
 PASS | robots source-bypass | https://camps.wanli.wiki/robots.txt?seo-monitor=source | 200 | 388 | cache-control=no-cache, max-age=0; etag="b54636c9d73e6a7066828a82fc838851"; last-modified=Tue, 09 Jun 2026 16:34:42 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | none | none | -
 PASS | - | https://camps.wanli.wiki/sitemap-index.xml | 200 | 352 | - | none | none | -
 PASS | - | https://camps.wanli.wiki/sitemap.xml | 200 | 2675 | - | none | none | -
-PASS | - | https://camps.wanli.wiki/sitemap-context.xml | 200 | 2836 | - | none | none | -
-PASS | - | https://camps.wanli.wiki/llms.txt | 200 | 6108 | - | none | none | -
+WARN | sitemap-context canonical | https://camps.wanli.wiki/sitemap-context.xml | 200 | 2836 | etag="b76eb12f87ce1f8f7b887c34502a65dc"; last-modified=Tue, 09 Jun 2026 16:10:30 GMT; x-cache-lookup=Cache Hit, Cache Miss; server=tencent-cos | none | <loc>https://camps.wanli.wiki/site-facts.json</loc> | -
+PASS | sitemap-context source-bypass | https://camps.wanli.wiki/sitemap-context.xml?seo-monitor=source | 200 | 3009 | etag="c7a87e1343b5716bf35d204911f07624"; last-modified=Tue, 09 Jun 2026 17:04:48 GMT; x-cache-lookup=Cache Hit, Cache Miss; server=tencent-cos | none | none | -
+WARN | llms canonical | https://camps.wanli.wiki/llms.txt | 200 | 6108 | etag="e2de09ea323d1d885a2e440866232fdd"; last-modified=Tue, 09 Jun 2026 11:01:05 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | none | Structured Facts, site-facts.json | -
+PASS | llms source-bypass | https://camps.wanli.wiki/llms.txt?seo-monitor=source | 200 | 6326 | etag="b596163f1cbd694adcf2f33e67eae542"; last-modified=Tue, 09 Jun 2026 17:04:48 GMT; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | none | none | -
+PASS | - | https://camps.wanli.wiki/site-facts.json | 200 | 18967 | - | none | none | -
 PASS | - | https://camps.wanli.wiki/ai-pbl-camp.md | 200 | 841 | - | none | none | -
 PASS | - | https://camps.wanli.wiki/ai-product-prototype-course.md | 200 | 887 | - | none | none | -
 PASS | - | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | 200 | 1299 | - | none | none | -

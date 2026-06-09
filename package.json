@@ -7,6 +7,7 @@
     "seo:check:online": "node scripts/seo/baidu-seo.mjs check-online",
     "seo:generate": "node scripts/seo/baidu-seo.mjs generate",
     "seo:llms": "node scripts/seo/baidu-seo.mjs llms",
+    "seo:facts": "node scripts/seo/baidu-seo.mjs facts",
     "seo:robots": "node scripts/seo/baidu-seo.mjs robots",
     "seo:sitemap": "node scripts/seo/baidu-seo.mjs sitemap",
     "seo:links": "node scripts/seo/baidu-seo.mjs links",
