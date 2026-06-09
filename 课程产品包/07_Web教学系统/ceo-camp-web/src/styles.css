@@ -958,7 +958,8 @@ button:disabled {
 }
 
 .artifact-directions article {
-  min-height: clamp(96px, 11vw, 156px);
+  min-height: clamp(172px, 18vw, 252px);
+  align-content: start;
 }
 
 .artifact-directions article small {
@@ -969,6 +970,40 @@ button:disabled {
   place-items: center;
   background: #f7d66d;
   color: #172018;
+}
+
+.artifact-directions article span {
+  font-size: clamp(12px, 0.98vw, 16px);
+}
+
+.artifact-directions article em {
+  color: #1f6f50;
+  font-size: clamp(12px, 0.95vw, 15px);
+  font-style: normal;
+  font-weight: 900;
+}
+
+.direction-chip-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.direction-chip-list b {
+  min-height: 42px;
+  border: 1px solid rgba(31, 111, 80, 0.18);
+  border-radius: 8px;
+  background: #eff8ed;
+  color: #172018;
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  text-align: center;
+  font-size: clamp(12px, 0.98vw, 15px);
+  line-height: 1.18;
 }
 
 .artifact-sentence {

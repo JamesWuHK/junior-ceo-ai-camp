@@ -7453,11 +7453,17 @@ function LessonArtifact({
   if (kind === "direction-map") {
     return (
       <div className="timeline-artifact artifact-directions">
-        {cards.slice(0, 4).map((card, index) => (
-          <article key={card.title}>
+        {productTrackOptions.map((track, index) => (
+          <article key={track.value}>
             <small>{String.fromCharCode(65 + index)}</small>
-            <strong>{card.title}</strong>
-            <span>{card.text}</span>
+            <strong>{track.label}</strong>
+            <span>{track.hint}</span>
+            <div className="direction-chip-list">
+              {track.directions.map((direction) => (
+                <b key={direction}>{direction}</b>
+              ))}
+            </div>
+            <em>选好方向后，写出一个真实用户。</em>
           </article>
         ))}
       </div>
