@@ -2535,6 +2535,8 @@ function TeacherApp({
   const [selectedPhoto, setSelectedPhoto] = useState<Student | null>(null);
   const [actionMessage, setActionMessage] = useState("");
   const [timerSeconds, setTimerSeconds] = useState(0);
+  const [progressBoardPulse, setProgressBoardPulse] = useState(false);
+  const progressBoardPulseTimerRef = useRef<number | null>(null);
   const selectedModule = modules.find((module) => module.id === selectedModuleId) || modules[0];
   const lessonPages = useMemo(() => coursewarePages(selectedModule), [selectedModule]);
   const selectedPage = lessonPages[selectedPageIndex] || lessonPages[0];
@@ -2558,6 +2560,14 @@ function TeacherApp({
     }, 1000);
     return () => window.clearInterval(interval);
   }, [timerSeconds]);
+
+  useEffect(() => {
+    return () => {
+      if (progressBoardPulseTimerRef.current) {
+        window.clearTimeout(progressBoardPulseTimerRef.current);
+      }
+    };
+  }, []);
 
   const publishCurrentModule = async () => {
     if (!selectedModule) return;
@@ -2629,6 +2639,20 @@ function TeacherApp({
     setActionMessage("大屏页面已打开。");
   };
 
+  const openProgressBoard = () => {
+    const board = document.getElementById("teacher-progress-board");
+    board?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setProgressBoardPulse(true);
+    if (progressBoardPulseTimerRef.current) {
+      window.clearTimeout(progressBoardPulseTimerRef.current);
+    }
+    progressBoardPulseTimerRef.current = window.setTimeout(() => {
+      setProgressBoardPulse(false);
+      progressBoardPulseTimerRef.current = null;
+    }, 2200);
+    setActionMessage("已打开团队进度看板。");
+  };
+
   const handlePageAction = async (action: string) => {
     if (action === "全屏演示" || action === "投屏展示") {
       await openPresentation();
@@ -2639,7 +2663,7 @@ function TeacherApp({
       return;
     }
     if (action === "打开看板") {
-      openWall();
+      openProgressBoard();
       return;
     }
     if (action === "发布任务" || action === "发起互动" || action === "进入评分") {
@@ -2746,7 +2770,7 @@ function TeacherApp({
           )}
         </section>
         <TeacherTeamWorkspace students={students} refresh={refresh} />
-        <TeacherProgressBoard selectedModuleId={selectedModule?.id} />
+        <TeacherProgressBoard selectedModuleId={selectedModule?.id} highlighted={progressBoardPulse} />
         <section className="teacher-grid">
           <TeacherStudents students={students} refresh={refresh} />
           <FuturePhotoReview refresh={refresh} />
@@ -3645,7 +3669,7 @@ const emptyProgressTotals: TeacherProgressSnapshot["totals"] = {
   needs_support: 0
 };
 
-function TeacherProgressBoard({ selectedModuleId }: { selectedModuleId?: string }) {
+function TeacherProgressBoard({ selectedModuleId, highlighted }: { selectedModuleId?: string; highlighted?: boolean }) {
   const [snapshot, setSnapshot] = useState<TeacherProgressSnapshot | null>(null);
   const [message, setMessage] = useState("");
   const [workingId, setWorkingId] = useState("");
@@ -3717,7 +3741,10 @@ function TeacherProgressBoard({ selectedModuleId }: { selectedModuleId?: string 
   };
 
   return (
-    <section className="panel progress-board-panel">
+    <section
+      id="teacher-progress-board"
+      className={highlighted ? "panel progress-board-panel focused" : "panel progress-board-panel"}
+    >
       <div className="panel-title">
         <ClipboardCheck size={20} />
         <h2>团队进度看板</h2>
