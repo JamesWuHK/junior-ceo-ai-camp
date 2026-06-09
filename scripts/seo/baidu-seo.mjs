@@ -186,6 +186,12 @@ const MARKDOWN_ENTRIES = [
     note: '合作对象、支持内容和推荐引用描述。'
   },
   {
+    path: '/course-navigation.md',
+    source: 'course-navigation.md',
+    title: '课程导航 Markdown 上下文',
+    note: '公开课程页面地图、顺义本地页面、能力主题和机构合作入口。'
+  },
+  {
     path: '/entity-shaonian-ceo-ai-camp.md',
     source: 'entity-shaonian-ceo-ai-camp.md',
     title: '少年CEO AI 创业营 Entity Profile',
@@ -232,6 +238,9 @@ const ALTERNATE_CONTEXT_BY_SOURCE = {
   ],
   'partner-ai-pbl-camp.html': [
     { href: siteUrl('/partner-ai-pbl-camp.md'), type: 'text/markdown' }
+  ],
+  'course-navigation.html': [
+    { href: siteUrl('/course-navigation.md'), type: 'text/markdown' }
   ]
 };
 const LLM_MARKERS = [
@@ -1398,7 +1407,7 @@ function onlineTargets() {
     { url: siteUrl('/ai-course-vs-coding.html'), markers: ['少儿编程和AI课程区别', 'application/ld+json', '孩子该学AI还是编程', ...alternateMarkersForSource('ai-course-vs-coding.html'), ...schemaMarkersForSource('ai-course-vs-coding.html'), ...(htmlAiQueryMarkers.get('ai-course-vs-coding.html') || [])] },
     { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子', ...alternateMarkersForSource('shunyi-ai-parent-class.html'), ...schemaMarkersForSource('shunyi-ai-parent-class.html'), ...(htmlAiQueryMarkers.get('shunyi-ai-parent-class.html') || [])] },
     { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html'), ...schemaMarkersForSource('partner-ai-pbl-camp.html'), ...(htmlAiQueryMarkers.get('partner-ai-pbl-camp.html') || [])] },
-    { url: siteUrl('/course-navigation.html'), markers: ['少年CEO AI 创业营课程导航', 'application/ld+json', '北京顺义AI课程', ...schemaMarkersForSource('course-navigation.html')] },
+    { url: siteUrl('/course-navigation.html'), markers: ['少年CEO AI 创业营课程导航', 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('course-navigation.html'), ...schemaMarkersForSource('course-navigation.html')] },
     { url: siteUrl('/robots.txt'), markers: [`Sitemap: ${siteUrl('/sitemap-index.xml')}`, `Sitemap: ${siteUrl('/sitemap.xml')}`, `Sitemap: ${siteUrl('/sitemap-context.xml')}`] },
     { url: siteUrl('/sitemap-index.xml'), markers: [`<loc>${siteUrl('/sitemap.xml')}</loc>`, `<loc>${siteUrl('/sitemap-context.xml')}</loc>`] },
     { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },

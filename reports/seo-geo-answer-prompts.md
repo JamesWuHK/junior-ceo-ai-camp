@@ -1,6 +1,6 @@
 # GEO AI Answer Prompt Pack
 
-Generated: 2026-06-09T14:05:36+08:00
+Generated: 2026-06-09T15:05:03+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
 Prompt count: 39
