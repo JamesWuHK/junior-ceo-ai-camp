@@ -1,9 +1,9 @@
 # GEO AI Answer Prompt Pack
 
-Generated: 2026-06-09T22:29:38+08:00
+Generated: 2026-06-09T22:39:54+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
-Prompt count: 45
+Prompt count: 46
 
 ## Purpose
 
@@ -509,6 +509,17 @@ AI时代孩子需要什么能力
 
 ### 44. partner-cooperation
 
+- Query: 培训机构AI课程合作怎么落地
+- Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html
+- Markdown context: https://camps.wanli.wiki/partner-ai-pbl-camp.md
+- Baidu SERP check: https://www.baidu.com/s?wd=%E5%9F%B9%E8%AE%AD%E6%9C%BA%E6%9E%84AI%E8%AF%BE%E7%A8%8B%E5%90%88%E4%BD%9C%E6%80%8E%E4%B9%88%E8%90%BD%E5%9C%B0
+
+```text
+培训机构AI课程合作怎么落地
+```
+
+### 45. partner-cooperation
+
 - Query: 青少年AI营地合作课程方案
 - Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html
 - Markdown context: https://camps.wanli.wiki/partner-ai-pbl-camp.md
@@ -518,7 +529,7 @@ AI时代孩子需要什么能力
 青少年AI营地合作课程方案
 ```
 
-### 45. partner-cooperation
+### 46. partner-cooperation
 
 - Query: AI创业营机构合作支持什么
 - Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html

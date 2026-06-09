@@ -25,7 +25,7 @@ PASS | ai-judgement-for-kids | /ai-judgement-for-kids.html | 孩子AI判断力 |
 PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | yes | yes | youth-ai-course-guide.md
 PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | yes | yes | ai-course-vs-coding.md
 PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | yes | yes | shunyi-ai-parent-class.md
-PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | partner-ai-pbl-camp.md
+PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | 4/4 | 4/4 | 4/4 | yes | yes | partner-ai-pbl-camp.md
 
 ## Baidu Submission Set
 
@@ -273,10 +273,10 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Primary locations measured: title, description, keywords, h1, body, jsonLd
 - Secondary matches measured: 8/8 (培训机构AI课程合作, 青少年AI营地合作, 少年CEO, AI创业营合作, 培训机构, 营地, 学校社群, 城市合作伙伴)
 - JSON-LD types measured: BreadcrumbList, FAQPage, Service
-- AI query coverage targets: 培训机构如何合作开展AI PBL创业营 | 青少年AI营地合作课程方案 | AI创业营机构合作支持什么
-- Visible HTML answer blocks measured: 3/3 (培训机构如何合作开展AI PBL创业营 | 青少年AI营地合作课程方案 | AI创业营机构合作支持什么)
-- JSON-LD answer blocks measured: 3/3 (培训机构如何合作开展AI PBL创业营 | 青少年AI营地合作课程方案 | AI创业营机构合作支持什么)
-- AI query answer blocks measured: 3/3 (培训机构如何合作开展AI PBL创业营 | 青少年AI营地合作课程方案 | AI创业营机构合作支持什么)
+- AI query coverage targets: 培训机构如何合作开展AI PBL创业营 | 培训机构AI课程合作怎么落地 | 青少年AI营地合作课程方案 | AI创业营机构合作支持什么
+- Visible HTML answer blocks measured: 4/4 (培训机构如何合作开展AI PBL创业营 | 培训机构AI课程合作怎么落地 | 青少年AI营地合作课程方案 | AI创业营机构合作支持什么)
+- JSON-LD answer blocks measured: 4/4 (培训机构如何合作开展AI PBL创业营 | 培训机构AI课程合作怎么落地 | 青少年AI营地合作课程方案 | AI创业营机构合作支持什么)
+- AI query answer blocks measured: 4/4 (培训机构如何合作开展AI PBL创业营 | 培训机构AI课程合作怎么落地 | 青少年AI营地合作课程方案 | AI创业营机构合作支持什么)
 - Status: PASS
 - Failures: none
 - Warnings: none

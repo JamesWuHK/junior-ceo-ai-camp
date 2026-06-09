@@ -2698,6 +2698,18 @@
     },
     {
       "cluster": "partner-cooperation",
+      "query": "培训机构AI课程合作怎么落地",
+      "targetPage": "https://camps.wanli.wiki/partner-ai-pbl-camp.html",
+      "markdownUrl": "https://camps.wanli.wiki/partner-ai-pbl-camp.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "partner-cooperation",
       "query": "青少年AI营地合作课程方案",
       "targetPage": "https://camps.wanli.wiki/partner-ai-pbl-camp.html",
       "markdownUrl": "https://camps.wanli.wiki/partner-ai-pbl-camp.md",

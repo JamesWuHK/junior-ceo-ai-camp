@@ -1,6 +1,6 @@
 # Baidu Measured Evidence Report
 
-Generated: 2026-06-09T22:29:46+08:00
+Generated: 2026-06-09T22:40:02+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_MEASURED_DATA
 
@@ -17,7 +17,7 @@ Overall status: NEEDS_MEASURED_DATA
 - URL metric evidence: 0/14 measured, 14 missing evidence.
 - Primary keyword rank evidence: 0/13 ranked, 0 measured no rank, 13 missing evidence.
 - Tracked keyword rank evidence: 0/137 ranked, 0 measured no rank, 137 missing evidence.
-- GEO answer evidence: 0/45 pass, 0 needs repair, 45 missing evidence.
+- GEO answer evidence: 0/46 pass, 0 needs repair, 46 missing evidence.
 
 ## How To Use This File
 
@@ -274,6 +274,7 @@ MISSING_EVIDENCE | shunyi-parent-class | 北京顺义AI家长公益课适合哪�
 MISSING_EVIDENCE | shunyi-parent-class | AI时代孩子需要什么能力 | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://camps.wanli.wiki/shunyi-ai-parent-class.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | shunyi-parent-class | 顺义家长怎么理解孩子学AI | https://camps.wanli.wiki/shunyi-ai-parent-class.html | https://camps.wanli.wiki/shunyi-ai-parent-class.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | partner-cooperation | 培训机构如何合作开展AI PBL创业营 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://camps.wanli.wiki/partner-ai-pbl-camp.md | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | partner-cooperation | 培训机构AI课程合作怎么落地 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://camps.wanli.wiki/partner-ai-pbl-camp.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | partner-cooperation | 青少年AI营地合作课程方案 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://camps.wanli.wiki/partner-ai-pbl-camp.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | partner-cooperation | AI创业营机构合作支持什么 | https://camps.wanli.wiki/partner-ai-pbl-camp.html | https://camps.wanli.wiki/partner-ai-pbl-camp.md | N/A | N/A | N/A | N/A | N/A | -
 

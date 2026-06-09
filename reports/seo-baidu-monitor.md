@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-09T22:36:14+08:00
+Generated: 2026-06-09T22:42:58+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -65,7 +65,7 @@ PASS | ai-judgement-for-kids | /ai-judgement-for-kids.html | 孩子AI判断力 |
 PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | Article, BreadcrumbList, FAQPage
 PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | Article, BreadcrumbList, FAQPage
 PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | Article, BreadcrumbList, FAQPage
-PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | BreadcrumbList, FAQPage, Service
+PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | 4/4 | 4/4 | 4/4 | BreadcrumbList, FAQPage, Service
 
 ## Internal Link Graph
 
@@ -91,7 +91,7 @@ PASS | https://camps.wanli.wiki/ai-judgement-for-kids.html | 200 | 12125 | none
 PASS | https://camps.wanli.wiki/youth-ai-course-guide.html | 200 | 14250 | none
 PASS | https://camps.wanli.wiki/ai-course-vs-coding.html | 200 | 11725 | none
 PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.html | 200 | 10460 | none
-PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.html | 200 | 10295 | none
+PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.html | 200 | 10862 | none
 PASS | https://camps.wanli.wiki/course-navigation.html | 200 | 10329 | none
 PASS | https://camps.wanli.wiki/robots.txt | 200 | 265 | none
 PASS | https://camps.wanli.wiki/sitemap-index.xml | 200 | 352 | none
@@ -109,7 +109,7 @@ PASS | https://camps.wanli.wiki/ai-judgement-for-kids.md | 200 | 1508 | none
 PASS | https://camps.wanli.wiki/youth-ai-course-guide.md | 200 | 827 | none
 PASS | https://camps.wanli.wiki/ai-course-vs-coding.md | 200 | 879 | none
 PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.md | 200 | 751 | none
-PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.md | 200 | 593 | none
+PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.md | 200 | 710 | none
 PASS | https://camps.wanli.wiki/course-navigation.md | 200 | 891 | none
 PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 3316 | none
 
@@ -263,10 +263,10 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 3316 | no
 
 - Page: https://camps.wanli.wiki/partner-ai-pbl-camp.html
 - Primary keyword: AI PBL 创业营机构合作
-- Target answer queries: 培训机构如何合作开展AI PBL创业营 | 青少年AI营地合作课程方案 | AI创业营机构合作支持什么
-- Visible HTML answer coverage: 3/3
-- JSON-LD answer coverage: 3/3
-- Markdown answer coverage: 3/3
+- Target answer queries: 培训机构如何合作开展AI PBL创业营 | 培训机构AI课程合作怎么落地 | 青少年AI营地合作课程方案 | AI创业营机构合作支持什么
+- Visible HTML answer coverage: 4/4
+- JSON-LD answer coverage: 4/4
+- Markdown answer coverage: 4/4
 - Status: PASS
 - Failures: none
 - Warnings: none
