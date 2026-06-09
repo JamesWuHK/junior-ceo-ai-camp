@@ -121,6 +121,29 @@
       ]
     },
     {
+      "id": "ai-era-skills-for-kids",
+      "audienceLayer": "家长公开展示",
+      "targetPage": "/ai-era-skills-for-kids.html",
+      "source": "ai-era-skills-for-kids.html",
+      "markdownSource": "ai-era-skills-for-kids.md",
+      "primary": "AI时代孩子需要什么能力",
+      "secondary": [
+        "孩子学AI有什么用",
+        "AI时代儿童能力",
+        "AI判断力",
+        "提问力",
+        "青少年AI教育",
+        "北京顺义AI家长课",
+        "AI PBL创业营",
+        "少年CEO"
+      ],
+      "aiQueries": [
+        "AI时代孩子需要什么能力",
+        "孩子学AI有什么用",
+        "家长如何培养孩子AI判断力"
+      ]
+    },
+    {
       "id": "youth-ai-course-guide",
       "audienceLayer": "家长公开展示",
       "targetPage": "/youth-ai-course-guide.html",

@@ -1,6 +1,6 @@
 # Baidu Ranking / GEO Tracking Plan
 
-Generated: 2026-06-09T02:13:01+08:00
+Generated: 2026-06-09T02:32:05+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
 
@@ -22,6 +22,7 @@ site:camps.wanli.wiki AI PBL 创业营 | https://www.baidu.com/s?wd=site%3Acamps
 site:camps.wanli.wiki AI产品原型课程 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+AI%E4%BA%A7%E5%93%81%E5%8E%9F%E5%9E%8B%E8%AF%BE%E7%A8%8B | indexed page count, visible target URLs, unexpected missing pages
 site:camps.wanli.wiki 北京顺义青少年AI课程 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | indexed page count, visible target URLs, unexpected missing pages
 site:camps.wanli.wiki 北京顺义AI夏令营 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%A4%8F%E4%BB%A4%E8%90%A5 | indexed page count, visible target URLs, unexpected missing pages
+site:camps.wanli.wiki AI时代孩子需要什么能力 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+AI%E6%97%B6%E4%BB%A3%E5%AD%A9%E5%AD%90%E9%9C%80%E8%A6%81%E4%BB%80%E4%B9%88%E8%83%BD%E5%8A%9B | indexed page count, visible target URLs, unexpected missing pages
 site:camps.wanli.wiki 青少年AI课程 | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | indexed page count, visible target URLs, unexpected missing pages
 
 ## Sitemap Submission Set
@@ -31,6 +32,7 @@ site:camps.wanli.wiki 青少年AI课程 | https://www.baidu.com/s?wd=site%3Acamp
 - https://camps.wanli.wiki/ai-product-prototype-course.html
 - https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html
 - https://camps.wanli.wiki/shunyi-ai-summer-camp.html
+- https://camps.wanli.wiki/ai-era-skills-for-kids.html
 - https://camps.wanli.wiki/youth-ai-course-guide.html
 - https://camps.wanli.wiki/ai-course-vs-coding.html
 - https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -93,6 +95,17 @@ shunyi-ai-summer-camp | secondary | 北京顺义AI课程 | https://camps.wanli.w
 shunyi-ai-summer-camp | secondary | AI PBL创业营 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://www.baidu.com/s?wd=AI+PBL%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A
 shunyi-ai-summer-camp | secondary | 8-16岁AI课程 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://www.baidu.com/s?wd=8-16%E5%B2%81AI%E8%AF%BE%E7%A8%8B | N/A | N/A
 shunyi-ai-summer-camp | secondary | 少年CEO | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO | N/A | N/A
+ai-era-skills-for-kids | primary | AI时代孩子需要什么能力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=AI%E6%97%B6%E4%BB%A3%E5%AD%A9%E5%AD%90%E9%9C%80%E8%A6%81%E4%BB%80%E4%B9%88%E8%83%BD%E5%8A%9B | N/A | N/A
+ai-era-skills-for-kids | brand-assisted | AI时代孩子需要什么能力 少年CEO | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=AI%E6%97%B6%E4%BB%A3%E5%AD%A9%E5%AD%90%E9%9C%80%E8%A6%81%E4%BB%80%E4%B9%88%E8%83%BD%E5%8A%9B+%E5%B0%91%E5%B9%B4CEO | N/A | N/A
+ai-era-skills-for-kids | site-restricted | site:camps.wanli.wiki AI时代孩子需要什么能力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+AI%E6%97%B6%E4%BB%A3%E5%AD%A9%E5%AD%90%E9%9C%80%E8%A6%81%E4%BB%80%E4%B9%88%E8%83%BD%E5%8A%9B | N/A | N/A
+ai-era-skills-for-kids | secondary | 孩子学AI有什么用 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E5%AD%A6AI%E6%9C%89%E4%BB%80%E4%B9%88%E7%94%A8 | N/A | N/A
+ai-era-skills-for-kids | secondary | AI时代儿童能力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=AI%E6%97%B6%E4%BB%A3%E5%84%BF%E7%AB%A5%E8%83%BD%E5%8A%9B | N/A | N/A
+ai-era-skills-for-kids | secondary | AI判断力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=AI%E5%88%A4%E6%96%AD%E5%8A%9B | N/A | N/A
+ai-era-skills-for-kids | secondary | 提问力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=%E6%8F%90%E9%97%AE%E5%8A%9B | N/A | N/A
+ai-era-skills-for-kids | secondary | 青少年AI教育 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E6%95%99%E8%82%B2 | N/A | N/A
+ai-era-skills-for-kids | secondary | 北京顺义AI家长课 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%AE%B6%E9%95%BF%E8%AF%BE | N/A | N/A
+ai-era-skills-for-kids | secondary | AI PBL创业营 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=AI+PBL%E5%88%9B%E4%B8%9A%E8%90%A5 | N/A | N/A
+ai-era-skills-for-kids | secondary | 少年CEO | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO | N/A | N/A
 youth-ai-course-guide | primary | 青少年AI课程 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A
 youth-ai-course-guide | brand-assisted | 青少年AI课程 少年CEO | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B+%E5%B0%91%E5%B9%B4CEO | N/A | N/A
 youth-ai-course-guide | site-restricted | site:camps.wanli.wiki 青少年AI课程 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A | N/A
@@ -154,6 +167,9 @@ beijing-shunyi-youth-ai-course | 顺义家长如何判断一门青少年AI课程
 shunyi-ai-summer-camp | 北京顺义AI夏令营适合什么孩子 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%A4%8F%E4%BB%A4%E8%90%A5%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%AD%A9%E5%AD%90 | N/A
 shunyi-ai-summer-camp | 顺义AI夏令营和普通科技营有什么不同 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89AI%E5%A4%8F%E4%BB%A4%E8%90%A5%E5%92%8C%E6%99%AE%E9%80%9A%E7%A7%91%E6%8A%80%E8%90%A5%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E5%90%8C | N/A
 shunyi-ai-summer-camp | AI夏令营3天能做出什么作品 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | https://www.baidu.com/s?wd=AI%E5%A4%8F%E4%BB%A4%E8%90%A53%E5%A4%A9%E8%83%BD%E5%81%9A%E5%87%BA%E4%BB%80%E4%B9%88%E4%BD%9C%E5%93%81 | N/A
+ai-era-skills-for-kids | AI时代孩子需要什么能力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | https://www.baidu.com/s?wd=AI%E6%97%B6%E4%BB%A3%E5%AD%A9%E5%AD%90%E9%9C%80%E8%A6%81%E4%BB%80%E4%B9%88%E8%83%BD%E5%8A%9B | N/A
+ai-era-skills-for-kids | 孩子学AI有什么用 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E5%AD%A6AI%E6%9C%89%E4%BB%80%E4%B9%88%E7%94%A8 | N/A
+ai-era-skills-for-kids | 家长如何培养孩子AI判断力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | https://www.baidu.com/s?wd=%E5%AE%B6%E9%95%BF%E5%A6%82%E4%BD%95%E5%9F%B9%E5%85%BB%E5%AD%A9%E5%AD%90AI%E5%88%A4%E6%96%AD%E5%8A%9B | N/A
 youth-ai-course-guide | 青少年AI课程怎么选 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B%E6%80%8E%E4%B9%88%E9%80%89 | N/A
 youth-ai-course-guide | 儿童AI课程只学工具够吗 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | https://www.baidu.com/s?wd=%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B%E5%8F%AA%E5%AD%A6%E5%B7%A5%E5%85%B7%E5%A4%9F%E5%90%97 | N/A
 youth-ai-course-guide | AI PBL课程适合什么孩子 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | https://www.baidu.com/s?wd=AI+PBL%E8%AF%BE%E7%A8%8B%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%AD%A9%E5%AD%90 | N/A
@@ -176,6 +192,7 @@ YYYY-MM-DD | ai-pbl-camp | AI PBL 创业营 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | ai-product-prototype-course | AI产品原型课程 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | beijing-shunyi-youth-ai-course | 北京顺义青少年AI课程 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | shunyi-ai-summer-camp | 北京顺义AI夏令营 | N/A | N/A | N/A | N/A | N/A | -
+YYYY-MM-DD | ai-era-skills-for-kids | AI时代孩子需要什么能力 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | youth-ai-course-guide | 青少年AI课程 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | ai-course-vs-coding | 少儿编程和AI课程区别 | N/A | N/A | N/A | N/A | N/A | -
 YYYY-MM-DD | shunyi-parent-class | 北京顺义 AI 家长公益课 | N/A | N/A | N/A | N/A | N/A | -

@@ -23,6 +23,9 @@
 - AI产品原型课程
 - AI创业营
 - 北京顺义 AI 家长公益课
+- AI时代孩子需要什么能力
+- AI判断力
+- 提问力
 
 ## 不要混淆
 
@@ -53,6 +56,14 @@
 
 北京顺义AI夏令营适合8-16岁、愿意提问、观察、表达和动手做作品的孩子。不会编程也可以参加，重点是用 AI 做出能展示的产品原型。
 
+### AI时代孩子需要什么能力？
+
+AI时代孩子需要提问力、AI判断力、表达力和把想法做成作品的能力。会使用工具只是起点，真正重要的是孩子能提出好问题，判断结果是否可靠，再把自己的想法清楚地做出来。
+
+### 孩子学AI有什么用？
+
+孩子学AI的价值不只是学会一个工具，而是学会把问题说清楚、和AI一起找方案、判断结果、做出作品。好的AI课程会让孩子从使用者变成主动表达和创造的人。
+
 ### AI PBL 创业营和普通 AI 工具课有什么不同？
 
 普通 AI 工具课常从功能按钮开始，AI PBL 创业营从真实问题和用户反馈开始。孩子不仅体验 AI，还要用 AI 做出可以展示的产品原型，并说明这个方案为什么对用户有用。
@@ -76,6 +87,7 @@
 - AI产品原型课程：https://camps.wanli.wiki/ai-product-prototype-course.html
 - 北京顺义青少年AI课程：https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html
 - 北京顺义AI夏令营：https://camps.wanli.wiki/shunyi-ai-summer-camp.html
+- AI时代孩子需要什么能力：https://camps.wanli.wiki/ai-era-skills-for-kids.html
 - 青少年AI课程选择指南：https://camps.wanli.wiki/youth-ai-course-guide.html
 - 少儿编程和AI课程区别：https://camps.wanli.wiki/ai-course-vs-coding.html
 - 北京顺义 AI 家长公益课：https://camps.wanli.wiki/shunyi-ai-parent-class.html
