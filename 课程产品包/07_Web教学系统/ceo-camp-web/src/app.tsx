@@ -3233,7 +3233,8 @@ const projectStatusOptions = [
 
 const showcaseStatusOptions = [
   { value: "DRAFT", label: "草稿" },
-  { value: "READY", label: "可上场" },
+  { value: "READY", label: "可演示" },
+  { value: "NEEDS_FALLBACK", label: "需要兜底" },
   { value: "PUBLISHED", label: "已展示" }
 ];
 
@@ -4002,11 +4003,23 @@ function TeacherProgressBoard({ selectedModuleId, highlighted }: { selectedModul
         {focusedSummaries.map((summary) => {
           const completion = `${summary.done_count}/${summary.completion_total}`;
           const latestBlocker = summary.active_blockers[0] || summary.blockers[0];
-          const cardClass = summary.active_blockers.length
+          const needsFallback = summary.team.showcase_status === "NEEDS_FALLBACK";
+          const cardClass = summary.active_blockers.length || needsFallback
             ? "progress-team-card needs-help"
             : summary.focusComplete
               ? "progress-team-card ready"
               : "progress-team-card watching";
+          const statusText = summary.active_blockers.length
+            ? "需要支援"
+            : needsFallback
+              ? "需兜底"
+              : summary.team.showcase_status === "READY"
+                ? "可演示"
+                : summary.focusComplete
+                  ? "当前达成"
+                  : summary.ready_for_demo
+                    ? "有入口"
+                    : "进行中";
           return (
             <article
               className={cardClass}
@@ -4018,7 +4031,7 @@ function TeacherProgressBoard({ selectedModuleId, highlighted }: { selectedModul
                   <strong>{summary.team.name}</strong>
                   <small>{summary.members.length} 名学生 · 当前 {summary.focusDoneCount}/{summary.focusTotal} · 全程 {completion}</small>
                 </div>
-                <em>{summary.active_blockers.length ? "需要支援" : summary.focusComplete ? "当前达成" : summary.ready_for_demo ? "可演示" : "进行中"}</em>
+                <em>{statusText}</em>
               </header>
               <div className="progress-signal-grid">
                 <span>
@@ -4779,15 +4792,17 @@ function TeacherTechRoutes() {
 function TeacherProjectSubmissions() {
   const [items, setItems] = useState<TaskSubmission[]>([]);
   const [allSubmissions, setAllSubmissions] = useState<TaskSubmission[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   const load = async () => {
     try {
-      const result = await api.submissions();
+      const [result, teamResult] = await Promise.all([api.submissions(), api.teams()]);
       const allItems = result.task_submissions;
       setAllSubmissions(allItems);
       setItems(allItems.filter((item) => item.task_type === "product_link"));
+      setTeams(teamResult.teams);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "加载失败");
     }
@@ -4849,6 +4864,39 @@ function TeacherProjectSubmissions() {
     }
   };
 
+  const teamForSubmission = (item: TaskSubmission) => {
+    const itemTeamName = item.team_name || asText(item.payload.team_name);
+    return teams.find((team) =>
+      (!!item.team_id && team.id === item.team_id) ||
+      (!!itemTeamName && team.name === itemTeamName)
+    );
+  };
+
+  const markShowcaseStatus = async (item: TaskSubmission, showcaseStatus: "READY" | "NEEDS_FALLBACK") => {
+    const team = teamForSubmission(item);
+    if (!team) {
+      setMessage("先把这个作品归到一个小组，再做演示检查。");
+      return;
+    }
+    setLoading(true);
+    setMessage("");
+    try {
+      const nextTeam = {
+        ...team,
+        project_status: showcaseStatus === "READY" ? "READY" : team.project_status || "PROTOTYPING",
+        showcase_status: showcaseStatus
+      };
+      const result = await api.saveTeam(nextTeam);
+      setTeams((current) => current.map((candidate) => (candidate.id === result.team.id ? result.team : candidate)));
+      setMessage(showcaseStatus === "READY" ? `${team.name} 已标记为可演示。` : `${team.name} 已标记为需要兜底。`);
+      await load();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section className="panel project-submissions-panel">
       <div className="panel-title">
@@ -4863,6 +4911,8 @@ function TeacherProjectSubmissions() {
           const accessUrl = asText(item.payload.access_url);
           const screenshot = asText(item.payload.screenshot_url);
           const recording = asText(item.payload.recording_url);
+          const team = teamForSubmission(item);
+          const showcaseStatus = team?.showcase_status || "DRAFT";
           return (
             <article className="project-submission-row" key={item.id}>
               {screenshot && (
@@ -4880,6 +4930,9 @@ function TeacherProjectSubmissions() {
                 <strong>{productName || "未命名作品"}</strong>
                 <p>{oneLiner || "还没有一句话介绍。"}</p>
                 {recording && <p className="project-submission-media">已准备演示视频</p>}
+                <p className={showcaseStatus === "NEEDS_FALLBACK" ? "project-demo-status needs-fallback" : showcaseStatus === "READY" ? "project-demo-status ready" : "project-demo-status"}>
+                  {team ? showcaseStatusLabel(showcaseStatus) : "未关联小组"}
+                </p>
                 {accessUrl && (
                   <a href={normalizeShowcaseUrl(accessUrl)} target="_blank" rel="noreferrer">
                     <ExternalLink size={15} />
@@ -4887,9 +4940,17 @@ function TeacherProjectSubmissions() {
                   </a>
                 )}
               </div>
-              <button disabled={loading || !accessUrl} onClick={() => publish(item)}>
-                放进展示区
-              </button>
+              <div className="project-submission-actions">
+                <button disabled={loading || !accessUrl} onClick={() => publish(item)}>
+                  放进展示区
+                </button>
+                <button className="secondary" disabled={loading || !team} onClick={() => markShowcaseStatus(item, "READY")}>
+                  可演示
+                </button>
+                <button className="warning" disabled={loading || !team} onClick={() => markShowcaseStatus(item, "NEEDS_FALLBACK")}>
+                  需要兜底
+                </button>
+              </div>
             </article>
           );
         })}

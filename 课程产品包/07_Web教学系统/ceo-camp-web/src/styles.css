@@ -3278,6 +3278,29 @@ button:disabled {
   font-weight: 900;
 }
 
+.project-demo-status {
+  width: fit-content;
+  border: 1px solid #d9d4c4;
+  border-radius: 999px;
+  background: #f6f0e2;
+  color: #60705f;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.project-demo-status.ready {
+  border-color: #bcd8b9;
+  background: #edf8ed;
+  color: #1f6f50;
+}
+
+.project-demo-status.needs-fallback {
+  border-color: #efc0ad;
+  background: #fff0ea;
+  color: #9b3d18;
+}
+
 .project-submission-row span,
 .project-submission-row p {
   color: #60705f;
@@ -3323,6 +3346,22 @@ button:disabled {
 .project-submission-row button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+}
+
+.project-submission-actions {
+  display: grid;
+  gap: 8px;
+  min-width: 118px;
+}
+
+.project-submission-actions button.secondary {
+  background: #edf8ed;
+  color: #1f6f50;
+}
+
+.project-submission-actions button.warning {
+  background: #fff0ea;
+  color: #9b3d18;
 }
 
 .feedback-summary-card {
