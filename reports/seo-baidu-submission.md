@@ -1,6 +1,6 @@
 # Baidu Submission History Report
 
-Generated: 2026-06-09T11:48:35+08:00
+Generated: 2026-06-09T12:06:10+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NO_PUSH_RECORDED
 
@@ -29,5 +29,6 @@ NO_DATA | N/A | N/A | N/A | 0 | N/A | 0 | 0 | No private Baidu submission histor
 ## Next Actions
 
 - Add `BAIDU_TOKEN` privately in `.env` or shell, then run `npm run seo:submit:baidu` for real URL push.
+- If token access is unavailable, run `npm run seo:baidu:submit-list` and use reports/seo-baidu-submit-urls.txt as the manual URL submission package.
 - After push, run `npm run seo:baidu:submission` to refresh this report.
 - After Baidu Search Resource Platform has crawl/index/query data, fill the measurement checklist and run `npm run seo:measurements:import` plus `npm run seo:baidu:evidence`.

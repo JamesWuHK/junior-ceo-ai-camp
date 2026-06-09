@@ -18,6 +18,8 @@ const MONITOR_REPORT_FILE = 'reports/seo-baidu-monitor.md';
 const RANK_PLAN_REPORT_FILE = 'reports/seo-baidu-rank-plan.md';
 const BAIDU_EVIDENCE_REPORT_FILE = 'reports/seo-baidu-evidence.md';
 const BAIDU_SUBMISSION_REPORT_FILE = 'reports/seo-baidu-submission.md';
+const BAIDU_MANUAL_SUBMIT_FILE = 'reports/seo-baidu-submit-urls.txt';
+const BAIDU_MANUAL_SUBMIT_REPORT_FILE = 'reports/seo-baidu-manual-submit.md';
 const INTERNAL_LINK_REPORT_FILE = 'reports/seo-internal-links.md';
 const MEASUREMENT_CHECKLIST_CSV_FILE = 'reports/seo-baidu-measurement-checklist.csv';
 const BAIDU_MEASUREMENTS_FILE = 'seo/baidu-measurements.json';
@@ -2128,6 +2130,7 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     '## Next Actions',
     '',
     '- Add `BAIDU_TOKEN` privately in `.env` or the shell, then run `npm run seo:submit:baidu`.',
+    `- If token access is unavailable, run \`npm run seo:baidu:submit-list\` and use ${BAIDU_MANUAL_SUBMIT_FILE} for manual URL submission in Baidu Search Resource Platform.`,
     '- Run `npm run seo:baidu:submission` after real push submission to refresh discovery push history.',
     `- Copy ${BAIDU_MEASUREMENTS_EXAMPLE_FILE} to ${BAIDU_MEASUREMENTS_FILE}, fill measured data, then run \`npm run seo:baidu:evidence\`.`,
     `- Or fill ${MEASUREMENT_CHECKLIST_CSV_FILE}, run \`npm run seo:measurements:import\`, then run \`npm run seo:baidu:evidence\`.`,
@@ -2216,10 +2219,57 @@ function buildSubmissionReport(snapshot) {
     '## Next Actions',
     '',
     '- Add `BAIDU_TOKEN` privately in `.env` or shell, then run `npm run seo:submit:baidu` for real URL push.',
+    `- If token access is unavailable, run \`npm run seo:baidu:submit-list\` and use ${BAIDU_MANUAL_SUBMIT_FILE} as the manual URL submission package.`,
     '- After push, run `npm run seo:baidu:submission` to refresh this report.',
     '- After Baidu Search Resource Platform has crawl/index/query data, fill the measurement checklist and run `npm run seo:measurements:import` plus `npm run seo:baidu:evidence`.',
     ''
   ].join('\n');
+}
+
+function buildManualSubmitReport({ generatedAt, urls }) {
+  return [
+    '# Baidu Manual URL Submission Package',
+    '',
+    `Generated: ${generatedAt}`,
+    `Site URL: ${SITE_URL}`,
+    `URL list file: ${BAIDU_MANUAL_SUBMIT_FILE}`,
+    `URL count: ${urls.length}`,
+    '',
+    '## Purpose',
+    '',
+    '- This package is for Baidu discovery support when `BAIDU_TOKEN` is not configured or when a manual submission trail is needed.',
+    '- The URL set is read from `sitemap.xml`, so it matches the same canonical URLs used by `npm run seo:submit:baidu`.',
+    '- Manual submission is discovery support only. It is not proof of Baidu indexation, ranking, impressions, clicks, or GEO citation.',
+    '',
+    '## How To Use',
+    '',
+    '1. Open Baidu Search Resource Platform for `https://camps.wanli.wiki`.',
+    '2. Use the ordinary inclusion URL submission area or the available sitemap/URL submission tool for the verified site.',
+    `3. Copy the one-URL-per-line list from ${BAIDU_MANUAL_SUBMIT_FILE}.`,
+    '4. After submission, record the date, submission method, accepted count, rejected count, and any platform message in the private tracking notes.',
+    '5. When Baidu reports crawl/index/query data, update the measurement checklist and run `npm run seo:measurements:import` plus `npm run seo:baidu:evidence`.',
+    '',
+    '## URL Set',
+    '',
+    ...urls.map((url) => `- ${url}`),
+    '',
+    '## Evidence Boundary',
+    '',
+    '- Treat this file as a submission aid, not as measured SEO evidence.',
+    '- A page counts as indexed only after Baidu Search Resource Platform data, a compliant rank monitor, or a reproducible manual result confirms it.',
+    ''
+  ].join('\n');
+}
+
+function writeManualSubmitPackage() {
+  const generatedAt = localTimestamp();
+  const urls = urlsFromSitemap();
+  writeReport(BAIDU_MANUAL_SUBMIT_FILE, `${urls.join('\n')}\n`);
+  writeReport(BAIDU_MANUAL_SUBMIT_REPORT_FILE, buildManualSubmitReport({ generatedAt, urls }));
+  console.log(`Baidu manual submit URL list: ${BAIDU_MANUAL_SUBMIT_FILE}`);
+  console.log(`Baidu manual submit report: ${BAIDU_MANUAL_SUBMIT_REPORT_FILE}`);
+  console.log(`URL count: ${urls.length}`);
+  for (const url of urls) console.log(`- ${url}`);
 }
 
 function writeSubmissionReport() {
@@ -2850,6 +2900,7 @@ function usage() {
     '  monitor           Write a Baidu SEO/GEO monitoring report',
     '  rank-plan         Write a Baidu ranking and GEO query tracking sheet',
     '  submission        Write Baidu URL push submission history report',
+    '  submit-list       Write a one-URL-per-line Baidu manual submission package',
     '  check             Validate homepage SEO files and tags',
     '  check-online      Validate live homepage, robots, sitemaps, and llms.txt',
     '  submit [--dry-run] Submit sitemap URLs to Baidu Search Resource Platform'
@@ -2899,6 +2950,10 @@ async function main() {
       break;
     case 'submission':
       writeSubmissionReport();
+      break;
+    case 'submit-list':
+    case 'urls':
+      writeManualSubmitPackage();
       break;
     case 'check':
       check();

@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-09T11:48:35+08:00
+Generated: 2026-06-09T12:06:10+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -223,6 +223,7 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 2475 | no
 ## Next Actions
 
 - Add `BAIDU_TOKEN` privately in `.env` or the shell, then run `npm run seo:submit:baidu`.
+- If token access is unavailable, run `npm run seo:baidu:submit-list` and use reports/seo-baidu-submit-urls.txt for manual URL submission in Baidu Search Resource Platform.
 - Run `npm run seo:baidu:submission` after real push submission to refresh discovery push history.
 - Copy seo/baidu-measurements.example.json to seo/baidu-measurements.json, fill measured data, then run `npm run seo:baidu:evidence`.
 - Or fill reports/seo-baidu-measurement-checklist.csv, run `npm run seo:measurements:import`, then run `npm run seo:baidu:evidence`.
