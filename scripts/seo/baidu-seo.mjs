@@ -1431,8 +1431,8 @@ function onlineTargets() {
     { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子', ...alternateMarkersForSource('shunyi-ai-parent-class.html'), ...schemaMarkersForSource('shunyi-ai-parent-class.html'), ...(htmlAiQueryMarkers.get('shunyi-ai-parent-class.html') || [])] },
     { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html'), ...schemaMarkersForSource('partner-ai-pbl-camp.html'), ...(htmlAiQueryMarkers.get('partner-ai-pbl-camp.html') || [])] },
     { url: siteUrl('/course-navigation.html'), markers: ['少年CEO AI 创业营课程导航', 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('course-navigation.html'), ...schemaMarkersForSource('course-navigation.html')] },
-    { label: 'robots canonical', url: siteUrl('/robots.txt'), markers: robotsRequiredMarkers() },
-    { label: 'robots source-bypass', url: siteUrl('/robots.txt?seo-monitor=source'), markers: robotsRequiredMarkers() },
+    { label: 'robots canonical', url: siteUrl('/robots.txt'), markers: robotsRequiredMarkers(), includeCacheHeaders: true },
+    { label: 'robots source-bypass', url: siteUrl('/robots.txt?seo-monitor=source'), markers: robotsRequiredMarkers(), includeCacheHeaders: true },
     { url: siteUrl('/sitemap-index.xml'), markers: [`<loc>${siteUrl('/sitemap.xml')}</loc>`, `<loc>${siteUrl('/sitemap-context.xml')}</loc>`] },
     { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },
     { url: siteUrl('/sitemap-context.xml'), markers: [`<loc>${siteUrl('/llms.txt')}</loc>`, ...MARKDOWN_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`)] },
@@ -1447,7 +1447,7 @@ async function fetchOnlineTarget(target) {
     const body = await response.text();
     const missingMarkers = target.markers.filter((marker) => !body.includes(marker));
     const ok = response.ok && missingMarkers.length === 0;
-    const cacheHeaders = cacheHeaderSummary(response.headers);
+    const cacheHeaders = target.includeCacheHeaders ? cacheHeaderSummary(response.headers) : '';
     return {
       label: target.label || '',
       url: target.url,
@@ -2144,7 +2144,50 @@ function baiduEvidence() {
   console.log(`GEO answer evidence: ${snapshot.summary.geoPassCount}/${snapshot.summary.geoQueryCount} pass, ${snapshot.summary.missingGeoEvidenceCount} missing`);
 }
 
+function robotsCacheDiagnosis(onlineResults) {
+  const canonical = onlineResults.find((result) => result.label === 'robots canonical');
+  const sourceBypass = onlineResults.find((result) => result.label === 'robots source-bypass');
+  if (!canonical && !sourceBypass) {
+    return {
+      status: 'NOT_CHECKED',
+      lines: ['- Robots cache check was not included in online targets.']
+    };
+  }
+
+  let status = 'UNKNOWN';
+  if (canonical?.ok) {
+    status = 'CANONICAL_PASS';
+  } else if (sourceBypass?.ok) {
+    status = 'EDGE_CACHE_STALE';
+  } else {
+    status = 'SOURCE_AND_CANONICAL_FAIL';
+  }
+
+  const canonicalMissing = canonical?.missingMarkers?.length ? canonical.missingMarkers.join(', ') : 'none';
+  const sourceMissing = sourceBypass?.missingMarkers?.length ? sourceBypass.missingMarkers.join(', ') : 'none';
+  const action = status === 'EDGE_CACHE_STALE'
+    ? 'Purge https://camps.wanli.wiki/robots.txt in the CDN/DNSPod account that controls camps.wanli.wiki.cdn.dnsv1.com, or wait for the edge cache to expire.'
+    : status === 'SOURCE_AND_CANONICAL_FAIL'
+      ? 'Fix and redeploy the COS robots.txt object, then rerun seo:monitor.'
+      : 'No robots cache repair needed.';
+
+  return {
+    status,
+    lines: [
+      `- Status: ${status}`,
+      `- Canonical URL: ${canonical?.url || 'N/A'}`,
+      `- Canonical result: ${canonical?.ok ? 'PASS' : 'FAIL'}; HTTP ${canonical?.status || 'n/a'}; bytes=${canonical?.bytes ?? 'n/a'}; missing=${canonicalMissing}`,
+      `- Canonical cache evidence: ${canonical?.cacheHeaders || 'N/A'}`,
+      `- Source-bypass URL: ${sourceBypass?.url || 'N/A'}`,
+      `- Source-bypass result: ${sourceBypass?.ok ? 'PASS' : 'FAIL'}; HTTP ${sourceBypass?.status || 'n/a'}; bytes=${sourceBypass?.bytes ?? 'n/a'}; missing=${sourceMissing}`,
+      `- Source-bypass cache evidence: ${sourceBypass?.cacheHeaders || 'N/A'}`,
+      `- Recommended action: ${action}`
+    ]
+  };
+}
+
 function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSnapshot, onlineStatus, onlineResults, evidenceSnapshot, submissionSnapshot }) {
+  const robotsDiagnosis = robotsCacheDiagnosis(onlineResults);
   const coverageRows = coverageSnapshot.rows.map((row) => [
     row.status,
     row.id,
@@ -2193,6 +2236,7 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     `- Baidu evidence file: ${evidenceSnapshot.source.status === 'PRIVATE_MEASUREMENTS_LOADED' ? BAIDU_MEASUREMENTS_FILE : `${BAIDU_MEASUREMENTS_FILE} missing`}`,
     `- Baidu discovery push history: ${submissionSnapshot.summary.latestStatus}`,
     `- Baidu submission history file: ${submissionSnapshot.historyStatus === 'PRIVATE_HISTORY_LOADED' ? BAIDU_SUBMISSION_HISTORY_FILE : `${BAIDU_SUBMISSION_HISTORY_FILE} missing`}`,
+    `- Robots cache diagnosis: ${robotsDiagnosis.status}`,
     '',
     '## Measurement Boundary',
     '',
@@ -2201,6 +2245,10 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     '- Measured Baidu index count, search impressions, clicks, crawler frequency, keyword ranking positions, and AI citation frequency require `seo/baidu-measurements.json` populated from Baidu Search Resource Platform exports, a compliant rank monitor, reproducible manual checks, or manual AI answer checks.',
     '- Baidu URL submission helps Baidu discover URLs faster; it does not guarantee inclusion or ranking. Treat successful push as discovery support, not as proof of indexed status.',
     '- Baidu submission history is tracked separately from measured index/rank/GEO evidence so discovery support does not get mistaken for ranking proof.',
+    '',
+    '## Robots Cache Diagnosis',
+    '',
+    ...robotsDiagnosis.lines,
     '',
     '## Official Baidu References',
     '',
