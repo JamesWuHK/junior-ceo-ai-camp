@@ -16,6 +16,7 @@ const CONTEXT_SITEMAP_FILE = 'sitemap-context.xml';
 const SITE_FACTS_FILE = 'site-facts.json';
 const COVERAGE_REPORT_FILE = 'reports/seo-baidu-geo-coverage.md';
 const MONITOR_REPORT_FILE = 'reports/seo-baidu-monitor.md';
+const CDN_REFRESH_REPORT_FILE = 'reports/seo-cdn-refresh.md';
 const RANK_PLAN_REPORT_FILE = 'reports/seo-baidu-rank-plan.md';
 const GEO_PROMPT_REPORT_FILE = 'reports/seo-geo-answer-prompts.md';
 const BAIDU_EVIDENCE_REPORT_FILE = 'reports/seo-baidu-evidence.md';
@@ -2429,8 +2430,134 @@ function robotsCacheDiagnosis(onlineResults) {
   };
 }
 
+function criticalAssetCacheDiagnostics(onlineResults) {
+  const pairs = [
+    {
+      asset: 'robots.txt',
+      canonicalLabel: 'robots canonical',
+      sourceLabel: 'robots source-bypass',
+      canonicalUrl: siteUrl('/robots.txt'),
+      impact: 'Baidu crawl rules and explicit Baiduspider discovery signal'
+    },
+    {
+      asset: CONTEXT_SITEMAP_FILE,
+      canonicalLabel: 'sitemap-context canonical',
+      sourceLabel: 'sitemap-context source-bypass',
+      canonicalUrl: siteUrl(`/${CONTEXT_SITEMAP_FILE}`),
+      impact: 'AI/GEO context discovery for Markdown and structured facts'
+    },
+    {
+      asset: 'llms.txt',
+      canonicalLabel: 'llms canonical',
+      sourceLabel: 'llms source-bypass',
+      canonicalUrl: siteUrl('/llms.txt'),
+      impact: 'AI agent context, canonical answers, and entity disambiguation'
+    },
+    {
+      asset: SITE_FACTS_FILE,
+      canonicalLabel: 'site-facts canonical',
+      sourceLabel: 'site-facts source-bypass',
+      canonicalUrl: siteUrl(`/${SITE_FACTS_FILE}`),
+      impact: 'Machine-readable GEO facts, keyword clusters, and entity aliases'
+    }
+  ];
+
+  const rows = pairs.map((pair) => {
+    const canonical = onlineResults.find((result) => result.label === pair.canonicalLabel);
+    const source = onlineResults.find((result) => result.label === pair.sourceLabel);
+    let status = 'UNKNOWN';
+    if (canonical?.ok && !canonical.warning) {
+      status = 'CANONICAL_PASS';
+    } else if (source?.ok) {
+      status = 'EDGE_CACHE_STALE';
+    } else if (canonical?.ok) {
+      status = 'CANONICAL_WARN_SOURCE_FAIL';
+    } else {
+      status = 'SOURCE_AND_CANONICAL_FAIL';
+    }
+
+    return {
+      ...pair,
+      status,
+      canonical,
+      source,
+      canonicalStatus: canonical ? onlineResultStatus(canonical) : 'N/A',
+      sourceStatus: source ? onlineResultStatus(source) : 'N/A',
+      canonicalMissingRequired: canonical?.missingMarkers?.length ? canonical.missingMarkers.join(', ') : 'none',
+      canonicalMissingWarning: canonical?.missingWarningMarkers?.length ? canonical.missingWarningMarkers.join(', ') : 'none',
+      sourceMissingRequired: source?.missingMarkers?.length ? source.missingMarkers.join(', ') : 'none',
+      sourceMissingWarning: source?.missingWarningMarkers?.length ? source.missingWarningMarkers.join(', ') : 'none'
+    };
+  });
+
+  const staleRows = rows.filter((row) => row.status === 'EDGE_CACHE_STALE');
+  const failingRows = rows.filter((row) => row.status === 'SOURCE_AND_CANONICAL_FAIL' || row.status === 'CANONICAL_WARN_SOURCE_FAIL');
+  const status = failingRows.length > 0 ? 'FAIL' : staleRows.length > 0 ? 'EDGE_CACHE_STALE' : 'PASS';
+  return { status, rows, staleRows, failingRows };
+}
+
+function buildCdnRefreshReport({ generatedAt, diagnostics }) {
+  const tableRows = diagnostics.rows.map((row) => [
+    row.status,
+    row.asset,
+    row.canonicalUrl,
+    row.canonicalStatus,
+    row.source?.url || 'N/A',
+    row.sourceStatus,
+    row.canonicalMissingRequired,
+    row.canonicalMissingWarning,
+    row.impact
+  ].map(escapeMarkdownCell).join(' | '));
+  const purgeUrls = diagnostics.staleRows.map((row) => `- ${row.canonicalUrl}`);
+  const sourceProofRows = diagnostics.rows.map((row) => [
+    row.asset,
+    row.canonical?.cacheHeaders || 'N/A',
+    row.source?.cacheHeaders || 'N/A'
+  ].map(escapeMarkdownCell).join(' | '));
+
+  return [
+    '# SEO / GEO CDN Refresh Checklist',
+    '',
+    `Generated: ${generatedAt}`,
+    `Site URL: ${SITE_URL}`,
+    `Overall status: ${diagnostics.status}`,
+    '',
+    '## Why This Matters',
+    '',
+    '- These files are small but important crawl and GEO context assets. Baidu and AI-style crawlers usually request the canonical URL, not a diagnostic query URL.',
+    '- A source-bypass PASS proves the COS object is updated; a canonical WARN with source-bypass PASS means an edge cache still serves an older object.',
+    '- Purging these URLs in the CDN/DNSPod account that controls `camps.wanli.wiki.cdn.dnsv1.com` is the fastest way to make Baidu and AI crawlers see the newest rules and context.',
+    '',
+    '## Refresh Targets',
+    '',
+    'Status | Asset | Canonical URL | Canonical status | Source-bypass URL | Source status | Missing required | Missing warning | SEO/GEO impact',
+    '--- | --- | --- | --- | --- | --- | --- | --- | ---',
+    ...tableRows,
+    '',
+    '## URLs To Purge',
+    '',
+    ...(purgeUrls.length > 0 ? purgeUrls : ['- none']),
+    '',
+    '## Source Object Proof',
+    '',
+    'Asset | Canonical cache evidence | Source-bypass cache evidence',
+    '--- | --- | ---',
+    ...sourceProofRows,
+    '',
+    '## Current Account Check',
+    '',
+    '- `tccli cdn DescribeDomains` currently returns that CDN service is not enabled for this account.',
+    '- `tccli ecdn DescribeDomains` currently returns that ECDN is not enabled for this account.',
+    '- `tccli teo DescribeZones` currently returns no EdgeOne zones.',
+    '- `tccli dnspod DescribeRecordList --Domain wanli.wiki` currently returns no permission for this domain.',
+    '- Use the Tencent Cloud account that owns `camps.wanli.wiki.cdn.dnsv1.com`, or wait for the edge cache TTL to expire.',
+    ''
+  ].join('\n');
+}
+
 function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSnapshot, onlineStatus, onlineResults, evidenceSnapshot, submissionSnapshot }) {
   const robotsDiagnosis = robotsCacheDiagnosis(onlineResults);
+  const cacheDiagnostics = criticalAssetCacheDiagnostics(onlineResults);
   const coverageRows = coverageSnapshot.rows.map((row) => [
     row.status,
     row.id,
@@ -2484,6 +2611,7 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     `- Baidu discovery push history: ${submissionSnapshot.summary.latestStatus}`,
     `- Baidu submission history file: ${submissionSnapshot.historyStatus === 'PRIVATE_HISTORY_LOADED' ? BAIDU_SUBMISSION_HISTORY_FILE : `${BAIDU_SUBMISSION_HISTORY_FILE} missing`}`,
     `- Robots cache diagnosis: ${robotsDiagnosis.status}`,
+    `- Critical asset cache diagnosis: ${cacheDiagnostics.status}; stale canonical assets=${cacheDiagnostics.staleRows.length}`,
     '',
     '## Measurement Boundary',
     '',
@@ -2496,6 +2624,13 @@ function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSn
     '## Robots Cache Diagnosis',
     '',
     ...robotsDiagnosis.lines,
+    '',
+    '## Critical Asset Cache Diagnosis',
+    '',
+    `- Status: ${cacheDiagnostics.status}`,
+    `- Refresh checklist: ${CDN_REFRESH_REPORT_FILE}`,
+    `- Stale canonical URLs: ${cacheDiagnostics.staleRows.length > 0 ? cacheDiagnostics.staleRows.map((row) => row.canonicalUrl).join(', ') : 'none'}`,
+    `- Source/canonical failures: ${cacheDiagnostics.failingRows.length > 0 ? cacheDiagnostics.failingRows.map((row) => `${row.asset}:${row.status}`).join(', ') : 'none'}`,
     '',
     '## Official Baidu References',
     '',
@@ -3405,6 +3540,7 @@ async function monitor() {
     onlineResults.push(await fetchOnlineTarget(target));
   }
 
+  const cacheDiagnostics = criticalAssetCacheDiagnostics(onlineResults);
   const onlineFailures = onlineResults.filter((result) => !result.ok);
   const onlineWarnings = onlineResults.filter((result) => result.warning);
   const onlineStatus = statusLabel(onlineFailures.length, onlineWarnings.length);
@@ -3426,6 +3562,7 @@ async function monitor() {
 
   writeReport(INTERNAL_LINK_REPORT_FILE, buildInternalLinkReport(linkSnapshot));
   writeReport(BAIDU_SUBMISSION_REPORT_FILE, buildSubmissionReport(submissionSnapshot));
+  writeReport(CDN_REFRESH_REPORT_FILE, buildCdnRefreshReport({ generatedAt, diagnostics: cacheDiagnostics }));
   writeReport(MONITOR_REPORT_FILE, report);
   console.log(`Baidu SEO/GEO monitor: local=${coverageSnapshot.status}, links=${linkSnapshot.status}, online=${onlineStatus}, token=${baidu.tokenConfigured ? 'configured' : 'missing'}, evidence=${evidenceSnapshot.summary.overallStatus}, submission=${submissionSnapshot.summary.latestStatus}`);
   console.log(`Report: ${MONITOR_REPORT_FILE}`);

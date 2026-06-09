@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-10T01:36:42+08:00
+Generated: 2026-06-10T01:40:13+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -17,6 +17,7 @@ Site URL: https://camps.wanli.wiki
 - Baidu discovery push history: NO_PUSH_RECORDED
 - Baidu submission history file: seo/baidu-submit-history.json missing
 - Robots cache diagnosis: EDGE_CACHE_STALE
+- Critical asset cache diagnosis: EDGE_CACHE_STALE; stale canonical assets=4
 
 ## Measurement Boundary
 
@@ -36,6 +37,13 @@ Site URL: https://camps.wanli.wiki
 - Source-bypass result: PASS; HTTP 200; bytes=388; missing required=none; missing warning=none
 - Source-bypass cache evidence: cache-control=no-cache, max-age=0; etag="b54636c9d73e6a7066828a82fc838851"; last-modified=Tue, 09 Jun 2026 17:35:21 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
 - Recommended action: Purge https://camps.wanli.wiki/robots.txt in the CDN/DNSPod account that controls camps.wanli.wiki.cdn.dnsv1.com, or wait for the edge cache to expire.
+
+## Critical Asset Cache Diagnosis
+
+- Status: EDGE_CACHE_STALE
+- Refresh checklist: reports/seo-cdn-refresh.md
+- Stale canonical URLs: https://camps.wanli.wiki/robots.txt, https://camps.wanli.wiki/sitemap-context.xml, https://camps.wanli.wiki/llms.txt, https://camps.wanli.wiki/site-facts.json
+- Source/canonical failures: none
 
 ## Official Baidu References
 
@@ -127,7 +135,7 @@ PASS | - | https://camps.wanli.wiki/youth-ai-course-guide.md | 200 | 827 | text/
 PASS | - | https://camps.wanli.wiki/ai-course-vs-coding.md | 200 | 879 | text/markdown | - | none | none | none | -
 PASS | - | https://camps.wanli.wiki/shunyi-ai-parent-class.md | 200 | 751 | text/markdown | - | none | none | none | -
 PASS | - | https://camps.wanli.wiki/partner-ai-pbl-camp.md | 200 | 710 | text/markdown | - | none | none | none | -
-PASS | - | https://camps.wanli.wiki/course-navigation.md | 200 | 891 | text/markdown | - | none | none | none | -
+WARN | - | https://camps.wanli.wiki/course-navigation.md | 200 | 891 | application/octet-stream | - | none | none | canonical CDN edge stale: content-type=application/octet-stream expected text/markdown or text/plain; source-bypass https://camps.wanli.wiki/course-navigation.md?seo-monitor=source-1780988646531 content-type=text/markdown | -
 PASS | - | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 3462 | text/markdown | - | none | none | none | -
 
 ## AI Query Targets
