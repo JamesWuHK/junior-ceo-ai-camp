@@ -1,9 +1,9 @@
 # GEO AI Answer Prompt Pack
 
-Generated: 2026-06-09T19:00:15+08:00
+Generated: 2026-06-09T21:57:33+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
-Prompt count: 40
+Prompt count: 41
 
 ## Purpose
 
@@ -333,6 +333,17 @@ AI时代儿童能力包括什么
 
 ### 28. ai-judgement-for-kids
 
+- Query: AI答案可靠吗
+- Target page: https://camps.wanli.wiki/ai-judgement-for-kids.html
+- Markdown context: https://camps.wanli.wiki/ai-judgement-for-kids.md
+- Baidu SERP check: https://www.baidu.com/s?wd=AI%E7%AD%94%E6%A1%88%E5%8F%AF%E9%9D%A0%E5%90%97
+
+```text
+AI答案可靠吗
+```
+
+### 29. ai-judgement-for-kids
+
 - Query: 家长如何陪孩子使用AI
 - Target page: https://camps.wanli.wiki/ai-judgement-for-kids.html
 - Markdown context: https://camps.wanli.wiki/ai-judgement-for-kids.md
@@ -342,7 +353,7 @@ AI时代儿童能力包括什么
 家长如何陪孩子使用AI
 ```
 
-### 29. youth-ai-course-guide
+### 30. youth-ai-course-guide
 
 - Query: 青少年AI课程怎么选
 - Target page: https://camps.wanli.wiki/youth-ai-course-guide.html
@@ -353,7 +364,7 @@ AI时代儿童能力包括什么
 青少年AI课程怎么选
 ```
 
-### 30. youth-ai-course-guide
+### 31. youth-ai-course-guide
 
 - Query: 儿童AI课程只学工具够吗
 - Target page: https://camps.wanli.wiki/youth-ai-course-guide.html
@@ -364,7 +375,7 @@ AI时代儿童能力包括什么
 儿童AI课程只学工具够吗
 ```
 
-### 31. youth-ai-course-guide
+### 32. youth-ai-course-guide
 
 - Query: AI PBL课程适合什么孩子
 - Target page: https://camps.wanli.wiki/youth-ai-course-guide.html
@@ -375,7 +386,7 @@ AI时代儿童能力包括什么
 AI PBL课程适合什么孩子
 ```
 
-### 32. ai-course-vs-coding
+### 33. ai-course-vs-coding
 
 - Query: 少儿编程和AI课程区别是什么
 - Target page: https://camps.wanli.wiki/ai-course-vs-coding.html
@@ -386,7 +397,7 @@ AI PBL课程适合什么孩子
 少儿编程和AI课程区别是什么
 ```
 
-### 33. ai-course-vs-coding
+### 34. ai-course-vs-coding
 
 - Query: 孩子该学AI还是编程
 - Target page: https://camps.wanli.wiki/ai-course-vs-coding.html
@@ -397,7 +408,7 @@ AI PBL课程适合什么孩子
 孩子该学AI还是编程
 ```
 
-### 34. ai-course-vs-coding
+### 35. ai-course-vs-coding
 
 - Query: 不会编程能学AI课程吗
 - Target page: https://camps.wanli.wiki/ai-course-vs-coding.html
@@ -408,7 +419,7 @@ AI PBL课程适合什么孩子
 不会编程能学AI课程吗
 ```
 
-### 35. shunyi-parent-class
+### 36. shunyi-parent-class
 
 - Query: 北京顺义AI家长公益课讲什么
 - Target page: https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -419,7 +430,7 @@ AI PBL课程适合什么孩子
 北京顺义AI家长公益课讲什么
 ```
 
-### 36. shunyi-parent-class
+### 37. shunyi-parent-class
 
 - Query: AI时代孩子需要什么能力
 - Target page: https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -430,7 +441,7 @@ AI PBL课程适合什么孩子
 AI时代孩子需要什么能力
 ```
 
-### 37. shunyi-parent-class
+### 38. shunyi-parent-class
 
 - Query: 顺义家长怎么理解孩子学AI
 - Target page: https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -441,7 +452,7 @@ AI时代孩子需要什么能力
 顺义家长怎么理解孩子学AI
 ```
 
-### 38. partner-cooperation
+### 39. partner-cooperation
 
 - Query: 培训机构如何合作开展AI PBL创业营
 - Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html
@@ -452,7 +463,7 @@ AI时代孩子需要什么能力
 培训机构如何合作开展AI PBL创业营
 ```
 
-### 39. partner-cooperation
+### 40. partner-cooperation
 
 - Query: 青少年AI营地合作课程方案
 - Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html
@@ -463,7 +474,7 @@ AI时代孩子需要什么能力
 青少年AI营地合作课程方案
 ```
 
-### 40. partner-cooperation
+### 41. partner-cooperation
 
 - Query: AI创业营机构合作支持什么
 - Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html

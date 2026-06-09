@@ -1,6 +1,6 @@
 # Baidu Ranking / GEO Tracking Plan
 
-Generated: 2026-06-09T19:00:11+08:00
+Generated: 2026-06-09T21:57:33+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
 
@@ -218,6 +218,7 @@ ai-era-skills-for-kids | 家长如何培养孩子AI判断力 | https://camps.wan
 ai-era-skills-for-kids | AI时代儿童能力包括什么 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | https://www.baidu.com/s?wd=AI%E6%97%B6%E4%BB%A3%E5%84%BF%E7%AB%A5%E8%83%BD%E5%8A%9B%E5%8C%85%E6%8B%AC%E4%BB%80%E4%B9%88 | N/A
 ai-judgement-for-kids | 孩子AI判断力怎么培养 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90AI%E5%88%A4%E6%96%AD%E5%8A%9B%E6%80%8E%E4%B9%88%E5%9F%B9%E5%85%BB | N/A
 ai-judgement-for-kids | 孩子如何判断AI答案是否可靠 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%ADAI%E7%AD%94%E6%A1%88%E6%98%AF%E5%90%A6%E5%8F%AF%E9%9D%A0 | N/A
+ai-judgement-for-kids | AI答案可靠吗 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | https://www.baidu.com/s?wd=AI%E7%AD%94%E6%A1%88%E5%8F%AF%E9%9D%A0%E5%90%97 | N/A
 ai-judgement-for-kids | 家长如何陪孩子使用AI | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | https://www.baidu.com/s?wd=%E5%AE%B6%E9%95%BF%E5%A6%82%E4%BD%95%E9%99%AA%E5%AD%A9%E5%AD%90%E4%BD%BF%E7%94%A8AI | N/A
 youth-ai-course-guide | 青少年AI课程怎么选 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B%E6%80%8E%E4%B9%88%E9%80%89 | N/A
 youth-ai-course-guide | 儿童AI课程只学工具够吗 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | https://www.baidu.com/s?wd=%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B%E5%8F%AA%E5%AD%A6%E5%B7%A5%E5%85%B7%E5%A4%9F%E5%90%97 | N/A

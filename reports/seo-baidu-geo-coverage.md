@@ -21,7 +21,7 @@ PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | �
 PASS | shunyi-children-ai-course | /shunyi-children-ai-course.html | 北京顺义儿童AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | shunyi-children-ai-course.md
 PASS | shunyi-ai-summer-camp | /shunyi-ai-summer-camp.html | 北京顺义AI夏令营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | shunyi-ai-summer-camp.md
 PASS | ai-era-skills-for-kids | /ai-era-skills-for-kids.html | AI时代孩子需要什么能力 | title, description, keywords, h1, body, jsonLd | 8/8 | 4/4 | 4/4 | 4/4 | yes | yes | ai-era-skills-for-kids.md
-PASS | ai-judgement-for-kids | /ai-judgement-for-kids.html | 孩子AI判断力 | title, description, keywords, h1, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | ai-judgement-for-kids.md
+PASS | ai-judgement-for-kids | /ai-judgement-for-kids.html | 孩子AI判断力 | title, description, keywords, h1, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | yes | yes | ai-judgement-for-kids.md
 PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | youth-ai-course-guide.md
 PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | ai-course-vs-coding.md
 PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | shunyi-ai-parent-class.md
@@ -205,10 +205,10 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Primary locations measured: title, description, keywords, h1, body, jsonLd
 - Secondary matches measured: 7/7 (AI判断力, 家长如何培养孩子AI判断力, AI答案可靠吗, 孩子如何使用AI, AI时代孩子能力, 青少年AI课程, 少年CEO)
 - JSON-LD types measured: Article, BreadcrumbList, FAQPage
-- AI query coverage targets: 孩子AI判断力怎么培养 | 孩子如何判断AI答案是否可靠 | 家长如何陪孩子使用AI
-- Visible HTML answer blocks measured: 3/3 (孩子AI判断力怎么培养 | 孩子如何判断AI答案是否可靠 | 家长如何陪孩子使用AI)
-- JSON-LD answer blocks measured: 3/3 (孩子AI判断力怎么培养 | 孩子如何判断AI答案是否可靠 | 家长如何陪孩子使用AI)
-- AI query answer blocks measured: 3/3 (孩子AI判断力怎么培养 | 孩子如何判断AI答案是否可靠 | 家长如何陪孩子使用AI)
+- AI query coverage targets: 孩子AI判断力怎么培养 | 孩子如何判断AI答案是否可靠 | AI答案可靠吗 | 家长如何陪孩子使用AI
+- Visible HTML answer blocks measured: 4/4 (孩子AI判断力怎么培养 | 孩子如何判断AI答案是否可靠 | AI答案可靠吗 | 家长如何陪孩子使用AI)
+- JSON-LD answer blocks measured: 4/4 (孩子AI判断力怎么培养 | 孩子如何判断AI答案是否可靠 | AI答案可靠吗 | 家长如何陪孩子使用AI)
+- AI query answer blocks measured: 4/4 (孩子AI判断力怎么培养 | 孩子如何判断AI答案是否可靠 | AI答案可靠吗 | 家长如何陪孩子使用AI)
 - Status: PASS
 - Failures: none
 - Warnings: none
