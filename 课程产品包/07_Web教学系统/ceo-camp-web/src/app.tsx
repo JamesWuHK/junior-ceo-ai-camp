@@ -2746,7 +2746,7 @@ function TeacherApp({
           )}
         </section>
         <TeacherTeamWorkspace students={students} refresh={refresh} />
-        <TeacherProgressBoard />
+        <TeacherProgressBoard selectedModuleId={selectedModule?.id} />
         <section className="teacher-grid">
           <TeacherStudents students={students} refresh={refresh} />
           <FuturePhotoReview refresh={refresh} />
@@ -2899,6 +2899,77 @@ const progressMilestones = [
   { key: "story_pitch", label: "故事卡", target: 1, unit: "张" },
   { key: "final_showcase", label: "展示卡", target: 1, unit: "张" }
 ] as const;
+
+type ProgressFocusKey = "current" | "d1" | "d2" | "d3" | "all";
+
+const progressFocusTabs: Array<{ key: ProgressFocusKey; label: string }> = [
+  { key: "current", label: "当前环节" },
+  { key: "d1", label: "D1 找问题" },
+  { key: "d2", label: "D2 做原型" },
+  { key: "d3", label: "D3 路演" },
+  { key: "all", label: "全部" }
+];
+
+const progressFocusMilestones: Record<Exclude<ProgressFocusKey, "current">, Array<(typeof progressMilestones)[number]["key"]>> = {
+  d1: ["problem_card", "market_scout", "user_voice", "product_definition"],
+  d2: ["prompt_card", "feature_scope", "tech_route", "product_link", "product_feedback", "iteration_plan"],
+  d3: ["value_card", "product_packaging", "story_pitch", "final_showcase"],
+  all: progressMilestones.map((milestone) => milestone.key)
+};
+
+const moduleProgressFocus: Record<string, Exclude<ProgressFocusKey, "current" | "all">> = {
+  "future-photo-studio": "d1",
+  "team-formation": "d1",
+  "problem-wall": "d1",
+  "ai-judgement": "d1",
+  "ai-superpowers": "d1",
+  "market-scout": "d1",
+  "user-interview": "d1",
+  "project-launch": "d1",
+  "day1-reflection": "d1",
+  "day2-recap": "d2",
+  "day2-kickoff": "d2",
+  "prompt-basic": "d2",
+  "ai-lab": "d2",
+  "feature-scope": "d2",
+  "product-prototype": "d2",
+  "tech-route": "d2",
+  "tool-demo": "d2",
+  "build-sprint": "d2",
+  "user-testing": "d2",
+  "demo-check": "d2",
+  "day2-reflection": "d2",
+  "roadshow-rehearsal": "d3",
+  "value-experiment": "d3",
+  "product-packaging": "d3",
+  "brand-story": "d3",
+  rehearsal: "d3",
+  "final-showcase": "d3",
+  "awards-reflection": "d3"
+};
+
+function resolveProgressFocus(focus: ProgressFocusKey, moduleId?: string | null): Exclude<ProgressFocusKey, "current"> {
+  if (focus !== "current") return focus;
+  return moduleProgressFocus[String(moduleId || "")] || "all";
+}
+
+function progressFocusMilestoneKeys(focus: ProgressFocusKey, moduleId?: string | null) {
+  return new Set<string>(progressFocusMilestones[resolveProgressFocus(focus, moduleId)]);
+}
+
+function progressFocusLabel(focus: ProgressFocusKey, moduleId?: string | null) {
+  const resolved = resolveProgressFocus(focus, moduleId);
+  if (focus === "current") {
+    if (resolved === "d1") return "跟随当前环节：先看真实问题、用户声音和产品一句话。";
+    if (resolved === "d2") return "跟随当前环节：先看提示词、核心动作、路线、作品入口和互测。";
+    if (resolved === "d3") return "跟随当前环节：先看价值卡、海报卡、故事卡和最终展示卡。";
+    return "跟随当前环节：当前模块还没有专属阶段，先看全程进度。";
+  }
+  if (resolved === "d1") return "D1 聚焦：真实问题、用户声音和产品一句话。";
+  if (resolved === "d2") return "D2 聚焦：把作品做出来、试起来、改一版。";
+  if (resolved === "d3") return "D3 聚焦：把作品讲清楚、交上来、准备展示。";
+  return "全部里程碑：适合课间复盘或结营前总检查。";
+}
 
 const teamRoleLabels = ["采访", "产品", "AI", "展示"] as const;
 
@@ -3529,7 +3600,7 @@ function StudentFeedbackPanel({ workspace }: { workspace: StudentWorkspace }) {
 }
 
 function nextSupportAction(
-  milestoneStates: Array<ProgressMilestone & { count: number; done: boolean }>,
+  milestoneStates: Array<{ key: string; label: string; target: number; unit: string; count: number; done: boolean }>,
   activeBlockers: TaskSubmission[],
   team: Team
 ) {
@@ -3574,10 +3645,11 @@ const emptyProgressTotals: TeacherProgressSnapshot["totals"] = {
   needs_support: 0
 };
 
-function TeacherProgressBoard() {
+function TeacherProgressBoard({ selectedModuleId }: { selectedModuleId?: string }) {
   const [snapshot, setSnapshot] = useState<TeacherProgressSnapshot | null>(null);
   const [message, setMessage] = useState("");
   const [workingId, setWorkingId] = useState("");
+  const [focusKey, setFocusKey] = useState<ProgressFocusKey>("current");
 
   const load = async () => {
     try {
@@ -3596,6 +3668,40 @@ function TeacherProgressBoard() {
 
   const teamSummaries = snapshot?.teams ?? [];
   const totals = snapshot?.totals ?? emptyProgressTotals;
+  const focusMilestoneKeys = progressFocusMilestoneKeys(focusKey, selectedModuleId);
+  const focusDescription = progressFocusLabel(focusKey, selectedModuleId);
+  const focusedSummaries = teamSummaries
+    .map((summary) => {
+      const visibleMilestones = summary.milestone_states.filter((milestone) => focusMilestoneKeys.has(milestone.key));
+      const focusDoneCount = visibleMilestones.filter((milestone) => milestone.done).length;
+      const focusTotal = visibleMilestones.length || summary.completion_total;
+      const focusComplete = visibleMilestones.length > 0 && visibleMilestones.every((milestone) => milestone.done);
+      const focusNeedsSupport = Boolean(summary.active_blockers.length || visibleMilestones.some((milestone) => !milestone.done));
+      return {
+        ...summary,
+        visibleMilestones: visibleMilestones.length ? visibleMilestones : summary.milestone_states,
+        focusDoneCount,
+        focusTotal,
+        focusComplete,
+        focusNeedsSupport,
+        focusedNextAction: visibleMilestones.length ? nextSupportAction(visibleMilestones, summary.active_blockers, summary.team) : summary.next_action
+      };
+    })
+    .sort((a, b) => {
+      const rank = (item: typeof a) => {
+        if (item.active_blockers.length) return 0;
+        if (item.focusNeedsSupport) return 1;
+        if (item.ready_for_demo) return 2;
+        return 3;
+      };
+      const byRank = rank(a) - rank(b);
+      if (byRank !== 0) return byRank;
+      const byDone = a.focusDoneCount - b.focusDoneCount;
+      if (byDone !== 0) return byDone;
+      return Number(a.team.group_no || 0) - Number(b.team.group_no || 0);
+    });
+  const focusReadyCount = focusedSummaries.filter((summary) => summary.focusComplete).length;
+  const focusNeedsCount = focusedSummaries.filter((summary) => summary.focusNeedsSupport).length;
 
   const toggleBlocker = async (item: TaskSubmission) => {
     setWorkingId(item.id);
@@ -3616,31 +3722,36 @@ function TeacherProgressBoard() {
         <ClipboardCheck size={20} />
         <h2>团队进度看板</h2>
       </div>
+      <div className="progress-board-toolbar">
+        <div className="progress-focus-tabs" aria-label="看板阶段">
+          {progressFocusTabs.map((tab) => (
+            <button
+              key={tab.key}
+              className={focusKey === tab.key ? "active" : ""}
+              onClick={() => setFocusKey(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <p>{focusDescription}</p>
+      </div>
       <div className="artifact-stats">
         <span>{teamSummaries.length} 个团队</span>
-        <span>{totals.with_scout} 组已有侦察卡</span>
-        <span>{totals.interview_ready}/{teamSummaries.length} 组采访达标</span>
-        <span>{totals.with_product} 组已有产品一句话</span>
-        <span>{totals.with_prompt} 组已有提示词卡</span>
-        <span>{totals.with_feature_scope} 组已有核心动作</span>
-        <span>{totals.with_tech_route} 组已有路线流程</span>
-        <span>{totals.ready_teams} 组已有作品入口</span>
-        <span>{totals.feedback_ready} 组收到互测反馈</span>
-        <span>{totals.with_iteration} 组有迭代清单</span>
-        <span>{totals.with_value_card} 组有价值卡</span>
-        <span>{totals.with_packaging} 组有海报卡</span>
-        <span>{totals.with_story_pitch} 组有故事卡</span>
-        <span>{totals.needs_support} 组需要跟进</span>
+        <span>{focusReadyCount}/{teamSummaries.length} 组达到当前聚焦</span>
+        <span>{focusNeedsCount} 组需要跟进</span>
         <span>{totals.active_blockers} 个卡点待支援</span>
+        <span>{totals.ready_teams} 组已有作品入口</span>
+        <span>{totals.interview_ready}/{teamSummaries.length} 组采访达标</span>
       </div>
       {message && <p className="hint">{message}</p>}
       <div className="progress-board-grid">
-        {teamSummaries.map((summary) => {
+        {focusedSummaries.map((summary) => {
           const completion = `${summary.done_count}/${summary.completion_total}`;
           const latestBlocker = summary.active_blockers[0] || summary.blockers[0];
           const cardClass = summary.active_blockers.length
             ? "progress-team-card needs-help"
-            : summary.all_done
+            : summary.focusComplete
               ? "progress-team-card ready"
               : "progress-team-card watching";
           return (
@@ -3652,9 +3763,9 @@ function TeacherProgressBoard() {
                 <div>
                   <span>{summary.team.table_no ? `${summary.team.table_no} 号桌` : `第 ${summary.team.group_no} 组`}</span>
                   <strong>{summary.team.name}</strong>
-                  <small>{summary.members.length} 名学生 · 完成 {completion}</small>
+                  <small>{summary.members.length} 名学生 · 当前 {summary.focusDoneCount}/{summary.focusTotal} · 全程 {completion}</small>
                 </div>
-                <em>{summary.active_blockers.length ? "需要支援" : summary.all_done ? "可彩排" : summary.ready_for_demo ? "可演示" : "进行中"}</em>
+                <em>{summary.active_blockers.length ? "需要支援" : summary.focusComplete ? "当前达成" : summary.ready_for_demo ? "可演示" : "进行中"}</em>
               </header>
               <div className="progress-signal-grid">
                 <span>
@@ -3675,7 +3786,7 @@ function TeacherProgressBoard() {
                 </span>
               </div>
               <div className="progress-milestones">
-                {summary.milestone_states.map((milestone) => {
+                {summary.visibleMilestones.map((milestone) => {
                   return (
                     <span key={milestone.key} className={milestone.done ? "done" : milestone.partial ? "partial" : ""}>
                       {milestone.done && <CheckCircle2 size={13} />}
@@ -3700,7 +3811,7 @@ function TeacherProgressBoard() {
                 </p>
                 <p className="next-support-action">
                   <b>下一步支援</b>
-                  {summary.next_action}
+                  {summary.focusedNextAction}
                 </p>
                 {latestBlocker ? (
                   <div className={latestBlocker.status === "ON_WALL" ? "blocker-note resolved" : "blocker-note"}>

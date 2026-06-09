@@ -2492,6 +2492,45 @@ button:disabled {
   gap: 12px;
 }
 
+.progress-board-toolbar {
+  border: 1px solid #e7e2d2;
+  border-radius: 8px;
+  background: #fffdf8;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.progress-focus-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.progress-focus-tabs button {
+  border: 1px solid #d8d4c6;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #536151;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.progress-focus-tabs button.active {
+  border-color: #1f6f50;
+  background: #1f6f50;
+  color: #ffffff;
+}
+
+.progress-board-toolbar p {
+  margin: 0;
+  color: #60705f;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 .progress-board-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
