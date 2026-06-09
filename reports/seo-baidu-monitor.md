@@ -1,17 +1,17 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-10T00:11:21+08:00
+Generated: 2026-06-10T00:39:34+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
 
 - Local SEO/GEO coverage: PASS
 - Internal link graph: PASS
-- Online crawl target check: PASS
+- Online crawl target check: FAIL
 - Baidu push token configured: no
 - Baidu site parameter: https://camps.wanli.wiki
 - Baidu submit URL count: 14
-- Baidu push readiness: WAITING (BAIDU_TOKEN is not configured)
+- Baidu push readiness: WAITING (online checks have failures; BAIDU_TOKEN is not configured)
 - Baidu measured evidence: NEEDS_MEASURED_DATA
 - Baidu evidence file: seo/baidu-measurements.json missing
 - Baidu discovery push history: NO_PUSH_RECORDED
@@ -93,7 +93,7 @@ PASS | https://camps.wanli.wiki/ai-course-vs-coding.html | 200 | 11725 | none
 PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.html | 200 | 10460 | none
 PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.html | 200 | 10862 | none
 PASS | https://camps.wanli.wiki/course-navigation.html | 200 | 10329 | none
-PASS | https://camps.wanli.wiki/robots.txt | 200 | 265 | none
+FAIL | https://camps.wanli.wiki/robots.txt | 200 | 265 | User-agent: Baiduspider
 PASS | https://camps.wanli.wiki/sitemap-index.xml | 200 | 352 | none
 PASS | https://camps.wanli.wiki/sitemap.xml | 200 | 2675 | none
 PASS | https://camps.wanli.wiki/sitemap-context.xml | 200 | 2836 | none

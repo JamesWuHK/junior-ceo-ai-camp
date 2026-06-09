@@ -326,6 +326,17 @@ function buildRobots() {
   ].join('\n');
 }
 
+function robotsRequiredMarkers() {
+  return [
+    'User-agent: Baiduspider',
+    'Allow: /',
+    ...ROBOTS_PRIVATE_PATHS.map((path) => `Disallow: ${path}`),
+    `Sitemap: ${siteUrl(`/${SITEMAP_INDEX_FILE}`)}`,
+    `Sitemap: ${siteUrl(`/${HTML_SITEMAP_FILE}`)}`,
+    `Sitemap: ${siteUrl(`/${CONTEXT_SITEMAP_FILE}`)}`
+  ];
+}
+
 function buildLlmsTxt() {
   return [
     '# 少年CEO AI 创业营',
@@ -1017,13 +1028,9 @@ function check() {
       checks.push(fail(`missing ${prefix}robots.txt`));
     } else {
       const robots = readFileSync(robotsPath, 'utf8');
-      if (!robots.includes('User-agent: Baiduspider')) checks.push(fail(`${prefix}robots.txt missing explicit Baiduspider rules`));
-      for (const privatePath of ROBOTS_PRIVATE_PATHS) {
-        if (!robots.includes(`Disallow: ${privatePath}`)) checks.push(fail(`${prefix}robots.txt missing private path disallow: ${privatePath}`));
+      for (const marker of robotsRequiredMarkers()) {
+        if (!robots.includes(marker)) checks.push(fail(`${prefix}robots.txt missing marker: ${marker}`));
       }
-      if (!robots.includes(`Sitemap: ${siteUrl(`/${SITEMAP_INDEX_FILE}`)}`)) checks.push(fail(`${prefix}robots.txt missing sitemap index URL`));
-      if (!robots.includes(`Sitemap: ${siteUrl(`/${HTML_SITEMAP_FILE}`)}`)) checks.push(fail(`${prefix}robots.txt missing sitemap URL`));
-      if (!robots.includes(`Sitemap: ${siteUrl(`/${CONTEXT_SITEMAP_FILE}`)}`)) checks.push(fail(`${prefix}robots.txt missing context sitemap URL`));
     }
     if (!existsSync(sitemapIndexPath)) {
       checks.push(fail(`missing ${prefix}${SITEMAP_INDEX_FILE}`));
@@ -1424,7 +1431,7 @@ function onlineTargets() {
     { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子', ...alternateMarkersForSource('shunyi-ai-parent-class.html'), ...schemaMarkersForSource('shunyi-ai-parent-class.html'), ...(htmlAiQueryMarkers.get('shunyi-ai-parent-class.html') || [])] },
     { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html'), ...schemaMarkersForSource('partner-ai-pbl-camp.html'), ...(htmlAiQueryMarkers.get('partner-ai-pbl-camp.html') || [])] },
     { url: siteUrl('/course-navigation.html'), markers: ['少年CEO AI 创业营课程导航', 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('course-navigation.html'), ...schemaMarkersForSource('course-navigation.html')] },
-    { url: siteUrl('/robots.txt'), markers: [`Sitemap: ${siteUrl('/sitemap-index.xml')}`, `Sitemap: ${siteUrl('/sitemap.xml')}`, `Sitemap: ${siteUrl('/sitemap-context.xml')}`] },
+    { url: siteUrl('/robots.txt'), markers: robotsRequiredMarkers() },
     { url: siteUrl('/sitemap-index.xml'), markers: [`<loc>${siteUrl('/sitemap.xml')}</loc>`, `<loc>${siteUrl('/sitemap-context.xml')}</loc>`] },
     { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },
     { url: siteUrl('/sitemap-context.xml'), markers: [`<loc>${siteUrl('/llms.txt')}</loc>`, ...MARKDOWN_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`)] },
