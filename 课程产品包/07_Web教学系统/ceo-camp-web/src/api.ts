@@ -11,6 +11,7 @@ import type {
   StatePayload,
   Student,
   StudentAccount,
+  StudentWorkspace,
   TaskSubmission,
   TeacherAccount,
   Team,
@@ -128,6 +129,7 @@ export const api = {
       body: JSON.stringify({ username, password })
     }),
   studentMe: () => request<{ student: StudentAccount }>("/auth/student/me", { headers: studentHeaders(true) }),
+  studentWorkspace: () => request<StudentWorkspace>("/student/workspace", { headers: studentHeaders(true) }),
   currentCamp: () => request<Camp>("/camp/current"),
   courseModules: () => request<{ modules: CourseModule[] }>("/course/modules", { headers: headers(true) }),
   students: () => request<{ students: Student[] }>("/students", { headers: headers(true) }),

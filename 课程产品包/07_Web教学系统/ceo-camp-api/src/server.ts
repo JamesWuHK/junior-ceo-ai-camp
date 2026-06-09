@@ -576,6 +576,104 @@ function serializeTeam(team: Record<string, any>) {
   };
 }
 
+function serializeTaskSubmission(item: Record<string, any>): TaskArtifact {
+  return {
+    ...item,
+    task_type: String(item.task_type ?? ""),
+    payload: jsonParse<TaskPayload>(item.payload, {})
+  };
+}
+
+function studentWorkspace(principal: StudentPrincipal) {
+  const student = row<Record<string, any>>(
+    `SELECT s.*, t.name AS team_name
+       FROM students s
+       LEFT JOIN teams t ON t.id = s.team_id
+      WHERE s.id = ?
+        AND s.camp_id = ?`,
+    [principal.id, campId()]
+  );
+  if (!student) return null;
+
+  const team = student.team_id
+    ? row<Record<string, any>>("SELECT * FROM teams WHERE id = ? AND camp_id = ?", [student.team_id, campId()])
+    : null;
+  const teamMembers = student.team_id
+    ? rows<Record<string, any>>(
+        `SELECT s.*, t.name AS team_name
+           FROM students s
+           LEFT JOIN teams t ON t.id = s.team_id
+          WHERE s.camp_id = ?
+            AND s.team_id = ?
+          ORDER BY COALESCE(s.student_no, s.created_at), s.created_at`,
+        [campId(), student.team_id]
+      ).map(serializeStudent)
+    : [];
+  const mySubmissions = rows<Record<string, any>>(
+    `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
+       FROM task_submissions ts
+       LEFT JOIN students s ON s.id = ts.student_id
+       LEFT JOIN teams t ON t.id = ts.team_id
+      WHERE ts.camp_id = ?
+        AND ts.student_id = ?
+      ORDER BY ts.updated_at DESC, ts.created_at DESC
+      LIMIT 40`,
+    [campId(), student.id]
+  ).map(serializeTaskSubmission);
+  const teamSubmissions = student.team_id
+    ? rows<Record<string, any>>(
+        `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
+           FROM task_submissions ts
+           LEFT JOIN students s ON s.id = ts.student_id
+           LEFT JOIN teams t ON t.id = ts.team_id
+          WHERE ts.camp_id = ?
+            AND ts.team_id = ?
+            AND ts.task_type IN (
+              'problem_card', 'market_scout', 'user_voice', 'ai_validation',
+              'product_definition', 'prompt_card', 'feature_scope', 'tech_route',
+              'blocker_note', 'product_feedback', 'iteration_plan', 'value_card',
+              'product_packaging', 'story_pitch', 'final_showcase', 'growth_reflection'
+            )
+          ORDER BY ts.updated_at DESC, ts.created_at DESC
+          LIMIT 80`,
+        [campId(), student.team_id]
+      ).map(serializeTaskSubmission)
+    : [];
+  const showcaseMatches = (item: { team_id?: string | null; team_name?: string | null; track?: string | null }) =>
+    (!!student.team_id && item.team_id === student.team_id) ||
+    (!!student.team_name && (item.team_name === student.team_name || item.track === student.team_name));
+  const feedbackItems = rows<Record<string, any>>(
+    `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
+       FROM task_submissions ts
+       LEFT JOIN students s ON s.id = ts.student_id
+       LEFT JOIN teams t ON t.id = ts.team_id
+      WHERE ts.camp_id = ?
+        AND ts.task_type = 'product_feedback'
+      ORDER BY ts.updated_at DESC, ts.created_at DESC
+      LIMIT 120`,
+    campId()
+  )
+    .map(serializeTaskSubmission)
+    .filter((item) => {
+      const targetTeamId = textValue(item.payload.team_id);
+      const targetTeamName = textValue(item.payload.team_name);
+      return (
+        (!!student.team_id && targetTeamId === student.team_id) ||
+        (!!student.team_name && targetTeamName === student.team_name)
+      );
+    });
+
+  return {
+    student: serializeStudent(student),
+    team: team ? serializeTeam(team) : null,
+    team_members: teamMembers,
+    my_submissions: mySubmissions,
+    team_submissions: teamSubmissions,
+    showcase_items: showcaseItems(false).filter(showcaseMatches),
+    received_feedback: feedbackItems
+  };
+}
+
 function problemVoteCandidates() {
   return rows<Record<string, any> & { payload?: string }>(
     `SELECT ts.*, s.nickname AS student_name, t.name AS team_name
@@ -1192,6 +1290,14 @@ app.get("/auth/student/me", async (request, reply) => {
   );
   if (!student) return reply.code(401).send({ error: "UNAUTHORIZED" });
   return { student: serializeStudent(student) };
+});
+
+app.get("/student/workspace", async (request, reply) => {
+  const principal = requireStudent(request);
+  if (!principal) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  const workspace = studentWorkspace(principal);
+  if (!workspace) return reply.code(401).send({ error: "UNAUTHORIZED" });
+  return workspace;
 });
 
 app.get("/camp/current", async () => currentCamp());

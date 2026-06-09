@@ -173,6 +173,16 @@ export interface TaskSubmission {
   updated_at?: string;
 }
 
+export interface StudentWorkspace {
+  student: StudentAccount;
+  team: Team | null;
+  team_members: Student[];
+  my_submissions: TaskSubmission[];
+  team_submissions: TaskSubmission[];
+  showcase_items: ShowcaseItem[];
+  received_feedback: TaskSubmission[];
+}
+
 export interface WallArtifact extends TaskSubmission {
   task_type: "problem_card" | "user_voice" | string;
 }

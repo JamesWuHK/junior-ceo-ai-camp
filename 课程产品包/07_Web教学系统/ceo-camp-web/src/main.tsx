@@ -66,6 +66,7 @@ import type {
   ShowcaseItem,
   Student,
   StudentAccount,
+  StudentWorkspace,
   TaskSubmission,
   Team,
   TeacherAccount,
@@ -3154,6 +3155,336 @@ function showcaseStatusLabel(status?: string) {
 
 function projectStatusLabel(status?: string) {
   return projectStatusOptions.find((option) => option.value === status)?.label || "未开始";
+}
+
+type StudentWorkspaceTab = "task" | "team" | "work" | "feedback";
+
+const studentWorkspaceTabs: Array<{ key: StudentWorkspaceTab; label: string; icon: React.ReactNode }> = [
+  { key: "task", label: "当前任务", icon: <ClipboardCheck size={17} /> },
+  { key: "team", label: "我的团队", icon: <UsersRound size={17} /> },
+  { key: "work", label: "我们的作品", icon: <Package size={17} /> },
+  { key: "feedback", label: "给别人反馈", icon: <MessageSquareText size={17} /> }
+];
+
+const studentTaskTypeLabels: Record<string, string> = {
+  problem_card: "问题卡",
+  problem_vote: "问题选择",
+  market_scout: "侦察卡",
+  user_voice: "用户声音",
+  ai_validation: "AI 验证",
+  product_definition: "产品一句话",
+  prompt_card: "提示词卡",
+  feature_scope: "核心动作",
+  tech_route: "路线流程",
+  blocker_note: "卡点",
+  product_link: "作品入口",
+  product_feedback: "试玩反馈",
+  iteration_plan: "迭代清单",
+  value_card: "价值卡",
+  product_packaging: "产品海报",
+  story_pitch: "故事发布",
+  final_showcase: "展示卡",
+  observer_score: "同伴投票",
+  growth_reflection: "成长卡"
+};
+
+function studentWorkspaceTabFromUrl(): StudentWorkspaceTab {
+  const value = new URLSearchParams(window.location.search).get("view");
+  return value === "team" || value === "work" || value === "feedback" ? value : "task";
+}
+
+function studentWorkspaceHref(tab: StudentWorkspaceTab) {
+  const params = new URLSearchParams(window.location.search);
+  params.set("view", tab);
+  params.delete("photo-upload");
+  return `${window.location.pathname}?${params.toString()}`;
+}
+
+function StudentQuickNav({ active }: { active: StudentWorkspaceTab }) {
+  return (
+    <nav className="student-quick-nav" aria-label="学生入口">
+      {studentWorkspaceTabs.map((tab) => (
+        <a key={tab.key} className={active === tab.key ? "active" : ""} href={studentWorkspaceHref(tab.key)}>
+          {tab.icon}
+          <span>{tab.label}</span>
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+function studentSubmissionLabel(item: TaskSubmission) {
+  return studentTaskTypeLabels[item.task_type] || item.title || "课堂记录";
+}
+
+function studentSubmissionTitle(item: TaskSubmission) {
+  return (
+    asText(item.payload.product_name) ||
+    asText(item.payload.problem_scene) ||
+    asText(item.payload.story_hook) ||
+    asText(item.payload.goal) ||
+    asText(item.payload.where_stuck) ||
+    asText(item.payload.value_change) ||
+    item.title ||
+    studentSubmissionLabel(item)
+  );
+}
+
+function studentSubmissionLine(item: TaskSubmission) {
+  return (
+    asText(item.payload.one_liner) ||
+    asText(item.payload.core_problem) ||
+    asText(item.payload.trouble) ||
+    asText(item.payload.highlight) ||
+    asText(item.payload.next_step) ||
+    asText(item.payload.finding) ||
+    asText(item.payload.v2_plan) ||
+    asText(item.payload.story_hook) ||
+    "这条记录已经放进你们的项目路上。"
+  );
+}
+
+function latestTeamSubmission(workspace: StudentWorkspace, taskType: string) {
+  return latestTask(workspace.team_submissions.filter((item) => item.task_type === taskType));
+}
+
+function studentProgressItems(workspace: StudentWorkspace) {
+  return progressMilestones
+    .filter((milestone) =>
+      ["problem_card", "user_voice", "product_definition", "feature_scope", "tech_route", "product_link", "product_feedback", "story_pitch", "final_showcase"].includes(milestone.key)
+    )
+    .map((milestone) => ({
+      ...milestone,
+      count: milestoneCount(workspace.team_submissions, milestone),
+      done: milestoneCount(workspace.team_submissions, milestone) >= milestone.target
+    }));
+}
+
+function StudentWorkspaceView({
+  camp,
+  active,
+  student,
+  onLogout
+}: {
+  camp: Camp | null;
+  active: Exclude<StudentWorkspaceTab, "task">;
+  student: StudentAccount;
+  onLogout: () => void;
+}) {
+  const [workspace, setWorkspace] = useState<StudentWorkspace | null>(null);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+
+  const load = async () => {
+    try {
+      const result = await api.studentWorkspace();
+      setWorkspace(result);
+      setMessage(null);
+    } catch (err) {
+      setMessage({ tone: "error", text: err instanceof Error ? err.message : "暂时打不开，可以先回当前任务。" });
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 6000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <>
+      <StudentQuickNav active={active} />
+      <main className="student-page">
+        <section className="student-shell student-workspace-shell">
+          <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+          <h1>{active === "team" ? "我的团队" : active === "work" ? "我们的作品" : "给别人反馈"}</h1>
+          <p>{active === "team" ? "看看本组现在走到哪一步。" : active === "work" ? "把能打开、能展示、能讲清的东西放在一起。" : "先打开别组作品试试看，再写下一条有用的亮点和建议。"}</p>
+          <div className="student-card student-workspace-card">
+            <div className="student-current">
+              <div>
+                <span>{student.team_name || "还在分组"}</span>
+                <strong>{student.nickname}</strong>
+                <small>{student.student_no ? `学号 ${student.student_no}` : student.username}</small>
+              </div>
+              <button className="text-button" onClick={onLogout}>退出</button>
+            </div>
+            {!workspace && !message ? (
+              <div className="feedback-loading">
+                <Loader2 className="spin" size={24} />
+                <span>正在读取</span>
+              </div>
+            ) : null}
+            {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+            {workspace && active === "team" && <StudentTeamPanel workspace={workspace} />}
+            {workspace && active === "work" && <StudentWorkPanel workspace={workspace} />}
+            {workspace && active === "feedback" && <StudentFeedbackPanel workspace={workspace} />}
+          </div>
+        </section>
+      </main>
+    </>
+  );
+}
+
+function StudentTeamPanel({ workspace }: { workspace: StudentWorkspace }) {
+  const team = workspace.team;
+  const progress = studentProgressItems(workspace);
+  const selectedProblem = team?.selected_problem_title || asText(latestTeamSubmission(workspace, "problem_card")?.payload.problem_scene);
+  return (
+    <div className="student-workspace-section">
+      <div className="student-team-hero">
+        <div>
+          <span>{team?.table_no ? `${team.table_no} 号桌` : "团队桌"}</span>
+          <strong>{team?.name || workspace.student.team_name || "还没分组"}</strong>
+          <small>{team ? `${projectStatusLabel(team.project_status)} · ${showcaseStatusLabel(team.showcase_status)}` : "老师分组后，这里会亮起来。"}</small>
+        </div>
+        <div>
+          <span>小组定题</span>
+          <strong>{selectedProblem || "还没选定要继续调查的问题"}</strong>
+          {Number(team?.selected_problem_votes || 0) > 0 && <small>{team?.selected_problem_votes} 票线索</small>}
+        </div>
+      </div>
+      <div className="student-member-grid">
+        {workspace.team_members.map((member) => (
+          <article key={member.id}>
+            <span>{member.student_no || "成员"}</span>
+            <strong>{member.nickname}</strong>
+          </article>
+        ))}
+        {!workspace.team_members.length && <p className="empty">老师分组后，成员会出现在这里。</p>}
+      </div>
+      {team && (
+        <div className="student-role-strip">
+          {teamRoleLabels.map((role) => (
+            <span key={role}>
+              <b>{role}</b>
+              {team.roles?.[role] || "待认领"}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="student-progress-strip">
+        {progress.map((item) => (
+          <span className={item.done ? "done" : ""} key={item.key}>
+            <CheckCircle2 size={15} />
+            {item.label}
+            <b>{item.count}/{item.target}</b>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StudentWorkPanel({ workspace }: { workspace: StudentWorkspace }) {
+  const latestFinal = latestTeamSubmission(workspace, "final_showcase");
+  const latestProduct = latestTeamSubmission(workspace, "product_definition");
+  const latestPoster = latestTeamSubmission(workspace, "product_packaging");
+  const latestStory = latestTeamSubmission(workspace, "story_pitch");
+  const workItems = [
+    latestFinal,
+    latestPoster,
+    latestProduct,
+    latestStory,
+    latestTeamSubmission(workspace, "tech_route"),
+    latestTeamSubmission(workspace, "iteration_plan")
+  ].filter((item): item is TaskSubmission => Boolean(item));
+  return (
+    <div className="student-workspace-section">
+      {workspace.showcase_items.length ? (
+        <div className="student-showcase-links">
+          {workspace.showcase_items.map((item) => (
+            <article key={item.id}>
+              <div>
+                <span>{item.team_name || item.track || "作品卡"}</span>
+                <strong>{item.product_name}</strong>
+                <small>{item.one_liner || "可以点开体验的作品。"}</small>
+              </div>
+              {item.access_url && (
+                <a href={normalizeShowcaseUrl(item.access_url)} target="_blank" rel="noreferrer">
+                  <ExternalLink size={16} />
+                  打开
+                </a>
+              )}
+            </article>
+          ))}
+        </div>
+      ) : (
+        <article className="student-work-empty">
+          <Package size={28} />
+          <strong>{asText(latestFinal?.payload.product_name) || asText(latestProduct?.payload.product_name) || "作品正在整理"}</strong>
+          <span>{asText(latestFinal?.payload.value_line) || asText(latestProduct?.payload.one_liner) || "等作品卡准备好，这里会出现可以点开的入口。"}</span>
+        </article>
+      )}
+      <div className="student-work-list">
+        {workItems.map((item) => (
+          <article key={item.id}>
+            <span>{studentSubmissionLabel(item)}</span>
+            <strong>{studentSubmissionTitle(item)}</strong>
+            <small>{studentSubmissionLine(item)}</small>
+          </article>
+        ))}
+        {!workItems.length && <p className="empty">提交产品卡、海报卡和故事卡后，这里会慢慢变满。</p>}
+      </div>
+    </div>
+  );
+}
+
+function StudentFeedbackPanel({ workspace }: { workspace: StudentWorkspace }) {
+  const [classroomItems, setClassroomItems] = useState<ShowcaseItem[]>([]);
+
+  useEffect(() => {
+    api.showcase()
+      .then((result) => setClassroomItems(result.showcase_items))
+      .catch(() => setClassroomItems([]));
+  }, []);
+
+  const otherProducts = classroomItems.filter((item) =>
+    item.team_id !== workspace.student.team_id && item.team_name !== workspace.student.team_name
+  );
+  return (
+    <div className="student-workspace-section">
+      <article className="student-feedback-action">
+        <div>
+          <span>现在可以做的事</span>
+          <strong>打开当前任务，给别组一条有用反馈</strong>
+          <small>先试用，再写亮点和下一步建议。</small>
+        </div>
+        <a href={studentWorkspaceHref("task")}>
+          <ClipboardCheck size={16} />
+          去任务
+        </a>
+      </article>
+      {otherProducts.length ? (
+        <div className="student-showcase-links compact">
+          {otherProducts.slice(0, 6).map((item) => (
+            <article key={item.id}>
+              <div>
+                <span>{item.team_name || item.track || "别组作品"}</span>
+                <strong>{item.product_name}</strong>
+                <small>{item.one_liner || "先打开看看怎么用。"}</small>
+              </div>
+              {item.access_url && (
+                <a href={normalizeShowcaseUrl(item.access_url)} target="_blank" rel="noreferrer">
+                  <ExternalLink size={16} />
+                  打开
+                </a>
+              )}
+            </article>
+          ))}
+        </div>
+      ) : null}
+      <div className="student-work-list">
+        <h3>别人写给我们的</h3>
+        {workspace.received_feedback.map((item) => (
+          <article key={item.id}>
+            <span>{item.student_name || "同伴反馈"}</span>
+            <strong>{asText(item.payload.highlight) || "一个亮点"}</strong>
+            <small>{asText(item.payload.next_step) || "下一步建议还在路上。"}</small>
+          </article>
+        ))}
+        {!workspace.received_feedback.length && <p className="empty">等同学试用你们的作品后，反馈会出现在这里。</p>}
+      </div>
+    </div>
+  );
 }
 
 function nextSupportAction(
@@ -7616,6 +7947,13 @@ function StudentApp({
     setStudent(null);
     setLoggedIn(false);
   };
+  const activeStudentView = studentWorkspaceTabFromUrl();
+  const withStudentNav = (content: React.ReactNode) => (
+    <>
+      <StudentQuickNav active="task" />
+      {content}
+    </>
+  );
 
   if (checking) {
     return (
@@ -7633,8 +7971,19 @@ function StudentApp({
     }} />;
   }
 
-  if (problemTask) {
+  if (activeStudentView !== "task") {
     return (
+      <StudentWorkspaceView
+        camp={camp}
+        active={activeStudentView}
+        student={student}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (problemTask) {
+    return withStudentNav(
       <StudentProblemCardTask
         camp={camp}
         student={student}
@@ -7646,7 +7995,7 @@ function StudentApp({
   }
 
   if (problemVoteTask) {
-    return (
+    return withStudentNav(
       <StudentProblemVoteTask
         camp={camp}
         student={student}
@@ -7658,7 +8007,7 @@ function StudentApp({
   }
 
   if (userVoiceTask) {
-    return (
+    return withStudentNav(
       <StudentUserVoiceTask
         camp={camp}
         student={student}
@@ -7670,7 +8019,7 @@ function StudentApp({
   }
 
   if (aiValidationTask) {
-    return (
+    return withStudentNav(
       <StudentAiValidationTask
         camp={camp}
         student={student}
@@ -7682,7 +8031,7 @@ function StudentApp({
   }
 
   if (marketScoutTask) {
-    return (
+    return withStudentNav(
       <StudentMarketScoutTask
         camp={camp}
         student={student}
@@ -7694,7 +8043,7 @@ function StudentApp({
   }
 
   if (promptCardTask) {
-    return (
+    return withStudentNav(
       <StudentPromptCardTask
         camp={camp}
         student={student}
@@ -7706,7 +8055,7 @@ function StudentApp({
   }
 
   if (featureScopeTask) {
-    return (
+    return withStudentNav(
       <StudentFeatureScopeTask
         camp={camp}
         student={student}
@@ -7718,7 +8067,7 @@ function StudentApp({
   }
 
   if (techRouteTask) {
-    return (
+    return withStudentNav(
       <StudentTechRouteTask
         camp={camp}
         student={student}
@@ -7730,7 +8079,7 @@ function StudentApp({
   }
 
   if (iterationPlanTask) {
-    return (
+    return withStudentNav(
       <StudentIterationPlanTask
         camp={camp}
         student={student}
@@ -7742,7 +8091,7 @@ function StudentApp({
   }
 
   if (valueCardTask) {
-    return (
+    return withStudentNav(
       <StudentValueCardTask
         camp={camp}
         student={student}
@@ -7754,7 +8103,7 @@ function StudentApp({
   }
 
   if (productPackagingTask) {
-    return (
+    return withStudentNav(
       <StudentProductPackagingTask
         camp={camp}
         student={student}
@@ -7766,7 +8115,7 @@ function StudentApp({
   }
 
   if (storyPitchTask) {
-    return (
+    return withStudentNav(
       <StudentStoryPitchTask
         camp={camp}
         student={student}
@@ -7778,7 +8127,7 @@ function StudentApp({
   }
 
   if (productDefinitionTask) {
-    return (
+    return withStudentNav(
       <StudentProductDefinitionTask
         camp={camp}
         student={student}
@@ -7790,7 +8139,7 @@ function StudentApp({
   }
 
   if (blockerTask) {
-    return (
+    return withStudentNav(
       <StudentBlockerTask
         camp={camp}
         student={student}
@@ -7802,7 +8151,7 @@ function StudentApp({
   }
 
   if (observerScoreTask) {
-    return (
+    return withStudentNav(
       <StudentObserverScoreTask
         camp={camp}
         student={student}
@@ -7814,7 +8163,7 @@ function StudentApp({
   }
 
   if (growthReflectionTask) {
-    return (
+    return withStudentNav(
       <StudentGrowthReflectionTask
         camp={camp}
         student={student}
@@ -7826,7 +8175,7 @@ function StudentApp({
   }
 
   if (finalShowcaseTask) {
-    return (
+    return withStudentNav(
       <StudentFinalShowcaseTask
         camp={camp}
         student={student}
@@ -7838,7 +8187,7 @@ function StudentApp({
   }
 
   if (productLinkTask) {
-    return (
+    return withStudentNav(
       <StudentProductLinkTask
         camp={camp}
         student={student}
@@ -7850,7 +8199,7 @@ function StudentApp({
   }
 
   if (peerFeedbackTask) {
-    return (
+    return withStudentNav(
       <StudentPeerFeedbackTask
         camp={camp}
         student={student}
@@ -7861,7 +8210,7 @@ function StudentApp({
     );
   }
 
-  return (
+  return withStudentNav(
     <main className="student-page">
       <section className="student-shell">
         <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
