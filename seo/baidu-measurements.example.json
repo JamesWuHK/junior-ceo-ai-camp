@@ -2386,6 +2386,18 @@
     },
     {
       "cluster": "shunyi-children-ai-course",
+      "query": "顺义少儿AI课需要先学编程吗",
+      "targetPage": "https://camps.wanli.wiki/shunyi-children-ai-course.html",
+      "markdownUrl": "https://camps.wanli.wiki/shunyi-children-ai-course.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "shunyi-children-ai-course",
       "query": "顺义儿童AI课程和少儿编程有什么不同",
       "targetPage": "https://camps.wanli.wiki/shunyi-children-ai-course.html",
       "markdownUrl": "https://camps.wanli.wiki/shunyi-children-ai-course.md",

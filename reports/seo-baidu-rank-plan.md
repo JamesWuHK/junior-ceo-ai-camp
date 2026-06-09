@@ -1,6 +1,6 @@
 # Baidu Ranking / GEO Tracking Plan
 
-Generated: 2026-06-09T22:07:48+08:00
+Generated: 2026-06-09T22:21:27+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
 
@@ -208,6 +208,7 @@ beijing-shunyi-youth-ai-course | 顺义AI课程和普通工具体验课有什么
 beijing-shunyi-youth-ai-course | 顺义家长如何判断一门青少年AI课程 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89%E5%AE%B6%E9%95%BF%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E9%97%A8%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B | N/A
 shunyi-children-ai-course | 北京顺义儿童AI课程怎么选 | https://camps.wanli.wiki/shunyi-children-ai-course.html | https://camps.wanli.wiki/shunyi-children-ai-course.md | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B%E6%80%8E%E4%B9%88%E9%80%89 | N/A
 shunyi-children-ai-course | 小学生AI课程应该学什么 | https://camps.wanli.wiki/shunyi-children-ai-course.html | https://camps.wanli.wiki/shunyi-children-ai-course.md | https://www.baidu.com/s?wd=%E5%B0%8F%E5%AD%A6%E7%94%9FAI%E8%AF%BE%E7%A8%8B%E5%BA%94%E8%AF%A5%E5%AD%A6%E4%BB%80%E4%B9%88 | N/A
+shunyi-children-ai-course | 顺义少儿AI课需要先学编程吗 | https://camps.wanli.wiki/shunyi-children-ai-course.html | https://camps.wanli.wiki/shunyi-children-ai-course.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89%E5%B0%91%E5%84%BFAI%E8%AF%BE%E9%9C%80%E8%A6%81%E5%85%88%E5%AD%A6%E7%BC%96%E7%A8%8B%E5%90%97 | N/A
 shunyi-children-ai-course | 顺义儿童AI课程和少儿编程有什么不同 | https://camps.wanli.wiki/shunyi-children-ai-course.html | https://camps.wanli.wiki/shunyi-children-ai-course.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B%E5%92%8C%E5%B0%91%E5%84%BF%E7%BC%96%E7%A8%8B%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E5%90%8C | N/A
 shunyi-ai-summer-camp | 北京顺义AI夏令营适合什么孩子 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%A4%8F%E4%BB%A4%E8%90%A5%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%AD%A9%E5%AD%90 | N/A
 shunyi-ai-summer-camp | 顺义AI夏令营和普通科技营有什么不同 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89AI%E5%A4%8F%E4%BB%A4%E8%90%A5%E5%92%8C%E6%99%AE%E9%80%9A%E7%A7%91%E6%8A%80%E8%90%A5%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E5%90%8C | N/A

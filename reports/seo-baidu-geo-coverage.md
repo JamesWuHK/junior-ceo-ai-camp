@@ -18,7 +18,7 @@ PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, 
 PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产品原型课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | ai-product-prototype-course.md
 PASS | beijing-shunyi-ai-course | /beijing-shunyi-ai-course.html | 北京顺义AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | beijing-shunyi-ai-course.md
 PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | 北京顺义青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | beijing-shunyi-youth-ai-course.md
-PASS | shunyi-children-ai-course | /shunyi-children-ai-course.html | 北京顺义儿童AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | shunyi-children-ai-course.md
+PASS | shunyi-children-ai-course | /shunyi-children-ai-course.html | 北京顺义儿童AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 4/4 | 4/4 | 4/4 | yes | yes | shunyi-children-ai-course.md
 PASS | shunyi-ai-summer-camp | /shunyi-ai-summer-camp.html | 北京顺义AI夏令营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | shunyi-ai-summer-camp.md
 PASS | ai-era-skills-for-kids | /ai-era-skills-for-kids.html | AI时代孩子需要什么能力 | title, description, keywords, h1, body, jsonLd | 8/8 | 4/4 | 4/4 | 4/4 | yes | yes | ai-era-skills-for-kids.md
 PASS | ai-judgement-for-kids | /ai-judgement-for-kids.html | 孩子AI判断力 | title, description, keywords, h1, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | yes | yes | ai-judgement-for-kids.md
@@ -154,10 +154,10 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Primary locations measured: title, description, keywords, h1, body, jsonLd
 - Secondary matches measured: 8/8 (顺义儿童AI课程, 顺义少儿AI课, 小学生AI课程, AI启蒙课, AI判断力, 北京顺义AI课程, 青少年AI课程, 少年CEO)
 - JSON-LD types measured: BreadcrumbList, Course, FAQPage
-- AI query coverage targets: 北京顺义儿童AI课程怎么选 | 小学生AI课程应该学什么 | 顺义儿童AI课程和少儿编程有什么不同
-- Visible HTML answer blocks measured: 3/3 (北京顺义儿童AI课程怎么选 | 小学生AI课程应该学什么 | 顺义儿童AI课程和少儿编程有什么不同)
-- JSON-LD answer blocks measured: 3/3 (北京顺义儿童AI课程怎么选 | 小学生AI课程应该学什么 | 顺义儿童AI课程和少儿编程有什么不同)
-- AI query answer blocks measured: 3/3 (北京顺义儿童AI课程怎么选 | 小学生AI课程应该学什么 | 顺义儿童AI课程和少儿编程有什么不同)
+- AI query coverage targets: 北京顺义儿童AI课程怎么选 | 小学生AI课程应该学什么 | 顺义少儿AI课需要先学编程吗 | 顺义儿童AI课程和少儿编程有什么不同
+- Visible HTML answer blocks measured: 4/4 (北京顺义儿童AI课程怎么选 | 小学生AI课程应该学什么 | 顺义少儿AI课需要先学编程吗 | 顺义儿童AI课程和少儿编程有什么不同)
+- JSON-LD answer blocks measured: 4/4 (北京顺义儿童AI课程怎么选 | 小学生AI课程应该学什么 | 顺义少儿AI课需要先学编程吗 | 顺义儿童AI课程和少儿编程有什么不同)
+- AI query answer blocks measured: 4/4 (北京顺义儿童AI课程怎么选 | 小学生AI课程应该学什么 | 顺义少儿AI课需要先学编程吗 | 顺义儿童AI课程和少儿编程有什么不同)
 - Status: PASS
 - Failures: none
 - Warnings: none
