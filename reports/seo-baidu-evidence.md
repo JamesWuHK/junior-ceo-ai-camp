@@ -1,6 +1,6 @@
 # Baidu Measured Evidence Report
 
-Generated: 2026-06-09T23:16:50+08:00
+Generated: 2026-06-09T23:27:27+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_MEASURED_DATA
 
@@ -17,7 +17,7 @@ Overall status: NEEDS_MEASURED_DATA
 - URL metric evidence: 0/14 measured, 14 missing evidence.
 - Primary keyword rank evidence: 0/13 ranked, 0 measured no rank, 13 missing evidence.
 - Tracked keyword rank evidence: 0/137 ranked, 0 measured no rank, 137 missing evidence.
-- GEO answer evidence: 0/48 pass, 0 needs repair, 48 missing evidence.
+- GEO answer evidence: 0/49 pass, 0 needs repair, 49 missing evidence.
 
 ## How To Use This File
 
@@ -243,6 +243,7 @@ MISSING_EVIDENCE | ai-product-prototype-course | AI产品原型课程能做出�
 MISSING_EVIDENCE | ai-product-prototype-course | 孩子做AI产品需要会编程吗 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://camps.wanli.wiki/ai-product-prototype-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-product-prototype-course | AI产品原型课程和AI工具课有什么不同 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://camps.wanli.wiki/ai-product-prototype-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-ai-course | 北京顺义AI课程怎么选 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | beijing-shunyi-ai-course | 顺义AI课程一般学几天 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-ai-course | 顺义AI课程适合什么孩子 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-ai-course | 北京顺义AI课程有哪些形式 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | beijing-shunyi-youth-ai-course | 北京顺义青少年AI课程适合什么孩子 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | N/A | N/A | N/A | N/A | N/A | -

@@ -2326,6 +2326,18 @@
     },
     {
       "cluster": "beijing-shunyi-ai-course",
+      "query": "顺义AI课程一般学几天",
+      "targetPage": "https://camps.wanli.wiki/beijing-shunyi-ai-course.html",
+      "markdownUrl": "https://camps.wanli.wiki/beijing-shunyi-ai-course.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "beijing-shunyi-ai-course",
       "query": "顺义AI课程适合什么孩子",
       "targetPage": "https://camps.wanli.wiki/beijing-shunyi-ai-course.html",
       "markdownUrl": "https://camps.wanli.wiki/beijing-shunyi-ai-course.md",

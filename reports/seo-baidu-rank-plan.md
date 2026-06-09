@@ -1,6 +1,6 @@
 # Baidu Ranking / GEO Tracking Plan
 
-Generated: 2026-06-09T23:16:38+08:00
+Generated: 2026-06-09T23:27:16+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
 
@@ -203,6 +203,7 @@ ai-product-prototype-course | AI产品原型课程能做出什么作品 | https:
 ai-product-prototype-course | 孩子做AI产品需要会编程吗 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://camps.wanli.wiki/ai-product-prototype-course.md | https://www.baidu.com/s?wd=%E5%AD%A9%E5%AD%90%E5%81%9AAI%E4%BA%A7%E5%93%81%E9%9C%80%E8%A6%81%E4%BC%9A%E7%BC%96%E7%A8%8B%E5%90%97 | N/A
 ai-product-prototype-course | AI产品原型课程和AI工具课有什么不同 | https://camps.wanli.wiki/ai-product-prototype-course.html | https://camps.wanli.wiki/ai-product-prototype-course.md | https://www.baidu.com/s?wd=AI%E4%BA%A7%E5%93%81%E5%8E%9F%E5%9E%8B%E8%AF%BE%E7%A8%8B%E5%92%8CAI%E5%B7%A5%E5%85%B7%E8%AF%BE%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E5%90%8C | N/A
 beijing-shunyi-ai-course | 北京顺义AI课程怎么选 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B%E6%80%8E%E4%B9%88%E9%80%89 | N/A
+beijing-shunyi-ai-course | 顺义AI课程一般学几天 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B%E4%B8%80%E8%88%AC%E5%AD%A6%E5%87%A0%E5%A4%A9 | N/A
 beijing-shunyi-ai-course | 顺义AI课程适合什么孩子 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%AD%A9%E5%AD%90 | N/A
 beijing-shunyi-ai-course | 北京顺义AI课程有哪些形式 | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-ai-course.md | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E8%AF%BE%E7%A8%8B%E6%9C%89%E5%93%AA%E4%BA%9B%E5%BD%A2%E5%BC%8F | N/A
 beijing-shunyi-youth-ai-course | 北京顺义青少年AI课程适合什么孩子 | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html | https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.md | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%AD%A9%E5%AD%90 | N/A
