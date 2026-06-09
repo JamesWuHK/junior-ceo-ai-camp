@@ -1,6 +1,6 @@
 # Baidu Ranking / GEO Tracking Plan
 
-Generated: 2026-06-09T23:27:16+08:00
+Generated: 2026-06-09T23:46:33+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
 
@@ -214,6 +214,7 @@ shunyi-children-ai-course | 小学生AI课程应该学什么 | https://camps.wan
 shunyi-children-ai-course | 顺义少儿AI课需要先学编程吗 | https://camps.wanli.wiki/shunyi-children-ai-course.html | https://camps.wanli.wiki/shunyi-children-ai-course.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89%E5%B0%91%E5%84%BFAI%E8%AF%BE%E9%9C%80%E8%A6%81%E5%85%88%E5%AD%A6%E7%BC%96%E7%A8%8B%E5%90%97 | N/A
 shunyi-children-ai-course | 顺义儿童AI课程和少儿编程有什么不同 | https://camps.wanli.wiki/shunyi-children-ai-course.html | https://camps.wanli.wiki/shunyi-children-ai-course.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B%E5%92%8C%E5%B0%91%E5%84%BF%E7%BC%96%E7%A8%8B%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E5%90%8C | N/A
 shunyi-ai-summer-camp | 北京顺义AI夏令营适合什么孩子 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89AI%E5%A4%8F%E4%BB%A4%E8%90%A5%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%AD%A9%E5%AD%90 | N/A
+shunyi-ai-summer-camp | 顺义AI夏令营适合几年级孩子 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89AI%E5%A4%8F%E4%BB%A4%E8%90%A5%E9%80%82%E5%90%88%E5%87%A0%E5%B9%B4%E7%BA%A7%E5%AD%A9%E5%AD%90 | N/A
 shunyi-ai-summer-camp | 顺义AI夏令营和普通科技营有什么不同 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89AI%E5%A4%8F%E4%BB%A4%E8%90%A5%E5%92%8C%E6%99%AE%E9%80%9A%E7%A7%91%E6%8A%80%E8%90%A5%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E5%90%8C | N/A
 shunyi-ai-summer-camp | AI夏令营3天能做出什么作品 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | https://www.baidu.com/s?wd=AI%E5%A4%8F%E4%BB%A4%E8%90%A53%E5%A4%A9%E8%83%BD%E5%81%9A%E5%87%BA%E4%BB%80%E4%B9%88%E4%BD%9C%E5%93%81 | N/A
 ai-era-skills-for-kids | AI时代孩子需要什么能力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | https://www.baidu.com/s?wd=AI%E6%97%B6%E4%BB%A3%E5%AD%A9%E5%AD%90%E9%9C%80%E8%A6%81%E4%BB%80%E4%B9%88%E8%83%BD%E5%8A%9B | N/A

@@ -2458,6 +2458,18 @@
     },
     {
       "cluster": "shunyi-ai-summer-camp",
+      "query": "顺义AI夏令营适合几年级孩子",
+      "targetPage": "https://camps.wanli.wiki/shunyi-ai-summer-camp.html",
+      "markdownUrl": "https://camps.wanli.wiki/shunyi-ai-summer-camp.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "shunyi-ai-summer-camp",
       "query": "顺义AI夏令营和普通科技营有什么不同",
       "targetPage": "https://camps.wanli.wiki/shunyi-ai-summer-camp.html",
       "markdownUrl": "https://camps.wanli.wiki/shunyi-ai-summer-camp.md",

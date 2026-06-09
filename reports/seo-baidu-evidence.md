@@ -1,6 +1,6 @@
 # Baidu Measured Evidence Report
 
-Generated: 2026-06-09T23:27:27+08:00
+Generated: 2026-06-09T23:46:47+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_MEASURED_DATA
 
@@ -17,7 +17,7 @@ Overall status: NEEDS_MEASURED_DATA
 - URL metric evidence: 0/14 measured, 14 missing evidence.
 - Primary keyword rank evidence: 0/13 ranked, 0 measured no rank, 13 missing evidence.
 - Tracked keyword rank evidence: 0/137 ranked, 0 measured no rank, 137 missing evidence.
-- GEO answer evidence: 0/49 pass, 0 needs repair, 49 missing evidence.
+- GEO answer evidence: 0/50 pass, 0 needs repair, 50 missing evidence.
 
 ## How To Use This File
 
@@ -254,6 +254,7 @@ MISSING_EVIDENCE | shunyi-children-ai-course | 小学生AI课程应该学什么 
 MISSING_EVIDENCE | shunyi-children-ai-course | 顺义少儿AI课需要先学编程吗 | https://camps.wanli.wiki/shunyi-children-ai-course.html | https://camps.wanli.wiki/shunyi-children-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | shunyi-children-ai-course | 顺义儿童AI课程和少儿编程有什么不同 | https://camps.wanli.wiki/shunyi-children-ai-course.html | https://camps.wanli.wiki/shunyi-children-ai-course.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | shunyi-ai-summer-camp | 北京顺义AI夏令营适合什么孩子 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | shunyi-ai-summer-camp | 顺义AI夏令营适合几年级孩子 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | shunyi-ai-summer-camp | 顺义AI夏令营和普通科技营有什么不同 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | shunyi-ai-summer-camp | AI夏令营3天能做出什么作品 | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-era-skills-for-kids | AI时代孩子需要什么能力 | https://camps.wanli.wiki/ai-era-skills-for-kids.html | https://camps.wanli.wiki/ai-era-skills-for-kids.md | N/A | N/A | N/A | N/A | N/A | -

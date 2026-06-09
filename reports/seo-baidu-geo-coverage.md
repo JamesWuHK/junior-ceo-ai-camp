@@ -19,7 +19,7 @@ PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产�
 PASS | beijing-shunyi-ai-course | /beijing-shunyi-ai-course.html | 北京顺义AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 4/4 | 4/4 | 4/4 | yes | yes | beijing-shunyi-ai-course.md
 PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | 北京顺义青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | beijing-shunyi-youth-ai-course.md
 PASS | shunyi-children-ai-course | /shunyi-children-ai-course.html | 北京顺义儿童AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 4/4 | 4/4 | 4/4 | yes | yes | shunyi-children-ai-course.md
-PASS | shunyi-ai-summer-camp | /shunyi-ai-summer-camp.html | 北京顺义AI夏令营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | shunyi-ai-summer-camp.md
+PASS | shunyi-ai-summer-camp | /shunyi-ai-summer-camp.html | 北京顺义AI夏令营 | title, description, keywords, h1, body, jsonLd | 8/8 | 4/4 | 4/4 | 4/4 | yes | yes | shunyi-ai-summer-camp.md
 PASS | ai-era-skills-for-kids | /ai-era-skills-for-kids.html | AI时代孩子需要什么能力 | title, description, keywords, h1, body, jsonLd | 8/8 | 4/4 | 4/4 | 4/4 | yes | yes | ai-era-skills-for-kids.md
 PASS | ai-judgement-for-kids | /ai-judgement-for-kids.html | 孩子AI判断力 | title, description, keywords, h1, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | yes | yes | ai-judgement-for-kids.md
 PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | yes | yes | youth-ai-course-guide.md
@@ -171,10 +171,10 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Primary locations measured: title, description, keywords, h1, body, jsonLd
 - Secondary matches measured: 8/8 (顺义AI夏令营, AI夏令营, 青少年AI夏令营, 顺义暑期AI课程, 北京顺义AI课程, AI PBL创业营, 8-16岁AI课程, 少年CEO)
 - JSON-LD types measured: BreadcrumbList, Course, FAQPage
-- AI query coverage targets: 北京顺义AI夏令营适合什么孩子 | 顺义AI夏令营和普通科技营有什么不同 | AI夏令营3天能做出什么作品
-- Visible HTML answer blocks measured: 3/3 (北京顺义AI夏令营适合什么孩子 | 顺义AI夏令营和普通科技营有什么不同 | AI夏令营3天能做出什么作品)
-- JSON-LD answer blocks measured: 3/3 (北京顺义AI夏令营适合什么孩子 | 顺义AI夏令营和普通科技营有什么不同 | AI夏令营3天能做出什么作品)
-- AI query answer blocks measured: 3/3 (北京顺义AI夏令营适合什么孩子 | 顺义AI夏令营和普通科技营有什么不同 | AI夏令营3天能做出什么作品)
+- AI query coverage targets: 北京顺义AI夏令营适合什么孩子 | 顺义AI夏令营适合几年级孩子 | 顺义AI夏令营和普通科技营有什么不同 | AI夏令营3天能做出什么作品
+- Visible HTML answer blocks measured: 4/4 (北京顺义AI夏令营适合什么孩子 | 顺义AI夏令营适合几年级孩子 | 顺义AI夏令营和普通科技营有什么不同 | AI夏令营3天能做出什么作品)
+- JSON-LD answer blocks measured: 4/4 (北京顺义AI夏令营适合什么孩子 | 顺义AI夏令营适合几年级孩子 | 顺义AI夏令营和普通科技营有什么不同 | AI夏令营3天能做出什么作品)
+- AI query answer blocks measured: 4/4 (北京顺义AI夏令营适合什么孩子 | 顺义AI夏令营适合几年级孩子 | 顺义AI夏令营和普通科技营有什么不同 | AI夏令营3天能做出什么作品)
 - Status: PASS
 - Failures: none
 - Warnings: none
