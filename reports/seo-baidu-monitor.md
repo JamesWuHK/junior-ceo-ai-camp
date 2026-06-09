@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-10T00:04:49+08:00
+Generated: 2026-06-10T00:11:21+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -53,7 +53,7 @@ Run `npm run seo:submit:baidu -- --dry-run` to print this same URL set without s
 
 Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | HTML answers | Schema answers | Markdown answers | JSON-LD types
 --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
-PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | Course, FAQPage, Organization, WebSite
+PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | 4/4 | 4/4 | 4/4 | Course, FAQPage, Organization, WebSite
 PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | BreadcrumbList, Course, FAQPage
 PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产品原型课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | Article, BreadcrumbList, FAQPage
 PASS | beijing-shunyi-ai-course | /beijing-shunyi-ai-course.html | 北京顺义AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 4/4 | 4/4 | 4/4 | BreadcrumbList, CollectionPage, FAQPage
@@ -79,7 +79,7 @@ PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构�
 
 Status | URL | HTTP | Bytes | Missing markers / error
 --- | --- | --- | --- | ---
-PASS | https://camps.wanli.wiki/ | 200 | 51272 | none
+PASS | https://camps.wanli.wiki/ | 200 | 51873 | none
 PASS | https://camps.wanli.wiki/ai-pbl-camp.html | 200 | 11592 | none
 PASS | https://camps.wanli.wiki/ai-product-prototype-course.html | 200 | 12711 | none
 PASS | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | 200 | 12980 | none
@@ -111,7 +111,7 @@ PASS | https://camps.wanli.wiki/ai-course-vs-coding.md | 200 | 879 | none
 PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.md | 200 | 751 | none
 PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.md | 200 | 710 | none
 PASS | https://camps.wanli.wiki/course-navigation.md | 200 | 891 | none
-PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 3316 | none
+PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 3462 | none
 
 ## AI Query Targets
 
@@ -119,10 +119,10 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 3316 | no
 
 - Page: https://camps.wanli.wiki/
 - Primary keyword: 少年CEO AI 创业营
-- Target answer queries: 少年CEO AI 创业营是什么 | 适合8-16岁孩子的AI创业营 | 北京顺义青少年AI课程推荐
-- Visible HTML answer coverage: 3/3
-- JSON-LD answer coverage: 3/3
-- Markdown answer coverage: 3/3
+- Target answer queries: 少年CEO AI 创业营是什么 | 适合8-16岁孩子的AI创业营 | 北京顺义青少年AI课程推荐 | 少年CEO AI 创业营怎么报名咨询
+- Visible HTML answer coverage: 4/4
+- JSON-LD answer coverage: 4/4
+- Markdown answer coverage: 4/4
 - Status: PASS
 - Failures: none
 - Warnings: none

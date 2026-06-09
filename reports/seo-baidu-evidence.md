@@ -1,6 +1,6 @@
 # Baidu Measured Evidence Report
 
-Generated: 2026-06-09T23:52:44+08:00
+Generated: 2026-06-10T00:08:41+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_MEASURED_DATA
 
@@ -17,7 +17,7 @@ Overall status: NEEDS_MEASURED_DATA
 - URL metric evidence: 0/14 measured, 14 missing evidence.
 - Primary keyword rank evidence: 0/13 ranked, 0 measured no rank, 13 missing evidence.
 - Tracked keyword rank evidence: 0/137 ranked, 0 measured no rank, 137 missing evidence.
-- GEO answer evidence: 0/51 pass, 0 needs repair, 51 missing evidence.
+- GEO answer evidence: 0/52 pass, 0 needs repair, 52 missing evidence.
 
 ## How To Use This File
 
@@ -234,6 +234,7 @@ Status | Cluster | Query | Target HTML page | Markdown context | Mentions projec
 MISSING_EVIDENCE | brand-home | 少年CEO AI 创业营是什么 | https://camps.wanli.wiki/ | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | brand-home | 适合8-16岁孩子的AI创业营 | https://camps.wanli.wiki/ | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | brand-home | 北京顺义青少年AI课程推荐 | https://camps.wanli.wiki/ | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | N/A | N/A | N/A | N/A | N/A | -
+MISSING_EVIDENCE | brand-home | 少年CEO AI 创业营怎么报名咨询 | https://camps.wanli.wiki/ | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-pbl-camp | AI PBL 创业营适合什么孩子 | https://camps.wanli.wiki/ai-pbl-camp.html | https://camps.wanli.wiki/ai-pbl-camp.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-pbl-camp | AI PBL创业营3天学什么 | https://camps.wanli.wiki/ai-pbl-camp.html | https://camps.wanli.wiki/ai-pbl-camp.md | N/A | N/A | N/A | N/A | N/A | -
 MISSING_EVIDENCE | ai-pbl-camp | 孩子不懂编程能参加AI创业营吗 | https://camps.wanli.wiki/ai-pbl-camp.html | https://camps.wanli.wiki/ai-pbl-camp.md | N/A | N/A | N/A | N/A | N/A | -

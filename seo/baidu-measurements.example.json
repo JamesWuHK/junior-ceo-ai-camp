@@ -2217,6 +2217,18 @@
       "notes": ""
     },
     {
+      "cluster": "brand-home",
+      "query": "少年CEO AI 创业营怎么报名咨询",
+      "targetPage": "https://camps.wanli.wiki/",
+      "markdownUrl": "https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
       "cluster": "ai-pbl-camp",
       "query": "AI PBL 创业营适合什么孩子",
       "targetPage": "https://camps.wanli.wiki/ai-pbl-camp.html",

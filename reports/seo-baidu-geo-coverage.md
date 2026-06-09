@@ -13,7 +13,7 @@ Overall status: PASS
 
 Status | Cluster | Page | Primary keyword | Primary locations | Secondary coverage | HTML answers | Schema answers | Markdown answers | Sitemap | llms.txt | Markdown context
 --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
-PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | entity-shaonian-ceo-ai-camp.md
+PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h1, body, jsonLd | 8/8 | 4/4 | 4/4 | 4/4 | yes | yes | entity-shaonian-ceo-ai-camp.md
 PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | yes | yes | ai-pbl-camp.md
 PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产品原型课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | yes | yes | ai-product-prototype-course.md
 PASS | beijing-shunyi-ai-course | /beijing-shunyi-ai-course.html | 北京顺义AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 4/4 | 4/4 | 4/4 | yes | yes | beijing-shunyi-ai-course.md
@@ -69,10 +69,10 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Primary locations measured: title, description, keywords, h1, body, jsonLd
 - Secondary matches measured: 8/8 (少年CEO, AI创业营, 北京顺义AI课程, 青少年AI课程, PBL创业营, AI夏令营, 儿童AI课程, AI产品原型)
 - JSON-LD types measured: Course, FAQPage, Organization, WebSite
-- AI query coverage targets: 少年CEO AI 创业营是什么 | 适合8-16岁孩子的AI创业营 | 北京顺义青少年AI课程推荐
-- Visible HTML answer blocks measured: 3/3 (少年CEO AI 创业营是什么 | 适合8-16岁孩子的AI创业营 | 北京顺义青少年AI课程推荐)
-- JSON-LD answer blocks measured: 3/3 (少年CEO AI 创业营是什么 | 适合8-16岁孩子的AI创业营 | 北京顺义青少年AI课程推荐)
-- AI query answer blocks measured: 3/3 (少年CEO AI 创业营是什么 | 适合8-16岁孩子的AI创业营 | 北京顺义青少年AI课程推荐)
+- AI query coverage targets: 少年CEO AI 创业营是什么 | 适合8-16岁孩子的AI创业营 | 北京顺义青少年AI课程推荐 | 少年CEO AI 创业营怎么报名咨询
+- Visible HTML answer blocks measured: 4/4 (少年CEO AI 创业营是什么 | 适合8-16岁孩子的AI创业营 | 北京顺义青少年AI课程推荐 | 少年CEO AI 创业营怎么报名咨询)
+- JSON-LD answer blocks measured: 4/4 (少年CEO AI 创业营是什么 | 适合8-16岁孩子的AI创业营 | 北京顺义青少年AI课程推荐 | 少年CEO AI 创业营怎么报名咨询)
+- AI query answer blocks measured: 4/4 (少年CEO AI 创业营是什么 | 适合8-16岁孩子的AI创业营 | 北京顺义青少年AI课程推荐 | 少年CEO AI 创业营怎么报名咨询)
 - Status: PASS
 - Failures: none
 - Warnings: none
