@@ -56,6 +56,78 @@ button:disabled {
   animation: spin 1s linear infinite;
 }
 
+.home-page {
+  min-height: 100vh;
+  padding: clamp(22px, 4vw, 54px);
+  background:
+    linear-gradient(135deg, rgba(31, 111, 80, 0.12), transparent 42%),
+    #f5f4ef;
+  display: grid;
+  align-content: center;
+  gap: 24px;
+}
+
+.home-hero {
+  width: min(960px, 100%);
+  display: grid;
+  gap: 12px;
+}
+
+.home-hero h1 {
+  margin: 0;
+  color: #172018;
+  font-size: clamp(40px, 7vw, 86px);
+  line-height: 0.98;
+}
+
+.home-hero p {
+  max-width: 680px;
+  margin: 0;
+  color: #536151;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.home-entry-grid {
+  width: min(1040px, 100%);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.home-entry-card {
+  min-height: 154px;
+  border: 1px solid #e2dfd2;
+  border-radius: 8px;
+  background: #fffdf6;
+  color: #172018;
+  text-decoration: none;
+  padding: 16px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  box-shadow: 0 14px 34px rgba(23, 32, 24, 0.07);
+}
+
+.home-entry-card:hover {
+  border-color: #1f6f50;
+  transform: translateY(-1px);
+}
+
+.home-entry-card svg {
+  color: #1f6f50;
+}
+
+.home-entry-card strong {
+  font-size: 22px;
+  line-height: 1.12;
+}
+
+.home-entry-card span {
+  color: #60705f;
+  line-height: 1.45;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

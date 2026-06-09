@@ -1,5 +1,5 @@
 import React from "react";
-import { HomeRoute } from "./app";
+import { WallRoute } from "./app";
 import { renderPage } from "./render";
 
-renderPage(<HomeRoute />);
+renderPage(<WallRoute />);
