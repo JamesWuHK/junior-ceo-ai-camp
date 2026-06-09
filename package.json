@@ -20,6 +20,8 @@
     "seo:baidu:template": "node scripts/seo/baidu-seo.mjs measurements-template",
     "seo:measurements:checklist": "node scripts/seo/baidu-seo.mjs measurements-checklist",
     "seo:baidu:checklist": "node scripts/seo/baidu-seo.mjs measurements-checklist",
+    "seo:measurements:guide": "node scripts/seo/baidu-seo.mjs measurements-guide",
+    "seo:baidu:guide": "node scripts/seo/baidu-seo.mjs measurements-guide",
     "seo:measurements:import": "node scripts/seo/baidu-seo.mjs measurements-import",
     "seo:baidu:import": "node scripts/seo/baidu-seo.mjs measurements-import",
     "seo:rank-plan": "node scripts/seo/baidu-seo.mjs rank-plan",

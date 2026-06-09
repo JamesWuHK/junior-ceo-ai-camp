@@ -23,6 +23,7 @@ const BAIDU_MANUAL_SUBMIT_FILE = 'reports/seo-baidu-submit-urls.txt';
 const BAIDU_MANUAL_SUBMIT_REPORT_FILE = 'reports/seo-baidu-manual-submit.md';
 const INTERNAL_LINK_REPORT_FILE = 'reports/seo-internal-links.md';
 const MEASUREMENT_CHECKLIST_CSV_FILE = 'reports/seo-baidu-measurement-checklist.csv';
+const MEASUREMENT_GUIDE_REPORT_FILE = 'reports/seo-baidu-measurement-guide.md';
 const BAIDU_MEASUREMENTS_FILE = 'seo/baidu-measurements.json';
 const BAIDU_MEASUREMENTS_EXAMPLE_FILE = 'seo/baidu-measurements.example.json';
 const BAIDU_SUBMISSION_HISTORY_FILE = 'seo/baidu-submit-history.json';
@@ -1071,6 +1072,9 @@ function check() {
     for (const failure of measurementTemplateCoverageFailures(measurementExample, config, urlsFromSitemap())) {
       checks.push(fail(`measurement template: ${failure}`));
     }
+  }
+  if (!existsSync(join(ROOT, MEASUREMENT_GUIDE_REPORT_FILE))) {
+    checks.push(fail(`missing ${MEASUREMENT_GUIDE_REPORT_FILE}; run npm run seo:measurements:guide`));
   }
 
   if (warnings.length > 0) {
@@ -2591,6 +2595,148 @@ function buildGeoPromptReport({ generatedAt, config }) {
   ].join('\n');
 }
 
+function buildMeasurementGuideReport({ generatedAt, config, urls }) {
+  const keywordRows = rankQueryRows(config);
+  const geoRows = geoQueryRows(config);
+  const tokenStatus = isConfiguredSecret(process.env.BAIDU_TOKEN) ? 'CONFIGURED_LOCALLY' : 'MISSING';
+  const measurementFileStatus = existsSync(join(ROOT, BAIDU_MEASUREMENTS_FILE)) ? 'PRESENT_PRIVATE_FILE' : 'MISSING_PRIVATE_FILE';
+  const submissionHistoryStatus = existsSync(join(ROOT, BAIDU_SUBMISSION_HISTORY_FILE)) ? 'PRESENT_PRIVATE_FILE' : 'MISSING_PRIVATE_FILE';
+  const host = new URL(SITE_URL).host;
+  const primaryKeywordCount = keywordRows.filter((row) => row.type === 'primary').length;
+  const sourceRows = [
+    [
+      'URL_INDEX',
+      'Baidu Search Resource Platform index data or a reproducible `site:` result',
+      '`targetPage`, `indexed`, `evidenceDate`, `source`, `notes`',
+      'A URL push response, sitemap presence, or local file check is not index evidence.'
+    ],
+    [
+      'URL_METRIC',
+      'Baidu Search Resource Platform query/crawl exports',
+      '`targetPage`, `impressions`, `clicks`, `ctr`, `avgRank`, `crawlCount`, `evidenceDate`, `source`, `notes`',
+      'Keep blank when the platform has no data yet; do not estimate traffic.'
+    ],
+    [
+      'KEYWORD_RANK',
+      'Baidu Search Resource Platform query data, compliant rank monitor, or reproducible manual SERP check',
+      '`cluster`, `queryType`, `query`, `targetPage`, `rank`, `impressions`, `clicks`, `evidenceDate`, `source`, `notes`',
+      'Record location/device/browser state for manual checks.'
+    ],
+    [
+      'GEO_ANSWER',
+      'Manual AI answer check from the target answer engine',
+      '`cluster`, `query`, `targetPage`, `mentionsProject`, `usesTargetPage`, `positioning`, `evidenceDate`, `source`, `notes`',
+      'Useful only when engine, date, query, answer behavior, and source behavior are recorded.'
+    ]
+  ].map((row) => row.map(escapeMarkdownCell).join(' | '));
+  const currentStateRows = [
+    ['BAIDU_TOKEN', tokenStatus, tokenStatus === 'CONFIGURED_LOCALLY' ? 'Real URL push can run privately.' : 'Run manual submit package or configure token outside git.'],
+    [BAIDU_SUBMISSION_HISTORY_FILE, submissionHistoryStatus, submissionHistoryStatus === 'PRESENT_PRIVATE_FILE' ? 'Discovery push history can be summarized.' : 'No private push history found yet.'],
+    [BAIDU_MEASUREMENTS_FILE, measurementFileStatus, measurementFileStatus === 'PRESENT_PRIVATE_FILE' ? 'Measured evidence can be summarized.' : 'No private measured evidence file found yet.']
+  ].map((row) => row.map(escapeMarkdownCell).join(' | '));
+
+  return [
+    '# Baidu / GEO Measurement Guide',
+    '',
+    `Generated: ${generatedAt}`,
+    `Site URL: ${SITE_URL}`,
+    `Host: ${host}`,
+    '',
+    '## Scope',
+    '',
+    `- URL targets from sitemap: ${urls.length}`,
+    `- Keyword clusters: ${(config.clusters || []).length}`,
+    `- Primary keyword checks: ${primaryKeywordCount}`,
+    `- Total keyword rank checks: ${keywordRows.length}`,
+    `- GEO answer checks: ${geoRows.length}`,
+    `- Checklist CSV: ${MEASUREMENT_CHECKLIST_CSV_FILE}`,
+    `- Private measured evidence file: ${BAIDU_MEASUREMENTS_FILE}`,
+    `- Evidence report: ${BAIDU_EVIDENCE_REPORT_FILE}`,
+    '',
+    '## Current Local State',
+    '',
+    'Item | Status | Meaning',
+    '--- | --- | ---',
+    ...currentStateRows,
+    '',
+    '## Evidence Rules',
+    '',
+    '- Label every metric as measured from a tool/export/manual check, or leave it blank/null. Never turn estimates into evidence.',
+    '- Keep Baidu URL push history separate from measured index, ranking, traffic, and GEO evidence.',
+    '- Treat successful Baidu URL push as discovery support only. It does not prove indexation, ranking, impressions, clicks, or AI citation.',
+    '- Commit public templates and reports only. Do not commit private platform exports, screenshots, notes with account details, or `seo/baidu-measurements.json`.',
+    '',
+    'Type | Accepted evidence source | Required CSV fields | Guardrail',
+    '--- | --- | --- | ---',
+    ...sourceRows,
+    '',
+    '## Weekly Measurement Workflow',
+    '',
+    '1. Refresh the task files:',
+    '',
+    '```bash',
+    'npm run seo:measurements:checklist',
+    'npm run seo:geo:prompts',
+    'npm run seo:baidu:submit-list',
+    '```',
+    '',
+    '2. Submit or confirm the sitemap/URL set in Baidu Search Resource Platform. If `BAIDU_TOKEN` is configured privately, run `npm run seo:submit:baidu`; otherwise use the URL list in the manual submit package.',
+    '',
+    '3. Record URL index evidence for each `URL_INDEX` row. Preferred source is Baidu Search Resource Platform. Manual fallback is a reproducible `site:` result such as `site:camps.wanli.wiki https://camps.wanli.wiki/ai-pbl-camp.html` with date and notes.',
+    '',
+    '4. Record URL metric evidence for each `URL_METRIC` row when Baidu has data: impressions, clicks, CTR, average rank, crawl count, evidence date, and source export name.',
+    '',
+    '5. Record keyword rank evidence for each `KEYWORD_RANK` row. If using manual SERP checks, record date, city or VPN state, device, browser state, rank, and whether the target page appeared.',
+    '',
+    '6. Record GEO answer evidence with the prompt pack. For each AI answer check, capture engine, date, exact query, whether 少年CEO AI 创业营 is mentioned, whether the target page or Markdown context is used, and whether the positioning stays as an 8-16 岁 AI PBL 创业营.',
+    '',
+    '7. Import and summarize the measured data:',
+    '',
+    '```bash',
+    'npm run seo:measurements:import',
+    'npm run seo:evidence',
+    'npm run seo:monitor',
+    '```',
+    '',
+    '## Field Values',
+    '',
+    '- Boolean fields accept `true/false`, `yes/no`, `1/0`, `是/否`, `已收录/未收录`, `提到/未提到`, and `使用/未使用`.',
+    '- Numeric fields accept plain numbers. Percent values in `ctr` may be entered as `12.5%`; the importer stores them as decimals.',
+    '- Unknown values should stay blank, `N/A`, `null`, `unknown`, `未测`, or `待测`; the evidence report will keep them as missing evidence.',
+    '- `positioning` should be `accurate`, `partial`, `wrong`, or a short note. Use `unknown` when not measured.',
+    '',
+    '## Repair Decisions',
+    '',
+    '- If a URL is not indexed, first verify HTTP status, robots, canonical, sitemap presence, and internal links; then resubmit the URL.',
+    '- If a keyword has impressions but weak clicks, tune the target page title, meta description, H1, and first visible answer block for that exact query.',
+    '- If a keyword is measured with no rank, strengthen internal links and exact-match answer coverage before adding more pages.',
+    '- If a GEO answer misses the project, strengthen the visible HTML answer, matching FAQ schema, Markdown context, and `llms.txt` canonical answer.',
+    '- If a GEO answer mentions the project but confuses it with adult business training or coding-only classes, repair entity wording and disambiguation blocks.',
+    '',
+    '## Related Outputs',
+    '',
+    `- Manual Baidu URL submit list: ${BAIDU_MANUAL_SUBMIT_FILE}`,
+    `- Manual Baidu submit report: ${BAIDU_MANUAL_SUBMIT_REPORT_FILE}`,
+    `- Rank tracking plan: ${RANK_PLAN_REPORT_FILE}`,
+    `- GEO prompt pack: ${GEO_PROMPT_REPORT_FILE}`,
+    `- Measurement checklist CSV: ${MEASUREMENT_CHECKLIST_CSV_FILE}`,
+    `- Measurement template JSON: ${BAIDU_MEASUREMENTS_EXAMPLE_FILE}`,
+    `- Measured evidence report: ${BAIDU_EVIDENCE_REPORT_FILE}`,
+    ''
+  ].join('\n');
+}
+
+function measurementsGuide() {
+  const config = readJson(KEYWORD_CONFIG_FILE);
+  const urls = urlsFromSitemap();
+  const generatedAt = localTimestamp();
+  writeReport(MEASUREMENT_GUIDE_REPORT_FILE, buildMeasurementGuideReport({ generatedAt, config, urls }));
+  console.log(`Baidu measurement guide: ${MEASUREMENT_GUIDE_REPORT_FILE}`);
+  console.log(`URL targets: ${urls.length}`);
+  console.log(`Tracked keyword checks: ${rankQueryRows(config).length}`);
+  console.log(`Tracked GEO queries: ${geoQueryRows(config).length}`);
+}
+
 function geoPrompts() {
   const config = readJson(KEYWORD_CONFIG_FILE);
   const generatedAt = localTimestamp();
@@ -2879,8 +3025,11 @@ function measurementsChecklist() {
   const config = readJson(KEYWORD_CONFIG_FILE);
   const urls = urlsFromSitemap();
   const csv = buildMeasurementChecklistCsv({ config, urls });
+  const generatedAt = localTimestamp();
   writeReport(MEASUREMENT_CHECKLIST_CSV_FILE, csv);
+  writeReport(MEASUREMENT_GUIDE_REPORT_FILE, buildMeasurementGuideReport({ generatedAt, config, urls }));
   console.log(`Baidu measurement checklist: ${MEASUREMENT_CHECKLIST_CSV_FILE}`);
+  console.log(`Baidu measurement guide: ${MEASUREMENT_GUIDE_REPORT_FILE}`);
   console.log(`Rows: ${csv.trim().split(/\r?\n/).length - 1}`);
   console.log(`URL rows: ${urls.length * 2}`);
   console.log(`Keyword rank rows: ${rankQueryRows(config).length}`);
@@ -2899,8 +3048,10 @@ function rankPlan() {
 
   writeReport(RANK_PLAN_REPORT_FILE, report);
   writeReport(MEASUREMENT_CHECKLIST_CSV_FILE, buildMeasurementChecklistCsv({ config, urls }));
+  writeReport(MEASUREMENT_GUIDE_REPORT_FILE, buildMeasurementGuideReport({ generatedAt, config, urls }));
   console.log(`Baidu ranking/GEO tracking plan: ${RANK_PLAN_REPORT_FILE}`);
   console.log(`Baidu measurement checklist: ${MEASUREMENT_CHECKLIST_CSV_FILE}`);
+  console.log(`Baidu measurement guide: ${MEASUREMENT_GUIDE_REPORT_FILE}`);
   console.log(`Keyword clusters: ${(config.clusters || []).length}`);
   console.log(`Tracked keyword checks: ${rankQueryRows(config).length}`);
   console.log(`Tracked GEO queries: ${geoQueryRows(config).length}`);
@@ -3053,6 +3204,8 @@ function usage() {
     '                    Write a full private-measurement JSON template for all sitemap, keyword, and GEO targets',
     '  measurements-checklist',
     '                    Write a CSV checklist for Baidu index, rank, URL metric, and GEO answer checks',
+    '  measurements-guide',
+    '                    Write the manual Baidu/GEO measurement workflow and evidence rules',
     '  measurements-import [--dry-run] [--source <csv>] [--output <json>]',
     '                    Import the filled CSV checklist into private seo/baidu-measurements.json',
     '  monitor           Write a Baidu SEO/GEO monitoring report',
@@ -3097,6 +3250,9 @@ async function main() {
       break;
     case 'measurements-checklist':
       measurementsChecklist();
+      break;
+    case 'measurements-guide':
+      measurementsGuide();
       break;
     case 'measurements-import':
       measurementsImport(args);
