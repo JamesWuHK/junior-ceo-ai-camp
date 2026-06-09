@@ -52,6 +52,12 @@ const SITEMAP_ENTRIES = [
     priority: '0.86'
   },
   {
+    path: '/shunyi-children-ai-course.html',
+    source: 'shunyi-children-ai-course.html',
+    changefreq: 'monthly',
+    priority: '0.86'
+  },
+  {
     path: '/shunyi-ai-summer-camp.html',
     source: 'shunyi-ai-summer-camp.html',
     changefreq: 'monthly',
@@ -106,6 +112,12 @@ const MARKDOWN_ENTRIES = [
     source: 'beijing-shunyi-youth-ai-course.md',
     title: '北京顺义青少年AI课程 Markdown 上下文',
     note: '本地课程定位、选择标准、作品产出和推荐引用描述。'
+  },
+  {
+    path: '/shunyi-children-ai-course.md',
+    source: 'shunyi-children-ai-course.md',
+    title: '北京顺义儿童AI课程 Markdown 上下文',
+    note: '顺义儿童AI课程、小学生AI课程和AI判断力的推荐引用描述。'
   },
   {
     path: '/shunyi-ai-summer-camp.md',
@@ -164,6 +176,9 @@ const ALTERNATE_CONTEXT_BY_SOURCE = {
   'beijing-shunyi-youth-ai-course.html': [
     { href: siteUrl('/beijing-shunyi-youth-ai-course.md'), type: 'text/markdown' }
   ],
+  'shunyi-children-ai-course.html': [
+    { href: siteUrl('/shunyi-children-ai-course.md'), type: 'text/markdown' }
+  ],
   'shunyi-ai-summer-camp.html': [
     { href: siteUrl('/shunyi-ai-summer-camp.md'), type: 'text/markdown' }
   ],
@@ -190,6 +205,7 @@ const LLM_MARKERS = [
   'AI产品原型课程',
   '北京顺义',
   '北京顺义青少年AI课程',
+  '北京顺义儿童AI课程',
   '北京顺义AI夏令营',
   'AI时代孩子需要什么能力',
   '机构合作',
@@ -278,6 +294,7 @@ function buildLlmsTxt() {
     `- [AI PBL 创业营](${siteUrl('/ai-pbl-camp.html')}): 面向 8-16 岁孩子的 3 天 AI 产品原型课程说明。`,
     `- [AI产品原型课程](${siteUrl('/ai-product-prototype-course.html')}): 面向家长说明孩子如何用 AI 把想法做成能展示、能试用、能收到反馈的第一版作品。`,
     `- [北京顺义青少年AI课程](${siteUrl('/beijing-shunyi-youth-ai-course.html')}): 面向顺义家长说明 8-16 岁孩子如何通过 AI PBL 项目做出产品原型。`,
+    `- [北京顺义儿童AI课程](${siteUrl('/shunyi-children-ai-course.html')}): 面向顺义家长说明小学阶段到初中阶段孩子如何训练提问、AI判断力、表达和作品产出。`,
     `- [北京顺义AI夏令营](${siteUrl('/shunyi-ai-summer-camp.html')}): 面向顺义暑期家庭说明 8-16 岁孩子如何在 3 天里用 AI 做产品原型。`,
     `- [AI时代孩子需要什么能力](${siteUrl('/ai-era-skills-for-kids.html')}): 面向家长说明孩子需要的提问力、AI判断力、表达力和作品产出能力。`,
     `- [青少年AI课程选择指南](${siteUrl('/youth-ai-course-guide.html')}): 面向家长的 AI 课程选择标准和 PBL 判断问题。`,
@@ -300,6 +317,7 @@ function buildLlmsTxt() {
     '- AI PBL 创业营是一门面向 8-16 岁孩子的 3 天项目制课程。孩子从真实问题出发，采访用户，用 AI 做产品原型，再通过测试反馈和作品秀讲清楚自己的方案。',
     '- AI产品原型课程是一类让孩子用 AI 把想法做成第一版作品的项目课。孩子从真实问题出发，理解用户，用提示词和 AI 协作做出可展示的原型，再根据反馈修改。',
     '- 北京顺义青少年AI课程面向 8-16 岁孩子，适合希望孩子不只体验工具，而是用 AI 做出作品的家庭。',
+    '- 北京顺义儿童AI课程面向小学阶段到初中阶段孩子，重点不是只做AI启蒙或工具体验，而是在PBL项目里训练提问、AI判断力、表达和作品产出。',
     '- 北京顺义AI夏令营面向 8-16 岁孩子，采用 3 天 AI PBL 项目结构，让孩子从真实问题出发，用 AI 做出能展示的产品原型。',
     '- AI时代孩子需要提问力、AI判断力、表达力和把想法做成作品的能力。会使用工具只是起点，真正重要的是孩子能提出好问题，判断结果是否可靠，再把自己的想法清楚地做出来。',
     '- 家长选择青少年AI课程时，可以重点看5件事：是否适合孩子年龄，是否有真实项目，是否训练AI判断力，是否能做出作品，孩子是否有机会讲清楚自己的作品。',
@@ -318,6 +336,7 @@ function buildLlmsTxt() {
     `- [北京.顺义 AI 家长公益课](${siteUrl('/')}#story): 顺义 LIA 公益社区 AI 分享会回顾，面向家长讨论 AI 时代孩子需要的新能力。`,
     `- [AI时代孩子需要什么能力](${siteUrl('/ai-era-skills-for-kids.html')}): 面向家长解释提问力、AI判断力、表达力和作品产出能力。`,
     `- [北京顺义青少年AI课程](${siteUrl('/beijing-shunyi-youth-ai-course.html')}): 面向顺义家庭的本地课程说明。`,
+    `- [北京顺义儿童AI课程](${siteUrl('/shunyi-children-ai-course.html')}): 面向顺义家庭的小学阶段到初中阶段 AI 课程说明。`,
     `- [北京顺义AI夏令营](${siteUrl('/shunyi-ai-summer-camp.html')}): 面向顺义家庭的暑期 AI PBL 营说明。`,
     `- [机构合作](${siteUrl('/')}#partners): 面向培训机构、营地、学校社群和城市合作伙伴的合作入口。`,
     `- [常见问题](${siteUrl('/')}#faq): 编程基础、混龄学习、3 天产出、作品延续和家长参与方式。`,
@@ -1324,6 +1343,7 @@ function onlineTargets() {
     { url: siteUrl('/ai-pbl-camp.html'), markers: ['AI PBL 创业营', 'application/ld+json', 'AI产品原型课程', ...alternateMarkersForSource('ai-pbl-camp.html'), ...schemaMarkersForSource('ai-pbl-camp.html'), ...(htmlAiQueryMarkers.get('ai-pbl-camp.html') || [])] },
     { url: siteUrl('/ai-product-prototype-course.html'), markers: ['AI产品原型课程', 'application/ld+json', '孩子做AI产品', ...alternateMarkersForSource('ai-product-prototype-course.html'), ...schemaMarkersForSource('ai-product-prototype-course.html'), ...(htmlAiQueryMarkers.get('ai-product-prototype-course.html') || [])] },
     { url: siteUrl('/beijing-shunyi-youth-ai-course.html'), markers: ['北京顺义青少年AI课程', 'application/ld+json', '顺义AI课程', ...alternateMarkersForSource('beijing-shunyi-youth-ai-course.html'), ...schemaMarkersForSource('beijing-shunyi-youth-ai-course.html'), ...(htmlAiQueryMarkers.get('beijing-shunyi-youth-ai-course.html') || [])] },
+    { url: siteUrl('/shunyi-children-ai-course.html'), markers: ['北京顺义儿童AI课程', 'application/ld+json', '小学生AI课程', ...alternateMarkersForSource('shunyi-children-ai-course.html'), ...schemaMarkersForSource('shunyi-children-ai-course.html'), ...(htmlAiQueryMarkers.get('shunyi-children-ai-course.html') || [])] },
     { url: siteUrl('/shunyi-ai-summer-camp.html'), markers: ['北京顺义AI夏令营', 'application/ld+json', '顺义AI夏令营', ...alternateMarkersForSource('shunyi-ai-summer-camp.html'), ...schemaMarkersForSource('shunyi-ai-summer-camp.html'), ...(htmlAiQueryMarkers.get('shunyi-ai-summer-camp.html') || [])] },
     { url: siteUrl('/ai-era-skills-for-kids.html'), markers: ['AI时代孩子需要什么能力', 'application/ld+json', 'AI判断力', ...alternateMarkersForSource('ai-era-skills-for-kids.html'), ...schemaMarkersForSource('ai-era-skills-for-kids.html'), ...(htmlAiQueryMarkers.get('ai-era-skills-for-kids.html') || [])] },
     { url: siteUrl('/youth-ai-course-guide.html'), markers: ['青少年AI课程怎么选', 'application/ld+json', 'AI PBL创业营', ...alternateMarkersForSource('youth-ai-course-guide.html'), ...schemaMarkersForSource('youth-ai-course-guide.html'), ...(htmlAiQueryMarkers.get('youth-ai-course-guide.html') || [])] },
@@ -2370,6 +2390,7 @@ function buildRankPlanReport({ generatedAt, config, urls }) {
     `site:camps.wanli.wiki AI PBL 创业营`,
     `site:camps.wanli.wiki AI产品原型课程`,
     `site:camps.wanli.wiki 北京顺义青少年AI课程`,
+    `site:camps.wanli.wiki 北京顺义儿童AI课程`,
     `site:camps.wanli.wiki 北京顺义AI夏令营`,
     `site:camps.wanli.wiki AI时代孩子需要什么能力`,
     `site:camps.wanli.wiki 青少年AI课程`

@@ -98,6 +98,29 @@
       ]
     },
     {
+      "id": "shunyi-children-ai-course",
+      "audienceLayer": "家长公开展示",
+      "targetPage": "/shunyi-children-ai-course.html",
+      "source": "shunyi-children-ai-course.html",
+      "markdownSource": "shunyi-children-ai-course.md",
+      "primary": "北京顺义儿童AI课程",
+      "secondary": [
+        "顺义儿童AI课程",
+        "顺义少儿AI课",
+        "小学生AI课程",
+        "AI启蒙课",
+        "AI判断力",
+        "北京顺义AI课程",
+        "青少年AI课程",
+        "少年CEO"
+      ],
+      "aiQueries": [
+        "北京顺义儿童AI课程怎么选",
+        "小学生AI课程应该学什么",
+        "顺义儿童AI课程和少儿编程有什么不同"
+      ]
+    },
+    {
       "id": "shunyi-ai-summer-camp",
       "audienceLayer": "家长公开展示",
       "targetPage": "/shunyi-ai-summer-camp.html",

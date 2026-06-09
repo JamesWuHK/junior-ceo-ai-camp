@@ -17,6 +17,7 @@ PASS | brand-home | / | 少年CEO AI 创业营 | title, description, keywords, h
 PASS | ai-pbl-camp | /ai-pbl-camp.html | AI PBL 创业营 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | ai-pbl-camp.md
 PASS | ai-product-prototype-course | /ai-product-prototype-course.html | AI产品原型课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | ai-product-prototype-course.md
 PASS | beijing-shunyi-youth-ai-course | /beijing-shunyi-youth-ai-course.html | 北京顺义青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | beijing-shunyi-youth-ai-course.md
+PASS | shunyi-children-ai-course | /shunyi-children-ai-course.html | 北京顺义儿童AI课程 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | shunyi-children-ai-course.md
 PASS | shunyi-ai-summer-camp | /shunyi-ai-summer-camp.html | 北京顺义AI夏令营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | yes | yes | shunyi-ai-summer-camp.md
 PASS | ai-era-skills-for-kids | /ai-era-skills-for-kids.html | AI时代孩子需要什么能力 | title, description, keywords, h1, body, jsonLd | 7/8 | 3/3 | 3/3 | 3/3 | yes | yes | ai-era-skills-for-kids.md
 PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | yes | yes | youth-ai-course-guide.md
@@ -32,6 +33,7 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - https://camps.wanli.wiki/ai-pbl-camp.html
 - https://camps.wanli.wiki/ai-product-prototype-course.html
 - https://camps.wanli.wiki/beijing-shunyi-youth-ai-course.html
+- https://camps.wanli.wiki/shunyi-children-ai-course.html
 - https://camps.wanli.wiki/shunyi-ai-summer-camp.html
 - https://camps.wanli.wiki/ai-era-skills-for-kids.html
 - https://camps.wanli.wiki/youth-ai-course-guide.html
@@ -117,6 +119,23 @@ These URLs are read from `sitemap.xml` and are the same URLs that `npm run seo:s
 - Visible HTML answer blocks measured: 3/3 (北京顺义青少年AI课程适合什么孩子 | 顺义AI课程和普通工具体验课有什么不同 | 顺义家长如何判断一门青少年AI课程)
 - JSON-LD answer blocks measured: 3/3 (北京顺义青少年AI课程适合什么孩子 | 顺义AI课程和普通工具体验课有什么不同 | 顺义家长如何判断一门青少年AI课程)
 - AI query answer blocks measured: 3/3 (北京顺义青少年AI课程适合什么孩子 | 顺义AI课程和普通工具体验课有什么不同 | 顺义家长如何判断一门青少年AI课程)
+- Status: PASS
+- Failures: none
+- Warnings: none
+
+### shunyi-children-ai-course
+
+- Audience layer: 家长公开展示
+- Target page: https://camps.wanli.wiki/shunyi-children-ai-course.html
+- Source: shunyi-children-ai-course.html
+- Primary keyword: 北京顺义儿童AI课程
+- Primary locations measured: title, description, keywords, h1, body, jsonLd
+- Secondary matches measured: 8/8 (顺义儿童AI课程, 顺义少儿AI课, 小学生AI课程, AI启蒙课, AI判断力, 北京顺义AI课程, 青少年AI课程, 少年CEO)
+- JSON-LD types measured: BreadcrumbList, Course, FAQPage
+- AI query coverage targets: 北京顺义儿童AI课程怎么选 | 小学生AI课程应该学什么 | 顺义儿童AI课程和少儿编程有什么不同
+- Visible HTML answer blocks measured: 3/3 (北京顺义儿童AI课程怎么选 | 小学生AI课程应该学什么 | 顺义儿童AI课程和少儿编程有什么不同)
+- JSON-LD answer blocks measured: 3/3 (北京顺义儿童AI课程怎么选 | 小学生AI课程应该学什么 | 顺义儿童AI课程和少儿编程有什么不同)
+- AI query answer blocks measured: 3/3 (北京顺义儿童AI课程怎么选 | 小学生AI课程应该学什么 | 顺义儿童AI课程和少儿编程有什么不同)
 - Status: PASS
 - Failures: none
 - Warnings: none

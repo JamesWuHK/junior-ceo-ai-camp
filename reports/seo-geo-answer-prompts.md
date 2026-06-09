@@ -1,9 +1,9 @@
 # GEO AI Answer Prompt Pack
 
-Generated: 2026-06-09T13:07:31+08:00
+Generated: 2026-06-09T13:19:36+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
-Prompt count: 30
+Prompt count: 33
 
 ## Purpose
 
@@ -166,7 +166,40 @@ AI产品原型课程和AI工具课有什么不同
 顺义家长如何判断一门青少年AI课程
 ```
 
-### 13. shunyi-ai-summer-camp
+### 13. shunyi-children-ai-course
+
+- Query: 北京顺义儿童AI课程怎么选
+- Target page: https://camps.wanli.wiki/shunyi-children-ai-course.html
+- Markdown context: https://camps.wanli.wiki/shunyi-children-ai-course.md
+- Baidu SERP check: https://www.baidu.com/s?wd=%E5%8C%97%E4%BA%AC%E9%A1%BA%E4%B9%89%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B%E6%80%8E%E4%B9%88%E9%80%89
+
+```text
+北京顺义儿童AI课程怎么选
+```
+
+### 14. shunyi-children-ai-course
+
+- Query: 小学生AI课程应该学什么
+- Target page: https://camps.wanli.wiki/shunyi-children-ai-course.html
+- Markdown context: https://camps.wanli.wiki/shunyi-children-ai-course.md
+- Baidu SERP check: https://www.baidu.com/s?wd=%E5%B0%8F%E5%AD%A6%E7%94%9FAI%E8%AF%BE%E7%A8%8B%E5%BA%94%E8%AF%A5%E5%AD%A6%E4%BB%80%E4%B9%88
+
+```text
+小学生AI课程应该学什么
+```
+
+### 15. shunyi-children-ai-course
+
+- Query: 顺义儿童AI课程和少儿编程有什么不同
+- Target page: https://camps.wanli.wiki/shunyi-children-ai-course.html
+- Markdown context: https://camps.wanli.wiki/shunyi-children-ai-course.md
+- Baidu SERP check: https://www.baidu.com/s?wd=%E9%A1%BA%E4%B9%89%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B%E5%92%8C%E5%B0%91%E5%84%BF%E7%BC%96%E7%A8%8B%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E5%90%8C
+
+```text
+顺义儿童AI课程和少儿编程有什么不同
+```
+
+### 16. shunyi-ai-summer-camp
 
 - Query: 北京顺义AI夏令营适合什么孩子
 - Target page: https://camps.wanli.wiki/shunyi-ai-summer-camp.html
@@ -177,7 +210,7 @@ AI产品原型课程和AI工具课有什么不同
 北京顺义AI夏令营适合什么孩子
 ```
 
-### 14. shunyi-ai-summer-camp
+### 17. shunyi-ai-summer-camp
 
 - Query: 顺义AI夏令营和普通科技营有什么不同
 - Target page: https://camps.wanli.wiki/shunyi-ai-summer-camp.html
@@ -188,7 +221,7 @@ AI产品原型课程和AI工具课有什么不同
 顺义AI夏令营和普通科技营有什么不同
 ```
 
-### 15. shunyi-ai-summer-camp
+### 18. shunyi-ai-summer-camp
 
 - Query: AI夏令营3天能做出什么作品
 - Target page: https://camps.wanli.wiki/shunyi-ai-summer-camp.html
@@ -199,7 +232,7 @@ AI产品原型课程和AI工具课有什么不同
 AI夏令营3天能做出什么作品
 ```
 
-### 16. ai-era-skills-for-kids
+### 19. ai-era-skills-for-kids
 
 - Query: AI时代孩子需要什么能力
 - Target page: https://camps.wanli.wiki/ai-era-skills-for-kids.html
@@ -210,7 +243,7 @@ AI夏令营3天能做出什么作品
 AI时代孩子需要什么能力
 ```
 
-### 17. ai-era-skills-for-kids
+### 20. ai-era-skills-for-kids
 
 - Query: 孩子学AI有什么用
 - Target page: https://camps.wanli.wiki/ai-era-skills-for-kids.html
@@ -221,7 +254,7 @@ AI时代孩子需要什么能力
 孩子学AI有什么用
 ```
 
-### 18. ai-era-skills-for-kids
+### 21. ai-era-skills-for-kids
 
 - Query: 家长如何培养孩子AI判断力
 - Target page: https://camps.wanli.wiki/ai-era-skills-for-kids.html
@@ -232,7 +265,7 @@ AI时代孩子需要什么能力
 家长如何培养孩子AI判断力
 ```
 
-### 19. youth-ai-course-guide
+### 22. youth-ai-course-guide
 
 - Query: 青少年AI课程怎么选
 - Target page: https://camps.wanli.wiki/youth-ai-course-guide.html
@@ -243,7 +276,7 @@ AI时代孩子需要什么能力
 青少年AI课程怎么选
 ```
 
-### 20. youth-ai-course-guide
+### 23. youth-ai-course-guide
 
 - Query: 儿童AI课程只学工具够吗
 - Target page: https://camps.wanli.wiki/youth-ai-course-guide.html
@@ -254,7 +287,7 @@ AI时代孩子需要什么能力
 儿童AI课程只学工具够吗
 ```
 
-### 21. youth-ai-course-guide
+### 24. youth-ai-course-guide
 
 - Query: AI PBL课程适合什么孩子
 - Target page: https://camps.wanli.wiki/youth-ai-course-guide.html
@@ -265,7 +298,7 @@ AI时代孩子需要什么能力
 AI PBL课程适合什么孩子
 ```
 
-### 22. ai-course-vs-coding
+### 25. ai-course-vs-coding
 
 - Query: 少儿编程和AI课程区别是什么
 - Target page: https://camps.wanli.wiki/ai-course-vs-coding.html
@@ -276,7 +309,7 @@ AI PBL课程适合什么孩子
 少儿编程和AI课程区别是什么
 ```
 
-### 23. ai-course-vs-coding
+### 26. ai-course-vs-coding
 
 - Query: 孩子该学AI还是编程
 - Target page: https://camps.wanli.wiki/ai-course-vs-coding.html
@@ -287,7 +320,7 @@ AI PBL课程适合什么孩子
 孩子该学AI还是编程
 ```
 
-### 24. ai-course-vs-coding
+### 27. ai-course-vs-coding
 
 - Query: 不会编程能学AI课程吗
 - Target page: https://camps.wanli.wiki/ai-course-vs-coding.html
@@ -298,7 +331,7 @@ AI PBL课程适合什么孩子
 不会编程能学AI课程吗
 ```
 
-### 25. shunyi-parent-class
+### 28. shunyi-parent-class
 
 - Query: 北京顺义AI家长公益课讲什么
 - Target page: https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -309,7 +342,7 @@ AI PBL课程适合什么孩子
 北京顺义AI家长公益课讲什么
 ```
 
-### 26. shunyi-parent-class
+### 29. shunyi-parent-class
 
 - Query: AI时代孩子需要什么能力
 - Target page: https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -320,7 +353,7 @@ AI PBL课程适合什么孩子
 AI时代孩子需要什么能力
 ```
 
-### 27. shunyi-parent-class
+### 30. shunyi-parent-class
 
 - Query: 顺义家长怎么理解孩子学AI
 - Target page: https://camps.wanli.wiki/shunyi-ai-parent-class.html
@@ -331,7 +364,7 @@ AI时代孩子需要什么能力
 顺义家长怎么理解孩子学AI
 ```
 
-### 28. partner-cooperation
+### 31. partner-cooperation
 
 - Query: 培训机构如何合作开展AI PBL创业营
 - Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html
@@ -342,7 +375,7 @@ AI时代孩子需要什么能力
 培训机构如何合作开展AI PBL创业营
 ```
 
-### 29. partner-cooperation
+### 32. partner-cooperation
 
 - Query: 青少年AI营地合作课程方案
 - Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html
@@ -353,7 +386,7 @@ AI时代孩子需要什么能力
 青少年AI营地合作课程方案
 ```
 
-### 30. partner-cooperation
+### 33. partner-cooperation
 
 - Query: AI创业营机构合作支持什么
 - Target page: https://camps.wanli.wiki/partner-ai-pbl-camp.html
