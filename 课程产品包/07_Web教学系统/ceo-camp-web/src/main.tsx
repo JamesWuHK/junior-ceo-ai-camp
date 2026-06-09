@@ -5050,11 +5050,23 @@ function topScoreSummary(summaries: ScoreSummary[], dimension?: ScoreDimension) 
   })[0];
 }
 
+function scoreSubmissionKey(item: TaskSubmission) {
+  return asText(item.payload.showcase_item_id) || asText(item.payload.team_id) || asText(item.payload.product_name) || item.id;
+}
+
+function isParentObserverScore(item: TaskSubmission) {
+  return asText(item.payload.observer_role) === "parent_observer";
+}
+
+function isPeerScoreSubmission(item: TaskSubmission) {
+  return item.task_type === "observer_score" && !isParentObserverScore(item);
+}
+
 function TeacherScoringCenter() {
   const [summaries, setSummaries] = useState<ScoreSummary[]>([]);
   const [awards, setAwards] = useState<AwardResult[]>([]);
   const [observerAccess, setObserverAccess] = useState<{ code: string; path: string } | null>(null);
-  const [submissionCount, setSubmissionCount] = useState(0);
+  const [scoreSubmissions, setScoreSubmissions] = useState<TaskSubmission[]>([]);
   const [message, setMessage] = useState("");
   const [working, setWorking] = useState(false);
 
@@ -5066,7 +5078,7 @@ function TeacherScoringCenter() {
         api.observerScoreAccess()
       ]);
       setSummaries(scoreResult.score_summaries);
-      setSubmissionCount(scoreResult.score_submissions.length);
+      setScoreSubmissions(scoreResult.score_submissions);
       setAwards(awardResult.award_results);
       setObserverAccess(observerResult);
     } catch (err) {
@@ -5079,6 +5091,31 @@ function TeacherScoringCenter() {
     const timer = window.setInterval(() => void load(), 5000);
     return () => window.clearInterval(timer);
   }, []);
+
+  const parentObserverCount = useMemo(
+    () => scoreSubmissions.filter(isParentObserverScore).length,
+    [scoreSubmissions]
+  );
+  const peerVoteCount = useMemo(
+    () => scoreSubmissions.filter(isPeerScoreSubmission).length,
+    [scoreSubmissions]
+  );
+  const peerVotesByKey = useMemo(() => {
+    const counts = new Map<string, number>();
+    scoreSubmissions.filter(isPeerScoreSubmission).forEach((item) => {
+      const key = scoreSubmissionKey(item);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    });
+    return counts;
+  }, [scoreSubmissions]);
+  const topPeerSummary = useMemo(() => {
+    return [...summaries].sort((a, b) => {
+      const peerDelta = (peerVotesByKey.get(b.key) ?? 0) - (peerVotesByKey.get(a.key) ?? 0);
+      if (peerDelta) return peerDelta;
+      if (b.average_total !== a.average_total) return b.average_total - a.average_total;
+      return b.score_count - a.score_count;
+    })[0];
+  }, [peerVotesByKey, summaries]);
 
   const saveAward = async (template: (typeof awardTemplates)[number], summary: ScoreSummary, publishStatus = "PUBLISHED") => {
     await api.saveAward({
@@ -5094,7 +5131,7 @@ function TeacherScoringCenter() {
 
   const generateAwards = async () => {
     if (!summaries.length) {
-      setMessage("还没有观察员评分。");
+      setMessage("还没有评分和投票。");
       return;
     }
     setWorking(true);
@@ -5104,7 +5141,21 @@ function TeacherScoringCenter() {
         const summary = topScoreSummary(summaries, template.dimension);
         if (summary) await saveAward(template, summary);
       }
-      setMessage("奖项建议已生成，并放到成果页。");
+      if (topPeerSummary && (peerVotesByKey.get(topPeerSummary.key) ?? 0) > 0) {
+        const peerCount = peerVotesByKey.get(topPeerSummary.key) ?? 0;
+        await api.saveAward({
+          id: "award-peer-choice",
+          award_type: "同伴选择奖",
+          winner_type: "team",
+          winner_id: topPeerSummary.team_id || topPeerSummary.showcase_item_id || topPeerSummary.key,
+          winner_name: topPeerSummary.team_name
+            ? `${topPeerSummary.team_name} · ${topPeerSummary.product_name}`
+            : topPeerSummary.product_name,
+          reason: `能力标签：领导力。${peerCount} 张同伴投票把这个作品选出来，大家想继续试用它。`,
+          publish_status: "PUBLISHED"
+        });
+      }
+      setMessage(peerVoteCount ? "奖项建议已生成，同伴选择奖也放到成果页。" : "奖项建议已生成，并放到成果页。");
       await load();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "生成奖项失败");
@@ -5136,7 +5187,8 @@ function TeacherScoringCenter() {
         <h2>评分中心与奖项</h2>
       </div>
       <div className="artifact-stats">
-        <span>{submissionCount} 张观察员评分卡</span>
+        <span>{parentObserverCount} 张家长观察员评分</span>
+        <span>{peerVoteCount} 张同伴投票</span>
         <span>{summaries.length} 个作品有评分</span>
         <span>{awards.filter((award) => award.publish_status === "PUBLISHED").length} 个奖项已发布</span>
       </div>
@@ -5163,28 +5215,31 @@ function TeacherScoringCenter() {
       )}
       {message && <p className="hint">{message}</p>}
       <div className="score-summary-list">
-        {summaries.map((summary) => (
-          <article className="score-summary-row" key={summary.key}>
-            <header>
-              <div>
-                <span>{summary.team_name || "项目团队"}</span>
-                <strong>{summary.product_name}</strong>
-                <small>{summary.score_count} 张评分卡 · 平均 {summary.average_total || "-"} 星</small>
+        {summaries.map((summary) => {
+          const peerVotes = peerVotesByKey.get(summary.key) ?? 0;
+          return (
+            <article className="score-summary-row" key={summary.key}>
+              <header>
+                <div>
+                  <span>{summary.team_name || "项目团队"}</span>
+                  <strong>{summary.product_name}</strong>
+                  <small>{summary.score_count} 张评分与投票 · 同伴 {peerVotes} 张 · 平均 {summary.average_total || "-"} 星</small>
+                </div>
+                <ScoreStars value={summary.average_total} />
+              </header>
+              <div className="score-pills">
+                {scoreDimensionLabels.map((dimension) => (
+                  <span key={dimension.key}>{dimension.label} {summary.scores[dimension.key] || "-"}</span>
+                ))}
               </div>
-              <ScoreStars value={summary.average_total} />
-            </header>
-            <div className="score-pills">
-              {scoreDimensionLabels.map((dimension) => (
-                <span key={dimension.key}>{dimension.label} {summary.scores[dimension.key] || "-"}</span>
-              ))}
-            </div>
-            <div className="artifact-lines">
-              <p><strong>亮点：</strong>{summary.highlights[0] || "还没有亮点记录"}</p>
-              <p><strong>下一步：</strong>{summary.next_steps[0] || "还没有下一步建议"}</p>
-            </div>
-          </article>
-        ))}
-        {!summaries.length && <p className="empty">观察员提交评分卡后，会出现在这里。</p>}
+              <div className="artifact-lines">
+                <p><strong>亮点：</strong>{summary.highlights[0] || "还没有亮点记录"}</p>
+                <p><strong>下一步：</strong>{summary.next_steps[0] || "还没有下一步建议"}</p>
+              </div>
+            </article>
+          );
+        })}
+        {!summaries.length && <p className="empty">评分和投票提交后，会出现在这里。</p>}
       </div>
       <div className="award-manage-list">
         {awards.map((award) => (
@@ -11139,6 +11194,7 @@ function StudentObserverScoreTask({
     [items, student.team_id]
   );
   const selectedItem = visibleItems.find((item) => item.id === selectedId) || null;
+  const displayTitle = taskTitle && !/观察员投票/.test(taskTitle) ? taskTitle : "同伴投票";
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
@@ -11190,13 +11246,17 @@ function StudentObserverScoreTask({
     try {
       await api.submitTask({
         task_type: "observer_score",
-        title: taskTitle,
+        title: displayTitle,
         payload: {
           showcase_item_id: selectedItem.id,
           product_name: selectedItem.product_name,
           team_id: selectedItem.team_id || "",
           team_name: selectedItem.team_name || selectedItem.track || "",
           access_url: selectedItem.access_url || "",
+          observer_role: "peer",
+          observer_name: student.nickname,
+          observer_team_id: student.team_id || "",
+          observer_team_name: student.team_name || "",
           ...scores,
           highlight: highlight.trim(),
           next_step: nextStep.trim()
@@ -11218,12 +11278,12 @@ function StudentObserverScoreTask({
     <main className="student-page">
       <section className="student-shell">
         <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
-        <h1>{taskTitle || "观察员投票"}</h1>
-        <p>选一个作品，点亮五组星星，再写下你看见的亮点和下一步建议。</p>
+        <h1>{displayTitle}</h1>
+        <p>选一个别组作品，点亮五组星星，再写下你看见的亮点和下一步建议。</p>
         <div className="student-card observer-score-card">
           <div className="student-current">
             <div>
-              <span>观察员</span>
+              <span>同伴观察员</span>
               <strong>{student.nickname}</strong>
               <small>{student.team_name || student.username}</small>
             </div>
