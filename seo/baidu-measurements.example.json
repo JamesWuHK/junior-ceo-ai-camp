@@ -2542,6 +2542,18 @@
     },
     {
       "cluster": "youth-ai-course-guide",
+      "query": "AI课程怎么选",
+      "targetPage": "https://camps.wanli.wiki/youth-ai-course-guide.html",
+      "markdownUrl": "https://camps.wanli.wiki/youth-ai-course-guide.md",
+      "mentionsProject": null,
+      "usesTargetPage": null,
+      "positioning": "unknown",
+      "evidenceDate": null,
+      "source": "manual AI answer check",
+      "notes": ""
+    },
+    {
+      "cluster": "youth-ai-course-guide",
       "query": "儿童AI课程只学工具够吗",
       "targetPage": "https://camps.wanli.wiki/youth-ai-course-guide.html",
       "markdownUrl": "https://camps.wanli.wiki/youth-ai-course-guide.md",

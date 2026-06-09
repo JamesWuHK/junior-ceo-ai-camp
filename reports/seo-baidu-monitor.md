@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-09T21:59:59+08:00
+Generated: 2026-06-09T22:04:53+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -62,7 +62,7 @@ PASS | shunyi-children-ai-course | /shunyi-children-ai-course.html | 北京顺�
 PASS | shunyi-ai-summer-camp | /shunyi-ai-summer-camp.html | 北京顺义AI夏令营 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | BreadcrumbList, Course, FAQPage
 PASS | ai-era-skills-for-kids | /ai-era-skills-for-kids.html | AI时代孩子需要什么能力 | title, description, keywords, h1, body, jsonLd | 8/8 | 4/4 | 4/4 | 4/4 | Article, BreadcrumbList, FAQPage
 PASS | ai-judgement-for-kids | /ai-judgement-for-kids.html | 孩子AI判断力 | title, description, keywords, h1, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | Article, BreadcrumbList, FAQPage
-PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | Article, BreadcrumbList, FAQPage
+PASS | youth-ai-course-guide | /youth-ai-course-guide.html | 青少年AI课程 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 4/4 | 4/4 | 4/4 | Article, BreadcrumbList, FAQPage
 PASS | ai-course-vs-coding | /ai-course-vs-coding.html | 少儿编程和AI课程区别 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | Article, BreadcrumbList, FAQPage
 PASS | shunyi-parent-class | /shunyi-ai-parent-class.html | 北京顺义 AI 家长公益课 | title, description, keywords, h1, h2, body, jsonLd | 7/7 | 3/3 | 3/3 | 3/3 | Article, BreadcrumbList, FAQPage
 PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构合作 | title, description, keywords, h1, body, jsonLd | 8/8 | 3/3 | 3/3 | 3/3 | BreadcrumbList, FAQPage, Service
@@ -88,7 +88,7 @@ PASS | https://camps.wanli.wiki/shunyi-children-ai-course.html | 200 | 13520 | n
 PASS | https://camps.wanli.wiki/shunyi-ai-summer-camp.html | 200 | 12006 | none
 PASS | https://camps.wanli.wiki/ai-era-skills-for-kids.html | 200 | 13464 | none
 PASS | https://camps.wanli.wiki/ai-judgement-for-kids.html | 200 | 12125 | none
-PASS | https://camps.wanli.wiki/youth-ai-course-guide.html | 200 | 13725 | none
+PASS | https://camps.wanli.wiki/youth-ai-course-guide.html | 200 | 14250 | none
 PASS | https://camps.wanli.wiki/ai-course-vs-coding.html | 200 | 11174 | none
 PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.html | 200 | 9907 | none
 PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.html | 200 | 10295 | none
@@ -106,7 +106,7 @@ PASS | https://camps.wanli.wiki/shunyi-children-ai-course.md | 200 | 1301 | none
 PASS | https://camps.wanli.wiki/shunyi-ai-summer-camp.md | 200 | 736 | none
 PASS | https://camps.wanli.wiki/ai-era-skills-for-kids.md | 200 | 1549 | none
 PASS | https://camps.wanli.wiki/ai-judgement-for-kids.md | 200 | 1508 | none
-PASS | https://camps.wanli.wiki/youth-ai-course-guide.md | 200 | 731 | none
+PASS | https://camps.wanli.wiki/youth-ai-course-guide.md | 200 | 827 | none
 PASS | https://camps.wanli.wiki/ai-course-vs-coding.md | 200 | 771 | none
 PASS | https://camps.wanli.wiki/shunyi-ai-parent-class.md | 200 | 641 | none
 PASS | https://camps.wanli.wiki/partner-ai-pbl-camp.md | 200 | 593 | none
@@ -227,10 +227,10 @@ PASS | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 3316 | no
 
 - Page: https://camps.wanli.wiki/youth-ai-course-guide.html
 - Primary keyword: 青少年AI课程
-- Target answer queries: 青少年AI课程怎么选 | 儿童AI课程只学工具够吗 | AI PBL课程适合什么孩子
-- Visible HTML answer coverage: 3/3
-- JSON-LD answer coverage: 3/3
-- Markdown answer coverage: 3/3
+- Target answer queries: 青少年AI课程怎么选 | AI课程怎么选 | 儿童AI课程只学工具够吗 | AI PBL课程适合什么孩子
+- Visible HTML answer coverage: 4/4
+- JSON-LD answer coverage: 4/4
+- Markdown answer coverage: 4/4
 - Status: PASS
 - Failures: none
 - Warnings: none

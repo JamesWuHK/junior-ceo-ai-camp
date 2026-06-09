@@ -1,6 +1,6 @@
 # Baidu Ranking / GEO Tracking Plan
 
-Generated: 2026-06-09T21:57:33+08:00
+Generated: 2026-06-09T22:03:05+08:00
 Site URL: https://camps.wanli.wiki
 Keyword map: seo/keywords.json
 
@@ -221,6 +221,7 @@ ai-judgement-for-kids | 孩子如何判断AI答案是否可靠 | https://camps.w
 ai-judgement-for-kids | AI答案可靠吗 | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | https://www.baidu.com/s?wd=AI%E7%AD%94%E6%A1%88%E5%8F%AF%E9%9D%A0%E5%90%97 | N/A
 ai-judgement-for-kids | 家长如何陪孩子使用AI | https://camps.wanli.wiki/ai-judgement-for-kids.html | https://camps.wanli.wiki/ai-judgement-for-kids.md | https://www.baidu.com/s?wd=%E5%AE%B6%E9%95%BF%E5%A6%82%E4%BD%95%E9%99%AA%E5%AD%A9%E5%AD%90%E4%BD%BF%E7%94%A8AI | N/A
 youth-ai-course-guide | 青少年AI课程怎么选 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | https://www.baidu.com/s?wd=%E9%9D%92%E5%B0%91%E5%B9%B4AI%E8%AF%BE%E7%A8%8B%E6%80%8E%E4%B9%88%E9%80%89 | N/A
+youth-ai-course-guide | AI课程怎么选 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | https://www.baidu.com/s?wd=AI%E8%AF%BE%E7%A8%8B%E6%80%8E%E4%B9%88%E9%80%89 | N/A
 youth-ai-course-guide | 儿童AI课程只学工具够吗 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | https://www.baidu.com/s?wd=%E5%84%BF%E7%AB%A5AI%E8%AF%BE%E7%A8%8B%E5%8F%AA%E5%AD%A6%E5%B7%A5%E5%85%B7%E5%A4%9F%E5%90%97 | N/A
 youth-ai-course-guide | AI PBL课程适合什么孩子 | https://camps.wanli.wiki/youth-ai-course-guide.html | https://camps.wanli.wiki/youth-ai-course-guide.md | https://www.baidu.com/s?wd=AI+PBL%E8%AF%BE%E7%A8%8B%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%AD%A9%E5%AD%90 | N/A
 ai-course-vs-coding | 少儿编程和AI课程区别是什么 | https://camps.wanli.wiki/ai-course-vs-coding.html | https://camps.wanli.wiki/ai-course-vs-coding.md | https://www.baidu.com/s?wd=%E5%B0%91%E5%84%BF%E7%BC%96%E7%A8%8B%E5%92%8CAI%E8%AF%BE%E7%A8%8B%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88 | N/A
