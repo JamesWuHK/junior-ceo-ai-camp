@@ -319,6 +319,13 @@ function siteUrl(pathname = '/') {
   return `${SITE_URL}${pathname.startsWith('/') ? pathname : `/${pathname}`}`;
 }
 
+function sourceBypassUrl(pathname, source) {
+  const file = source ? join(ROOT, source) : '';
+  const version = file && existsSync(file) ? Math.trunc(statSync(file).mtimeMs) : 'latest';
+  const separator = pathname.includes('?') ? '&' : '?';
+  return siteUrl(`${pathname}${separator}seo-monitor=source-${version}`);
+}
+
 function localDate(value = new Date()) {
   return new Intl.DateTimeFormat('sv-SE', {
     timeZone: 'Asia/Shanghai',
@@ -1555,15 +1562,19 @@ function onlineTargets() {
     { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html'), ...schemaMarkersForSource('partner-ai-pbl-camp.html'), ...(htmlAiQueryMarkers.get('partner-ai-pbl-camp.html') || [])] },
     { url: siteUrl('/course-navigation.html'), markers: ['少年CEO AI 创业营课程导航', 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('course-navigation.html'), ...schemaMarkersForSource('course-navigation.html')] },
     { label: 'robots canonical', url: siteUrl('/robots.txt'), markers: robotsCanonicalRequiredMarkers(), warningMarkers: robotsRecommendedMarkers(), includeCacheHeaders: true },
-    { label: 'robots source-bypass', url: siteUrl('/robots.txt?seo-monitor=source'), markers: robotsRequiredMarkers(), includeCacheHeaders: true },
+    { label: 'robots source-bypass', url: sourceBypassUrl('/robots.txt', 'robots.txt'), markers: robotsRequiredMarkers(), includeCacheHeaders: true },
     { url: siteUrl('/sitemap-index.xml'), markers: [`<loc>${siteUrl('/sitemap.xml')}</loc>`, `<loc>${siteUrl('/sitemap-context.xml')}</loc>`] },
     { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },
     { label: 'sitemap-context canonical', url: siteUrl('/sitemap-context.xml'), markers: contextSitemapRequiredMarkers(), warningMarkers: contextSitemapRecommendedMarkers(), includeCacheHeaders: true },
-    { label: 'sitemap-context source-bypass', url: siteUrl('/sitemap-context.xml?seo-monitor=source'), markers: [...contextSitemapRequiredMarkers(), ...contextSitemapRecommendedMarkers()], includeCacheHeaders: true },
+    { label: 'sitemap-context source-bypass', url: sourceBypassUrl('/sitemap-context.xml', 'sitemap-context.xml'), markers: [...contextSitemapRequiredMarkers(), ...contextSitemapRecommendedMarkers()], includeCacheHeaders: true },
     { label: 'llms canonical', url: siteUrl('/llms.txt'), markers: llmsRequiredMarkers(), warningMarkers: llmsRecommendedMarkers(), includeCacheHeaders: true },
-    { label: 'llms source-bypass', url: siteUrl('/llms.txt?seo-monitor=source'), markers: LLM_MARKERS, includeCacheHeaders: true },
+    { label: 'llms source-bypass', url: sourceBypassUrl('/llms.txt', 'llms.txt'), markers: LLM_MARKERS, includeCacheHeaders: true },
     { url: siteUrl(`/${SITE_FACTS_FILE}`), markers: ['"name": "少年CEO AI 创业营"', '"keywordClusters"', '"canonicalAnswers"', '"AI PBL 创业营"', '"北京顺义AI课程"'] },
-    ...MARKDOWN_ENTRIES.map((entry) => ({ url: siteUrl(entry.path), markers: [entry.title.replace(' Markdown 上下文', ''), '推荐引用描述', ...(markdownAiQueryMarkers.get(entry.source) || [])] }))
+    ...MARKDOWN_ENTRIES.map((entry) => ({
+      url: siteUrl(entry.path),
+      staleContentTypeSourceUrl: sourceBypassUrl(entry.path, entry.source),
+      markers: [entry.title.replace(' Markdown 上下文', ''), '推荐引用描述', ...(markdownAiQueryMarkers.get(entry.source) || [])]
+    }))
   ];
 }
 
@@ -1598,9 +1609,28 @@ async function fetchOnlineTarget(target) {
     const missingWarningMarkers = warningMarkers.filter((marker) => !body.includes(marker));
     const contentType = response.headers.get('content-type') || '';
     const expectedContentTypes = target.contentTypes || expectedContentTypesForUrl(target.url);
-    const missingContentTypes = missingContentTypeMarkers(contentType, expectedContentTypes);
+    let missingContentTypes = missingContentTypeMarkers(contentType, expectedContentTypes);
+    const staleWarnings = [];
+
+    if (missingContentTypes.length > 0 && target.staleContentTypeSourceUrl) {
+      try {
+        const sourceResponse = await fetch(target.staleContentTypeSourceUrl, { redirect: 'follow' });
+        const sourceBody = await sourceResponse.text();
+        const sourceContentType = sourceResponse.headers.get('content-type') || '';
+        const sourceMissingContentTypes = missingContentTypeMarkers(sourceContentType, expectedContentTypes);
+        const sourceMissingMarkers = markers.filter((marker) => !sourceBody.includes(marker));
+
+        if (sourceResponse.ok && sourceMissingContentTypes.length === 0 && sourceMissingMarkers.length === 0) {
+          staleWarnings.push(`canonical CDN edge stale: ${missingContentTypes.join('; ')}; source-bypass ${target.staleContentTypeSourceUrl} content-type=${sourceContentType}`);
+          missingContentTypes = [];
+        }
+      } catch {
+        // Keep the canonical content-type failure when the source-bypass proof cannot be fetched.
+      }
+    }
+
     const ok = response.ok && missingMarkers.length === 0 && missingContentTypes.length === 0;
-    const warning = ok && missingWarningMarkers.length > 0;
+    const warning = ok && (missingWarningMarkers.length > 0 || staleWarnings.length > 0);
     const cacheHeaders = target.includeCacheHeaders ? cacheHeaderSummary(response.headers) : '';
     return {
       label: target.label || '',
@@ -1609,7 +1639,7 @@ async function fetchOnlineTarget(target) {
       bytes: body.length,
       contentType,
       missingMarkers,
-      missingWarningMarkers,
+      missingWarningMarkers: [...missingWarningMarkers, ...staleWarnings],
       missingContentTypes,
       cacheHeaders,
       ok,

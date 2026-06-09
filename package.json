@@ -15,6 +15,7 @@
     "seo:coverage": "node scripts/seo/baidu-seo.mjs coverage",
     "seo:monitor": "node scripts/seo/baidu-seo.mjs monitor",
     "seo:baidu:monitor": "node scripts/seo/baidu-seo.mjs monitor",
+    "seo:upload:cos": "bash scripts/seo/upload-seo-assets.sh",
     "seo:evidence": "node scripts/seo/baidu-seo.mjs evidence",
     "seo:baidu:evidence": "node scripts/seo/baidu-seo.mjs evidence",
     "seo:measurements:template": "node scripts/seo/baidu-seo.mjs measurements-template",
