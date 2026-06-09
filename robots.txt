@@ -1,3 +1,10 @@
+User-agent: Baiduspider
+Allow: /
+Disallow: /teacher.html
+Disallow: /student.html
+Disallow: /cards.html
+Disallow: /slides/
+
 User-agent: *
 Allow: /
 Disallow: /teacher.html

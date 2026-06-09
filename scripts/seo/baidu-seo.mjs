@@ -278,6 +278,12 @@ const PUBLIC_INTERNAL_TERMS = [
   '日志',
   '运营'
 ];
+const ROBOTS_PRIVATE_PATHS = [
+  '/teacher.html',
+  '/student.html',
+  '/cards.html',
+  '/slides/'
+];
 
 function stripTrailingSlash(value) {
   return String(value || '').replace(/\/+$/, '');
@@ -303,13 +309,15 @@ function dateFromFile(relativePath) {
 }
 
 function buildRobots() {
+  const privateRules = ROBOTS_PRIVATE_PATHS.map((path) => `Disallow: ${path}`);
   return [
+    'User-agent: Baiduspider',
+    'Allow: /',
+    ...privateRules,
+    '',
     'User-agent: *',
     'Allow: /',
-    'Disallow: /teacher.html',
-    'Disallow: /student.html',
-    'Disallow: /cards.html',
-    'Disallow: /slides/',
+    ...privateRules,
     '',
     `Sitemap: ${siteUrl(`/${SITEMAP_INDEX_FILE}`)}`,
     `Sitemap: ${siteUrl(`/${HTML_SITEMAP_FILE}`)}`,
@@ -1009,6 +1017,10 @@ function check() {
       checks.push(fail(`missing ${prefix}robots.txt`));
     } else {
       const robots = readFileSync(robotsPath, 'utf8');
+      if (!robots.includes('User-agent: Baiduspider')) checks.push(fail(`${prefix}robots.txt missing explicit Baiduspider rules`));
+      for (const privatePath of ROBOTS_PRIVATE_PATHS) {
+        if (!robots.includes(`Disallow: ${privatePath}`)) checks.push(fail(`${prefix}robots.txt missing private path disallow: ${privatePath}`));
+      }
       if (!robots.includes(`Sitemap: ${siteUrl(`/${SITEMAP_INDEX_FILE}`)}`)) checks.push(fail(`${prefix}robots.txt missing sitemap index URL`));
       if (!robots.includes(`Sitemap: ${siteUrl(`/${HTML_SITEMAP_FILE}`)}`)) checks.push(fail(`${prefix}robots.txt missing sitemap URL`));
       if (!robots.includes(`Sitemap: ${siteUrl(`/${CONTEXT_SITEMAP_FILE}`)}`)) checks.push(fail(`${prefix}robots.txt missing context sitemap URL`));
