@@ -435,45 +435,45 @@ const aiJudgementPageMeta: Record<
   }
 > = {
   1: {
-    title: "你给 AI 三样东西",
-    content_summary: "照片。职业。要求。AI 才知道要画什么。",
+    title: "什么是 AI？",
+    content_summary: "它像电脑里的聪明大脑，会读字、会聊天，也能帮人生成内容。",
     kicker: "10:00-11:10 · 故事开场",
-    chips: ["照片", "职业", "要求"],
+    chips: ["聪明大脑", "读字", "帮人做事"],
     page_type: "story"
   },
   2: {
-    title: "AI 一边看图，一边读字",
-    content_summary: "图告诉它长什么样，字告诉它要做什么。",
+    title: "AI 先会读字和聊天",
+    content_summary: "你打字问它，它读懂你的话，再用文字回答你。",
     kicker: "10:00-11:10 · 故事开场",
-    chips: ["看图", "读字", "合起来"],
+    chips: ["你提问", "它读懂", "它回答"],
     page_type: "story"
   },
   3: {
-    title: "线索清楚，AI 补得更像",
-    content_summary: "你给的线索像拼图边缘，大模型接着补下一块。",
+    title: "老师演示：问得清楚，回答才有用",
+    content_summary: "同样问 DeepSeek，说清帮谁、卡哪一步，答案马上变具体。",
     kicker: "10:00-11:10 · 老师演示",
-    chips: ["给线索", "接着补", "看结果"],
+    chips: ["模糊问题", "清楚问题", "答案变具体"],
     page_type: "demo"
   },
   4: {
-    title: "这样问，DeepSeek 才帮得上忙",
-    content_summary: "别只说“帮我想想”。说清帮谁、卡哪、先做哪一步。",
+    title: "AI 还能看图：照片也是线索",
+    content_summary: "除了文字，AI 也能看懂图片里的脸、动作和地方。",
     kicker: "10:00-11:10 · 老师演示",
-    chips: ["帮谁", "卡哪", "先做哪步"],
+    chips: ["看图片", "读文字", "合起来理解"],
     page_type: "demo"
   },
   5: {
-    title: "轮到你：只填一个空",
-    content_summary: "把你们的方向填进去，发给 DeepSeek 看看。",
-    kicker: "10:00-11:10 · 轮到你实验",
-    chips: ["填方向", "发出去", "看线索"],
-    page_type: "experiment"
+    title: "未来照相馆是这样画出来的",
+    content_summary: "照片给样子，职业给方向，要求告诉它画成什么。",
+    kicker: "10:00-11:10 · 老师演示",
+    chips: ["照片", "职业", "要求"],
+    page_type: "demo"
   },
   6: {
-    title: "AI 说的，先分三堆",
-    content_summary: "能做的留下。拿不准的去问同学。今天做不了的先放一边。",
+    title: "轮到你：问 DeepSeek 一句清楚问题",
+    content_summary: "把团队方向填进去，挑出一句今天能继续讨论的线索。",
     kicker: "10:00-11:10 · 轮到你实验",
-    chips: ["留下", "去问", "放一边"],
+    chips: ["填方向", "问清楚", "挑一句"],
     page_type: "experiment"
   }
 };
@@ -515,13 +515,13 @@ const moduleDesigns: Record<
   "ai-judgement": {
     icon: MessageSquareText,
     accent: "blue",
-    chips: ["照片", "任务单", "DeepSeek"],
-    steps: ["拆开未来照片", "看任务单怎么改结果", "留下能用的一句"],
+    chips: ["AI 大脑", "文字对话", "图像生成"],
+    steps: ["认识 AI 是什么", "看 DeepSeek 怎么聊天", "再解密未来照相馆"],
     cards: [
-      { title: "照片", text: "AI 看见今天的你" },
-      { title: "职业词", text: "AI 读到你想成为什么" },
-      { title: "任务单", text: "告诉 AI 要生成什么结果" },
-      { title: "人来检查", text: "选出能帮项目继续走的线索" }
+      { title: "读文字", text: "看懂你打出来的问题" },
+      { title: "会对话", text: "用文字继续回答你" },
+      { title: "看图片", text: "读到照片里的线索" },
+      { title: "生成内容", text: "写一段话，或画一张图" }
     ],
     flow: [
       { title: "我是谁", text: "请你当产品顾问" },
@@ -8409,12 +8409,12 @@ function LessonArtifact({
 
 function aiPrincipleTakeaway(page: DesignedLessonPage) {
   const takeaways: Record<number, string> = {
-    1: "一句话：给什么，画什么",
-    2: "一句话：它看图，也读字",
-    3: "一句话：线索清楚，补得更像",
-    4: "一句话：问清楚，才帮得上忙",
-    5: "现在做：填一个空",
-    6: "现在做：分三堆"
+    1: "一句话：AI 像电脑里的聪明大脑",
+    2: "一句话：它先会读字和聊天",
+    3: "一句话：问清楚，回答才有用",
+    4: "一句话：图片也能成为线索",
+    5: "一句话：未来照由三条线索生成",
+    6: "现在做：问一句清楚问题"
   };
   return takeaways[page.page_no] ?? "这一页：把 AI 用清楚";
 }
@@ -8422,29 +8422,26 @@ function aiPrincipleTakeaway(page: DesignedLessonPage) {
 function AiPrincipleVisual({ page }: { page: DesignedLessonPage }) {
   if (page.page_no === 1) {
     return (
-      <div className="ai-principle-visual ai-story-case">
-        <figure className="ai-photo-stage ai-labeled-photo">
-          <img src={aiCoursewareImages.space} alt="未来照相馆样片：现在的孩子和长大后的职业想象照" />
-          <span className="ai-photo-tag tag-left">你的照片</span>
-          <span className="ai-photo-tag tag-right">AI 画出来</span>
-          <figcaption>你给它三样东西，它才知道怎么画</figcaption>
-        </figure>
+      <div className="ai-principle-visual ai-brain-intro">
+        <div className="ai-big-brain" aria-label="电脑里的聪明大脑">
+          <Brain size={70} />
+          <strong>AI 大脑</strong>
+          <span>学过很多例子</span>
+        </div>
         <div className="ai-case-board">
-          <div className="ai-visual-sentence">给 AI：照片、职业、要求</div>
-          <div className="ai-equation-strip">
-            <span>我的照片</span>
-            <b>+</b>
-            <span>想当什么</span>
-            <b>+</b>
-            <span>请画成未来照</span>
-            <b>=</b>
-            <strong>新照片</strong>
-          </div>
-          <div className="ai-camera-core" aria-label="AI 收到三条线索">
-            <Sparkles size={28} />
-            <strong>AI 开始画</strong>
-            <span>按你给的线索画</span>
-          </div>
+          <div className="ai-visual-sentence">AI 是帮人做事的聪明工具</div>
+          <article>
+            <MessageSquareText size={24} />
+            <span>读懂你打的字</span>
+          </article>
+          <article>
+            <Sparkles size={24} />
+            <span>接着生成新内容</span>
+          </article>
+          <article>
+            <Image size={24} />
+            <span>也能看懂图片线索</span>
+          </article>
         </div>
       </div>
     );
@@ -8452,69 +8449,39 @@ function AiPrincipleVisual({ page }: { page: DesignedLessonPage }) {
 
   if (page.page_no === 2) {
     return (
-      <div className="ai-principle-visual ai-multimodal-scene">
-        <figure className="ai-photo-stage ai-scan-photo">
-          <img src={aiCoursewareImages.vet} alt="未来照相馆样片：兽医职业想象照" />
-          <span className="ai-photo-tag tag-left">看见画面</span>
-          <span className="ai-photo-tag tag-right">读懂要求</span>
-          <figcaption>它一边看图，一边读字</figcaption>
-        </figure>
-        <div className="ai-sense-stack">
-          <div className="ai-visual-sentence">图告诉样子，字告诉任务</div>
-          <article>
-            <Image size={24} />
-            <strong>看图</strong>
-            <span>人、动作、地方</span>
-          </article>
-          <article>
-            <MessageSquareText size={24} />
-            <strong>读字</strong>
-            <span>职业、要求、风格</span>
-          </article>
-          <article className="ai-dark-card">
-            <Sparkles size={24} />
-            <strong>合起来</strong>
-            <span>再画新结果</span>
-          </article>
+      <div className="ai-principle-visual ai-chat-scene">
+        <div className="ai-workbuddy-window">
+          <header>
+            <span></span>
+            <span></span>
+            <span></span>
+            <strong>和 AI 聊天</strong>
+          </header>
+          <main className="ai-chat-thread">
+            <article className="ai-chat-bubble from-kid">
+              <small>你说</small>
+              <b>我想做一个校园产品，可以怎么开始？</b>
+            </article>
+            <div className="ai-demo-arrow" aria-label="AI 读懂问题再回答">
+              <MessageSquareText size={18} />
+              <span>读懂</span>
+            </div>
+            <article className="ai-chat-bubble from-ai">
+              <small>AI 回答</small>
+              <b>先找一个同学真的遇到的小麻烦。</b>
+            </article>
+          </main>
+          <div className="ai-chat-steps">
+            <span>你提问</span>
+            <span>AI 读字</span>
+            <span>AI 回答</span>
+          </div>
         </div>
       </div>
     );
   }
 
   if (page.page_no === 3) {
-    const pieces = [
-      ["你给线索", "照片、职业、要求"],
-      ["它找相似", "像见过的例子"],
-      ["接着补", "写下去，画下去"],
-      ["给你看", "再由你来选"]
-    ];
-    return (
-      <div className="ai-principle-visual ai-demo-puzzle">
-        <figure className="ai-photo-stage ai-labeled-photo">
-          <img src={aiCoursewareImages.robot} alt="未来照相馆样片：机器人工程师职业想象照" />
-          <span className="ai-photo-tag tag-left">你给线索</span>
-          <span className="ai-photo-tag tag-right">AI 接着补</span>
-          <figcaption>像拼图，边缘越清楚，下一块越好补</figcaption>
-        </figure>
-        <div className="ai-puzzle-board">
-          <header>
-            <Brain size={26} />
-            <strong>它在接着补</strong>
-          </header>
-          {pieces.map(([title, text], index) => (
-            <article key={title}>
-              <span className="ai-puzzle-piece" aria-hidden="true"></span>
-              <small>{index + 1}</small>
-              <strong>{title}</strong>
-              <span>{text}</span>
-            </article>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (page.page_no === 4) {
     return (
       <div className="ai-principle-visual ai-demo-screen">
         <div className="ai-workbuddy-window">
@@ -8531,7 +8498,7 @@ function AiPrincipleVisual({ page }: { page: DesignedLessonPage }) {
               <b>帮我想想</b>
               <span>它不知道先帮你想哪一步</span>
             </article>
-            <div className="ai-demo-arrow" aria-label="老师把问题改成任务单">
+            <div className="ai-demo-arrow" aria-label="老师把问题说清楚">
               <Sparkles size={18} />
               <span>说清楚</span>
             </div>
@@ -8546,50 +8513,93 @@ function AiPrincipleVisual({ page }: { page: DesignedLessonPage }) {
     );
   }
 
+  if (page.page_no === 4) {
+    return (
+      <div className="ai-principle-visual ai-multimodal-scene">
+        <figure className="ai-photo-stage ai-scan-photo">
+          <img src={aiCoursewareImages.vet} alt="未来照相馆样片：兽医职业想象照" />
+          <span className="ai-photo-tag tag-left">看见画面</span>
+          <span className="ai-photo-tag tag-right">读懂要求</span>
+          <figcaption>照片也会变成 AI 能读的线索</figcaption>
+        </figure>
+        <div className="ai-sense-stack">
+          <div className="ai-visual-sentence">字是线索，图片也是线索</div>
+          <article>
+            <MessageSquareText size={24} />
+            <strong>读文字</strong>
+            <span>职业、要求、问题</span>
+          </article>
+          <article>
+            <Image size={24} />
+            <strong>看图片</strong>
+            <span>人、动作、地方</span>
+          </article>
+          <article className="ai-dark-card">
+            <Sparkles size={24} />
+            <strong>合起来</strong>
+            <span>理解更多线索</span>
+          </article>
+        </div>
+      </div>
+    );
+  }
+
   if (page.page_no === 5) {
     return (
-      <div className="ai-principle-visual ai-lab-experiment">
+      <div className="ai-principle-visual ai-story-case">
         <figure className="ai-photo-stage ai-labeled-photo">
           <img src={aiCoursewareImages.space} alt="未来照相馆样片：火星建筑师职业想象照" />
-          <span className="ai-photo-tag tag-left">填你们的方向</span>
-          <span className="ai-photo-tag tag-right">看 AI 怎么回</span>
-          <figcaption>只填一个空格</figcaption>
+          <span className="ai-photo-tag tag-left">你的照片</span>
+          <span className="ai-photo-tag tag-right">AI 生成</span>
+          <figcaption>现在可以解密：它按线索生成新画面</figcaption>
         </figure>
-        <div className="ai-task-ticket">
-          <header>
-            <MessageSquareText size={24} />
-            <strong>发给 DeepSeek</strong>
-          </header>
-          <div className="ai-visual-sentence">只填中间这一格</div>
-          <p>请你当 <b>产品顾问</b></p>
-          <p>我们想做 <b>________</b><span className="ai-cursor" aria-hidden="true">|</span></p>
-          <p>请用三句话告诉我们：</p>
-          <footer>
-            <span>帮谁？</span>
-            <span>卡在哪？</span>
-            <span>先做哪步？</span>
-          </footer>
+        <div className="ai-case-board">
+          <div className="ai-visual-sentence">照片 + 职业 + 要求 = 未来想象照</div>
+          <div className="ai-equation-strip">
+            <span>我的照片</span>
+            <b>+</b>
+            <span>想当什么</span>
+            <b>+</b>
+            <span>请画成未来照</span>
+            <b>=</b>
+            <strong>新照片</strong>
+          </div>
+          <div className="ai-camera-core" aria-label="AI 收到三条线索">
+            <Sparkles size={28} />
+            <strong>AI 生成图片</strong>
+            <span>按你给的线索生成</span>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="ai-principle-visual ai-answer-sort">
-      <figure className="ai-photo-stage small-photo">
-        <img src={aiCoursewareImages.vet} alt="未来照相馆样片：兽医职业想象照" />
-        <figcaption>AI 说了一堆，别急着全收下</figcaption>
-      </figure>
+    <div className="ai-principle-visual ai-lab-experiment">
+      <div className="ai-task-ticket">
+        <header>
+          <MessageSquareText size={24} />
+          <strong>发给 DeepSeek</strong>
+        </header>
+        <div className="ai-visual-sentence">只填中间这一格</div>
+        <p>请你当 <b>产品顾问</b></p>
+        <p>我们想做 <b>________</b><span className="ai-cursor" aria-hidden="true">|</span></p>
+        <p>请用三句话告诉我们：</p>
+        <footer>
+          <span>帮谁？</span>
+          <span>卡在哪？</span>
+          <span>先做哪步？</span>
+        </footer>
+      </div>
       <div className="ai-sort-board">
         <header>
           <Search size={24} />
-          <strong>先分三堆</strong>
+          <strong>挑一句带回小组</strong>
         </header>
-        <div className="ai-visual-sentence">能做的留下，拿不准的去问</div>
         <div className="ai-example-answer">“课间不知道玩什么的同学，可能需要活动推荐。”</div>
         <div className="ai-answer-actions">
           <article className="answer-keep">
-            <strong>今天能做</strong>
+            <strong>能继续讨论</strong>
             <span>留下</span>
           </article>
           <article className="answer-ask">

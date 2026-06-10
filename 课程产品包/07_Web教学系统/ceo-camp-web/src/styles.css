@@ -1636,6 +1636,7 @@ button:disabled {
   font-weight: 850;
 }
 
+.ai-brain-intro,
 .ai-story-case,
 .ai-multimodal-scene,
 .ai-demo-puzzle,
@@ -1644,6 +1645,114 @@ button:disabled {
 .ai-answer-sort {
   grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
   align-items: stretch;
+}
+
+.ai-big-brain {
+  position: relative;
+  min-height: clamp(260px, 31vw, 440px);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: clamp(8px, 1vw, 12px);
+  overflow: hidden;
+  border: 3px solid #172018;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 22% 20%, rgba(255, 255, 255, 0.9), transparent 22%),
+    radial-gradient(circle at 78% 28%, rgba(247, 214, 109, 0.85), transparent 24%),
+    linear-gradient(135deg, #78b7e8, #d9efe2 58%, #ffd5c8);
+  box-shadow: 6px 6px 0 rgba(239, 125, 88, 0.28);
+}
+
+.ai-big-brain::before,
+.ai-big-brain::after {
+  content: "";
+  position: absolute;
+  width: clamp(120px, 18vw, 230px);
+  aspect-ratio: 1;
+  border: 3px dashed rgba(23, 32, 24, 0.2);
+  border-radius: 999px;
+  animation: aiOrbit 7s linear infinite;
+}
+
+.ai-big-brain::after {
+  width: clamp(170px, 24vw, 310px);
+  animation-duration: 10s;
+  animation-direction: reverse;
+}
+
+.ai-big-brain svg {
+  position: relative;
+  z-index: 1;
+  width: clamp(58px, 8vw, 104px);
+  height: clamp(58px, 8vw, 104px);
+  color: #172018;
+  filter: drop-shadow(4px 4px 0 rgba(255, 253, 246, 0.8));
+}
+
+.ai-big-brain strong {
+  position: relative;
+  z-index: 1;
+  color: #172018;
+  font-size: clamp(34px, 5vw, 72px);
+  line-height: 0.95;
+  text-shadow: 3px 3px 0 rgba(255, 253, 246, 0.9);
+}
+
+.ai-big-brain span {
+  position: relative;
+  z-index: 1;
+  border: 2px solid #172018;
+  border-radius: 999px;
+  background: #fffdf6;
+  color: #172018;
+  padding: 7px 12px;
+  font-size: clamp(15px, 1.25vw, 20px);
+  font-weight: 950;
+  box-shadow: 3px 3px 0 rgba(23, 32, 24, 0.16);
+}
+
+.ai-chat-scene .ai-workbuddy-window {
+  min-height: clamp(330px, 35vw, 520px);
+}
+
+.ai-workbuddy-window main.ai-chat-thread {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.ai-chat-bubble {
+  min-height: clamp(150px, 15vw, 220px);
+  border: 3px solid #172018;
+}
+
+.ai-chat-bubble.from-kid {
+  background: #fff6bc;
+}
+
+.ai-chat-bubble.from-ai {
+  background: #d9efe2;
+}
+
+.ai-chat-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 clamp(12px, 1.5vw, 18px) clamp(12px, 1.5vw, 18px);
+}
+
+.ai-chat-steps span {
+  display: grid;
+  place-items: center;
+  min-height: clamp(48px, 4.8vw, 70px);
+  border: 2px solid #172018;
+  border-radius: 8px;
+  background: #dceeff;
+  color: #172018;
+  text-align: center;
+  font-size: clamp(15px, 1.2vw, 20px);
+  font-weight: 950;
+  box-shadow: 3px 3px 0 rgba(23, 32, 24, 0.12);
 }
 
 .ai-photo-stage {
@@ -2213,6 +2322,16 @@ button:disabled {
 
   50% {
     transform: translateY(-4px);
+  }
+}
+
+@keyframes aiOrbit {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -8401,7 +8520,9 @@ button:disabled {
   .ai-compare-visual,
   .ai-sheet-grid,
   .ai-answer-actions,
+  .ai-brain-intro,
   .ai-story-case,
+  .ai-chat-steps,
   .ai-multimodal-scene,
   .ai-demo-puzzle,
   .ai-demo-screen,
@@ -8562,6 +8683,8 @@ button:disabled {
 
 @media (prefers-reduced-motion: reduce) {
   .ai-scan-photo::before,
+  .ai-big-brain::before,
+  .ai-big-brain::after,
   .ai-camera-core::before,
   .ai-camera-core::after,
   .ai-puzzle-piece,
