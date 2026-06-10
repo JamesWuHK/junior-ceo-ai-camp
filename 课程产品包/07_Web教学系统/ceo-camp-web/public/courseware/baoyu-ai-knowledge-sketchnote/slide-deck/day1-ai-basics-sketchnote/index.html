@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI 知识科普 SketchNote</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #faf8f0;
+        --ink: #263545;
+        --muted: #667085;
+        --line: #e5dcc9;
+        --orange: #f4a261;
+        --blue: #7ec8e3;
+        --green: #87a96b;
+        --shadow: 0 18px 42px rgba(38, 53, 69, 0.16);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Microsoft YaHei", sans-serif;
+        background:
+          linear-gradient(135deg, rgba(126, 200, 227, 0.24), transparent 34%),
+          linear-gradient(225deg, rgba(244, 162, 97, 0.2), transparent 38%),
+          var(--paper);
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px clamp(16px, 3vw, 36px);
+        border-bottom: 1px solid rgba(229, 220, 201, 0.86);
+        background: rgba(250, 248, 240, 0.88);
+        backdrop-filter: blur(14px);
+      }
+
+      .brand {
+        min-width: 0;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: clamp(20px, 2.4vw, 32px);
+        line-height: 1.1;
+        letter-spacing: 0;
+      }
+
+      .brand p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--ink);
+        background: #fffaf0;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 700;
+        box-shadow: 0 8px 18px rgba(38, 53, 69, 0.08);
+      }
+
+      .button:hover {
+        border-color: var(--orange);
+        transform: translateY(-1px);
+      }
+
+      main {
+        width: min(1480px, 100%);
+        margin: 0 auto;
+        padding: clamp(16px, 3vw, 36px);
+      }
+
+      .stage {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+      }
+
+      .slide-shell {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border: 1px solid rgba(229, 220, 201, 0.88);
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: var(--shadow);
+      }
+
+      .slide-shell img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: var(--paper);
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: 120px 1fr 120px;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .nav-button {
+        min-height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--ink);
+        background: #fffaf0;
+        font-size: 16px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .nav-button:hover {
+        border-color: var(--orange);
+        background: #fff3d8;
+      }
+
+      .counter {
+        text-align: center;
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .thumbs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      .thumb {
+        padding: 0;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(38, 53, 69, 0.09);
+      }
+
+      .thumb[aria-current="true"] {
+        border-color: var(--green);
+      }
+
+      .thumb img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+      }
+
+      @media (max-width: 760px) {
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .actions {
+          justify-content: flex-start;
+        }
+
+        .controls {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .counter {
+          grid-column: 1 / -1;
+          grid-row: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <h1>AI 知识科普 SketchNote</h1>
+        <p>未来照相馆之后，给孩子看的 AI 工作原理小课。</p>
+      </div>
+      <nav class="actions" aria-label="文件">
+        <a class="button" href="day1-ai-basics-sketchnote.pdf">打开 PDF</a>
+        <a class="button" href="day1-ai-basics-sketchnote.pptx">下载 PPTX</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="stage" aria-label="PPT 预览">
+        <div class="slide-shell">
+          <img id="currentSlide" src="01-slide-ai-brain.png" alt="第 1 页" />
+        </div>
+        <div class="controls">
+          <button class="nav-button" type="button" id="prevButton">上一页</button>
+          <div class="counter" id="counter">1 / 9</div>
+          <button class="nav-button" type="button" id="nextButton">下一页</button>
+        </div>
+      </section>
+
+      <section class="thumbs" id="thumbs" aria-label="缩略图"></section>
+    </main>
+
+    <script>
+      const slides = [
+        "01-slide-ai-brain.png",
+        "02-slide-task-starts.png",
+        "03-slide-photo-clue.png",
+        "04-slide-many-examples.png",
+        "05-slide-three-clues.png",
+        "06-slide-clear-task.png",
+        "07-slide-human-director.png",
+        "08-slide-first-image-task.png",
+        "09-slide-find-odd-details.png",
+      ];
+
+      let index = 0;
+      const image = document.getElementById("currentSlide");
+      const counter = document.getElementById("counter");
+      const thumbs = document.getElementById("thumbs");
+
+      function showSlide(nextIndex) {
+        index = (nextIndex + slides.length) % slides.length;
+        image.src = slides[index];
+        image.alt = `第 ${index + 1} 页`;
+        counter.textContent = `${index + 1} / ${slides.length}`;
+        document.querySelectorAll(".thumb").forEach((button, buttonIndex) => {
+          button.setAttribute("aria-current", buttonIndex === index ? "true" : "false");
+        });
+      }
+
+      slides.forEach((src, slideIndex) => {
+        const button = document.createElement("button");
+        button.className = "thumb";
+        button.type = "button";
+        button.setAttribute("aria-label", `打开第 ${slideIndex + 1} 页`);
+        button.innerHTML = `<img src="${src}" alt="第 ${slideIndex + 1} 页缩略图" />`;
+        button.addEventListener("click", () => showSlide(slideIndex));
+        thumbs.appendChild(button);
+      });
+
+      document.getElementById("prevButton").addEventListener("click", () => showSlide(index - 1));
+      document.getElementById("nextButton").addEventListener("click", () => showSlide(index + 1));
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft") showSlide(index - 1);
+        if (event.key === "ArrowRight") showSlide(index + 1);
+      });
+
+      showSlide(0);
+    </script>
+  </body>
+</html>

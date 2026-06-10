@@ -340,23 +340,23 @@ const futurePhotoSamples: FuturePhotoSample[] = [
   {
     code: "样片 01",
     career: "动物医生",
-    cue: "手里的工具透露了什么？",
+    cue: "他手里拿着什么工具？",
     image: openingImages.vet,
-    alt: "孩子与未来动物医生职业照对比"
+    alt: "孩子与一张未来职业照对比，画面里有动物、工具和工作场景"
   },
   {
     code: "样片 02",
     career: "机器人设计师",
-    cue: "身边的机器在做什么？",
+    cue: "旁边的机器在做什么？",
     image: openingImages.robot,
-    alt: "孩子与未来机器人设计师职业照对比"
+    alt: "孩子与一张未来职业照对比，画面里有机器和工作台"
   },
   {
     code: "样片 03",
     career: "太空建筑师",
-    cue: "工作地点藏在哪里？",
+    cue: "他可能在哪里工作？",
     image: openingImages.space,
-    alt: "孩子与未来太空建筑师职业照对比"
+    alt: "孩子与一张未来职业照对比，画面里有太空装备和建筑场景"
   }
 ];
 
@@ -415,6 +415,10 @@ type DesignedLessonPage = LessonPage & {
   cards?: LessonCard[];
   steps?: string[];
   flow?: LessonCard[];
+  slide_image?: {
+    src: string;
+    alt: string;
+  };
 };
 
 const aiCoursewareImages = {
@@ -423,6 +427,91 @@ const aiCoursewareImages = {
   vet: "/courseware/opening/future-pair-vet.webp",
   robot: "/courseware/opening/future-pair-robot.webp"
 };
+
+const aiSketchnoteBasePath =
+  "/courseware/baoyu-ai-knowledge-sketchnote/slide-deck/day1-ai-basics-sketchnote";
+
+const aiJudgementSketchnoteSlides: Array<{
+  page_no: number;
+  title: string;
+  content_summary: string;
+  page_type: LessonPage["page_type"];
+  image: string;
+  alt: string;
+}> = [
+  {
+    page_no: 1,
+    title: "AI 是一个会学习的大脑",
+    content_summary: "AI 能读文字、看图片、听声音，像电脑里的聪明大脑。",
+    page_type: "story",
+    image: "01-slide-ai-brain.png",
+    alt: "手绘课件：机器人脑袋里有会学习的大脑，旁边标出能读文字、能看图片、能听声音"
+  },
+  {
+    page_no: 2,
+    title: "你给它任务，它开始工作",
+    content_summary: "孩子写下任务纸条，AI 收到线索后开始生成结果。",
+    page_type: "story",
+    image: "02-slide-task-starts.png",
+    alt: "手绘课件：孩子把任务纸条送进 AI 大脑，AI 开始工作"
+  },
+  {
+    page_no: 3,
+    title: "照片也是线索",
+    content_summary: "照片里的人物、表情、姿势，也能成为 AI 看懂的线索。",
+    page_type: "demo",
+    image: "03-slide-photo-clue.png",
+    alt: "手绘课件：AI 用放大镜看照片里的人物、表情和姿势"
+  },
+  {
+    page_no: 4,
+    title: "它以前看过很多例子",
+    content_summary: "AI 学过很多照片、职业照、工具和场景，所以能按线索画新图。",
+    page_type: "demo",
+    image: "04-slide-many-examples.png",
+    alt: "手绘课件：AI 大脑周围围着很多职业和场景例子"
+  },
+  {
+    page_no: 5,
+    title: "三张线索卡，画出新画面",
+    content_summary: "照片、职业、任务三张线索卡一起进入 AI，得到新的未来画面。",
+    page_type: "demo",
+    image: "05-slide-three-clues.png",
+    alt: "手绘课件：照片、职业、任务三张线索卡进入 AI，生成一张新的未来职业图"
+  },
+  {
+    page_no: 6,
+    title: "说清楚，AI 才好帮你",
+    content_summary: "太短的问题容易跑偏，把职业、地点和动作说清楚，结果会更好。",
+    page_type: "demo",
+    image: "06-slide-clear-task.png",
+    alt: "手绘课件：对比太短的任务和说清楚的任务，右侧画面更具体"
+  },
+  {
+    page_no: 7,
+    title: "AI 画完，人来做导演",
+    content_summary: "AI 给出结果后，孩子继续看线索、选一张、再修改。",
+    page_type: "demo",
+    image: "07-slide-human-director.png",
+    alt: "手绘课件：孩子像导演一样看 AI 生成的几张图，圈出线索并准备修改"
+  },
+  {
+    page_no: 8,
+    title: "先说清楚，让 AI 画一张",
+    content_summary: "把想画谁、在哪里、正在做什么说清楚，再让 AI 画第一张。",
+    page_type: "experiment",
+    image: "08-slide-first-image-task.png",
+    alt: "手绘课件：用未来的我、动物医院、给小狗检查三个信息组成清楚任务"
+  },
+  {
+    page_no: 9,
+    title: "找茬儿：这张图哪里怪？",
+    content_summary: "孩子找出图里的小问题，再告诉 AI 改哪里、看新版。",
+    page_type: "experiment",
+    image: "09-slide-find-odd-details.png",
+    alt: "手绘课件：孩子在 AI 第一张图里找出问题，并写便签让 AI 修改"
+  }
+];
 
 const aiJudgementPageMeta: Record<
   number,
@@ -436,9 +525,9 @@ const aiJudgementPageMeta: Record<
 > = {
   1: {
     title: "什么是 AI？",
-    content_summary: "它像电脑里的聪明大脑，会读字、会聊天，也能帮人生成内容。",
+    content_summary: "它像电脑里的聪明大脑：先读懂线索，再回答、画图或帮你做作品。",
     kicker: "10:00-11:10 · 故事开场",
-    chips: ["聪明大脑", "读字", "帮人做事"],
+    chips: ["读线索", "想答案", "做作品"],
     page_type: "story"
   },
   2: {
@@ -917,6 +1006,37 @@ function decorateLessonPage(module: CourseModule, page: LessonPage): DesignedLes
 function coursewarePages(module: CourseModule | null | undefined): DesignedLessonPage[] {
   if (!module) return [];
   const modulePages = module.pages.length ? module.pages : fallbackPagesFor(module);
+  if (module.id === "ai-judgement") {
+    const base = module.pages[0] ?? {
+      id: "ai-judgement-page",
+      module_id: module.id,
+      page_no: 1,
+      title: "",
+      page_type: "story",
+      activity_buttons: []
+    };
+    return aiJudgementSketchnoteSlides.map((slide) => ({
+      ...base,
+      id: `ai-judgement-sketchnote-${slide.page_no}`,
+      module_id: module.id,
+      page_no: slide.page_no,
+      title: slide.title,
+      page_type: slide.page_type,
+      activity_buttons: slide.page_type === "experiment" ? ["全屏演示", "发布任务"] : ["全屏演示"],
+      content_summary: slide.content_summary,
+      kicker: slide.page_no <= 2 ? "10:00-11:10 · 故事开场" : slide.page_no <= 7 ? "10:00-11:10 · 老师演示" : "10:00-11:10 · 轮到你实验",
+      chips: slide.page_no <= 2 ? ["认识 AI", "看见线索", "准备提问"] : slide.page_no <= 7 ? ["看演示", "找变化", "借方法"] : ["做实验", "找问题", "改一版"],
+      visual: "demo",
+      accent: moduleDesigns[module.id]?.accent ?? "blue",
+      cards: moduleDesigns[module.id]?.cards,
+      steps: moduleDesigns[module.id]?.steps,
+      flow: moduleDesigns[module.id]?.flow,
+      slide_image: {
+        src: `${aiSketchnoteBasePath}/${slide.image}`,
+        alt: slide.alt
+      }
+    }));
+  }
   if (module.id !== "future-photo-studio") {
     return modulePages.map((page) => decorateLessonPage(module, page));
   }
@@ -942,7 +1062,7 @@ function coursewarePages(module: CourseModule | null | undefined): DesignedLesso
       ...base,
       id: "future-photo-examples",
       page_no: 2,
-      title: "未来照片寄到",
+      title: "先猜猜职业",
       page_type: "image",
       activity_buttons: ["发起互动", "投屏展示"],
       content_summary: "看几组现在照片和未来职业照，先猜职业"
@@ -951,7 +1071,7 @@ function coursewarePages(module: CourseModule | null | undefined): DesignedLesso
       ...base,
       id: "future-photo-your-turn",
       page_no: 3,
-      title: "下一张写着你",
+      title: "下一张轮到你",
       page_type: "activity",
       activity_buttons: ["发布任务", "启动计时"],
       content_summary: "扫码，拍今天的你，说出理想职业"
@@ -969,10 +1089,10 @@ function coursewarePages(module: CourseModule | null | undefined): DesignedLesso
       ...base,
       id: "future-photo-ai-secret",
       page_no: 5,
-      title: "AI 工作原理拆解",
+      title: "照片怎么画出来",
       page_type: "experiment",
       activity_buttons: ["全屏演示"],
-      content_summary: "AI 同时读照片、职业词和提示词，再生成一张新的未来想象照"
+      content_summary: "AI 看照片，也读职业和任务，再画出新的未来想象照"
     }
   ] as DesignedLessonPage[];
 }
@@ -981,12 +1101,24 @@ function lessonPageTitle(module: CourseModule | null | undefined, page: Designed
   if (module?.id !== "future-photo-studio") return page.title;
   const titles: Record<number, string> = {
     1: "照相馆开门",
-    2: "未来照片寄到",
-    3: "下一张写着你",
+    2: "先猜猜职业",
+    3: "下一张轮到你",
     4: "照片墙亮起来",
-    5: "AI 工作原理拆解"
+    5: "照片怎么画出来"
   };
   return titles[page.page_no] ?? page.title;
+}
+
+function lessonModuleTitle(module: CourseModule | null | undefined) {
+  if (!module) return "未来照相馆";
+  if (module.id === "future-photo-studio") return "未来照相馆";
+  return module.title;
+}
+
+function lessonModuleSubtitle(module: CourseModule | null | undefined) {
+  if (!module) return "";
+  if (module.id === "future-photo-studio") return "先看照片，猜猜他们长大后在做什么";
+  return module.subtitle;
 }
 
 function teacherMoveForPage(page: DesignedLessonPage) {
@@ -1007,7 +1139,7 @@ function teacherMoveForPage(page: DesignedLessonPage) {
 
 function expectedOutputForPage(page: DesignedLessonPage) {
   const outputs: Record<string, string> = {
-    "下一张写着你": "学生端提交一张照片和一个理想职业",
+    "下一张轮到你": "学生端提交一张照片和一个理想职业",
     "问题改写卡": "每组把一个烦恼改成可采访问题",
     "AI 市场侦察卡": "每组带回 3 条可验证线索",
     "老师演示：DeepSeek 找已有方案": "每组知道已有方案、一个不足和还要问真人的问题",
@@ -3089,8 +3221,8 @@ function TeacherApp({
                 }}
               >
                 <span>{module.time_range}</span>
-                <strong>{module.title}</strong>
-                <small>{module.subtitle}</small>
+                <strong>{lessonModuleTitle(module)}</strong>
+                <small>{lessonModuleSubtitle(module)}</small>
               </button>
             ))}
         </div>
@@ -3109,9 +3241,9 @@ function TeacherApp({
           <section className="lesson-panel">
             <div className="lesson-title">
               <div>
-                <span className="eyebrow">正在讲的课件</span>
-                <h1>{selectedModule?.title || "未来照相馆"}</h1>
-                <p>{selectedModule?.subtitle}</p>
+                <span className="eyebrow">现在这一段</span>
+                <h1>{lessonModuleTitle(selectedModule)}</h1>
+                <p>{lessonModuleSubtitle(selectedModule)}</p>
               </div>
               <div className="lesson-actions">
                 <button className="secondary" onClick={openPresentation}>
@@ -8422,27 +8554,57 @@ function aiPrincipleTakeaway(page: DesignedLessonPage) {
 function AiPrincipleVisual({ page }: { page: DesignedLessonPage }) {
   if (page.page_no === 1) {
     return (
-      <div className="ai-principle-visual ai-brain-intro">
-        <div className="ai-big-brain" aria-label="电脑里的聪明大脑">
-          <Brain size={70} />
-          <strong>AI 大脑</strong>
-          <span>学过很多例子</span>
-        </div>
-        <div className="ai-case-board">
-          <div className="ai-visual-sentence">AI 是帮人做事的聪明工具</div>
-          <article>
-            <MessageSquareText size={24} />
-            <span>读懂你打的字</span>
-          </article>
-          <article>
+      <div className="ai-principle-visual ai-brain-intro ai-ppt-sample">
+        <section className="ai-story-panel" aria-label="未来照相馆引出 AI">
+          <div className="ai-story-question">
             <Sparkles size={24} />
-            <span>接着生成新内容</span>
-          </article>
-          <article>
-            <Image size={24} />
-            <span>也能看懂图片线索</span>
-          </article>
-        </div>
+            <strong>刚才的未来照片，为什么会出现？</strong>
+          </div>
+          <div className="ai-clue-cards" aria-label="给 AI 的三条线索">
+            <article>
+              <Image size={24} />
+              <strong>照片</strong>
+              <span>今天的你</span>
+            </article>
+            <article>
+              <Mic size={24} />
+              <strong>职业</strong>
+              <span>想做什么</span>
+            </article>
+            <article>
+              <MessageSquareText size={24} />
+              <strong>要求</strong>
+              <span>画成什么样</span>
+            </article>
+          </div>
+          <div className="ai-kid-prompt">
+            <span>给 AI 线索，它才知道要帮你做什么。</span>
+          </div>
+        </section>
+        <section className="ai-brain-workshop" aria-label="AI 怎么工作">
+          <div className="ai-smart-brain" aria-label="电脑里的聪明大脑">
+            <Brain size={64} />
+            <strong>AI 大脑</strong>
+            <span>读懂线索</span>
+          </div>
+          <div className="ai-output-cards" aria-label="AI 生成的结果">
+            <article>
+              <MessageSquareText size={24} />
+              <strong>回答你</strong>
+              <span>像聊天一样</span>
+            </article>
+            <article>
+              <Image size={24} />
+              <strong>画新图</strong>
+              <span>像未来照片</span>
+            </article>
+            <article>
+              <Lightbulb size={24} />
+              <strong>给方法</strong>
+              <span>帮项目往前走</span>
+            </article>
+          </div>
+        </section>
       </div>
     );
   }
@@ -8714,6 +8876,10 @@ function LessonPageCanvas({
   students: Student[];
   onOpenPhoto: (student: Student) => void;
 }) {
+  if (module.id === "ai-judgement" && page.slide_image) {
+    return <AiSketchnoteSlide page={page} />;
+  }
+
   if (module.id === "future-photo-studio") {
     return (
       <FuturePhotoStudioSlide
@@ -8728,6 +8894,15 @@ function LessonPageCanvas({
   return <DesignedLessonSlide module={module} page={page} />;
 }
 
+function AiSketchnoteSlide({ page }: { page: DesignedLessonPage }) {
+  if (!page.slide_image) return null;
+  return (
+    <article className="lesson-canvas ai-sketchnote-slide">
+      <img src={page.slide_image.src} alt={page.slide_image.alt} />
+    </article>
+  );
+}
+
 function FuturePhotoStudioSlide({
   module,
   page,
@@ -8740,13 +8915,28 @@ function FuturePhotoStudioSlide({
   onOpenPhoto: (student: Student) => void;
 }) {
   const [sampleIndex, setSampleIndex] = useState<number | null>(null);
+  const [revealedSamples, setRevealedSamples] = useState<Set<string>>(() => new Set());
+
+  const toggleSampleAnswer = (code: string) => {
+    setRevealedSamples((current) => {
+      const next = new Set(current);
+      if (next.has(code)) {
+        next.delete(code);
+      } else {
+        next.add(code);
+      }
+      return next;
+    });
+  };
 
   const sampleLightbox = sampleIndex === null ? null : (
     <SampleLightbox
       samples={futurePhotoSamples}
       index={sampleIndex}
+      revealedSamples={revealedSamples}
       onChange={setSampleIndex}
       onClose={() => setSampleIndex(null)}
+      onToggleAnswer={toggleSampleAnswer}
     />
   );
 
@@ -8785,27 +8975,55 @@ function FuturePhotoStudioSlide({
       <article className="lesson-canvas studio-slide studio-story">
         <div className="studio-copy">
           <span className="studio-kicker">第一批照片寄到了</span>
-          <h2>他们去了哪个未来？</h2>
-          <p>点开样片，看衣服、工具、房间和动作，先猜职业。</p>
+          <h2>猜猜他们长大后在做什么</h2>
+          <p>先看衣服、工具、房间和动作，猜一猜职业。</p>
         </div>
         <div className="opening-pairs">
-          {futurePhotoSamples.map((sample, index) => (
-            <button
-              type="button"
-              className="sample-card"
-              key={sample.code}
-              onClick={() => setSampleIndex(index)}
-              aria-label={`放大查看${sample.code}`}
-            >
-              <img src={sample.image} alt={sample.alt} />
-              <span className="sample-code">{sample.code}</span>
-              <span className="sample-zoom"><Maximize2 size={16} /> 放大看</span>
-              <span className="sample-caption">
-                <strong>{sample.career}</strong>
-                <small>{sample.cue}</small>
-              </span>
-            </button>
-          ))}
+          {futurePhotoSamples.map((sample, index) => {
+            const revealed = revealedSamples.has(sample.code);
+            return (
+              <article className={revealed ? "sample-card revealed" : "sample-card"} key={sample.code}>
+                <button
+                  type="button"
+                  className="sample-flip"
+                  onClick={() => toggleSampleAnswer(sample.code)}
+                  aria-pressed={revealed}
+                  aria-label={revealed ? `${sample.code}答案是${sample.career}，再点一次藏起答案` : `${sample.code}，先猜职业，点一下翻开答案`}
+                >
+                  <span className="sample-card-inner">
+                    <span className="sample-face sample-front" aria-hidden={revealed}>
+                      <img src={sample.image} alt={sample.alt} />
+                      <span className="sample-code">{sample.code}</span>
+                      <span className="sample-caption">
+                        <strong>猜猜职业</strong>
+                        <small>{sample.cue}</small>
+                      </span>
+                    </span>
+                    <span className="sample-face sample-back" aria-hidden={!revealed}>
+                      {revealed && (
+                        <>
+                          <img src={sample.image} alt="" />
+                          <span className="sample-code">答案</span>
+                          <span className="sample-caption">
+                            <strong>{sample.career}</strong>
+                            <small>{sample.cue}</small>
+                          </span>
+                        </>
+                      )}
+                    </span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="sample-zoom"
+                  onClick={() => setSampleIndex(index)}
+                  aria-label={`放大查看${sample.code}`}
+                >
+                  <Maximize2 size={16} /> 放大看
+                </button>
+              </article>
+            );
+          })}
         </div>
       </article>
     );
@@ -8816,7 +9034,7 @@ function FuturePhotoStudioSlide({
       <article className="lesson-canvas studio-slide studio-task">
         <div className="studio-copy">
           <span className="studio-kicker">柜台上还有一只空相框</span>
-          <h2>下一张，写着你的名字</h2>
+          <h2>下一张轮到你</h2>
           <p>扫码，拍今天的你，说出长大想做的职业。</p>
         </div>
         <div className="task-stage">
@@ -8849,8 +9067,8 @@ function FuturePhotoStudioSlide({
       <article className="lesson-canvas studio-slide studio-wall">
         <div className="studio-copy compact">
           <span className="studio-kicker">照片送回来了</span>
-          <h2>谁的未来先亮起来？</h2>
-          <p>点开一张，看看 TA 正在做什么。</p>
+          <h2>照片墙亮起来了</h2>
+          <p>点开一张，看看同学正在做什么。</p>
         </div>
         <CoursePhotoWall students={students} variant="lesson" onOpenPhoto={onOpenPhoto} />
       </article>
@@ -8858,8 +9076,8 @@ function FuturePhotoStudioSlide({
       <article className="lesson-canvas studio-slide studio-secret">
         <div className="studio-copy compact">
           <span className="studio-kicker">照相馆的秘密</span>
-          <h2>AI 同时读了照片和文字</h2>
-          <p>照片给人物线索，职业词给方向，提示词告诉 AI 场景和细节。</p>
+          <h2>AI 看了照片，也读了文字</h2>
+          <p>它看照片，也读你说的职业，再按任务画出新图。</p>
         </div>
         <div className="ai-secret-flow">
           <div>
@@ -8870,14 +9088,14 @@ function FuturePhotoStudioSlide({
           <span>+</span>
           <div>
             <Mic size={36} />
-            <strong>职业词</strong>
-            <small>方向</small>
+            <strong>职业</strong>
+            <small>你想做什么</small>
           </div>
           <span>+</span>
           <div>
             <MessageSquareText size={36} />
             <strong>提示词</strong>
-            <small>场景和细节</small>
+            <small>画面要求</small>
           </div>
           <span>=</span>
           <div className="highlight">
@@ -8887,9 +9105,9 @@ function FuturePhotoStudioSlide({
           </div>
         </div>
         <div className="ai-secret-words">
-          <span><strong>多模态</strong>照片和文字一起进入 AI</span>
-          <span><strong>大模型</strong>根据线索继续生成</span>
-          <span><strong>人来判断</strong>像不像、清不清楚、要不要再改</span>
+          <span><strong>多模态</strong>照片和文字都能成为线索</span>
+          <span><strong>大模型</strong>按线索画出新画面</span>
+          <span><strong>人来判断</strong>像不像、清不清楚、还想改哪里</span>
         </div>
       </article>
     )
@@ -8899,15 +9117,20 @@ function FuturePhotoStudioSlide({
 function SampleLightbox({
   samples,
   index,
+  revealedSamples,
   onChange,
-  onClose
+  onClose,
+  onToggleAnswer
 }: {
   samples: FuturePhotoSample[];
   index: number;
+  revealedSamples: Set<string>;
   onChange: (nextIndex: number) => void;
   onClose: () => void;
+  onToggleAnswer: (code: string) => void;
 }) {
   const sample = samples[index];
+  const revealed = revealedSamples.has(sample.code);
   const goTo = (direction: -1 | 1) => {
     onChange((index + direction + samples.length) % samples.length);
   };
@@ -8934,8 +9157,11 @@ function SampleLightbox({
         <img src={sample.image} alt={sample.alt} />
         <figcaption>
           <span>{sample.code}</span>
-          <strong>{sample.career}</strong>
+          <strong>{revealed ? sample.career : "先猜职业"}</strong>
           <small>{sample.cue}</small>
+          <button type="button" className="sample-answer-toggle" onClick={() => onToggleAnswer(sample.code)}>
+            {revealed ? "藏起答案" : "翻开答案"}
+          </button>
         </figcaption>
       </figure>
       <button className="sample-lightbox-nav next" type="button" onClick={() => goTo(1)} aria-label="下一张样片">
