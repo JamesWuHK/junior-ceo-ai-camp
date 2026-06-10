@@ -433,7 +433,7 @@ const moduleDesigns: Record<
     icon: Star,
     accent: "mint",
     chips: ["回看", "收束", "带走方法"],
-    steps: ["选一条最有证据的线索", "写一条 AI 使用守则", "准备明天开做"],
+    steps: ["选一条最有证据的线索", "写一条 AI 判断方法", "准备明天开做"],
     cards: [
       { title: "真问题", text: "来自真实采访和观察" },
       { title: "好方法", text: "先怀疑，再验证" },
@@ -869,6 +869,7 @@ function formatTimer(seconds: number) {
 
 function taskTypeForAction(action: string, page: DesignedLessonPage) {
   if (page.title.includes("下一次我怎么指挥 AI")) return "growth_reflection";
+  if (/带走一个 AI 判断方法|AI 判断方法|AI 跑偏|改回来/.test(page.title)) return "learning_reflection";
   if (/给贡献一个名字|五力证书|个人贡献|贡献卡/.test(page.title)) return "contribution_card";
   if (/团队名片|团队名称和方向|给团队起名|找到你的桌号/.test(page.title)) return "team_card";
   if (/AI 给答案，先看证据|真假侦探实验|证据比声音更有力/.test(page.title)) return "ai_validation";
@@ -922,6 +923,7 @@ function isProductLinkTask(camp: Camp | null) {
   const moduleId = camp?.active_task?.module_id || "";
   return (
     !isBlockerTask(camp) &&
+    !isLearningReflectionTask(camp) &&
     (/作品链接|产品链接|真产品检查|作品页上线清单|产品原型|每组作品能打开|2 分钟 Demo/.test(title) ||
     ["build-sprint", "demo-check"].includes(moduleId)
     )
@@ -1103,6 +1105,20 @@ function isGrowthReflectionTask(camp: Camp | null) {
     payloadType === "growth_reflection" ||
     (moduleId === "awards-reflection" && /下一次我怎么指挥 AI|结营反思|写反思/.test(title)) ||
     /下一次我怎么指挥 AI|结营反思|写反思/.test(title)
+  );
+}
+
+function isLearningReflectionTask(camp: Camp | null) {
+  const title = activeTaskTitle(camp);
+  const moduleId = camp?.active_task?.module_id || "";
+  const activityType = camp?.active_task?.activity_type || "";
+  const payloadType = asText(camp?.active_task?.payload?.task_type);
+  return (
+    activityType === "learning_reflection" ||
+    payloadType === "learning_reflection" ||
+    (moduleId === "day1-reflection" && /带走一个 AI 判断方法|判断方法|收束/.test(title)) ||
+    (moduleId === "demo-check" && /AI 跑偏|改回来|修正|反思/.test(title)) ||
+    /带走一个 AI 判断方法|AI 判断方法|AI 跑偏|改回来|修正方法/.test(title)
   );
 }
 
@@ -3597,6 +3613,7 @@ const studentTaskTypeLabels: Record<string, string> = {
   story_pitch: "故事发布",
   final_showcase: "展示卡",
   observer_score: "同伴投票",
+  learning_reflection: "反思卡",
   contribution_card: "贡献卡",
   growth_reflection: "成长卡"
 };
@@ -5782,7 +5799,7 @@ function TeacherGrowthReflections() {
   const load = async () => {
     try {
       const result = await api.submissions();
-      setItems(result.task_submissions.filter((item) => ["growth_reflection", "contribution_card"].includes(item.task_type)));
+      setItems(result.task_submissions.filter((item) => ["learning_reflection", "growth_reflection", "contribution_card"].includes(item.task_type)));
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "加载失败");
     }
@@ -5811,33 +5828,44 @@ function TeacherGrowthReflections() {
     <section className="panel growth-manage-panel">
       <div className="panel-title">
         <Brain size={20} />
-        <h2>个人贡献与成长卡</h2>
+        <h2>个人贡献与反思卡</h2>
       </div>
       <div className="artifact-stats">
         <span>{items.length} 张已提交</span>
-        <span>{items.filter((item) => item.status === "ON_WALL").length} 张在成果页</span>
+        <span>{items.filter((item) => item.task_type !== "learning_reflection" && item.status === "ON_WALL").length} 张在成果页</span>
       </div>
       {message && <p className="hint">{message}</p>}
       <div className="d1-artifact-list growth-manage-list">
         {items.map((item) => {
           const ability = asText(item.payload.ability_tag) || "能力标签";
           const isContribution = item.task_type === "contribution_card";
+          const isLearning = item.task_type === "learning_reflection";
           return (
             <article className={item.status === "ON_WALL" ? "d1-artifact-card on-wall" : "d1-artifact-card"} key={item.id}>
               <header>
                 <div>
-                  <span>{isContribution ? "贡献卡" : ability}</span>
+                  <span>{isContribution ? "贡献卡" : isLearning ? "日终反思" : ability}</span>
                   <strong>{item.student_name || "学生"}</strong>
                   <small>{item.team_name || asText(item.payload.team_name) || "项目团队"}</small>
                 </div>
                 <div className="artifact-actions">
-                  <button disabled={workingId === item.id} onClick={() => toggleDisplay(item)}>
-                    {item.status === "ON_WALL" ? "从成果页移开" : "放到成果页"}
-                  </button>
+                  {isLearning ? (
+                    <span className="showcase-status draft">老师复盘</span>
+                  ) : (
+                    <button disabled={workingId === item.id} onClick={() => toggleDisplay(item)}>
+                      {item.status === "ON_WALL" ? "从成果页移开" : "放到成果页"}
+                    </button>
+                  )}
                 </div>
               </header>
               <div className="artifact-lines">
-                {isContribution ? (
+                {isLearning ? (
+                  <>
+                    <p><strong>记住的一刻：</strong>{asText(item.payload.moment) || "还没写"}</p>
+                    <p><strong>方法：</strong>{asText(item.payload.method) || "还没写"}</p>
+                    <p><strong>下一次：</strong>{asText(item.payload.next_use) || "还没写"}</p>
+                  </>
+                ) : isContribution ? (
                   <>
                     <p><strong>能力标签：</strong>{ability}</p>
                     <p><strong>贡献：</strong>{asText(item.payload.contribution) || "还没写"}</p>
@@ -5856,7 +5884,7 @@ function TeacherGrowthReflections() {
             </article>
           );
         })}
-        {!items.length && <p className="empty">学生写下贡献卡或成长卡后，会出现在这里。</p>}
+        {!items.length && <p className="empty">学生写下贡献卡或反思卡后，会出现在这里。</p>}
       </div>
     </section>
   );
@@ -8308,6 +8336,7 @@ function StudentApp({
   const productDefinitionTask = isProductDefinitionTask(camp);
   const blockerTask = isBlockerTask(camp);
   const observerScoreTask = isObserverScoreTask(camp);
+  const learningReflectionTask = isLearningReflectionTask(camp);
   const contributionCardTask = isContributionCardTask(camp);
   const growthReflectionTask = isGrowthReflectionTask(camp);
   const finalShowcaseTask = isFinalShowcaseTask(camp);
@@ -8330,6 +8359,7 @@ function StudentApp({
     productDefinitionTask ||
     blockerTask ||
     observerScoreTask ||
+    learningReflectionTask ||
     contributionCardTask ||
     growthReflectionTask ||
     finalShowcaseTask ||
@@ -8714,6 +8744,18 @@ function StudentApp({
   if (observerScoreTask) {
     return withStudentNav(
       <StudentObserverScoreTask
+        camp={camp}
+        student={student}
+        taskTitle={taskTitle}
+        refresh={refresh}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (learningReflectionTask) {
+    return withStudentNav(
+      <StudentLearningReflectionTask
         camp={camp}
         student={student}
         taskTitle={taskTitle}
@@ -10794,6 +10836,117 @@ function StudentBlockerTask({
             提交
           </button>
           <p className="hint">把卡住的地方说清楚，本身就是把作品往前推了一步。</p>
+          {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function StudentLearningReflectionTask({
+  camp,
+  student,
+  taskTitle,
+  refresh,
+  onLogout
+}: {
+  camp: Camp | null;
+  student: StudentAccount;
+  taskTitle: string;
+  refresh: () => Promise<void>;
+  onLogout: () => void;
+}) {
+  const title = taskTitle || "带走一个 AI 判断方法";
+  const isAiFix = /AI 跑偏|改回来|修正/.test(title) || camp?.active_task?.module_id === "demo-check";
+  const [moment, setMoment] = useState("");
+  const [method, setMethod] = useState("");
+  const [nextUse, setNextUse] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<StudentMessage | null>(null);
+
+  const showMessage = (tone: StudentMessage["tone"], text: string) => {
+    setMessage({ tone, text });
+  };
+
+  const submit = async () => {
+    if (!method.trim()) {
+      showMessage("error", isAiFix ? "写下一个让 AI 改回来的方法。" : "写下一条今天最有用的判断方法。");
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await api.submitTask({
+        task_type: "learning_reflection",
+        title,
+        payload: {
+          reflection_kind: isAiFix ? "day2_ai_fix" : "day1_ai_rule",
+          moment: moment.trim(),
+          method: method.trim(),
+          next_use: nextUse.trim(),
+          team_id: student.team_id || "",
+          team_name: student.team_name || ""
+        }
+      });
+      showMessage("success", "收到啦。这个方法会留在你的项目路上。");
+      setMoment("");
+      setMethod("");
+      setNextUse("");
+      await refresh();
+    } catch (err) {
+      showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="student-page">
+      <section className="student-shell">
+        <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
+        <h1>{title}</h1>
+        <p>{isAiFix ? "回想今天制作时，AI 哪次没听懂？你怎样让它改回来？" : "把今天最有用的一条 AI 判断方法带走。"}</p>
+        <div className="student-card growth-reflection-form">
+          <div className="student-current">
+            <div>
+              <span>{isAiFix ? "修正方法" : "判断方法"}</span>
+              <strong>{student.nickname}</strong>
+              <small>{student.team_name || student.username}</small>
+            </div>
+            <button className="text-button" onClick={onLogout}>退出</button>
+          </div>
+          <label>
+            {isAiFix ? "AI 跑偏的一刻（可选）" : "今天记住的一刻（可选）"}
+            <input
+              value={moment}
+              onChange={(event) => setMoment(event.target.value)}
+              placeholder={isAiFix ? "例如：AI 做了很多功能，却没突出核心按钮" : "例如：我发现 AI 的答案听起来很像真的"}
+              inputMode="text"
+            />
+          </label>
+          <label>
+            {isAiFix ? "我让它改回来的方法" : "我会继续使用的判断方法"}
+            <textarea
+              value={method}
+              onChange={(event) => setMethod(event.target.value)}
+              placeholder={isAiFix ? "例如：先指出哪里不符合用户，再给一个更清楚的例子" : "例如：先找证据，再相信答案"}
+              rows={3}
+            />
+          </label>
+          <label>
+            {isAiFix ? "下一次我会怎么说得更清楚（可选）" : "明天我想把它用在哪里（可选）"}
+            <textarea
+              value={nextUse}
+              onChange={(event) => setNextUse(event.target.value)}
+              placeholder={isAiFix ? "例如：先告诉 AI 只做一个核心动作" : "例如：采访后让 AI 帮我整理，但我要检查证据"}
+              rows={2}
+            />
+          </label>
+          <button className="submit-button" disabled={submitting} onClick={submit}>
+            {submitting ? <Loader2 className="spin" size={18} /> : <Brain size={18} />}
+            提交
+          </button>
+          <p className="hint">好的方法要能下一次继续用。</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
