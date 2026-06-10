@@ -1003,6 +1003,48 @@ function decorateLessonPage(module: CourseModule, page: LessonPage): DesignedLes
   };
 }
 
+function sketchnoteLessonPages(
+  module: CourseModule,
+  base: LessonPage,
+  {
+    idPrefix,
+    pageOffset = 0,
+    kickerLead = "10:00-11:10"
+  }: { idPrefix: string; pageOffset?: number; kickerLead?: string }
+): DesignedLessonPage[] {
+  const design = moduleDesigns[module.id];
+  return aiJudgementSketchnoteSlides.map((slide) => {
+    const phase =
+      slide.page_no <= 2 ? "故事开场" : slide.page_no <= 7 ? "老师演示" : "轮到你实验";
+    return {
+      ...base,
+      id: `${idPrefix}-${slide.page_no}`,
+      module_id: module.id,
+      page_no: pageOffset + slide.page_no,
+      title: slide.title,
+      page_type: slide.page_type,
+      activity_buttons: slide.page_type === "experiment" ? ["全屏演示", "发布任务"] : ["全屏演示"],
+      content_summary: slide.content_summary,
+      kicker: `${kickerLead} · ${phase}`,
+      chips:
+        slide.page_no <= 2
+          ? ["认识 AI", "看见线索", "准备提问"]
+          : slide.page_no <= 7
+            ? ["看演示", "找变化", "借方法"]
+            : ["做实验", "找问题", "改一版"],
+      visual: "demo",
+      accent: design?.accent ?? "blue",
+      cards: design?.cards,
+      steps: design?.steps,
+      flow: design?.flow,
+      slide_image: {
+        src: `${aiSketchnoteBasePath}/${slide.image}`,
+        alt: slide.alt
+      }
+    };
+  });
+}
+
 function coursewarePages(module: CourseModule | null | undefined): DesignedLessonPage[] {
   if (!module) return [];
   const modulePages = module.pages.length ? module.pages : fallbackPagesFor(module);
@@ -1015,27 +1057,9 @@ function coursewarePages(module: CourseModule | null | undefined): DesignedLesso
       page_type: "story",
       activity_buttons: []
     };
-    return aiJudgementSketchnoteSlides.map((slide) => ({
-      ...base,
-      id: `ai-judgement-sketchnote-${slide.page_no}`,
-      module_id: module.id,
-      page_no: slide.page_no,
-      title: slide.title,
-      page_type: slide.page_type,
-      activity_buttons: slide.page_type === "experiment" ? ["全屏演示", "发布任务"] : ["全屏演示"],
-      content_summary: slide.content_summary,
-      kicker: slide.page_no <= 2 ? "10:00-11:10 · 故事开场" : slide.page_no <= 7 ? "10:00-11:10 · 老师演示" : "10:00-11:10 · 轮到你实验",
-      chips: slide.page_no <= 2 ? ["认识 AI", "看见线索", "准备提问"] : slide.page_no <= 7 ? ["看演示", "找变化", "借方法"] : ["做实验", "找问题", "改一版"],
-      visual: "demo",
-      accent: moduleDesigns[module.id]?.accent ?? "blue",
-      cards: moduleDesigns[module.id]?.cards,
-      steps: moduleDesigns[module.id]?.steps,
-      flow: moduleDesigns[module.id]?.flow,
-      slide_image: {
-        src: `${aiSketchnoteBasePath}/${slide.image}`,
-        alt: slide.alt
-      }
-    }));
+    return sketchnoteLessonPages(module, base, {
+      idPrefix: "ai-judgement-sketchnote"
+    });
   }
   if (module.id !== "future-photo-studio") {
     return modulePages.map((page) => decorateLessonPage(module, page));
@@ -1048,7 +1072,7 @@ function coursewarePages(module: CourseModule | null | undefined): DesignedLesso
     page_type: "story",
     activity_buttons: []
   };
-  return [
+  return ([
     {
       ...base,
       id: "future-photo-story",
@@ -1084,27 +1108,24 @@ function coursewarePages(module: CourseModule | null | undefined): DesignedLesso
       page_type: "showcase",
       activity_buttons: ["投屏展示", "打开看板"],
       content_summary: "全班的未来照片一张张点亮"
-    },
-    {
-      ...base,
-      id: "future-photo-ai-secret",
-      page_no: 5,
-      title: "照片怎么画出来",
-      page_type: "experiment",
-      activity_buttons: ["全屏演示"],
-      content_summary: "AI 看照片，也读职业和任务，再画出新的未来想象照"
     }
-  ] as DesignedLessonPage[];
+  ] as DesignedLessonPage[]).concat(
+    sketchnoteLessonPages(module, base, {
+      idPrefix: "future-photo-ai-sketchnote",
+      pageOffset: 4,
+      kickerLead: "照片墙之后"
+    })
+  );
 }
 
 function lessonPageTitle(module: CourseModule | null | undefined, page: DesignedLessonPage) {
+  if (page.slide_image) return page.title;
   if (module?.id !== "future-photo-studio") return page.title;
   const titles: Record<number, string> = {
     1: "照相馆开门",
     2: "先猜猜职业",
     3: "下一张轮到你",
-    4: "照片墙亮起来",
-    5: "照片怎么画出来"
+    4: "照片墙亮起来"
   };
   return titles[page.page_no] ?? page.title;
 }
@@ -8876,7 +8897,7 @@ function LessonPageCanvas({
   students: Student[];
   onOpenPhoto: (student: Student) => void;
 }) {
-  if (module.id === "ai-judgement" && page.slide_image) {
+  if (page.slide_image) {
     return <AiSketchnoteSlide page={page} />;
   }
 
