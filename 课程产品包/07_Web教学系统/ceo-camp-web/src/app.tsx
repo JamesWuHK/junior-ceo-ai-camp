@@ -184,6 +184,70 @@ function isWechatBrowser() {
   return /micromessenger/i.test(window.navigator.userAgent);
 }
 
+function useStudentVoiceInput(showMessage: (tone: StudentMessage["tone"], text: string) => void) {
+  const [listeningKey, setListeningKey] = useState("");
+  const speechRef = useRef<SpeechRecognitionLike | null>(null);
+
+  useEffect(() => {
+    return () => speechRef.current?.abort?.();
+  }, []);
+
+  const startVoiceInput = (key: string, onText: (text: string) => void) => {
+    const Recognition = getSpeechRecognition();
+    if (!Recognition || isWechatBrowser()) {
+      showMessage("hint", "可以用手机键盘语音输入，也可以直接打几个关键词。");
+      return;
+    }
+
+    speechRef.current?.abort?.();
+    const recognition = new Recognition();
+    speechRef.current = recognition;
+    recognition.lang = "zh-CN";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (event) => {
+      const transcript = event.results?.[0]?.[0]?.transcript?.trim();
+      if (transcript) {
+        onText(transcript);
+        showMessage("hint", "听到了。你也可以再改一改。");
+      }
+    };
+    recognition.onerror = () => {
+      showMessage("hint", "这次没听清，可以用手机键盘语音输入。");
+    };
+    recognition.onend = () => setListeningKey("");
+    setListeningKey(key);
+    try {
+      recognition.start();
+    } catch {
+      setListeningKey("");
+      showMessage("hint", "可以用手机键盘语音输入，也可以直接打几个关键词。");
+    }
+  };
+
+  return { listeningKey, startVoiceInput };
+}
+
+function FieldVoiceButton({
+  fieldKey,
+  label,
+  listeningKey,
+  onStart
+}: {
+  fieldKey: string;
+  label: string;
+  listeningKey: string;
+  onStart: () => void;
+}) {
+  const listening = listeningKey === fieldKey;
+  return (
+    <button className="voice-mini-button" type="button" onClick={onStart} disabled={Boolean(listeningKey)}>
+      {listening ? <Loader2 className="spin" size={16} /> : <Mic size={16} />}
+      {listening ? "正在听" : label}
+    </button>
+  );
+}
+
 function studentPhotoUploadUrl(studentId: string, token: string) {
   const url = new URL("/student", window.location.origin);
   url.searchParams.set("photo-upload", "1");
@@ -308,6 +372,9 @@ type LessonCard = {
 type LessonArtifactKind =
   | "team-roles"
   | "problem-wall"
+  | "ai-workbench"
+  | "ai-pipeline"
+  | "ai-check-lights"
   | "evidence-check"
   | "market-scout"
   | "competitor-grid"
@@ -316,12 +383,16 @@ type LessonArtifactKind =
   | "product-sentence"
   | "prompt-card"
   | "ai-revise"
+  | "agent-card"
+  | "workflow-map"
+  | "app-prototype"
   | "prototype-board"
   | "route-map"
   | "product-browser"
   | "testing-board"
   | "demo-strip"
   | "pricing-ticket"
+  | "roadshow-pack"
   | "launch-checklist"
   | "story-spine"
   | "showcase-run"
@@ -346,6 +417,67 @@ type DesignedLessonPage = LessonPage & {
   flow?: LessonCard[];
 };
 
+const aiCoursewareImages = {
+  studio: "/courseware/opening/future-studio-cover.webp",
+  space: "/courseware/opening/future-pair-space.webp",
+  vet: "/courseware/opening/future-pair-vet.webp",
+  robot: "/courseware/opening/future-pair-robot.webp"
+};
+
+const aiJudgementPageMeta: Record<
+  number,
+  {
+    title: string;
+    content_summary: string;
+    kicker: string;
+    chips: string[];
+    page_type: LessonPage["page_type"];
+  }
+> = {
+  1: {
+    title: "你给 AI 三样东西",
+    content_summary: "照片。职业。要求。AI 才知道要画什么。",
+    kicker: "10:00-11:10 · 故事开场",
+    chips: ["照片", "职业", "要求"],
+    page_type: "story"
+  },
+  2: {
+    title: "AI 一边看图，一边读字",
+    content_summary: "图告诉它长什么样，字告诉它要做什么。",
+    kicker: "10:00-11:10 · 故事开场",
+    chips: ["看图", "读字", "合起来"],
+    page_type: "story"
+  },
+  3: {
+    title: "线索清楚，AI 补得更像",
+    content_summary: "你给的线索像拼图边缘，大模型接着补下一块。",
+    kicker: "10:00-11:10 · 老师演示",
+    chips: ["给线索", "接着补", "看结果"],
+    page_type: "demo"
+  },
+  4: {
+    title: "这样问，DeepSeek 才帮得上忙",
+    content_summary: "别只说“帮我想想”。说清帮谁、卡哪、先做哪一步。",
+    kicker: "10:00-11:10 · 老师演示",
+    chips: ["帮谁", "卡哪", "先做哪步"],
+    page_type: "demo"
+  },
+  5: {
+    title: "轮到你：只填一个空",
+    content_summary: "把你们的方向填进去，发给 DeepSeek 看看。",
+    kicker: "10:00-11:10 · 轮到你实验",
+    chips: ["填方向", "发出去", "看线索"],
+    page_type: "experiment"
+  },
+  6: {
+    title: "AI 说的，先分三堆",
+    content_summary: "能做的留下。拿不准的去问同学。今天做不了的先放一边。",
+    kicker: "10:00-11:10 · 轮到你实验",
+    chips: ["留下", "去问", "放一边"],
+    page_type: "experiment"
+  }
+};
+
 const moduleDesigns: Record<
   string,
   {
@@ -360,13 +492,13 @@ const moduleDesigns: Record<
   "team-formation": {
     icon: UsersRound,
     accent: "blue",
-    chips: ["找到桌号", "团队命名", "定方向"],
-    steps: ["找到老师分好的小组", "给团队命名", "讨论第一个产品方向"],
+    chips: ["创业方向", "团队命名", "四格判断"],
+    steps: ["先看谁需要", "再看什么场景", "最后决定方向"],
     cards: [
-      { title: "成员", text: "看看谁和谁一起出发" },
-      { title: "名称", text: "起一个能被记住的团队名" },
-      { title: "方向", text: "选一个想继续做的真实问题" },
-      { title: "亮相", text: "用一句话让大家记住你们" }
+      { title: "人群", text: "谁会真的需要帮助" },
+      { title: "场景", text: "这件事发生在哪里" },
+      { title: "麻烦", text: "最卡住的一步是什么" },
+      { title: "动作", text: "我们可以先帮他做哪一步" }
     ]
   },
   "problem-wall": {
@@ -381,30 +513,32 @@ const moduleDesigns: Record<
     ]
   },
   "ai-judgement": {
-    icon: Search,
-    accent: "ink",
-    chips: ["找可疑句", "查证据", "改结论"],
-    steps: ["圈出最可疑的一句", "找第二个来源", "把证据写进结论"],
+    icon: MessageSquareText,
+    accent: "blue",
+    chips: ["照片", "任务单", "DeepSeek"],
+    steps: ["拆开未来照片", "看任务单怎么改结果", "留下能用的一句"],
     cards: [
-      { title: "AI 答案", text: "听起来很完整，也可能有错" },
-      { title: "证据", text: "来自另一个来源或真实观察" },
-      { title: "判断", text: "我找到证据了，所以我这样改" }
+      { title: "照片", text: "AI 看见今天的你" },
+      { title: "职业词", text: "AI 读到你想成为什么" },
+      { title: "任务单", text: "告诉 AI 要生成什么结果" },
+      { title: "人来检查", text: "选出能帮项目继续走的线索" }
     ],
     flow: [
-      { title: "先看", text: "AI 给出的答案" },
-      { title: "再查", text: "第二个来源或现场证据" },
-      { title: "最后改", text: "把结论说得更可靠" }
+      { title: "我是谁", text: "请你当产品顾问" },
+      { title: "要做什么", text: "帮我们看这个方向可能帮谁" },
+      { title: "怎么回答", text: "用三句话，给一个例子" }
     ]
   },
   "ai-superpowers": {
     icon: Brain,
     accent: "blue",
-    chips: ["写", "改", "解释", "限制", "纠错", "验证"],
-    steps: ["选一个候选问题", "让 AI 改写三种版本", "挑出最适合继续采访的一版"],
+    chips: ["豆包改写", "DeepSeek 侦察", "问真人"],
+    steps: ["把烦恼改成可采访问题", "找已有解决办法", "带着新问题问真人"],
     cards: [
-      { title: "写", text: "先生成一个草稿" },
-      { title: "改", text: "换语气、换结构、换对象" },
-      { title: "查", text: "把结果拿回真实世界确认" }
+      { title: "原始烦恼", text: "作业好烦" },
+      { title: "可采访问题", text: "谁、在哪、卡在哪" },
+      { title: "已有方案", text: "别人已经怎么解决" },
+      { title: "真人问题", text: "还要继续问什么" }
     ]
   },
   "user-interview": {
@@ -421,23 +555,24 @@ const moduleDesigns: Record<
   "project-launch": {
     icon: Target,
     accent: "sun",
-    chips: ["用户", "问题", "产品一句话"],
-    steps: ["写清楚帮谁", "写清楚遇到什么麻烦", "写清楚我们怎么帮他"],
+    chips: ["定方向", "收需求", "明天先做"],
+    steps: ["确定想帮谁", "计划收集哪些需求", "圈出 Day 2 先做动作"],
     cards: [
-      { title: "谁", text: "真正会使用这个产品的人" },
-      { title: "什么麻烦", text: "采访里反复出现的卡点" },
-      { title: "怎么帮", text: "今天能做出第一版的方案" }
+      { title: "方向", text: "团队今天定下来的主题" },
+      { title: "需求", text: "接下来要问谁、看什么" },
+      { title: "内容", text: "明天准备先做哪一个动作" },
+      { title: "上墙", text: "让全班看到每组方向" }
     ]
   },
   "day1-reflection": {
     icon: Star,
     accent: "mint",
-    chips: ["回看", "收束", "带走方法"],
-    steps: ["选一条最有证据的线索", "写一条 AI 判断方法", "准备明天开做"],
+    chips: ["方向墙", "行动计划", "明天开工"],
+    steps: ["看见每组方向", "补齐需求收集计划", "带着一个动作进 Day 2"],
     cards: [
-      { title: "真问题", text: "来自真实采访和观察" },
-      { title: "好方法", text: "先怀疑，再验证" },
-      { title: "明天目标", text: "做出能演示的一版" }
+      { title: "团队方向", text: "想帮谁，做什么方向" },
+      { title: "需求计划", text: "问谁、问什么、看什么" },
+      { title: "Day 2 动作", text: "明天先让哪一步跑起来" }
     ]
   },
   "day2-kickoff": {
@@ -454,12 +589,12 @@ const moduleDesigns: Record<
   "ai-lab": {
     icon: WandSparkles,
     accent: "ink",
-    chips: ["目标", "用户", "材料", "限制", "格式"],
-    steps: ["写一句模糊提示词", "补成五句提示词", "让 AI 出一版草稿后再改"],
+    chips: ["大模型", "豆包三版", "DeepSeek 检查"],
+    steps: ["写一句模糊任务", "补成五句提示词", "让 AI 出三版后再检查"],
     cards: [
-      { title: "目标", text: "你要 AI 帮你完成什么" },
-      { title: "用户", text: "作品是给谁用的" },
-      { title: "格式", text: "希望它用什么样子交付" }
+      { title: "大模型", text: "根据输入继续生成内容" },
+      { title: "提示词", text: "给 AI 的任务说明" },
+      { title: "检查", text: "看哪里夸张、哪里缺证据" }
     ],
     flow: [
       { title: "模糊", text: "帮我做一个产品" },
@@ -492,12 +627,12 @@ const moduleDesigns: Record<
   "tool-demo": {
     icon: Sparkles,
     accent: "blue",
-    chips: ["看输入", "看结果", "看修改"],
-    steps: ["老师输入一句清楚提示", "AI 生成第一版", "全班找一个可以继续改的地方"],
+    chips: ["智能体", "工作流", "应用原型"],
+    steps: ["先让产品会回答一个真实问题", "把固定步骤排清楚", "生成一个可打开的第一版"],
     cards: [
-      { title: "输入", text: "产品目标和用户" },
-      { title: "结果", text: "可打开的第一版" },
-      { title: "修改", text: "把不清楚的地方补上" }
+      { title: "扣子", text: "做一个有任务和边界的智能体" },
+      { title: "工作流", text: "收集信息、判断、输出结果" },
+      { title: "秒哒", text: "把产品一句话变成可打开原型" }
     ]
   },
   "build-sprint": {
@@ -536,12 +671,12 @@ const moduleDesigns: Record<
   "roadshow-rehearsal": {
     icon: ClipboardCheck,
     accent: "blue",
-    chips: ["检查", "修关键处", "排顺序"],
-    steps: ["打开作品", "检查演示顺序", "先修最影响展示的一处"],
+    chips: ["作品链接", "路演 PPT", "上台顺序"],
+    steps: ["把已有材料放到一起", "整理 5 分钟路演顺序", "只提交作品链接和路演 PPT"],
     cards: [
-      { title: "链接", text: "能打开" },
-      { title: "截图", text: "能看懂" },
-      { title: "演示", text: "能走通" }
+      { title: "WorkBuddy", text: "把散乱材料整理成交付物" },
+      { title: "路演顺序", text: "用户、作品、证据、下一步" },
+      { title: "轻提交", text: "作品链接和路演 PPT 就够了" }
     ]
   },
   "value-experiment": {
@@ -569,12 +704,12 @@ const moduleDesigns: Record<
   "brand-story": {
     icon: Megaphone,
     accent: "green",
-    chips: ["人物", "麻烦", "办法", "证据", "邀请"],
-    steps: ["先讲一个真实用户", "演示产品怎么帮他", "用测试结果做证据"],
+    chips: ["观察员追问", "证据回答", "下一步"],
+    steps: ["听懂观察员的问题", "用采访和试玩做证据", "说出下一步先改哪里"],
     cards: [
-      { title: "人物", text: "谁遇到了这个麻烦" },
-      { title: "办法", text: "我们的产品怎么帮他" },
-      { title: "邀请", text: "下一步希望大家怎么试" }
+      { title: "结论", text: "先直接回答问题" },
+      { title: "证据", text: "再拿出采访或试玩反馈" },
+      { title: "下一步", text: "最后说准备先改哪里" }
     ]
   },
   "rehearsal": {
@@ -614,42 +749,44 @@ const moduleDesigns: Record<
 
 const fallbackLessonPages: Record<string, LessonPageSeed[]> = {
   "problem-wall": [
-    { page_no: 1, title: "今天我们当便利贴侦探", page_type: "story", content_summary: "从生活里的小麻烦开始找线索" },
-    { page_no: 2, title: "把烦恼改成帮谁解决什么", page_type: "activity", content_summary: "把一句抱怨改写成可以继续调查的问题" },
-    { page_no: 3, title: "班级线索墙", page_type: "showcase", content_summary: "让线索来自更多真实声音" }
+    { page_no: 1, title: "团队讨论：生活小麻烦", page_type: "teamwork", content_summary: "每个人先写一个真实遇到过的小麻烦" },
+    { page_no: 2, title: "抓一张最想追的线索", page_type: "teamwork", content_summary: "团队把小麻烦写成谁、在哪、卡在哪" },
+    { page_no: 3, title: "老师巡场：需求有没有人", page_type: "coaching", content_summary: "老师观察问题是否有真实用户和具体场景" }
   ],
   "user-interview": [
-    { page_no: 1, title: "像侦探一样听", page_type: "story", content_summary: "先听见对方真实经历" },
-    { page_no: 2, title: "三个好问题", page_type: "activity", content_summary: "问发生过吗、多久一次、现在怎么解决" },
-    { page_no: 3, title: "绿灯黄灯红灯", page_type: "showcase", content_summary: "根据采访结果决定保留、缩小或换题" }
+    { page_no: 1, title: "团队分工：谁采访，谁记录", page_type: "teamwork", content_summary: "团队分好采访、记录、追问和整理责任" },
+    { page_no: 2, title: "带着三问去采访", page_type: "teamwork", content_summary: "问真实用户发生过吗、多久一次、现在怎么解决" },
+    { page_no: 3, title: "老师巡场：原话够不够真", page_type: "coaching", content_summary: "老师看采访原话、频率和现在办法，帮助团队追问" }
   ],
   "product-prototype": [
-    { page_no: 1, title: "功能先发散", page_type: "activity", content_summary: "把想做的功能都放出来" },
-    { page_no: 2, title: "只留下一个核心动作", page_type: "experiment", content_summary: "选择 30 秒能看懂、能试用的一步" },
-    { page_no: 3, title: "最小可行产品", page_type: "story", content_summary: "先做最小但能验证想法的一版产品" }
+    { page_no: 1, title: "团队讨论：功能全倒出来", page_type: "teamwork", content_summary: "团队把想做的功能先全部放到桌面上" },
+    { page_no: 2, title: "选择核心动作", page_type: "teamwork", content_summary: "团队留下别人 30 秒能看懂、能试用的一步" },
+    { page_no: 3, title: "老师巡场：第一版能被试用吗", page_type: "coaching", content_summary: "老师观察第一版是否小到能做、清楚到能试" }
   ],
   "ai-lab": [
-    { page_no: 1, title: "同一句话，AI 反应差十倍", page_type: "story", content_summary: "看模糊提示词和清楚提示词的差别" },
-    { page_no: 2, title: "五句提示词卡", page_type: "activity", content_summary: "目标、用户、材料、限制、格式" },
-    { page_no: 3, title: "改一版再试", page_type: "experiment", content_summary: "让 AI 先出草稿，再继续修正" }
+    { page_no: 1, title: "大模型需要清楚任务", page_type: "story", content_summary: "豆包和 DeepSeek 都能生成内容，但要先听清任务" },
+    { page_no: 2, title: "老师演示：豆包先出三版", page_type: "demo", content_summary: "输入目标、用户、材料、限制和格式，让豆包给出多个版本" },
+    { page_no: 3, title: "老师演示：DeepSeek 帮忙检查", page_type: "demo", content_summary: "把豆包第一版交给 DeepSeek，看哪里太夸张、哪里缺证据" },
+    { page_no: 4, title: "五句提示词卡", page_type: "experiment", content_summary: "给自己的产品写一张可复用提示词卡" }
   ],
   "brand-story": [
-    { page_no: 1, title: "把作品讲成一个小故事", page_type: "story", content_summary: "人物、麻烦、办法、证据、邀请" },
-    { page_no: 2, title: "故事发布五步卡", page_type: "activity", content_summary: "把作品演示放进故事里" },
-    { page_no: 3, title: "问答预演", page_type: "experiment", content_summary: "先听懂问题，再用证据回答" }
+    { page_no: 1, title: "观察员会追问", page_type: "story", content_summary: "好路演要经得起提问：你怎么知道真的有人需要" },
+    { page_no: 2, title: "老师演示：DeepSeek 模拟追问", page_type: "demo", content_summary: "让 DeepSeek 扮演观察员，围绕用户、作品、证据和下一步提问" },
+    { page_no: 3, title: "结论、证据、下一步", page_type: "experiment", content_summary: "每组选 2 个最可能被问到的问题，用证据回答" }
   ],
   "roadshow-rehearsal": [
-    { page_no: 1, title: "每组作品能打开吗", page_type: "activity", content_summary: "确认链接、截图和演示顺序" },
-    { page_no: 2, title: "先修最影响展示的一处", page_type: "activity", content_summary: "把最容易卡住的地方先处理" }
+    { page_no: 1, title: "发布会前，材料铺满桌面", page_type: "story", content_summary: "作品链接、截图、采访证据和分工都在桌上，需要排成路演顺序" },
+    { page_no: 2, title: "老师演示：WorkBuddy 整理材料包", page_type: "demo", content_summary: "把已有材料整理成 5 分钟路演顺序、成员分工和 PPT 大纲" },
+    { page_no: 3, title: "作品链接和路演 PPT", page_type: "experiment", content_summary: "每组只提交作品链接和路演 PPT，让材料保持轻巧" }
   ],
   "final-showcase": [
-    { page_no: 1, title: "作品秀开场", page_type: "story", content_summary: "这是互相借好方法的作品秀" },
-    { page_no: 2, title: "每组上场", page_type: "showcase", content_summary: "让大家看到用户怎么用、结果是什么" },
-    { page_no: 3, title: "观察员投票", page_type: "showcase", content_summary: "看见亮点，给出下一步建议" }
+    { page_no: 1, title: "融资路演发布会开场", page_type: "showcase", content_summary: "每组把作品、用户和下一步讲给观察员" },
+    { page_no: 2, title: "每组 5 分钟融资路演", page_type: "showcase", content_summary: "让大家看到用户怎么用、结果是什么" },
+    { page_no: 3, title: "观察员提问和投票", page_type: "showcase", content_summary: "观察员提问、投票，也给出下一步建议" }
   ],
   "awards-reflection": [
-    { page_no: 1, title: "五力证书", page_type: "showcase", content_summary: "共情力、提问力、创造力、判断力、领导力都有证据" },
-    { page_no: 2, title: "给贡献一个名字", page_type: "showcase", content_summary: "看见每个人在团队里的真实贡献" },
+    { page_no: 1, title: "证据星星落到每个人手上", page_type: "showcase", content_summary: "共情力、提问力、创造力、判断力、领导力都有证据" },
+    { page_no: 2, title: "每个人的贡献被看见", page_type: "showcase", content_summary: "看见每个人在团队里的真实贡献" },
     { page_no: 3, title: "下一次我怎么指挥 AI", page_type: "activity", content_summary: "写下下一次想继续练习的方法" }
   ]
 };
@@ -673,26 +810,47 @@ const photoWallStatusText: Record<Student["display_status"], string> = {
 function fallbackPagesFor(module: CourseModule): LessonPage[] {
   const seeds =
     fallbackLessonPages[module.id] ??
-    [
-      {
-        page_no: 1,
-        title: module.title,
-        page_type: "story",
-        content_summary: module.subtitle || "进入当前教学环节"
-      },
-      {
-        page_no: 2,
-        title: "动手完成当前任务",
-        page_type: "activity",
-        content_summary: "先做出一个小版本，再看哪里可以改得更好"
-      },
-      {
-        page_no: 3,
-        title: "看见结果",
-        page_type: "showcase",
-        content_summary: "展示代表作品，带走一个好方法"
-      }
-    ];
+    (knowledgeInputModules.has(module.id)
+      ? [
+          {
+            page_no: 1,
+            title: `${module.title}的故事开场`,
+            page_type: "story",
+            content_summary: module.subtitle || "先进入一个真实场景"
+          },
+          {
+            page_no: 2,
+            title: "老师先演示一遍",
+            page_type: "demo",
+            content_summary: "看见输入、动作和结果怎样连起来"
+          },
+          {
+            page_no: 3,
+            title: "轮到你做一次实验",
+            page_type: "experiment",
+            content_summary: "做出一个小结果，再看哪里可以改得更好"
+          }
+        ]
+      : [
+          {
+            page_no: 1,
+            title: `${module.title}团队讨论`,
+            page_type: "teamwork",
+            content_summary: module.subtitle || "团队先讨论要做出的决定"
+          },
+          {
+            page_no: 2,
+            title: `${module.title}小组产出`,
+            page_type: "teamwork",
+            content_summary: "孩子分工协作，完成一个能展示的产出"
+          },
+          {
+            page_no: 3,
+            title: `${module.title}老师巡场`,
+            page_type: "coaching",
+            content_summary: "老师答疑解惑，观察记录团队过程"
+          }
+        ]);
 
   return seeds.map((seed) => ({
     id: `${module.id}-fallback-${seed.page_no}`,
@@ -718,14 +876,32 @@ function visualForPage(page: LessonPage): DesignedLessonPage["visual"] {
 function decorateLessonPage(module: CourseModule, page: LessonPage): DesignedLessonPage {
   const design = moduleDesigns[module.id];
   const chipsByType: Record<string, string[]> = {
-    story: ["看画面", "猜一猜", "说线索"],
-    activity: ["打开任务", "动手完成", "准备展示"],
-    experiment: ["看输入", "看结果", "改一版"],
-    demo: ["看演示", "找变化", "问一句"],
-    "ai-demo": ["看演示", "找变化", "问一句"],
-    showcase: ["看作品", "说亮点", "借方法"],
+    story: ["讲故事", "看冲突", "猜下一步"],
+    activity: ["做实验", "留下证据", "准备展示"],
+    experiment: ["做实验", "看变化", "改一版"],
+    demo: ["看演示", "找变化", "借方法"],
+    "ai-demo": ["看演示", "找变化", "借方法"],
+    showcase: ["看结果", "说亮点", "借方法"],
     cover: ["进入故事", "准备行动", "期待结果"]
   };
+  if (module.id === "ai-judgement") {
+    const meta = aiJudgementPageMeta[page.page_no];
+    if (meta) {
+      return {
+        ...page,
+        title: meta.title,
+        page_type: meta.page_type,
+        content_summary: meta.content_summary,
+        kicker: meta.kicker,
+        chips: meta.chips,
+        visual: visualForPage({ ...page, page_type: meta.page_type }),
+        accent: design?.accent ?? "ink",
+        cards: design?.cards,
+        steps: design?.steps,
+        flow: design?.flow
+      };
+    }
+  }
   return {
     ...page,
     kicker: `${module.time_range || `D${module.day}`} · ${module.subtitle || module.title}`,
@@ -793,10 +969,10 @@ function coursewarePages(module: CourseModule | null | undefined): DesignedLesso
       ...base,
       id: "future-photo-ai-secret",
       page_no: 5,
-      title: "秘密揭晓",
+      title: "AI 工作原理拆解",
       page_type: "experiment",
       activity_buttons: ["全屏演示"],
-      content_summary: "AI 根据照片和职业关键词画出未来想象照"
+      content_summary: "AI 同时读照片、职业词和提示词，再生成一张新的未来想象照"
     }
   ] as DesignedLessonPage[];
 }
@@ -808,7 +984,7 @@ function lessonPageTitle(module: CourseModule | null | undefined, page: Designed
     2: "未来照片寄到",
     3: "下一张写着你",
     4: "照片墙亮起来",
-    5: "秘密揭晓"
+    5: "AI 工作原理拆解"
   };
   return titles[page.page_no] ?? page.title;
 }
@@ -822,6 +998,8 @@ function teacherMoveForPage(page: DesignedLessonPage) {
     experiment: "看一次变化，再改一版",
     demo: "看输入、结果和修改点",
     "ai-demo": "看输入、结果和修改点",
+    teamwork: "团队讨论，做出小组产出",
+    coaching: "巡场答疑，观察记录过程",
     showcase: "展示结果，借走好方法"
   };
   return moves[page.page_type] ?? "推进当前课堂动作";
@@ -830,21 +1008,39 @@ function teacherMoveForPage(page: DesignedLessonPage) {
 function expectedOutputForPage(page: DesignedLessonPage) {
   const outputs: Record<string, string> = {
     "下一张写着你": "学生端提交一张照片和一个理想职业",
+    "问题改写卡": "每组把一个烦恼改成可采访问题",
     "AI 市场侦察卡": "每组带回 3 条可验证线索",
+    "老师演示：DeepSeek 找已有方案": "每组知道已有方案、一个不足和还要问真人的问题",
     "竞品观察三格": "说出一个已有方案和一个不同角度",
     "选一条赛道，找到一个真实用户": "每组选定赛道和真实用户",
     "把线索变成产品一句话": "每组写出产品一句话",
     "五句提示词卡": "每组写出一张可复用提示词卡",
     "对 AI 说：不对，再改": "每组留下一个改前改后对比",
+    "老师演示：扣子最小智能体": "每组知道智能体要写清任务和边界",
+    "工作流：把步骤排清楚": "每组写出 3 到 4 步工作流",
+    "老师演示：秒哒生成应用原型": "每组知道怎样描述可打开原型",
+    "生成可打开的 V1": "每组得到一个作品链接或截图",
     "真产品检查": "作品能打开，别人能完成一个动作",
     "定价三问": "每组说清谁会用、付出什么、为什么值得",
     "作品页上线清单": "作品名、链接、截图、用户故事准备好",
     "家长观察员提问": "每组准备回答一个真实追问",
     "五力证书": "每个孩子有一条可被看见的贡献证据",
+    "团队讨论：选择创业方向": "每组从证据里选出一个创业方向",
+    "需求三问：用户、场景、动作": "每组把方向缩小到一个具体需求",
+    "产品方案一句话": "每组写出产品一句话",
+    "团队选择制作路线": "每组选定今天能完成的制作路线",
+    "画出用户使用流程": "每组画出 3 到 5 步使用流程",
+    "发布会前，材料铺满桌面": "每组看清已有材料还差什么",
+    "老师演示：WorkBuddy 整理材料包": "每组知道怎样整理路演材料",
+    "作品链接和路演 PPT": "每组只提交作品链接和路演 PPT",
+    "结论、证据、下一步": "每组准备 2 个追问回答",
+    "每个人的贡献被看见": "每个孩子有一条可被看见的贡献证据",
     "下一次我怎么指挥 AI": "每个孩子写下一张成长卡"
   };
   if (outputs[page.title]) return outputs[page.title];
   if (page.page_type === "activity") return "孩子完成一个可展示的小结果";
+  if (page.page_type === "teamwork") return "团队完成一个阶段产出";
+  if (page.page_type === "coaching") return "老师记录卡点、贡献和下一步支援";
   if (page.page_type === "showcase") return "全班看见作品或方法亮点";
   if (page.page_type === "experiment") return "保留一次变化和判断理由";
   if (page.page_type === "demo" || page.page_type === "ai-demo") return "找到一个可以继续修改的地方";
@@ -854,7 +1050,10 @@ function expectedOutputForPage(page: DesignedLessonPage) {
 function timerMinutesForPage(page: DesignedLessonPage) {
   if (page.title.includes("制作") || page.title.includes("彩排")) return 15;
   if (page.title.includes("采访")) return 12;
+  if (page.title.includes("路演")) return 10;
   if (page.title.includes("作品秀") || page.title.includes("故事发布")) return 5;
+  if (page.page_type === "teamwork") return 8;
+  if (page.page_type === "coaching") return 5;
   if (page.page_type === "activity") return 8;
   if (page.page_type === "experiment") return 6;
   if (page.page_type === "showcase") return 3;
@@ -869,18 +1068,21 @@ function formatTimer(seconds: number) {
 
 function taskTypeForAction(action: string, page: DesignedLessonPage) {
   if (page.title.includes("下一次我怎么指挥 AI")) return "growth_reflection";
-  if (/带走一个 AI 判断方法|AI 判断方法|AI 跑偏|改回来/.test(page.title)) return "learning_reflection";
-  if (/给贡献一个名字|五力证书|个人贡献|贡献卡/.test(page.title)) return "contribution_card";
-  if (/团队名片|团队名称和方向|给团队起名|找到你的桌号/.test(page.title)) return "team_card";
-  if (/AI 给答案，先看证据|真假侦探实验|证据比声音更有力/.test(page.title)) return "ai_validation";
-  if (/把候选问题改清楚|AI 市场侦察卡|竞品观察三格/.test(page.title)) return "market_scout";
+  if (/带走一个 AI 判断方法|AI 判断方法|AI 跑偏|改回来|问出第一条好问题|留下能用的一句|给 DeepSeek 一张任务单|AI 的回答怎么用/.test(page.title)) return "learning_reflection";
+  if (/给贡献一个名字|五力证书|个人贡献|贡献卡|贡献被看见/.test(page.title)) return "contribution_card";
+  if (/团队名片|团队名称和方向|团队名和方向卡|给团队起名|找到你的桌号|找到队友|名字和方向|团队方向亮相/.test(page.title)) return "team_card";
+  if (/AI 给答案，先看证据|AI 留下一句可疑答案|证据追踪|真假侦探实验|证据比声音更有力/.test(page.title)) return "ai_validation";
+  if (/问题改写卡|把候选问题改清楚|AI 市场侦察卡|竞品观察三格/.test(page.title)) return "market_scout";
   if (/五句提示词卡|改一版再试|对 AI 说：不对，再改/.test(page.title)) return "prompt_card";
-  if (/功能先发散|只留下一个核心动作|最小可行产品|明天要做出的第一版/.test(page.title)) return "feature_scope";
-  if (/选择今天能完成的路线|用户打开后第一步做什么|流程图检查/.test(page.title)) return "tech_route";
-  if (/反馈进作品|改出 V2/.test(page.title)) return "iteration_plan";
+  if (/团队讨论：功能全倒出来|功能先发散|只留下一个核心动作|选择核心动作|核心动作够小|最小可行产品|明天要做出的第一版|先让一个动作动起来/.test(page.title)) return "feature_scope";
+  if (/团队选择制作路线|画出用户使用流程|选择今天能完成的路线|画出今天能完成的路线|用户走 3 步|用户打开后第一步做什么|流程图检查|工作流|智能体/.test(page.title)) return "tech_route";
+  if (/生成可打开的 V1|秒哒生成应用原型|作品链接和路演 PPT/.test(page.title)) return "product_link";
+  if (/反馈进作品|改出 V2|试玩互测|团队互测|反馈怎么进作品|V2 先改/.test(page.title)) return "iteration_plan";
   if (/帮别人少烦了什么|价值交换榜|定价三问|别人愿意交换/.test(page.title)) return "value_card";
-  if (/产品包装|产品海报|海报不是装饰|产品摊位预览|标语|卖点/.test(page.title)) return "product_packaging";
-  if (/把作品讲成一个小故事|故事发布五步卡|问答预演/.test(page.title)) return "story_pitch";
+  if (/产品包装|产品海报|海报不是装饰|产品摊位预览|给产品一个名字|标语|卖点/.test(page.title)) return "product_packaging";
+  if (/把作品讲成一个小故事|故事发布五步卡|故事发布五步|问答预演|结论、证据、下一步/.test(page.title)) return "story_pitch";
+  if (/产品方案一句话|需求三问|选择创业方向|产品摊位开张|需求收集计划|方向和行动计划卡|补齐行动计划|团队讨论：我们想帮谁/.test(page.title)) return "product_definition";
+  if (/融资路演|路演材料|最终展示/.test(page.title)) return "final_showcase";
   if (action === "进入评分") return "score";
   if (action === "发起互动") return "interaction";
   if (action === "打开看板") return "board";
@@ -901,7 +1103,7 @@ function isTeamCardTask(camp: Camp | null) {
     activityType === "team_card" ||
     payloadType === "team_card" ||
     moduleId === "team-formation" ||
-    /团队名片|团队名称和方向|给团队起名|找到你的桌号/.test(title)
+    /团队名片|团队名称和方向|团队名和方向卡|给团队起名|找到你的桌号|找到队友|名字和方向/.test(title)
   );
 }
 
@@ -913,8 +1115,8 @@ function isContributionCardTask(camp: Camp | null) {
   return (
     activityType === "contribution_card" ||
     payloadType === "contribution_card" ||
-    (moduleId === "awards-reflection" && /给贡献一个名字|五力证书|个人贡献|贡献卡/.test(title)) ||
-    /给贡献一个名字|五力证书|个人贡献|贡献卡/.test(title)
+    (moduleId === "awards-reflection" && /给贡献一个名字|五力证书|个人贡献|贡献卡|贡献被看见/.test(title)) ||
+    /给贡献一个名字|五力证书|个人贡献|贡献卡|贡献被看见/.test(title)
   );
 }
 
@@ -924,8 +1126,8 @@ function isProductLinkTask(camp: Camp | null) {
   return (
     !isBlockerTask(camp) &&
     !isLearningReflectionTask(camp) &&
-    (/作品链接|产品链接|真产品检查|作品页上线清单|产品原型|每组作品能打开|2 分钟 Demo/.test(title) ||
-    ["build-sprint", "demo-check"].includes(moduleId)
+    (/作品链接|产品链接|真产品检查|作品页上线清单|产品原型|每组作品能打开|2 分钟 Demo|路演材料|融资路演|生成可打开的 V1|秒哒生成应用原型|路演 PPT/.test(title) ||
+    ["build-sprint", "demo-check", "roadshow-rehearsal", "rehearsal"].includes(moduleId)
     )
   );
 }
@@ -963,13 +1165,11 @@ function isUserVoiceTask(camp: Camp | null) {
 
 function isAiValidationTask(camp: Camp | null) {
   const title = activeTaskTitle(camp);
-  const moduleId = camp?.active_task?.module_id || "";
   const activityType = camp?.active_task?.activity_type || "";
   const payloadType = asText(camp?.active_task?.payload?.task_type);
   return (
     activityType === "ai_validation" ||
     payloadType === "ai_validation" ||
-    moduleId === "ai-judgement" ||
     /AI 判断|AI 验证|验证卡|可疑句|查证据|改结论|真假侦探/.test(title)
   );
 }
@@ -1009,7 +1209,7 @@ function isFeatureScopeTask(camp: Camp | null) {
     activityType === "feature_scope" ||
     payloadType === "feature_scope" ||
     moduleId === "product-prototype" ||
-    /功能先发散|功能清单|核心动作|最小可行产品|明天要做出的第一版/.test(title)
+    /团队讨论：功能全倒出来|功能先发散|功能清单|核心动作|选择核心动作|最小可行产品|明天要做出的第一版|先让一个动作动起来/.test(title)
   );
 }
 
@@ -1022,7 +1222,7 @@ function isTechRouteTask(camp: Camp | null) {
     activityType === "tech_route" ||
     payloadType === "tech_route" ||
     moduleId === "tech-route" ||
-    /技术路线|路线卡|用户流程|流程图|今天能完成的路线|用户打开后第一步/.test(title)
+    /技术路线|路线卡|用户流程|流程图|工作流|智能体|今天能完成的路线|用户打开后第一步|团队选择制作路线|画出用户使用流程/.test(title)
   );
 }
 
@@ -1033,7 +1233,7 @@ function isIterationPlanTask(camp: Camp | null) {
   return (
     activityType === "iteration_plan" ||
     payloadType === "iteration_plan" ||
-    /反馈进作品|改出 V2|迭代清单/.test(title)
+    /反馈进作品|改出 V2|迭代清单|团队互测|反馈怎么进作品|V2 先改/.test(title)
   );
 }
 
@@ -1058,8 +1258,8 @@ function isProductPackagingTask(camp: Camp | null) {
   return (
     activityType === "product_packaging" ||
     payloadType === "product_packaging" ||
-    (moduleId === "product-packaging" && /产品包装|产品海报|海报不是装饰|产品摊位预览|标语|卖点/.test(title)) ||
-    /产品海报卡|产品包装|产品海报|海报不是装饰|产品摊位预览/.test(title)
+    (moduleId === "product-packaging" && /产品包装|产品海报|海报不是装饰|产品摊位预览|给产品一个名字|标语|卖点/.test(title)) ||
+    /产品海报卡|产品包装|产品海报|海报不是装饰|产品摊位预览|给产品一个名字/.test(title)
   );
 }
 
@@ -1071,8 +1271,8 @@ function isStoryPitchTask(camp: Camp | null) {
   return (
     activityType === "story_pitch" ||
     payloadType === "story_pitch" ||
-    (moduleId === "brand-story" && /故事发布五步卡|把作品讲成一个小故事|问答预演|故事结构/.test(title)) ||
-    /故事发布五步卡|故事结构|故事稿|把作品讲成一个小故事/.test(title)
+    (moduleId === "brand-story" && /故事发布五步卡|故事发布五步|把作品讲成一个小故事|问答预演|故事结构/.test(title)) ||
+    /故事发布五步卡|故事发布五步|故事结构|故事稿|把作品讲成一个小故事|结论、证据、下一步|观察员会追问|模拟追问/.test(title)
   );
 }
 
@@ -1085,7 +1285,7 @@ function isProductDefinitionTask(camp: Camp | null) {
     activityType === "product_definition" ||
     payloadType === "product_definition" ||
     moduleId === "project-launch" ||
-    /产品一句话|产品定义|把线索变成产品一句话|产品卡片|选一条赛道|真实用户|赛道地图/.test(title)
+    /产品一句话|产品定义|把线索变成产品一句话|产品卡片|选一条赛道|真实用户|赛道地图|选择创业方向|需求三问|产品方案一句话|需求收集计划|方向和行动计划|补齐行动计划|明天先做哪一步/.test(title)
   );
 }
 
@@ -1116,9 +1316,10 @@ function isLearningReflectionTask(camp: Camp | null) {
   return (
     activityType === "learning_reflection" ||
     payloadType === "learning_reflection" ||
+    (moduleId === "ai-judgement" && /DeepSeek|任务单|有用的一句|问真人|问同学|回答怎么用|太大太远|先放下/.test(title)) ||
     (moduleId === "day1-reflection" && /带走一个 AI 判断方法|判断方法|收束/.test(title)) ||
     (moduleId === "demo-check" && /AI 跑偏|改回来|修正|反思/.test(title)) ||
-    /带走一个 AI 判断方法|AI 判断方法|AI 跑偏|改回来|修正方法/.test(title)
+    /带走一个 AI 判断方法|AI 判断方法|AI 跑偏|改回来|修正方法|给 DeepSeek 一张任务单|AI 的回答怎么用/.test(title)
   );
 }
 
@@ -2374,7 +2575,7 @@ function journeyTitle(item: WallArtifact) {
   if (item.task_type === "market_scout") return asText(item.payload.ai_rewrite) || asText(item.payload.original_problem) || "完成一次市场侦察";
   if (item.task_type === "user_voice") return asText(item.payload.interviewee) || "听见一位用户";
   if (item.task_type === "ai_validation") return asText(item.payload.doubt) || "用证据检查 AI";
-  if (item.task_type === "product_definition") return asText(item.payload.product_name) || "写出产品一句话";
+  if (item.task_type === "product_definition") return asText(item.payload.direction) || asText(item.payload.product_name) || "团队方向";
   if (item.task_type === "prompt_card") return asText(item.payload.goal) || "写出五句提示词";
   if (item.task_type === "feature_scope") return asText(item.payload.core_action) || "留下核心动作";
   if (item.task_type === "tech_route") return techRouteLabel(item.payload.route_choice);
@@ -2394,7 +2595,7 @@ function journeyLabel(item: WallArtifact) {
     market_scout: "市场侦察",
     user_voice: "听见用户",
     ai_validation: "检查 AI",
-    product_definition: "产品一句话",
+    product_definition: "方向计划",
     prompt_card: "提示词卡",
     feature_scope: "核心动作",
     tech_route: "路线流程",
@@ -2937,15 +3138,6 @@ function TeacherApp({
               ))}
             </div>
             {selectedModule && selectedPage && (
-              <TeacherLessonControls
-                module={selectedModule}
-                page={selectedPage}
-                timerSeconds={timerSeconds}
-                onPublishPage={() => publishCurrentPage("发布任务")}
-                onAction={handlePageAction}
-              />
-            )}
-            {selectedModule && selectedPage && (
               <LessonPageCanvas
                 module={selectedModule}
                 page={selectedPage}
@@ -3111,6 +3303,11 @@ function asTextList(value: unknown) {
     .filter(Boolean);
 }
 
+function isClassGroupPlaceholder(value: unknown) {
+  const text = asText(value).trim();
+  return !text || text === "未命名小组" || /^第\s*\d+\s*组$/.test(text);
+}
+
 function featureSummary(payload: Record<string, unknown>, limit = 4) {
   const ideas = asTextList(payload.feature_ideas);
   return ideas.slice(0, limit).join(" / ") || asText(payload.feature_summary);
@@ -3201,7 +3398,7 @@ const progressMilestones = [
   { key: "problem_card", label: "问题卡", target: 1, unit: "张" },
   { key: "market_scout", label: "侦察卡", target: 1, unit: "张" },
   { key: "user_voice", label: "用户声音", target: 3, unit: "条" },
-  { key: "product_definition", label: "产品一句话", target: 1, unit: "条" },
+  { key: "product_definition", label: "方向计划", target: 1, unit: "条" },
   { key: "prompt_card", label: "提示词卡", target: 1, unit: "张" },
   { key: "feature_scope", label: "核心动作", target: 1, unit: "张" },
   { key: "tech_route", label: "路线流程", target: 1, unit: "张" },
@@ -3218,14 +3415,14 @@ type ProgressFocusKey = "current" | "d1" | "d2" | "d3" | "all";
 
 const progressFocusTabs: Array<{ key: ProgressFocusKey; label: string }> = [
   { key: "current", label: "当前环节" },
-  { key: "d1", label: "D1 找问题" },
+  { key: "d1", label: "D1 定方向" },
   { key: "d2", label: "D2 做原型" },
   { key: "d3", label: "D3 路演" },
   { key: "all", label: "全部" }
 ];
 
 const progressFocusMilestones: Record<Exclude<ProgressFocusKey, "current">, Array<(typeof progressMilestones)[number]["key"]>> = {
-  d1: ["team_card", "problem_card", "market_scout", "user_voice", "product_definition"],
+  d1: ["team_card", "product_definition"],
   d2: ["prompt_card", "feature_scope", "tech_route", "product_link", "product_feedback", "iteration_plan"],
   d3: ["value_card", "product_packaging", "story_pitch", "final_showcase"],
   all: progressMilestones.map((milestone) => milestone.key)
@@ -3274,12 +3471,12 @@ function progressFocusMilestoneKeys(focus: ProgressFocusKey, moduleId?: string |
 function progressFocusLabel(focus: ProgressFocusKey, moduleId?: string | null) {
   const resolved = resolveProgressFocus(focus, moduleId);
   if (focus === "current") {
-    if (resolved === "d1") return "跟随当前环节：先看真实问题、用户声音和产品一句话。";
+    if (resolved === "d1") return "跟随当前环节：先看团队名片、确定方向和行动计划。";
     if (resolved === "d2") return "跟随当前环节：先看提示词、核心动作、路线、作品入口和互测。";
     if (resolved === "d3") return "跟随当前环节：先看价值卡、海报卡、故事卡和最终展示卡。";
     return "跟随当前环节：当前模块还没有专属阶段，先看全程进度。";
   }
-  if (resolved === "d1") return "D1 聚焦：真实问题、用户声音和产品一句话。";
+  if (resolved === "d1") return "D1 聚焦：团队名片、确定方向和下一步行动计划。";
   if (resolved === "d2") return "D2 聚焦：把作品做出来、试起来、改一版。";
   if (resolved === "d3") return "D3 聚焦：把作品讲清楚、交上来、准备展示。";
   return "全部里程碑：适合课间复盘或结营前总检查。";
@@ -3429,10 +3626,11 @@ function TeacherTeamWorkspace({ students, refresh }: { students: Student[]; refr
                       onChange={(event) => updateTeam(team.id, { group_no: Number(event.target.value) || 1 })}
                     />
                   </label>
-                  <label>
-                    <span>组名</span>
-                    <input value={team.name} onChange={(event) => updateTeam(team.id, { name: event.target.value })} />
-                  </label>
+                  <div className="team-readonly-field">
+                    <span>团队名</span>
+                    <strong>{team.name}</strong>
+                    <small>孩子提交团队名片后更新</small>
+                  </div>
                   <label>
                     <span>桌号</span>
                     <input value={team.table_no || ""} onChange={(event) => updateTeam(team.id, { table_no: event.target.value })} />
@@ -3475,8 +3673,8 @@ function TeacherTeamWorkspace({ students, refresh }: { students: Student[]; refr
                   </label>
                 </div>
                 <div className={team.selected_problem_title ? "team-selected-problem" : "team-selected-problem empty"}>
-                  <span>小组定题</span>
-                  <strong>{team.selected_problem_title || "还没选择要继续调查的问题"}</strong>
+                  <span>问题线索</span>
+                  <strong>{team.selected_problem_title || "等小组选择要继续调查的问题"}</strong>
                   {Number(team.selected_problem_votes || 0) > 0 && <small>{team.selected_problem_votes} 票线索</small>}
                 </div>
                 <footer>
@@ -3600,7 +3798,7 @@ const studentTaskTypeLabels: Record<string, string> = {
   market_scout: "侦察卡",
   user_voice: "用户声音",
   ai_validation: "AI 验证",
-  product_definition: "产品一句话",
+  product_definition: "方向计划",
   prompt_card: "提示词卡",
   feature_scope: "核心动作",
   tech_route: "路线流程",
@@ -3773,8 +3971,8 @@ function StudentTeamPanel({ workspace }: { workspace: StudentWorkspace }) {
           <small>{team ? `${projectStatusLabel(team.project_status)} · ${showcaseStatusLabel(team.showcase_status)}` : "老师分组后，这里会亮起来。"}</small>
         </div>
         <div>
-          <span>小组定题</span>
-          <strong>{selectedProblem || "还没选定要继续调查的问题"}</strong>
+          <span>问题线索</span>
+          <strong>{selectedProblem || "还在选择要继续调查的问题"}</strong>
           {Number(team?.selected_problem_votes || 0) > 0 && <small>{team?.selected_problem_votes} 票线索</small>}
         </div>
       </div>
@@ -3941,7 +4139,8 @@ function nextSupportAction(
   const firstMissing = milestoneStates.find((milestone) => !milestone.done);
   if (!firstMissing) return "可以安排彩排或进入作品秀顺序。";
   if (firstMissing.key === "team_card") return "请小组先补一张团队名片：团队名、产品方向和一句亮相。";
-  if (!team.selected_problem_id) return "先从问题卡里给小组定一个要继续调查的问题。";
+  if (firstMissing.key === "product_definition") return "请小组补齐方向和行动计划：帮谁、收集什么需求、明天先做哪一步。";
+  if (!team.selected_problem_id && ["problem_card", "market_scout", "user_voice"].includes(firstMissing.key)) return "请小组先选出要继续调查的问题。";
   if (firstMissing.key === "market_scout") return "先补一张侦察卡：AI 改写、用户声音、已有方案、继续验证。";
   if (firstMissing.key === "user_voice") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条用户声音，先补真实采访。`;
   if (firstMissing.key === "product_feedback") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条互测反馈，安排别组打开作品试用。`;
@@ -3951,7 +4150,7 @@ function nextSupportAction(
   if (firstMissing.key === "story_pitch") return "请小组补一张故事发布五步卡：人物、麻烦、作品、证据、邀请。";
   if (firstMissing.key === "product_link") return "先确认作品链接能打开，再准备上台展示。";
   if (firstMissing.key === "final_showcase") return "请小组把最终展示卡补齐。";
-  if (firstMissing.key === "product_definition") return "先把产品一句话写清楚：帮谁、解决什么、怎么解决。";
+  if (firstMissing.key === "product_definition") return "先把方向和行动计划写清楚：帮谁、收集什么需求、明天先做哪一步。";
   if (firstMissing.key === "prompt_card") return "请小组补一张五句提示词卡：目标、用户、材料、限制、格式。";
   if (firstMissing.key === "feature_scope") return "请小组补一张核心动作卡：功能清单、核心动作、第一版。";
   if (firstMissing.key === "tech_route") return "请小组补一张路线流程卡：路线、工具、3 到 5 步流程。";
@@ -4148,8 +4347,8 @@ function TeacherProgressBoard({ selectedModuleId, highlighted }: { selectedModul
                   {projectStatusLabel(summary.team.project_status)} · {showcaseStatusLabel(summary.team.showcase_status)}
                 </p>
                 <p>
-                  <b>小组定题</b>
-                  {summary.team.selected_problem_title || "还没定题"}
+                  <b>问题线索</b>
+                  {summary.team.selected_problem_title || "等小组选择"}
                 </p>
                 <p>
                   <b>最近进展</b>
@@ -4188,29 +4387,17 @@ function TeacherProgressBoard({ selectedModuleId, highlighted }: { selectedModul
 
 function TeacherD1Artifacts() {
   const [items, setItems] = useState<TaskSubmission[]>([]);
+  const [teamCards, setTeamCards] = useState<TaskSubmission[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
-  const [voteSummaries, setVoteSummaries] = useState<ProblemVoteSummary[]>([]);
-  const [voteCount, setVoteCount] = useState(0);
-  const [teamProblemDrafts, setTeamProblemDrafts] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [updatingId, setUpdatingId] = useState("");
-  const [savingProblemTeamId, setSavingProblemTeamId] = useState("");
-  const [startingVote, setStartingVote] = useState(false);
 
   const load = async () => {
     try {
-      const [result, voteResult, teamResult] = await Promise.all([api.submissions(), api.problemVotesManage(), api.teams()]);
-      setItems(result.task_submissions.filter((item) => ["problem_card", "market_scout", "user_voice", "ai_validation"].includes(item.task_type)));
-      setVoteSummaries(voteResult.summaries);
-      setVoteCount(voteResult.votes.length);
+      const [result, teamResult] = await Promise.all([api.submissions(), api.teams()]);
+      setItems(result.task_submissions.filter((item) => ["product_definition", "problem_card", "market_scout", "user_voice", "ai_validation"].includes(item.task_type)));
+      setTeamCards(result.task_submissions.filter((item) => item.task_type === "team_card"));
       setTeams(teamResult.teams);
-      setTeamProblemDrafts((current) => {
-        const next: Record<string, string> = {};
-        teamResult.teams.forEach((team) => {
-          next[team.id] = current[team.id] ?? team.selected_problem_id ?? "";
-        });
-        return next;
-      });
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "加载失败");
     }
@@ -4223,20 +4410,28 @@ function TeacherD1Artifacts() {
   }, []);
 
   const stats = useMemo(() => {
+    const directionItems = items.filter((item) => item.task_type === "product_definition");
+    const directionCount = directionItems.length;
+    const actionPlanCount = directionItems.filter((item) =>
+      asText(item.payload.demand_questions).trim() ||
+      asText(item.payload.action_plan).trim() ||
+      asText(item.payload.day2_first_step).trim()
+    ).length;
     const problemCount = items.filter((item) => item.task_type === "problem_card").length;
     const scoutCount = items.filter((item) => item.task_type === "market_scout").length;
     const voiceItems = items.filter((item) => item.task_type === "user_voice");
     const voiceCount = voiceItems.length;
     const validationCount = items.filter((item) => item.task_type === "ai_validation").length;
-    const teamCount = new Set(items.map((item) => item.team_id || item.student_id || item.id)).size;
+    const onWallCount = [...teamCards, ...items].filter((item) => item.status === "ON_WALL").length;
+    const teamCount = new Set([...teamCards, ...items].map((item) => item.team_id || item.team_name || item.student_id || item.id)).size;
     const voiceByTeam = new Map<string, number>();
     voiceItems.forEach((item) => {
       const key = item.team_id || item.team_name || item.student_id || item.id;
       voiceByTeam.set(key, (voiceByTeam.get(key) || 0) + 1);
     });
     const interviewReadyCount = Array.from(voiceByTeam.values()).filter((count) => count >= 3).length;
-    return { problemCount, scoutCount, voiceCount, validationCount, teamCount, interviewReadyCount };
-  }, [items]);
+    return { directionCount, actionPlanCount, problemCount, scoutCount, voiceCount, validationCount, teamCount, interviewReadyCount, onWallCount };
+  }, [items, teamCards]);
 
   const toggleWall = async (item: TaskSubmission) => {
     setUpdatingId(item.id);
@@ -4251,125 +4446,81 @@ function TeacherD1Artifacts() {
     }
   };
 
-  const startProblemVote = async () => {
-    setStartingVote(true);
-    setMessage("");
-    try {
-      await api.setCurrentTask({
-        module_id: "problem-wall",
-        title: "烦人墙投票",
-        activity_type: "problem_vote",
-        payload: {
-          task_type: "problem_vote",
-          max_choices: 3,
-          summary: "选出最想继续调查的问题"
-        }
-      });
-      setMessage("投票已发到学生端。");
-      await load();
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : "投票发起失败");
-    } finally {
-      setStartingVote(false);
-    }
-  };
+  const latestTeamCardFor = (team: Team) =>
+    [...teamCards]
+      .filter((item) => item.team_id === team.id || asText(item.payload.team_id) === team.id)
+      .sort((a, b) => (b.updated_at || b.created_at || "").localeCompare(a.updated_at || a.created_at || ""))[0] ?? null;
 
-  const problemCards = useMemo(() => {
-    const votes = new Map(voteSummaries.map((summary) => [summary.problem_id, summary.vote_count]));
-    return items
-      .filter((item) => item.task_type === "problem_card")
-      .sort((a, b) => {
-        const voteDelta = (votes.get(b.id) ?? 0) - (votes.get(a.id) ?? 0);
-        if (voteDelta) return voteDelta;
-        return (b.updated_at || b.created_at || "").localeCompare(a.updated_at || a.created_at || "");
-      });
-  }, [items, voteSummaries]);
-
-  const saveTeamProblem = async (team: Team) => {
-    const problemId = teamProblemDrafts[team.id] || null;
-    setSavingProblemTeamId(team.id);
-    setMessage("");
-    try {
-      await api.assignTeamProblem(team.id, problemId);
-      setMessage(problemId ? `${team.name} 已定题。` : `${team.name} 已清空定题。`);
-      await load();
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : "定题保存失败");
-    } finally {
-      setSavingProblemTeamId("");
-    }
-  };
+  const latestDirectionFor = (team: Team) =>
+    [...items]
+      .filter((item) =>
+        item.task_type === "product_definition" &&
+        (item.team_id === team.id || asText(item.payload.team_id) === team.id || item.team_name === team.name)
+      )
+      .sort((a, b) => (b.updated_at || b.created_at || "").localeCompare(a.updated_at || a.created_at || ""))[0] ?? null;
 
   return (
     <section className="panel d1-artifacts-panel">
       <div className="panel-title">
         <StickyNote size={20} />
-        <h2>D1 问题、侦察、用户声音和 AI 验证</h2>
+        <h2>D1 团队方向和行动计划</h2>
       </div>
       <div className="artifact-stats">
-        <span>{stats.problemCount} 张问题卡</span>
-        <span>{stats.scoutCount} 张侦察卡</span>
-        <span>{stats.voiceCount} 条用户声音</span>
-        <span>{stats.interviewReadyCount} 组采访达标</span>
-        <span>{stats.validationCount} 张验证卡</span>
+        <span>{teamCards.length} 张团队名片</span>
+        <span>{stats.directionCount} 张方向卡</span>
+        <span>{stats.actionPlanCount} 份行动计划</span>
+        <span>{stats.onWallCount} 张已放大屏</span>
         <span>{stats.teamCount} 个来源</span>
-        <span>{voteCount} 张投票</span>
       </div>
-      <div className="d1-vote-toolbar">
-        <button disabled={startingVote || !stats.problemCount} onClick={startProblemVote}>
-          <CheckCircle2 size={16} />
-          发起烦人墙投票
-        </button>
-        <span>学生最多选 3 张问题卡，系统按票数排序。</span>
-      </div>
-      <ProblemVoteLeaderboard summaries={voteSummaries} compact />
       <div className="team-problem-picker">
         <div className="team-problem-picker-title">
-          <strong>小组定题</strong>
-          <span>把一张问题卡交给小组继续调查，后面的产品一句话会优先带入这条线索。</span>
+          <strong>团队方向观察</strong>
+          <span>成员名单由老师指定；团队名和产品方向由孩子提交团队名片后带入。</span>
         </div>
         <div className="team-problem-grid">
           {teams.map((team) => {
-            const selected = problemCards.find((item) => item.id === (teamProblemDrafts[team.id] || team.selected_problem_id));
+            const latestTeamCard = latestTeamCardFor(team);
+            const latestDirectionPlan = latestDirectionFor(team);
+            const childTeamName = asText(latestTeamCard?.payload.team_name);
+            const productDirection =
+              asText(latestDirectionPlan?.payload.direction) ||
+              asText(latestTeamCard?.payload.product_direction) ||
+              asText(latestTeamCard?.payload.direction);
+            const launchLine = asText(latestTeamCard?.payload.launch_line);
+            const demandPlan = asText(latestDirectionPlan?.payload.demand_questions);
+            const firstStep =
+              asText(latestDirectionPlan?.payload.day2_first_step) ||
+              asText(latestDirectionPlan?.payload.core_action) ||
+              asText(latestDirectionPlan?.payload.solution);
             return (
               <article className="team-problem-card" key={team.id}>
                 <div>
                   <span>{team.table_no ? `${team.table_no} 号桌` : `第 ${team.group_no} 组`}</span>
                   <strong>{team.name}</strong>
-                  <small>{selected ? asText(selected.payload.problem_scene) || asText(selected.payload.trouble) || "一个真实问题" : "还没定题"}</small>
+                  <small>{latestDirectionPlan ? "已提交方向和计划" : childTeamName ? "已提交团队名片" : "等孩子提交团队名片"}</small>
                 </div>
-                <select
-                  value={teamProblemDrafts[team.id] ?? team.selected_problem_id ?? ""}
-                  onChange={(event) => setTeamProblemDrafts((current) => ({ ...current, [team.id]: event.target.value }))}
-                  aria-label={`${team.name}的小组定题`}
-                >
-                  <option value="">先不选择</option>
-                  {problemCards.map((item) => {
-                    const summary = voteSummaries.find((vote) => vote.problem_id === item.id);
-                    const title = asText(item.payload.problem_scene) || asText(item.payload.trouble) || "一个真实问题";
-                    return (
-                      <option key={item.id} value={item.id}>
-                        {summary?.vote_count ? `${summary.vote_count} 票 · ` : ""}{title}
-                      </option>
-                    );
-                  })}
-                </select>
-                <button disabled={savingProblemTeamId === team.id} onClick={() => void saveTeamProblem(team)}>
-                  {savingProblemTeamId === team.id ? "保存中" : "保存定题"}
-                </button>
+                <p><b>孩子定的团队名</b>{childTeamName || "还没提交"}</p>
+                <p><b>产品方向</b>{productDirection || "还在讨论"}</p>
+                <p><b>接下来要收集</b>{demandPlan || "还在准备"}</p>
+                <p><b>明天先做</b>{firstStep || "还在准备"}</p>
+                <p><b>亮相一句话</b>{launchLine || "还在准备"}</p>
+                {team.selected_problem_title && <p><b>问题线索</b>{team.selected_problem_title}</p>}
               </article>
             );
           })}
-          {!teams.length && <p className="empty">创建小组后，可以在这里给每组定题。</p>}
+          {!teams.length && <p className="empty">创建小组后，这里会显示团队方向。</p>}
         </div>
       </div>
       {message && <p className="hint">{message}</p>}
       <div className="d1-artifact-list">
         {items.map((item) => {
+          const isProduct = item.task_type === "product_definition";
           const isProblem = item.task_type === "problem_card";
           const isScout = item.task_type === "market_scout";
           const isValidation = item.task_type === "ai_validation";
-          const title = isProblem
+          const title = isProduct
+            ? asText(item.payload.direction) || asText(item.payload.product_name) || "团队方向"
+            : isProblem
             ? asText(item.payload.problem_scene) || asText(item.payload.trouble) || "未命名问题"
             : isScout
             ? asText(item.payload.ai_rewrite) || asText(item.payload.original_problem) || "AI 市场侦察卡"
@@ -4380,16 +4531,17 @@ function TeacherD1Artifacts() {
             <article
               className={[
                 "d1-artifact-card",
+                isProduct ? "product" : "",
                 isScout ? "scout" : "",
                 isValidation ? "validation" : "",
-                !isProblem && !isScout && !isValidation ? "voice" : "",
+                !isProduct && !isProblem && !isScout && !isValidation ? "voice" : "",
                 item.status === "ON_WALL" ? "on-wall" : ""
               ].filter(Boolean).join(" ")}
               key={item.id}
             >
               <header>
                 <div>
-                  <span>{isProblem ? "问题卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : "用户声音"}</span>
+                  <span>{isProduct ? "方向和行动计划" : isProblem ? "问题卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : "用户声音"}</span>
                   <strong>{title}</strong>
                   <small>{item.team_name || item.student_name || "学生提交"}</small>
                 </div>
@@ -4397,7 +4549,18 @@ function TeacherD1Artifacts() {
                   {item.status === "ON_WALL" ? "从大屏移开" : "放到大屏"}
                 </button>
               </header>
-              {isProblem ? (
+              {isProduct ? (
+                <div className="artifact-lines">
+                  <p><strong>赛道：</strong>{productTrackText(item.payload) || "还没选"}</p>
+                  <p><strong>方向：</strong>{asText(item.payload.direction) || "还没写"}</p>
+                  <p><strong>帮谁：</strong>{asText(item.payload.target_user) || "还没写"}</p>
+                  <p><strong>卡在哪：</strong>{asText(item.payload.core_problem) || "还没写"}</p>
+                  <p><strong>接下来要问：</strong>{asText(item.payload.demand_questions) || "还没写"}</p>
+                  <p><strong>明天带回：</strong>{asText(item.payload.day2_materials) || "可选"}</p>
+                  <p><strong>明天先做：</strong>{asText(item.payload.day2_first_step) || asText(item.payload.core_action) || asText(item.payload.solution) || "还没写"}</p>
+                  <p><strong>一句话：</strong>{asText(item.payload.one_liner) || "还在打磨"}</p>
+                </div>
+              ) : isProblem ? (
                 <div className="artifact-lines">
                   <p><strong>用户：</strong>{asText(item.payload.target_user) || "还没写"}</p>
                   <p><strong>麻烦：</strong>{asText(item.payload.trouble) || "还没写"}</p>
@@ -4433,7 +4596,7 @@ function TeacherD1Artifacts() {
             </article>
           );
         })}
-        {!items.length && <p className="empty">学生提交问题卡、侦察卡、用户声音或验证卡后，会出现在这里。</p>}
+        {!items.length && <p className="empty">团队名片或方向和行动计划提交后，会出现在这里。</p>}
       </div>
     </section>
   );
@@ -6472,64 +6635,6 @@ function TeacherShareCenter() {
   );
 }
 
-function LessonActionIcon({ action }: { action: string }) {
-  if (action.includes("计时")) return <Clock3 size={16} />;
-  if (action.includes("投屏") || action.includes("看板")) return <Monitor size={16} />;
-  if (action.includes("评分")) return <Trophy size={16} />;
-  if (action.includes("互动")) return <Sparkles size={16} />;
-  if (action.includes("演示")) return <Maximize2 size={16} />;
-  return <Play size={16} />;
-}
-
-function TeacherLessonControls({
-  module,
-  page,
-  timerSeconds,
-  onPublishPage,
-  onAction
-}: {
-  module: CourseModule;
-  page: DesignedLessonPage;
-  timerSeconds: number;
-  onPublishPage: () => void;
-  onAction: (action: string) => void | Promise<void>;
-}) {
-  const quickActions = Array.from(new Set(page.activity_buttons.filter((action) => action !== "发布任务")));
-  const timerLabel = timerSeconds ? formatTimer(timerSeconds) : `${timerMinutesForPage(page)} 分钟`;
-
-  return (
-    <section className="lesson-operator" aria-label="教师授课操作">
-      <article className="operator-card">
-        <small>这一页做什么</small>
-        <strong>{teacherMoveForPage(page)}</strong>
-        <span>{module.time_range || `D${module.day}`} · 第 {page.page_no} 页</span>
-      </article>
-      <article className="operator-card">
-        <small>下课前看到什么</small>
-        <strong>{expectedOutputForPage(page)}</strong>
-        <span>{page.content_summary || module.subtitle}</span>
-      </article>
-      <article className={timerSeconds ? "operator-card operator-timer running" : "operator-card operator-timer"}>
-        <small>建议计时</small>
-        <strong>{timerLabel}</strong>
-        <span>{timerSeconds ? "正在计时" : "按这一页估算"}</span>
-      </article>
-      <div className="operator-actions">
-        <button className="primary" onClick={onPublishPage}>
-          <Play size={16} />
-          发本页任务
-        </button>
-        {quickActions.map((action) => (
-          <button key={action} className="operator-action" onClick={() => onAction(action)}>
-            <LessonActionIcon action={action} />
-            {action}
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function TeacherLogin({
   camp,
   onLoggedIn
@@ -7296,16 +7401,70 @@ function pageTypeLabel(pageType: string) {
     cover: "故事入口",
     story: "故事页",
     image: "样片页",
-    activity: "动手页",
+    activity: "实验页",
     experiment: "实验页",
     demo: "演示页",
     "ai-demo": "演示页",
-    showcase: "展示页"
+    showcase: "展示页",
+    teamwork: "团队工作",
+    coaching: "巡场指导"
   };
   return labels[pageType] ?? "课件页";
 }
 
-function artifactKindForPage(page: DesignedLessonPage): LessonArtifactKind | null {
+const knowledgeInputModules = new Set([
+  "ai-judgement",
+  "ai-superpowers",
+  "ai-lab",
+  "tool-demo",
+  "value-experiment",
+  "product-packaging",
+  "roadshow-rehearsal",
+  "brand-story"
+]);
+
+function isKnowledgeInputPage(module: CourseModule, page: DesignedLessonPage) {
+  return (
+    knowledgeInputModules.has(module.id) ||
+    ["story", "demo", "ai-demo", "experiment", "activity"].includes(page.page_type) ||
+    /AI 跑偏|改回来/.test(page.title)
+  );
+}
+
+function artifactKindForPage(module: CourseModule, page: DesignedLessonPage): LessonArtifactKind | null {
+  if (module.id === "team-formation") return "team-roles";
+  if (module.id === "problem-wall") return "problem-wall";
+  if (module.id === "ai-judgement") {
+    if (/拆开看/.test(page.title)) return "ai-workbench";
+    if (/工作线|拼图|任务单一改/.test(page.title)) return "ai-pipeline";
+    if (/回答怎么用/.test(page.title)) return "ai-check-lights";
+    return "prompt-card";
+  }
+  if (module.id === "ai-superpowers") {
+    if (/便利贴|豆包|问题改写/.test(page.title)) return "problem-wall";
+    if (/已有方案|DeepSeek|市场侦察/.test(page.title)) return "market-scout";
+    return "competitor-grid";
+  }
+  if (module.id === "user-interview") return "interview-card";
+  if (module.id === "project-launch") return /赛道|方向/.test(page.title) ? "direction-map" : "product-sentence";
+  if (module.id === "ai-lab") return page.title.includes("再改") ? "ai-revise" : "prompt-card";
+  if (module.id === "product-prototype") return "prototype-board";
+  if (module.id === "tech-route") return "route-map";
+  if (module.id === "tool-demo") {
+    if (/智能体|接待用户/.test(page.title)) return "agent-card";
+    if (/工作流|步骤排清楚/.test(page.title)) return "workflow-map";
+    if (/秒哒|V1|应用原型/.test(page.title)) return "app-prototype";
+    return "product-browser";
+  }
+  if (module.id === "build-sprint") return "product-browser";
+  if (module.id === "roadshow-rehearsal") return "roadshow-pack";
+  if (module.id === "user-testing") return "testing-board";
+  if (module.id === "demo-check" || module.id === "rehearsal") return "demo-strip";
+  if (module.id === "value-experiment") return "pricing-ticket";
+  if (module.id === "product-packaging") return page.title.includes("清单") ? "launch-checklist" : "product-browser";
+  if (module.id === "brand-story") return null;
+  if (module.id === "final-showcase") return page.title.includes("观察员") ? "observer-cards" : "showcase-run";
+  if (module.id === "awards-reflection") return "five-forces";
   const artifacts: Record<string, LessonArtifactKind> = {
     "团队名称和方向": "team-roles",
     "今天我们当便利贴侦探": "problem-wall",
@@ -7356,9 +7515,34 @@ function artifactKindForPage(page: DesignedLessonPage): LessonArtifactKind | nul
   return artifacts[page.title] ?? null;
 }
 
+function lessonBeatForPage(module: CourseModule, page: DesignedLessonPage) {
+  if (!isKnowledgeInputPage(module, page) && module.id !== "future-photo-studio") {
+    if (page.page_type === "showcase") return "showcase";
+    if (page.page_type === "coaching") return "coaching";
+    return "teamwork";
+  }
+  if (page.page_type === "demo" || page.page_type === "ai-demo") return "demo";
+  if (page.page_type === "experiment" || page.page_type === "activity") return "experiment";
+  if (page.page_type === "showcase") return "showcase";
+  return "story";
+}
+
+function pblStepForPage(page: DesignedLessonPage) {
+  if (page.page_type === "showcase") return "showcase";
+  if (page.page_type === "coaching") return "coaching";
+  if (/讨论|分工|晨会|互测/.test(page.title) || page.page_no === 1) return "discussion";
+  return "output";
+}
+
 function specialChipsForPage(page: DesignedLessonPage) {
   const chips: Record<string, string[]> = {
     "每个人都是自己 AI 的 CEO": ["指挥 AI", "判断 AI", "对作品负责"],
+    "照相馆拆开看": ["照片", "职业词", "任务单"],
+    "AI 工作线：看见、读到、生成": ["多模态", "提示词", "图像生成"],
+    "大模型像补下一块拼图": ["看线索", "找规律", "补下一块"],
+    "老师演示：任务单一改，回答就变": ["模糊问题", "清楚任务单", "结果对比"],
+    "轮到你实验：给 DeepSeek 一张任务单": ["帮谁", "什么麻烦", "先做什么"],
+    "AI 的回答怎么用？": ["能用", "不确定", "太大太远"],
     "AI 市场侦察卡": ["用户声音", "已有方案", "继续验证"],
     "竞品观察三格": ["谁在用", "怎么解决", "哪里不同"],
     "12 个真实创业方向": ["生活帮手", "学习工具", "创意工坊", "校园社区"],
@@ -7379,10 +7563,139 @@ function specialCardsForPage(page: DesignedLessonPage): LessonCard[] | null {
       { title: "判断 AI", text: "用证据看哪里要改" },
       { title: "负责作品", text: "最后决定由我来做" }
     ],
+    "照相馆拆开看": [
+      { title: "照片", text: "AI 看见今天的你" },
+      { title: "职业词", text: "你说出的未来方向" },
+      { title: "任务单", text: "请生成一张未来职业照" },
+      { title: "新画面", text: "AI 把线索组合成结果" }
+    ],
+    "AI 工作线：看见、读到、生成": [
+      { title: "看见", text: "照片里的脸、姿势和背景" },
+      { title: "读到", text: "职业词和老师给的任务单" },
+      { title: "生成", text: "把线索补成一张新画面" },
+      { title: "交回", text: "结果先给人看，再决定用不用" }
+    ],
+    "大模型像补下一块拼图": [
+      { title: "看过很多例子", text: "知道许多文字和画面的搭配" },
+      { title: "根据前面线索", text: "从照片、职业词、问题里找规律" },
+      { title: "补下一块", text: "继续写一句，或生成一张图" },
+      { title: "不是最后决定", text: "能不能用，还要人来判断" }
+    ],
+    "老师演示：任务单一改，回答就变": [
+      { title: "模糊问题", text: "帮我想一个校园产品" },
+      { title: "清楚任务单", text: "请当产品顾问，帮我们看谁需要、卡在哪、先做什么" },
+      { title: "结果对比", text: "哪一版更能让团队继续讨论" }
+    ],
+    "轮到你实验：给 DeepSeek 一张任务单": [
+      { title: "我是谁", text: "请你当产品顾问" },
+      { title: "要做什么", text: "帮我们看这个方向可能帮谁" },
+      { title: "怎么回答", text: "用三句话，给一个例子" },
+      { title: "带回小组", text: "留下能继续讨论的一句" }
+    ],
+    "AI 的回答怎么用？": [
+      { title: "能用", text: "能帮小组往前走，就留下" },
+      { title: "不确定", text: "听起来有可能，就去问同学或用户" },
+      { title: "太大太远", text: "今天做不了，就先放下" }
+    ],
     "竞品观察三格": [
       { title: "谁在用", text: "它现在服务哪类用户" },
       { title: "怎么解决", text: "它让用户完成什么动作" },
       { title: "哪里不同", text: "我们可以做出一个新角度" }
+    ],
+    "便利贴侦探：两张纸的差别": [
+      { title: "作业好烦", text: "像一声叹气" },
+      { title: "谁会卡住", text: "放学后的四年级学生" },
+      { title: "卡在哪里", text: "不知道先写哪一科" }
+    ],
+    "老师演示：豆包把烦恼改成问题": [
+      { title: "原句", text: "作业好烦" },
+      { title: "豆包改写", text: "谁、在哪、卡在哪" },
+      { title: "继续追问", text: "再缩小到今天能采访" }
+    ],
+    "市场侦察打开一条街": [
+      { title: "清单", text: "有人已经这样解决" },
+      { title: "计时器", text: "有人用时间帮自己开始" },
+      { title: "提醒", text: "有人靠别人催一下" },
+      { title: "新角度", text: "我们可以只解决第一步" }
+    ],
+    "老师演示：DeepSeek 找已有方案": [
+      { title: "已有办法", text: "先看别人怎么解决" },
+      { title: "哪里不够", text: "找到还没被照顾的地方" },
+      { title: "还要问谁", text: "把问题带回真人" }
+    ],
+    "大模型需要清楚任务": [
+      { title: "大模型", text: "根据输入继续生成内容" },
+      { title: "任务说明", text: "说清目标、用户和材料" },
+      { title: "人的判断", text: "团队决定哪一版能用" }
+    ],
+    "老师演示：豆包先出三版": [
+      { title: "输入", text: "目标、用户、材料、限制、格式" },
+      { title: "三版", text: "快速看见不同表达" },
+      { title: "选择", text: "挑最清楚的一版" }
+    ],
+    "老师演示：DeepSeek 帮忙检查": [
+      { title: "太夸张", text: "删掉听起来像广告的词" },
+      { title: "看不懂", text: "改成用户能明白的话" },
+      { title: "缺证据", text: "补采访或试玩线索" }
+    ],
+    "产品需要一个会接待用户的脑袋": [
+      { title: "用户来问", text: "我今天先写什么？" },
+      { title: "产品追问", text: "哪一科最难，明天要交什么？" },
+      { title: "给出建议", text: "只给 3 步，先开始第一步" }
+    ],
+    "老师演示：扣子最小智能体": [
+      { title: "名字", text: "作业顺序助手" },
+      { title: "帮谁", text: "放学后不知道先写哪科的学生" },
+      { title: "边界", text: "给建议，不替学生写答案" },
+      { title: "测试", text: "用一个真实问题试一下" }
+    ],
+    "工作流：把步骤排清楚": [
+      { title: "收集", text: "今天有哪些作业" },
+      { title: "补条件", text: "难度和截止时间" },
+      { title: "判断", text: "最难且最急优先" },
+      { title: "输出", text: "3 步完成顺序" }
+    ],
+    "老师演示：秒哒生成应用原型": [
+      { title: "用户", text: "给谁用" },
+      { title: "核心动作", text: "打开后先做什么" },
+      { title: "页面要求", text: "输入区、按钮、结果区" }
+    ],
+    "生成可打开的 V1": [
+      { title: "输入一句话", text: "把用户、场景、动作说清楚" },
+      { title: "打开预览", text: "看别人能不能完成动作" },
+      { title: "改一处", text: "让核心按钮更明显" }
+    ],
+    "发布会前，材料铺满桌面": [
+      { title: "作品链接", text: "能打开" },
+      { title: "截图", text: "能看懂" },
+      { title: "证据", text: "采访和试玩反馈" },
+      { title: "分工", text: "谁讲哪一步" }
+    ],
+    "老师演示：WorkBuddy 整理材料包": [
+      { title: "材料", text: "只放已经有的成果" },
+      { title: "顺序", text: "用户、作品、证据、下一步" },
+      { title: "检查", text: "太长就再缩短" }
+    ],
+    "作品链接和路演 PPT": [
+      { title: "作品链接", text: "让别人能打开体验" },
+      { title: "路演 PPT", text: "只放展示需要的页面" },
+      { title: "上台顺序", text: "每个人负责一段" }
+    ],
+    "观察员会追问": [
+      { title: "真的需要吗", text: "拿出采访证据" },
+      { title: "能用起来吗", text: "现场演示核心动作" },
+      { title: "下一步呢", text: "说出先改哪里" }
+    ],
+    "老师演示：DeepSeek 模拟追问": [
+      { title: "用户", text: "谁真的需要" },
+      { title: "作品", text: "是否完成核心动作" },
+      { title: "证据", text: "试玩反馈说明什么" },
+      { title: "下一步", text: "先改哪一处" }
+    ],
+    "结论、证据、下一步": [
+      { title: "结论", text: "先直接回答" },
+      { title: "证据", text: "再说采访或试玩" },
+      { title: "下一步", text: "最后说明先改哪里" }
     ],
     "12 个真实创业方向": [
       { title: "生活帮手", text: "让生活里一件麻烦事变简单" },
@@ -7461,19 +7774,113 @@ function specialCardsForPage(page: DesignedLessonPage): LessonCard[] | null {
 
 function specialStepsForPage(page: DesignedLessonPage) {
   const steps: Record<string, string[]> = {
+    "照相馆拆开看": ["先找照片线索", "再看职业词", "最后看任务单"],
+    "AI 工作线：看见、读到、生成": ["看见图片", "读到文字", "按任务单生成", "把结果交给人"],
+    "大模型像补下一块拼图": ["看到前面线索", "找相似规律", "补出下一块"],
+    "老师演示：任务单一改，回答就变": ["先问模糊问题", "再写清楚任务单", "对比哪版更能用"],
+    "轮到你实验：给 DeepSeek 一张任务单": ["写团队方向", "问 DeepSeek", "留下能用一句"],
+    "AI 的回答怎么用？": ["能帮我们往前走，就留下", "还不确定，就问同学或用户", "太大太远，就先放下"],
+    "问题改写卡": ["选一个原始烦恼", "让豆包改成 3 个问题", "团队选一个今天继续追"],
     "AI 市场侦察卡": ["找一条用户声音", "找一个已有方案", "写下还要验证的问题"],
+    "老师演示：DeepSeek 找已有方案": ["输入产品一句话", "看已有办法", "写下还要问真人的问题"],
     "选一条赛道，找到一个真实用户": ["选定一条赛道", "写出一个真实用户", "准备问他三个问题"],
     "把线索变成产品一句话": ["谁遇到麻烦", "麻烦发生在哪里", "我们用什么帮他"],
+    "老师演示：豆包先出三版": ["输入五句提示词", "得到 3 个版本", "挑出最清楚的一版"],
+    "老师演示：DeepSeek 帮忙检查": ["粘贴第一版", "找夸张和缺证据的句子", "改成更稳的一版"],
+    "老师演示：扣子最小智能体": ["写清服务对象", "写清任务边界", "用真实问题测试"],
+    "工作流：把步骤排清楚": ["收集信息", "补充条件", "判断顺序", "输出 3 步"],
+    "老师演示：秒哒生成应用原型": ["写清用户和场景", "写清核心动作", "预览第一版"],
+    "生成可打开的 V1": ["生成第一版", "打开预览", "写一条修改指令"],
+    "团队讨论：选择创业方向": ["看采访证据", "选一个创业方向", "说出为什么继续做"],
+    "需求三问：用户、场景、动作": ["谁会遇到", "在哪里发生", "希望哪个动作变简单"],
+    "产品方案一句话": ["帮谁", "解决什么", "用什么动作帮他"],
+    "发布会前，材料铺满桌面": ["作品链接", "截图", "采访证据", "分工"],
+    "老师演示：WorkBuddy 整理材料包": ["粘贴已有材料", "生成路演顺序", "缩短到孩子能讲"],
+    "作品链接和路演 PPT": ["填作品链接", "上传路演 PPT", "确认上台分工"],
+    "结论、证据、下一步": ["选 2 个追问", "先答结论", "补证据和下一步"],
     "作品页上线清单": ["产品名和一句话", "可打开链接", "截图或演示画面", "用户故事和下一步"],
     "下一次我怎么指挥 AI": ["先说清目标", "用证据检查结果", "继续改到更适合用户"]
   };
   return steps[page.title];
 }
 
+function expectedOutputForLesson(module: CourseModule, page: DesignedLessonPage) {
+  const outputs: Record<string, string> = {
+    "team-formation": "提交一张团队名片：团队名、产品方向和亮相句",
+    "problem-wall": "提交一张问题卡：谁、在哪里、遇到什么麻烦",
+    "ai-judgement": "提交一张 AI 对话卡：清楚问题、能用一句、还要问同学或用户的一句",
+    "ai-superpowers": "提交一张侦察卡：原始烦恼、问题改写、已有方案和继续追问",
+    "user-interview": "带回一条用户原话和一个新的发现",
+    "project-launch": "写出产品一句话：帮谁、解决什么、怎么解决",
+    "day1-reflection": "写下一条下次还能用的 AI 判断方法",
+    "day2-kickoff": "圈出今天必须先跑通的一个核心动作",
+    "ai-lab": "完成一张五句提示词卡，并用 DeepSeek 检查一次",
+    "product-prototype": "提交核心动作卡：功能清单、第一版范围和最小结果",
+    "tech-route": "提交路线流程卡：路线选择和 3 到 5 步使用流程",
+    "tool-demo": "完成一个最小智能体规则或可打开 V1 原型",
+    "build-sprint": "作品能打开，别人能完成一个核心动作",
+    "user-testing": "收到一条同伴反馈，并写进下一版改动",
+    "demo-check": "留下产品链接、截图和一个 AI 修正方法",
+    "roadshow-rehearsal": "提交作品链接和路演 PPT，排好上台顺序",
+    "value-experiment": "完成价值卡：产品帮别人少烦了什么，别人愿意交换什么",
+    "product-packaging": "完成产品海报卡：名字、标语、截图和三条亮点",
+    "brand-story": "准备 2 个观察员追问回答：结论、证据、下一步",
+    "rehearsal": "完成一轮融资路演彩排，保留最清楚的展示动作",
+    "final-showcase": "完成一次融资路演：用户、作品、结果和下一步",
+    "awards-reflection": "写下一条自己的真实贡献和下一次 AI 使用方法"
+  };
+  if (page.page_type === "showcase") return page.content_summary || outputs[module.id];
+  return outputs[module.id] || expectedOutputForPage(page);
+}
+
 function cardsForPage(module: CourseModule, page: DesignedLessonPage) {
   const design = moduleDesigns[module.id];
   const specialCards = specialCardsForPage(page);
   if (specialCards) return specialCards;
+  const beat = lessonBeatForPage(module, page);
+  if (beat === "teamwork") {
+    return [
+      { title: "团队要决定", text: page.content_summary || module.subtitle || "先把小组决定说清楚" },
+      { title: "小组产出", text: expectedOutputForLesson(module, page) },
+      { title: "老师会看", text: "分工、证据、卡点和下一步是否清楚" }
+    ];
+  }
+  if (beat === "coaching") {
+    return [
+      { title: "卡点摊开", text: page.content_summary || "把卡在哪里说成别人能帮忙的一句话" },
+      { title: "老师答疑", text: "现场看问题、给建议、帮团队缩小范围" },
+      { title: "观察记录", text: "记录每个人在团队里的真实贡献" }
+    ];
+  }
+  if (beat === "story") {
+    return [
+      { title: "故事现场", text: page.content_summary || module.subtitle || "先进入今天的情境" },
+      { title: "先看见", text: design?.steps?.[0] || "看到一个真实场景" },
+      { title: "然后呢", text: design?.steps?.[1] || "准备动手试一次" }
+    ];
+  }
+  if (beat === "demo") {
+    const flow = page.flow ?? design?.flow ?? design?.cards;
+    return [
+      { title: "老师先演示", text: page.content_summary || "看一次完整做法" },
+      { title: "看变化", text: flow?.[1]?.text || design?.steps?.[1] || "看输入和结果哪里变了" },
+      { title: "借方法", text: flow?.[2]?.text || design?.steps?.[2] || "把方法带回自己的作品" }
+    ];
+  }
+  if (beat === "experiment") {
+    return [
+      { title: "你的实验", text: page.content_summary || "自己动手试一次" },
+      { title: "动手动作", text: design?.steps?.[1] || design?.cards?.[1]?.text || "完成一个小结果" },
+      { title: "留下证据", text: expectedOutputForLesson(module, page) }
+    ];
+  }
+  if (beat === "showcase") {
+    return [
+      { title: "看作品", text: page.content_summary || "看见同学的真实结果" },
+      { title: "说亮点", text: design?.cards?.[0]?.text || "找到一个值得借走的方法" },
+      { title: "下一步", text: design?.steps?.[2] || "准备继续改一版" }
+    ];
+  }
   if (page.visual === "roadmap") {
     return [
       { title: "D1", text: "找真问题" },
@@ -7551,6 +7958,61 @@ function LessonArtifact({
           <article key={note} style={{ transform: `rotate(${index % 2 ? 2 : -2}deg)` }}>
             <strong>{note}</strong>
             <span>{index === 0 ? "一个生活里的小麻烦" : "写成一句真实线索"}</span>
+          </article>
+        ))}
+      </div>
+    );
+  }
+
+  if (kind === "ai-workbench") {
+    return (
+      <div className="timeline-artifact artifact-ai-workbench">
+        <header>
+          <Sparkles size={22} />
+          <strong>AI 工作台</strong>
+        </header>
+        {cards.slice(0, 4).map((card, index) => (
+          <article key={card.title}>
+            <small>{String(index + 1).padStart(2, "0")}</small>
+            <strong>{card.title}</strong>
+            <span>{card.text}</span>
+          </article>
+        ))}
+      </div>
+    );
+  }
+
+  if (kind === "ai-pipeline") {
+    const pipeline = steps.length ? steps.slice(0, 4) : ["看见图片", "读到文字", "按任务单生成", "把结果交给人"];
+    return (
+      <div className="timeline-artifact artifact-ai-pipeline">
+        {pipeline.map((step, index) => (
+          <React.Fragment key={step}>
+            <article>
+              <b>{index + 1}</b>
+              <strong>{step}</strong>
+              <span>{cards[index]?.text || "把线索继续往前推进"}</span>
+            </article>
+            {index < pipeline.length - 1 && <em>→</em>}
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  }
+
+  if (kind === "ai-check-lights") {
+    const lights = [
+      ["能用", "帮小组往前走，留下", "#2f9e44"],
+      ["不确定", "问同学或用户", "#f2b705"],
+      ["太大太远", "今天做不了，先放下", "#e15648"]
+    ];
+    return (
+      <div className="timeline-artifact artifact-ai-lights">
+        {lights.map(([label, text, color]) => (
+          <article key={label} style={{ "--light-color": color } as React.CSSProperties}>
+            <span />
+            <strong>{label}</strong>
+            <small>{text}</small>
           </article>
         ))}
       </div>
@@ -7684,6 +8146,74 @@ function LessonArtifact({
     );
   }
 
+  if (kind === "agent-card") {
+    const agentFields = [
+      ["名字", "作业顺序助手"],
+      ["帮谁", "放学后不知道先写哪科的学生"],
+      ["能做", "给出 3 步建议"],
+      ["不能做", "不替学生写答案"],
+      ["测试", "我今天先写什么？"]
+    ];
+    return (
+      <div className="timeline-artifact artifact-agent">
+        <header>
+          <MessageSquareText size={22} />
+          <strong>最小智能体</strong>
+        </header>
+        {agentFields.map(([label, text]) => (
+          <article key={label}>
+            <small>{label}</small>
+            <span>{text}</span>
+          </article>
+        ))}
+      </div>
+    );
+  }
+
+  if (kind === "workflow-map") {
+    const flowSteps = ["收集信息", "补充条件", "判断顺序", "输出结果"];
+    return (
+      <div className="timeline-artifact artifact-workflow">
+        {flowSteps.map((step, index) => (
+          <React.Fragment key={step}>
+            <article>
+              <b>{index + 1}</b>
+              <strong>{step}</strong>
+              <span>{["问有哪些作业", "难度和截止时间", "最难且最急优先", "只给 3 步"][index]}</span>
+            </article>
+            {index < flowSteps.length - 1 && <em>→</em>}
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  }
+
+  if (kind === "app-prototype") {
+    return (
+      <div className="timeline-artifact artifact-app-prototype">
+        <header>
+          <span />
+          <span />
+          <span />
+          <strong>浏览器能打开</strong>
+        </header>
+        <main>
+          <article>
+            <small>输入区</small>
+            <strong>今天有哪些作业？</strong>
+          </article>
+          <button type="button">生成顺序</button>
+          <article>
+            <small>结果区</small>
+            <strong>1. 先做数学</strong>
+            <strong>2. 背英语</strong>
+            <strong>3. 读语文</strong>
+          </article>
+        </main>
+      </div>
+    );
+  }
+
   if (kind === "prototype-board") {
     return (
       <div className="timeline-artifact artifact-board">
@@ -7775,6 +8305,30 @@ function LessonArtifact({
     );
   }
 
+  if (kind === "roadshow-pack") {
+    const packItems = [
+      ["作品链接", "能打开体验"],
+      ["路演 PPT", "只放需要展示的页"],
+      ["证据", "采访和试玩反馈"],
+      ["分工", "每个人一段"]
+    ];
+    return (
+      <div className="timeline-artifact artifact-roadshow-pack">
+        <header>
+          <ClipboardCheck size={22} />
+          <strong>路演材料包</strong>
+        </header>
+        {packItems.map(([label, text]) => (
+          <article key={label}>
+            <CheckCircle2 size={18} />
+            <strong>{label}</strong>
+            <span>{text}</span>
+          </article>
+        ))}
+      </div>
+    );
+  }
+
   if (kind === "launch-checklist") {
     const items = ["产品名", "作品链接", "截图", "用户故事", "下一步"];
     return (
@@ -7853,12 +8407,215 @@ function LessonArtifact({
   );
 }
 
+function aiPrincipleTakeaway(page: DesignedLessonPage) {
+  const takeaways: Record<number, string> = {
+    1: "一句话：给什么，画什么",
+    2: "一句话：它看图，也读字",
+    3: "一句话：线索清楚，补得更像",
+    4: "一句话：问清楚，才帮得上忙",
+    5: "现在做：填一个空",
+    6: "现在做：分三堆"
+  };
+  return takeaways[page.page_no] ?? "这一页：把 AI 用清楚";
+}
+
+function AiPrincipleVisual({ page }: { page: DesignedLessonPage }) {
+  if (page.page_no === 1) {
+    return (
+      <div className="ai-principle-visual ai-story-case">
+        <figure className="ai-photo-stage ai-labeled-photo">
+          <img src={aiCoursewareImages.space} alt="未来照相馆样片：现在的孩子和长大后的职业想象照" />
+          <span className="ai-photo-tag tag-left">你的照片</span>
+          <span className="ai-photo-tag tag-right">AI 画出来</span>
+          <figcaption>你给它三样东西，它才知道怎么画</figcaption>
+        </figure>
+        <div className="ai-case-board">
+          <div className="ai-visual-sentence">给 AI：照片、职业、要求</div>
+          <div className="ai-equation-strip">
+            <span>我的照片</span>
+            <b>+</b>
+            <span>想当什么</span>
+            <b>+</b>
+            <span>请画成未来照</span>
+            <b>=</b>
+            <strong>新照片</strong>
+          </div>
+          <div className="ai-camera-core" aria-label="AI 收到三条线索">
+            <Sparkles size={28} />
+            <strong>AI 开始画</strong>
+            <span>按你给的线索画</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (page.page_no === 2) {
+    return (
+      <div className="ai-principle-visual ai-multimodal-scene">
+        <figure className="ai-photo-stage ai-scan-photo">
+          <img src={aiCoursewareImages.vet} alt="未来照相馆样片：兽医职业想象照" />
+          <span className="ai-photo-tag tag-left">看见画面</span>
+          <span className="ai-photo-tag tag-right">读懂要求</span>
+          <figcaption>它一边看图，一边读字</figcaption>
+        </figure>
+        <div className="ai-sense-stack">
+          <div className="ai-visual-sentence">图告诉样子，字告诉任务</div>
+          <article>
+            <Image size={24} />
+            <strong>看图</strong>
+            <span>人、动作、地方</span>
+          </article>
+          <article>
+            <MessageSquareText size={24} />
+            <strong>读字</strong>
+            <span>职业、要求、风格</span>
+          </article>
+          <article className="ai-dark-card">
+            <Sparkles size={24} />
+            <strong>合起来</strong>
+            <span>再画新结果</span>
+          </article>
+        </div>
+      </div>
+    );
+  }
+
+  if (page.page_no === 3) {
+    const pieces = [
+      ["你给线索", "照片、职业、要求"],
+      ["它找相似", "像见过的例子"],
+      ["接着补", "写下去，画下去"],
+      ["给你看", "再由你来选"]
+    ];
+    return (
+      <div className="ai-principle-visual ai-demo-puzzle">
+        <figure className="ai-photo-stage ai-labeled-photo">
+          <img src={aiCoursewareImages.robot} alt="未来照相馆样片：机器人工程师职业想象照" />
+          <span className="ai-photo-tag tag-left">你给线索</span>
+          <span className="ai-photo-tag tag-right">AI 接着补</span>
+          <figcaption>像拼图，边缘越清楚，下一块越好补</figcaption>
+        </figure>
+        <div className="ai-puzzle-board">
+          <header>
+            <Brain size={26} />
+            <strong>它在接着补</strong>
+          </header>
+          {pieces.map(([title, text], index) => (
+            <article key={title}>
+              <span className="ai-puzzle-piece" aria-hidden="true"></span>
+              <small>{index + 1}</small>
+              <strong>{title}</strong>
+              <span>{text}</span>
+            </article>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (page.page_no === 4) {
+    return (
+      <div className="ai-principle-visual ai-demo-screen">
+        <div className="ai-workbuddy-window">
+          <header>
+            <span></span>
+            <span></span>
+            <span></span>
+            <strong>WorkBuddy · DeepSeek</strong>
+          </header>
+          <div className="ai-visual-sentence">同一个 AI，你问法一变，答案就变</div>
+          <main>
+            <article className="weak-prompt">
+              <small>这样问太散</small>
+              <b>帮我想想</b>
+              <span>它不知道先帮你想哪一步</span>
+            </article>
+            <div className="ai-demo-arrow" aria-label="老师把问题改成任务单">
+              <Sparkles size={18} />
+              <span>说清楚</span>
+            </div>
+            <article className="clear-prompt">
+              <small>这样问能用</small>
+              <b>帮谁？卡哪？先做哪步？</b>
+              <span>它会给你下一步线索</span>
+            </article>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (page.page_no === 5) {
+    return (
+      <div className="ai-principle-visual ai-lab-experiment">
+        <figure className="ai-photo-stage ai-labeled-photo">
+          <img src={aiCoursewareImages.space} alt="未来照相馆样片：火星建筑师职业想象照" />
+          <span className="ai-photo-tag tag-left">填你们的方向</span>
+          <span className="ai-photo-tag tag-right">看 AI 怎么回</span>
+          <figcaption>只填一个空格</figcaption>
+        </figure>
+        <div className="ai-task-ticket">
+          <header>
+            <MessageSquareText size={24} />
+            <strong>发给 DeepSeek</strong>
+          </header>
+          <div className="ai-visual-sentence">只填中间这一格</div>
+          <p>请你当 <b>产品顾问</b></p>
+          <p>我们想做 <b>________</b><span className="ai-cursor" aria-hidden="true">|</span></p>
+          <p>请用三句话告诉我们：</p>
+          <footer>
+            <span>帮谁？</span>
+            <span>卡在哪？</span>
+            <span>先做哪步？</span>
+          </footer>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="ai-principle-visual ai-answer-sort">
+      <figure className="ai-photo-stage small-photo">
+        <img src={aiCoursewareImages.vet} alt="未来照相馆样片：兽医职业想象照" />
+        <figcaption>AI 说了一堆，别急着全收下</figcaption>
+      </figure>
+      <div className="ai-sort-board">
+        <header>
+          <Search size={24} />
+          <strong>先分三堆</strong>
+        </header>
+        <div className="ai-visual-sentence">能做的留下，拿不准的去问</div>
+        <div className="ai-example-answer">“课间不知道玩什么的同学，可能需要活动推荐。”</div>
+        <div className="ai-answer-actions">
+          <article className="answer-keep">
+            <strong>今天能做</strong>
+            <span>留下</span>
+          </article>
+          <article className="answer-ask">
+            <strong>拿不准</strong>
+            <span>去问同学</span>
+          </article>
+          <article className="answer-drop">
+            <strong>今天太大</strong>
+            <span>放一边</span>
+          </article>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DesignedLessonSlide({ module, page }: { module: CourseModule; page: DesignedLessonPage }) {
   const design = moduleDesigns[module.id];
   const Icon = design?.icon ?? Lightbulb;
   const cards = cardsForPage(module, page);
   const steps = stepsForPage(page);
-  const artifactKind = artifactKindForPage(page);
+  const artifactKind = artifactKindForPage(module, page);
+  const isAiPrincipleModule = module.id === "ai-judgement";
+  const beat = lessonBeatForPage(module, page);
+  const isKnowledgePage = isKnowledgeInputPage(module, page) || module.id === "future-photo-studio";
+  const pblStep = pblStepForPage(page);
   const visibleCards = cards.slice(0, cardLimitForPage(page, cards));
   const gridClass = [
     page.visual === "showcase" ? "timeline-showcase" : "timeline-card-grid",
@@ -7868,7 +8625,7 @@ function DesignedLessonSlide({ module, page }: { module: CourseModule; page: Des
     .join(" ");
 
   return (
-    <article className={`lesson-canvas timeline-slide accent-${page.accent || "mint"} visual-${page.visual || "cards"}`}>
+    <article className={`lesson-canvas timeline-slide accent-${page.accent || "mint"} visual-${page.visual || "cards"} module-${module.id}`}>
       <div className="timeline-copy">
         <small>{page.kicker || `${module.time_range || `D${module.day}`} · ${pageTypeLabel(page.page_type)}`}</small>
         <h2>{page.title}</h2>
@@ -7878,8 +8635,25 @@ function DesignedLessonSlide({ module, page }: { module: CourseModule; page: Des
             <span key={chip}>{chip}</span>
           ))}
         </div>
+        <div className="lesson-beat-strip" aria-label="教学节奏">
+          {isKnowledgePage ? (
+            <>
+              <span className={beat === "story" ? "active" : ""}>故事开场</span>
+              <span className={beat === "demo" ? "active" : ""}>老师演示</span>
+              <span className={beat === "experiment" ? "active" : ""}>轮到你实验</span>
+              {beat === "showcase" && <span className="active">看结果</span>}
+            </>
+          ) : (
+            <>
+              <span className={pblStep === "discussion" ? "active" : ""}>团队讨论</span>
+              <span className={pblStep === "output" ? "active" : ""}>小组产出</span>
+              <span className={pblStep === "coaching" ? "active" : ""}>老师巡场</span>
+              {pblStep === "showcase" && <span className="active">展示结果</span>}
+            </>
+          )}
+        </div>
       </div>
-      <div className="timeline-visual" aria-label={`${module.title}课件视觉区`}>
+      <div className={isAiPrincipleModule ? "timeline-visual ai-principle-visual-shell" : "timeline-visual"} aria-label={`${module.title}课件视觉区`}>
         <div className="timeline-visual-head">
           <span>
             <Icon size={24} />
@@ -7887,7 +8661,9 @@ function DesignedLessonSlide({ module, page }: { module: CourseModule; page: Des
           </span>
           <strong>{String(page.page_no).padStart(2, "0")}</strong>
         </div>
-        {artifactKind ? (
+        {isAiPrincipleModule ? (
+          <AiPrincipleVisual page={page} />
+        ) : artifactKind ? (
           <LessonArtifact kind={artifactKind} page={page} cards={visibleCards} steps={steps} />
         ) : page.visual === "steps" ? (
           <div className="timeline-steps">
@@ -7910,7 +8686,7 @@ function DesignedLessonSlide({ module, page }: { module: CourseModule; page: Des
         )}
         <div className="timeline-result">
           <Sparkles size={18} />
-          <span>{module.title}</span>
+          <span>{isAiPrincipleModule ? aiPrincipleTakeaway(page) : module.title}</span>
         </div>
       </div>
     </article>
@@ -8072,29 +8848,38 @@ function FuturePhotoStudioSlide({
       <article className="lesson-canvas studio-slide studio-secret">
         <div className="studio-copy compact">
           <span className="studio-kicker">照相馆的秘密</span>
-          <h2>原来是 AI 画出来的</h2>
-          <p>AI 看照片，也看职业词，再画出一张新的未来照片。</p>
+          <h2>AI 同时读了照片和文字</h2>
+          <p>照片给人物线索，职业词给方向，提示词告诉 AI 场景和细节。</p>
         </div>
         <div className="ai-secret-flow">
           <div>
             <Image size={36} />
             <strong>照片</strong>
+            <small>人物线索</small>
           </div>
           <span>+</span>
           <div>
             <Mic size={36} />
             <strong>职业词</strong>
+            <small>方向</small>
+          </div>
+          <span>+</span>
+          <div>
+            <MessageSquareText size={36} />
+            <strong>提示词</strong>
+            <small>场景和细节</small>
           </div>
           <span>=</span>
           <div className="highlight">
             <Sparkles size={40} />
             <strong>新画面</strong>
+            <small>未来想象照</small>
           </div>
         </div>
         <div className="ai-secret-words">
-          <span><strong>大模型</strong>读过很多图和字</span>
-          <span><strong>提示词</strong>告诉 AI 画什么</span>
-          <span><strong>图像生成</strong>把新画面画出来</span>
+          <span><strong>多模态</strong>照片和文字一起进入 AI</span>
+          <span><strong>大模型</strong>根据线索继续生成</span>
+          <span><strong>人来判断</strong>像不像、清不清楚、要不要再改</span>
         </div>
       </article>
     )
@@ -8935,7 +9720,7 @@ function StudentTeamCardTask({
   refresh: () => Promise<void>;
   onLogout: () => void;
 }) {
-  const [teamName, setTeamName] = useState(student.team_name || "");
+  const [teamName, setTeamName] = useState(() => (isClassGroupPlaceholder(student.team_name) ? "" : student.team_name || ""));
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
   const [productDirection, setProductDirection] = useState("");
   const [launchLine, setLaunchLine] = useState("");
@@ -8945,6 +9730,7 @@ function StudentTeamCardTask({
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
   };
+  const { listeningKey, startVoiceInput } = useStudentVoiceInput(showMessage);
 
   useEffect(() => {
     let alive = true;
@@ -8953,13 +9739,14 @@ function StudentTeamCardTask({
         if (!alive) return;
         const latestTeamCard = latestTeamSubmission(workspace, "team_card");
         const members = workspace.team_members.map((member) => member.nickname).filter(Boolean);
+        const savedTeamName = asText(latestTeamCard?.payload.team_name).trim();
+        const assignedTeamName = workspace.team?.name || student.team_name || "";
+        const reusableAssignedTeamName = isClassGroupPlaceholder(assignedTeamName) ? "" : assignedTeamName;
         setTeamMembers(members);
         setTeamName((current) =>
           current.trim() ||
-          asText(latestTeamCard?.payload.team_name).trim() ||
-          workspace.team?.name ||
-          student.team_name ||
-          ""
+          savedTeamName ||
+          reusableAssignedTeamName
         );
         setProductDirection((current) =>
           current.trim() ||
@@ -9020,14 +9807,22 @@ function StudentTeamCardTask({
         <div className="student-card d1-task-card team-card-form">
           <div className="student-current">
             <div>
-              <span>团队</span>
-              <strong>{teamName || student.team_name || student.nickname}</strong>
+              <span>{teamName ? "团队名" : "分组"}</span>
+              <strong>{teamName || student.team_name || "还在分组"}</strong>
               <small>{teamMembers.length ? teamMembers.join("、") : student.username}</small>
             </div>
             <button className="text-button" onClick={onLogout}>退出</button>
           </div>
           <label>
-            团队名
+            <span className="field-helper-row">
+              <span>团队名</span>
+              <FieldVoiceButton
+                fieldKey="team-name"
+                label="说团队名"
+                listeningKey={listeningKey}
+                onStart={() => startVoiceInput("team-name", setTeamName)}
+              />
+            </span>
             <input
               value={teamName}
               onChange={(event) => setTeamName(event.target.value)}
@@ -9043,7 +9838,15 @@ function StudentTeamCardTask({
             </div>
           )}
           <label>
-            产品方向
+            <span className="field-helper-row">
+              <span>产品方向</span>
+              <FieldVoiceButton
+                fieldKey="product-direction"
+                label="说方向"
+                listeningKey={listeningKey}
+                onStart={() => startVoiceInput("product-direction", setProductDirection)}
+              />
+            </span>
             <textarea
               value={productDirection}
               onChange={(event) => setProductDirection(event.target.value)}
@@ -9052,7 +9855,15 @@ function StudentTeamCardTask({
             />
           </label>
           <label>
-            一句话亮相
+            <span className="field-helper-row">
+              <span>一句话亮相</span>
+              <FieldVoiceButton
+                fieldKey="launch-line"
+                label="说一句"
+                listeningKey={listeningKey}
+                onStart={() => startVoiceInput("launch-line", setLaunchLine)}
+              />
+            </span>
             <textarea
               value={launchLine}
               onChange={(event) => setLaunchLine(event.target.value)}
@@ -9073,7 +9884,7 @@ function StudentTeamCardTask({
             {submitting ? <Loader2 className="spin" size={18} /> : <UsersRound size={18} />}
             提交
           </button>
-          <p className="hint">成员名单不用改，先把团队想做的方向说清楚。</p>
+          <p className="hint">成员名单不用改，团队名和产品方向由你们讨论后填写。</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -10416,6 +11227,8 @@ function StudentProductDefinitionTask({
   const [coreProblem, setCoreProblem] = useState("");
   const [solution, setSolution] = useState("");
   const [interviewEvidence, setInterviewEvidence] = useState("");
+  const [demandQuestions, setDemandQuestions] = useState("");
+  const [day2Materials, setDay2Materials] = useState("");
   const [problemOptions, setProblemOptions] = useState<WallArtifact[]>([]);
   const [problemVotes, setProblemVotes] = useState<Record<string, number>>({});
   const [teamProblemId, setTeamProblemId] = useState("");
@@ -10423,15 +11236,26 @@ function StudentProductDefinitionTask({
   const [selectedProblemTitle, setSelectedProblemTitle] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
+  const activeTaskTitle = taskTitle || camp?.active_task?.title || "";
+  const isDirectionPlan =
+    /需求收集|方向和行动计划|补齐行动计划|团队讨论|明天先做|团队方向|选择创业方向/.test(activeTaskTitle) ||
+    camp?.active_task?.module_id === "project-launch" ||
+    camp?.active_task?.module_id === "day1-reflection";
   const directionOptions = useMemo(() => productDirectionOptions(track), [track]);
   const oneLiner = useMemo(() => {
-    if (!targetUser.trim() || !useScene.trim() || !coreProblem.trim() || !solution.trim()) return "";
+    if (!targetUser.trim() || !coreProblem.trim() || !solution.trim()) return "";
+    if (isDirectionPlan) {
+      const sceneText = useScene.trim() ? `，在${useScene.trim()}的时候` : "";
+      return `我们想帮${targetUser.trim()}${sceneText}解决${coreProblem.trim()}，明天先做${solution.trim()}。`;
+    }
+    if (!useScene.trim()) return "";
     return `我们想帮${targetUser.trim()}，在${useScene.trim()}的时候解决${coreProblem.trim()}，先做一个可以${solution.trim()}的产品。`;
-  }, [targetUser, useScene, coreProblem, solution]);
+  }, [targetUser, useScene, coreProblem, solution, isDirectionPlan]);
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
   };
+  const { listeningKey, startVoiceInput } = useStudentVoiceInput(showMessage);
 
   useEffect(() => {
     let alive = true;
@@ -10471,10 +11295,26 @@ function StudentProductDefinitionTask({
       .then((workspace) => {
         if (!alive) return;
         const latestTeamCard = latestTeamSubmission(workspace, "team_card");
+        const latestDefinition = latestTeamSubmission(workspace, "product_definition");
         const teamDirection =
+          asText(latestDefinition?.payload.direction).trim() ||
           asText(latestTeamCard?.payload.product_direction).trim() ||
           asText(latestTeamCard?.payload.direction).trim();
         if (teamDirection) setDirection((current) => current.trim() || teamDirection);
+        setProductName((current) => current.trim() || asText(latestDefinition?.payload.product_name).trim());
+        setTrack((current) => current.trim() || asText(latestDefinition?.payload.track).trim());
+        setTargetUser((current) => current.trim() || asText(latestDefinition?.payload.target_user).trim());
+        setUseScene((current) => current.trim() || asText(latestDefinition?.payload.use_scene).trim());
+        setCoreProblem((current) => current.trim() || asText(latestDefinition?.payload.core_problem).trim());
+        setSolution((current) =>
+          current.trim() ||
+          asText(latestDefinition?.payload.day2_first_step).trim() ||
+          asText(latestDefinition?.payload.core_action).trim() ||
+          asText(latestDefinition?.payload.solution).trim()
+        );
+        setInterviewEvidence((current) => current.trim() || asText(latestDefinition?.payload.interview_evidence).trim());
+        setDemandQuestions((current) => current.trim() || asText(latestDefinition?.payload.demand_questions).trim());
+        setDay2Materials((current) => current.trim() || asText(latestDefinition?.payload.day2_materials).trim());
       })
       .catch(() => undefined);
     return () => {
@@ -10497,7 +11337,7 @@ function StudentProductDefinitionTask({
   };
 
   const submit = async () => {
-    if (!productName.trim()) {
+    if (!isDirectionPlan && !productName.trim()) {
       showMessage("error", "先给产品起一个名字。");
       return;
     }
@@ -10513,7 +11353,7 @@ function StudentProductDefinitionTask({
       showMessage("error", "写清楚这个产品帮谁。");
       return;
     }
-    if (!useScene.trim()) {
+    if (!isDirectionPlan && !useScene.trim()) {
       showMessage("error", "写清楚这个人在哪个场景里会用。");
       return;
     }
@@ -10525,6 +11365,14 @@ function StudentProductDefinitionTask({
       showMessage("error", "写清楚明天先做的核心动作。");
       return;
     }
+    if (isDirectionPlan && !demandQuestions.trim()) {
+      showMessage("error", "写下接下来要问谁、问什么。");
+      return;
+    }
+    const finalProductName = productName.trim() || `${direction.trim()}方向`;
+    const finalOneLiner =
+      oneLiner ||
+      `我们想帮${targetUser.trim()}解决${coreProblem.trim()}，明天先做${solution.trim()}。`;
     setSubmitting(true);
     setMessage(null);
     try {
@@ -10532,7 +11380,8 @@ function StudentProductDefinitionTask({
         task_type: "product_definition",
         title: taskTitle,
         payload: {
-          product_name: productName.trim(),
+          definition_stage: isDirectionPlan ? "day1_direction_plan" : "product_definition",
+          product_name: finalProductName,
           track: track.trim(),
           track_label: productTrackLabel(track),
           direction: direction.trim(),
@@ -10541,25 +11390,38 @@ function StudentProductDefinitionTask({
           core_problem: coreProblem.trim(),
           core_action: solution.trim(),
           solution: solution.trim(),
+          demand_target: targetUser.trim(),
+          demand_questions: demandQuestions.trim(),
+          day2_materials: day2Materials.trim(),
+          day2_first_step: solution.trim(),
+          action_plan: [
+            demandQuestions.trim() ? `需求：${demandQuestions.trim()}` : "",
+            day2Materials.trim() ? `材料：${day2Materials.trim()}` : "",
+            solution.trim() ? `先做：${solution.trim()}` : ""
+          ].filter(Boolean).join("；"),
           interview_evidence: interviewEvidence.trim(),
-          one_liner: oneLiner,
+          one_liner: finalOneLiner,
           source_problem_id: selectedProblemId,
           source_problem_title: selectedProblemTitle,
           source_problem_votes: selectedProblemId ? problemVotes[selectedProblemId] ?? 0 : 0,
           team_name: student.team_name || ""
         }
       });
-      showMessage("success", "收到啦。这句话可以变成你们的第一张产品卡。");
-      setProductName("");
-      setTrack("");
-      setDirection("");
-      setTargetUser("");
-      setUseScene("");
-      setCoreProblem("");
-      setSolution("");
-      setInterviewEvidence("");
-      setSelectedProblemId("");
-      setSelectedProblemTitle("");
+      showMessage("success", isDirectionPlan ? "收到啦。你们的方向和行动计划可以放到方向墙。" : "收到啦。这句话可以变成你们的第一张产品卡。");
+      if (!isDirectionPlan) {
+        setProductName("");
+        setTrack("");
+        setDirection("");
+        setTargetUser("");
+        setUseScene("");
+        setCoreProblem("");
+        setSolution("");
+        setInterviewEvidence("");
+        setDemandQuestions("");
+        setDay2Materials("");
+        setSelectedProblemId("");
+        setSelectedProblemTitle("");
+      }
       await refresh();
     } catch (err) {
       showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
@@ -10572,8 +11434,8 @@ function StudentProductDefinitionTask({
     <main className="student-page">
       <section className="student-shell">
         <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
-        <h1>{taskTitle || "写出产品一句话"}</h1>
-        <p>把小组想做的产品，说成别人一眼能懂的一句话。</p>
+        <h1>{taskTitle || (isDirectionPlan ? "方向和行动计划卡" : "写出产品一句话")}</h1>
+        <p>{isDirectionPlan ? "先确定团队方向，再写清接下来要问谁、问什么、明天先做哪一步。" : "把小组想做的产品，说成别人一眼能懂的一句话。"}</p>
         <div className="student-card d1-task-card">
           <div className="student-current">
             <div>
@@ -10583,7 +11445,7 @@ function StudentProductDefinitionTask({
             </div>
             <button className="text-button" onClick={onLogout}>退出</button>
           </div>
-          {problemOptions.length > 0 && (
+          {!isDirectionPlan && problemOptions.length > 0 && (
             <div className="product-source-panel">
               <span>可以从前面的问题线索带入</span>
               <div className="product-source-options">
@@ -10599,7 +11461,7 @@ function StudentProductDefinitionTask({
                       key={item.id}
                       onClick={() => useProblemOption(item)}
                     >
-                      <small>{item.id === teamProblemId ? "本组定题" : sameTeam ? "我们的问题卡" : votes > 0 ? `${votes} 票线索` : "问题线索"}</small>
+                      <small>{item.id === teamProblemId ? "本组线索" : sameTeam ? "我们的问题卡" : votes > 0 ? `${votes} 票线索` : "问题线索"}</small>
                       <strong>{title}</strong>
                       <em>{asText(item.payload.target_user) || "真实用户"}</em>
                     </button>
@@ -10628,7 +11490,15 @@ function StudentProductDefinitionTask({
             </div>
           </div>
           <label>
-            具体方向
+            <span className="field-helper-row">
+              <span>{isDirectionPlan ? "团队方向" : "具体方向"}</span>
+              <FieldVoiceButton
+                fieldKey="definition-direction"
+                label="说方向"
+                listeningKey={listeningKey}
+                onStart={() => startVoiceInput("definition-direction", setDirection)}
+              />
+            </span>
             <input
               value={direction}
               onChange={(event) => setDirection(event.target.value)}
@@ -10642,17 +11512,27 @@ function StudentProductDefinitionTask({
               ))}
             </datalist>
           </label>
+          {!isDirectionPlan && (
+            <label>
+              产品名
+              <input
+                value={productName}
+                onChange={(event) => setProductName(event.target.value)}
+                placeholder="例如：午餐选择器"
+                inputMode="text"
+              />
+            </label>
+          )}
           <label>
-            产品名
-            <input
-              value={productName}
-              onChange={(event) => setProductName(event.target.value)}
-              placeholder="例如：午餐选择器"
-              inputMode="text"
-            />
-          </label>
-          <label>
-            这个产品帮谁
+            <span className="field-helper-row">
+              <span>想帮谁</span>
+              <FieldVoiceButton
+                fieldKey="target-user"
+                label="说用户"
+                listeningKey={listeningKey}
+                onStart={() => startVoiceInput("target-user", setTargetUser)}
+              />
+            </span>
             <input
               value={targetUser}
               onChange={(event) => setTargetUser(event.target.value)}
@@ -10661,7 +11541,15 @@ function StudentProductDefinitionTask({
             />
           </label>
           <label>
-            发生场景
+            <span className="field-helper-row">
+              <span>{isDirectionPlan ? "发生场景（可选）" : "发生场景"}</span>
+              <FieldVoiceButton
+                fieldKey="use-scene"
+                label="说场景"
+                listeningKey={listeningKey}
+                onStart={() => startVoiceInput("use-scene", setUseScene)}
+              />
+            </span>
             <input
               value={useScene}
               onChange={(event) => setUseScene(event.target.value)}
@@ -10670,7 +11558,15 @@ function StudentProductDefinitionTask({
             />
           </label>
           <label>
-            这个场景里有什么麻烦
+            <span className="field-helper-row">
+              <span>现在卡在哪</span>
+              <FieldVoiceButton
+                fieldKey="core-problem"
+                label="说麻烦"
+                listeningKey={listeningKey}
+                onStart={() => startVoiceInput("core-problem", setCoreProblem)}
+              />
+            </span>
             <textarea
               value={coreProblem}
               onChange={(event) => setCoreProblem(event.target.value)}
@@ -10678,17 +11574,64 @@ function StudentProductDefinitionTask({
               rows={3}
             />
           </label>
+          {isDirectionPlan ? (
+            <>
+              <label>
+                <span className="field-helper-row">
+                  <span>接下来要问/收集什么</span>
+                  <FieldVoiceButton
+                    fieldKey="demand-questions"
+                    label="说计划"
+                    listeningKey={listeningKey}
+                    onStart={() => startVoiceInput("demand-questions", setDemandQuestions)}
+                  />
+                </span>
+                <textarea
+                  value={demandQuestions}
+                  onChange={(event) => setDemandQuestions(event.target.value)}
+                  placeholder="例如：问 5 个同学午饭前怎么选、最纠结什么、愿不愿意试用"
+                  rows={3}
+                />
+              </label>
+              <label>
+                <span className="field-helper-row">
+                  <span>明天带回什么（可选）</span>
+                  <FieldVoiceButton
+                    fieldKey="day2-materials"
+                    label="说材料"
+                    listeningKey={listeningKey}
+                    onStart={() => startVoiceInput("day2-materials", setDay2Materials)}
+                  />
+                </span>
+                <textarea
+                  value={day2Materials}
+                  onChange={(event) => setDay2Materials(event.target.value)}
+                  placeholder="例如：3 句话、2 张截图、1 个真实例子"
+                  rows={2}
+                />
+              </label>
+            </>
+          ) : (
+            <label>
+              采访证据
+              <textarea
+                value={interviewEvidence}
+                onChange={(event) => setInterviewEvidence(event.target.value)}
+                placeholder="例如：有同学说，每次排队前都想先知道哪一队更快"
+                rows={2}
+              />
+            </label>
+          )}
           <label>
-            采访证据
-            <textarea
-              value={interviewEvidence}
-              onChange={(event) => setInterviewEvidence(event.target.value)}
-              placeholder="例如：有同学说，每次排队前都想先知道哪一队更快"
-              rows={2}
-            />
-          </label>
-          <label>
-            明天先做的核心动作
+            <span className="field-helper-row">
+              <span>{isDirectionPlan ? "明天先做哪一步" : "明天先做的核心动作"}</span>
+              <FieldVoiceButton
+                fieldKey="solution"
+                label="说一步"
+                listeningKey={listeningKey}
+                onStart={() => startVoiceInput("solution", setSolution)}
+              />
+            </span>
             <textarea
               value={solution}
               onChange={(event) => setSolution(event.target.value)}
@@ -10697,18 +11640,20 @@ function StudentProductDefinitionTask({
             />
           </label>
           <div className="product-sentence-preview">
-            <span>产品一句话</span>
-            <strong>{oneLiner || "填完用户、场景、麻烦和核心动作，这里会出现一句完整介绍。"}</strong>
+            <span>{isDirectionPlan ? "方向和行动计划" : "产品一句话"}</span>
+            <strong>{oneLiner || (isDirectionPlan ? "填完用户、麻烦和明天先做哪一步，这里会出现行动计划。" : "填完用户、场景、麻烦和核心动作，这里会出现一句完整介绍。")}</strong>
             {[productTrackLabel(track), direction].filter(Boolean).length > 0 && (
               <small>{[productTrackLabel(track), direction].filter(Boolean).join(" · ")}</small>
             )}
+            {isDirectionPlan && demandQuestions.trim() && <small>接下来要问：{demandQuestions.trim()}</small>}
+            {isDirectionPlan && day2Materials.trim() && <small>明天带回：{day2Materials.trim()}</small>}
             {selectedProblemTitle && <small>来自线索：{selectedProblemTitle}</small>}
           </div>
           <button className="submit-button" disabled={submitting} onClick={submit}>
             {submitting ? <Loader2 className="spin" size={18} /> : <Target size={18} />}
             提交
           </button>
-          <p className="hint">先写一个真正会用的人，再让一个动作先跑起来。</p>
+          <p className="hint">{isDirectionPlan ? "能说短句就不用写长段。先把方向说清楚，明天就能开工。" : "先写一个真正会用的人，再让一个动作先跑起来。"}</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -10858,6 +11803,7 @@ function StudentLearningReflectionTask({
 }) {
   const title = taskTitle || "带走一个 AI 判断方法";
   const isAiFix = /AI 跑偏|改回来|修正/.test(title) || camp?.active_task?.module_id === "demo-check";
+  const isAiDialog = camp?.active_task?.module_id === "ai-judgement" || /DeepSeek|任务单|问真人|问同学|回答怎么用/.test(title);
   const [moment, setMoment] = useState("");
   const [method, setMethod] = useState("");
   const [nextUse, setNextUse] = useState("");
@@ -10870,7 +11816,7 @@ function StudentLearningReflectionTask({
 
   const submit = async () => {
     if (!method.trim()) {
-      showMessage("error", isAiFix ? "写下一个让 AI 改回来的方法。" : "写下一条今天最有用的判断方法。");
+      showMessage("error", isAiDialog ? "写下 AI 回答里能帮小组继续讨论的一句。" : isAiFix ? "写下一个让 AI 改回来的方法。" : "写下一条今天最有用的判断方法。");
       return;
     }
     setSubmitting(true);
@@ -10880,7 +11826,7 @@ function StudentLearningReflectionTask({
         task_type: "learning_reflection",
         title,
         payload: {
-          reflection_kind: isAiFix ? "day2_ai_fix" : "day1_ai_rule",
+          reflection_kind: isAiDialog ? "day1_ai_dialog" : isAiFix ? "day2_ai_fix" : "day1_ai_rule",
           moment: moment.trim(),
           method: method.trim(),
           next_use: nextUse.trim(),
@@ -10888,7 +11834,7 @@ function StudentLearningReflectionTask({
           team_name: student.team_name || ""
         }
       });
-      showMessage("success", "收到啦。这个方法会留在你的项目路上。");
+      showMessage("success", isAiDialog ? "收到啦。这条线索可以带进团队讨论。" : "收到啦。这个方法会留在你的项目路上。");
       setMoment("");
       setMethod("");
       setNextUse("");
@@ -10905,40 +11851,40 @@ function StudentLearningReflectionTask({
       <section className="student-shell">
         <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
         <h1>{title}</h1>
-        <p>{isAiFix ? "回想今天制作时，AI 哪次没听懂？你怎样让它改回来？" : "把今天最有用的一条 AI 判断方法带走。"}</p>
+        <p>{isAiDialog ? "把 DeepSeek 帮你想到的线索，变成下一步能讨论的材料。" : isAiFix ? "回想今天制作时，AI 哪次没听懂？你怎样让它改回来？" : "把今天最有用的一条 AI 判断方法带走。"}</p>
         <div className="student-card growth-reflection-form">
           <div className="student-current">
             <div>
-              <span>{isAiFix ? "修正方法" : "判断方法"}</span>
+              <span>{isAiDialog ? "AI 对话实验" : isAiFix ? "修正方法" : "判断方法"}</span>
               <strong>{student.nickname}</strong>
               <small>{student.team_name || student.username}</small>
             </div>
             <button className="text-button" onClick={onLogout}>退出</button>
           </div>
           <label>
-            {isAiFix ? "AI 跑偏的一刻（可选）" : "今天记住的一刻（可选）"}
+            {isAiDialog ? "我们问 AI 的任务单（可选）" : isAiFix ? "AI 跑偏的一刻（可选）" : "今天记住的一刻（可选）"}
             <input
               value={moment}
               onChange={(event) => setMoment(event.target.value)}
-              placeholder={isAiFix ? "例如：AI 做了很多功能，却没突出核心按钮" : "例如：我发现 AI 的答案听起来很像真的"}
+              placeholder={isAiDialog ? "例如：请你当产品顾问，帮我们看课间活动产品可能帮谁" : isAiFix ? "例如：AI 做了很多功能，却没突出核心按钮" : "例如：我发现 AI 的答案听起来很像真的"}
               inputMode="text"
             />
           </label>
           <label>
-            {isAiFix ? "我让它改回来的方法" : "我会继续使用的判断方法"}
+            {isAiDialog ? "AI 回答里能帮小组的一句" : isAiFix ? "我让它改回来的方法" : "我会继续使用的判断方法"}
             <textarea
               value={method}
               onChange={(event) => setMethod(event.target.value)}
-              placeholder={isAiFix ? "例如：先指出哪里不符合用户，再给一个更清楚的例子" : "例如：先找证据，再相信答案"}
+              placeholder={isAiDialog ? "例如：课间活动最需要帮的是不知道和谁一起玩的同学" : isAiFix ? "例如：先指出哪里不符合用户，再给一个更清楚的例子" : "例如：先找证据，再相信答案"}
               rows={3}
             />
           </label>
           <label>
-            {isAiFix ? "下一次我会怎么说得更清楚（可选）" : "明天我想把它用在哪里（可选）"}
+            {isAiDialog ? "还不确定，要问同学或用户的一句（可选）" : isAiFix ? "下一次我会怎么说得更清楚（可选）" : "明天我想把它用在哪里（可选）"}
             <textarea
               value={nextUse}
               onChange={(event) => setNextUse(event.target.value)}
-              placeholder={isAiFix ? "例如：先告诉 AI 只做一个核心动作" : "例如：采访后让 AI 帮我整理，但我要检查证据"}
+              placeholder={isAiDialog ? "例如：你课间最想有人帮你安排哪一件事？" : isAiFix ? "例如：先告诉 AI 只做一个核心动作" : "例如：采访后让 AI 帮我整理，但我要检查证据"}
               rows={2}
             />
           </label>
@@ -10946,7 +11892,7 @@ function StudentLearningReflectionTask({
             {submitting ? <Loader2 className="spin" size={18} /> : <Brain size={18} />}
             提交
           </button>
-          <p className="hint">好的方法要能下一次继续用。</p>
+          <p className="hint">{isAiDialog ? "AI 可以先给线索，真正的方向还要回到真实用户。" : "好的方法要能下一次继续用。"}</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -13086,6 +14032,9 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   if (!artifacts.length) return null;
   const hasTeam = artifacts.some((item) => item.task_type === "team_card");
   const hasProduct = artifacts.some((item) => item.task_type === "product_definition");
+  const hasDirectionPlan = artifacts.some((item) =>
+    item.task_type === "product_definition" && asText(item.payload.definition_stage) === "day1_direction_plan"
+  );
   const hasPackaging = artifacts.some((item) => item.task_type === "product_packaging");
   const hasPrompt = artifacts.some((item) => item.task_type === "prompt_card");
   const hasFeature = artifacts.some((item) => item.task_type === "feature_scope");
@@ -13098,8 +14047,8 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
   return (
     <section className="wall-artifacts">
       <div className="wall-section-title">
-        <span className="eyebrow">{hasProduct ? "产品卡片" : hasPackaging ? "产品海报" : hasStory ? "故事发布" : hasValue ? "价值交换" : hasIteration ? "迭代清单" : hasTech ? "路线流程" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : hasTeam ? "团队名片" : "真实线索"}</span>
-        <h2>{hasProduct ? "从问题到产品" : hasPackaging ? "一眼看懂作品" : hasStory ? "让大家听懂作品" : hasValue ? "作品为什么值得" : hasIteration ? "把反馈改成下一版" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : hasTeam ? "团队名称和方向" : "问题和用户声音"}</h2>
+        <span className="eyebrow">{hasDirectionPlan ? "方向墙" : hasProduct ? "产品卡片" : hasPackaging ? "产品海报" : hasStory ? "故事发布" : hasValue ? "价值交换" : hasIteration ? "迭代清单" : hasTech ? "路线流程" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : hasTeam ? "团队名片" : "真实线索"}</span>
+        <h2>{hasDirectionPlan ? "每队明天先做什么" : hasProduct ? "从问题到产品" : hasPackaging ? "一眼看懂作品" : hasStory ? "让大家听懂作品" : hasValue ? "作品为什么值得" : hasIteration ? "把反馈改成下一版" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : hasTeam ? "团队名称和方向" : "问题和用户声音"}</h2>
       </div>
       <div className="wall-artifact-grid">
         {artifacts.map((item) => {
@@ -13117,6 +14066,7 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
           const isStory = item.task_type === "story_pitch";
           const qaPairs = isStory ? storyQaPairs(item.payload) : [];
           const trackText = isProduct ? productTrackText(item.payload) : "";
+          const isDirectionPlan = isProduct && asText(item.payload.definition_stage) === "day1_direction_plan";
           const productAction = isProduct ? asText(item.payload.core_action) || asText(item.payload.solution) : "";
           return (
             <article
@@ -13149,10 +14099,12 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
               }
               key={item.id}
             >
-              <span>{isProduct ? "产品卡" : isPackaging ? "产品海报卡" : isStory ? "故事发布卡" : isValue ? "价值卡" : isIteration ? "迭代清单" : isTech ? "路线流程卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : isTeam ? "团队名片" : "用户声音"}</span>
+              <span>{isProduct ? isDirectionPlan ? "方向计划" : "产品卡" : isPackaging ? "产品海报卡" : isStory ? "故事发布卡" : isValue ? "价值卡" : isIteration ? "迭代清单" : isTech ? "路线流程卡" : isFeature ? "核心动作卡" : isPrompt ? "提示词卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : isProblem ? "问题卡" : isTeam ? "团队名片" : "用户声音"}</span>
               <strong>
                 {isProduct
-                  ? asText(item.payload.product_name) || "一个产品想法"
+                  ? isDirectionPlan
+                    ? asText(item.payload.direction) || asText(item.payload.product_name) || "一个团队方向"
+                    : asText(item.payload.product_name) || "一个产品想法"
                   : isPackaging
                   ? asText(item.payload.slogan) || asText(item.payload.product_name) || "一张产品海报"
                   : isStory
@@ -13178,15 +14130,26 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
                   : asText(item.payload.interviewee) || "一次真实采访"}
               </strong>
               {isProduct ? (
-                <>
-                  <p><b>赛道</b>{trackText || "正在选择"}</p>
-                  <p><b>帮谁</b>{asText(item.payload.target_user) || "还没写"}</p>
-                  <p><b>场景</b>{asText(item.payload.use_scene) || "还没写"}</p>
-                  <p><b>问题</b>{asText(item.payload.core_problem) || "还没写"}</p>
-                  <p><b>先做动作</b>{productAction || "还在打磨"}</p>
-                  <p><b>证据</b>{asText(item.payload.interview_evidence) || "还在收集"}</p>
-                  <p><b>一句话</b>{asText(item.payload.one_liner) || "还在打磨"}</p>
-                </>
+                isDirectionPlan ? (
+                  <>
+                    <p><b>赛道</b>{trackText || "正在选择"}</p>
+                    <p><b>帮谁</b>{asText(item.payload.target_user) || "还没写"}</p>
+                    <p><b>卡在哪</b>{asText(item.payload.core_problem) || "还没写"}</p>
+                    <p><b>要问什么</b>{asText(item.payload.demand_questions) || "还在准备"}</p>
+                    <p><b>明天带回</b>{asText(item.payload.day2_materials) || "可以继续补"}</p>
+                    <p><b>明天先做</b>{asText(item.payload.day2_first_step) || productAction || "还在打磨"}</p>
+                  </>
+                ) : (
+                  <>
+                    <p><b>赛道</b>{trackText || "正在选择"}</p>
+                    <p><b>帮谁</b>{asText(item.payload.target_user) || "还没写"}</p>
+                    <p><b>场景</b>{asText(item.payload.use_scene) || "还没写"}</p>
+                    <p><b>问题</b>{asText(item.payload.core_problem) || "还没写"}</p>
+                    <p><b>先做动作</b>{productAction || "还在打磨"}</p>
+                    <p><b>证据</b>{asText(item.payload.interview_evidence) || "还在收集"}</p>
+                    <p><b>一句话</b>{asText(item.payload.one_liner) || "还在打磨"}</p>
+                  </>
+                )
               ) : isPackaging ? (
                 <>
                   {asText(item.payload.poster_url) && (
