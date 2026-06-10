@@ -444,7 +444,7 @@ const aiJudgementSketchnoteSlides: Array<{
     title: "AI 是一个会学习的大脑",
     content_summary: "AI 能读文字、看图片、听声音，像电脑里的聪明大脑。",
     page_type: "story",
-    image: "01-slide-ai-brain.png",
+    image: "01-slide-ai-brain.webp",
     alt: "手绘课件：机器人脑袋里有会学习的大脑，旁边标出能读文字、能看图片、能听声音"
   },
   {
@@ -452,7 +452,7 @@ const aiJudgementSketchnoteSlides: Array<{
     title: "你给它任务，它开始工作",
     content_summary: "孩子写下任务纸条，AI 收到线索后开始生成结果。",
     page_type: "story",
-    image: "02-slide-task-starts.png",
+    image: "02-slide-task-starts.webp",
     alt: "手绘课件：孩子把任务纸条送进 AI 大脑，AI 开始工作"
   },
   {
@@ -460,7 +460,7 @@ const aiJudgementSketchnoteSlides: Array<{
     title: "照片也是线索",
     content_summary: "照片里的人物、表情、姿势，也能成为 AI 看懂的线索。",
     page_type: "demo",
-    image: "03-slide-photo-clue.png",
+    image: "03-slide-photo-clue.webp",
     alt: "手绘课件：AI 用放大镜看照片里的人物、表情和姿势"
   },
   {
@@ -468,7 +468,7 @@ const aiJudgementSketchnoteSlides: Array<{
     title: "它以前看过很多例子",
     content_summary: "AI 学过很多照片、职业照、工具和场景，所以能按线索画新图。",
     page_type: "demo",
-    image: "04-slide-many-examples.png",
+    image: "04-slide-many-examples.webp",
     alt: "手绘课件：AI 大脑周围围着很多职业和场景例子"
   },
   {
@@ -476,7 +476,7 @@ const aiJudgementSketchnoteSlides: Array<{
     title: "三张线索卡，画出新画面",
     content_summary: "照片、职业、任务三张线索卡一起进入 AI，得到新的未来画面。",
     page_type: "demo",
-    image: "05-slide-three-clues.png",
+    image: "05-slide-three-clues.webp",
     alt: "手绘课件：照片、职业、任务三张线索卡进入 AI，生成一张新的未来职业图"
   },
   {
@@ -484,7 +484,7 @@ const aiJudgementSketchnoteSlides: Array<{
     title: "说清楚，AI 才好帮你",
     content_summary: "太短的问题容易跑偏，把职业、地点和动作说清楚，结果会更好。",
     page_type: "demo",
-    image: "06-slide-clear-task.png",
+    image: "06-slide-clear-task.webp",
     alt: "手绘课件：对比太短的任务和说清楚的任务，右侧画面更具体"
   },
   {
@@ -492,7 +492,7 @@ const aiJudgementSketchnoteSlides: Array<{
     title: "AI 画完，人来做导演",
     content_summary: "AI 给出结果后，孩子继续看线索、选一张、再修改。",
     page_type: "demo",
-    image: "07-slide-human-director.png",
+    image: "07-slide-human-director.webp",
     alt: "手绘课件：孩子像导演一样看 AI 生成的几张图，圈出线索并准备修改"
   },
   {
@@ -500,7 +500,7 @@ const aiJudgementSketchnoteSlides: Array<{
     title: "先说清楚，让 AI 画一张",
     content_summary: "把想画谁、在哪里、正在做什么说清楚，再让 AI 画第一张。",
     page_type: "experiment",
-    image: "08-slide-first-image-task.png",
+    image: "08-slide-first-image-task.webp",
     alt: "手绘课件：用未来的我、动物医院、给小狗检查三个信息组成清楚任务"
   },
   {
@@ -508,7 +508,7 @@ const aiJudgementSketchnoteSlides: Array<{
     title: "找茬儿：这张图哪里怪？",
     content_summary: "孩子找出图里的小问题，再告诉 AI 改哪里、看新版。",
     page_type: "experiment",
-    image: "09-slide-find-odd-details.png",
+    image: "09-slide-find-odd-details.webp",
     alt: "手绘课件：孩子在 AI 第一张图里找出问题，并写便签让 AI 修改"
   }
 ];
