@@ -41,11 +41,11 @@ Source file: `source-day1-ai-basics-sketchnote.md`
 5. 提示词就是任务纸条。
 6. AI 生成结果后，人来判断和修改。
 7. 单独实验：孩子试着把模糊想法改成清楚的出图任务单。
-8. 找茬儿任务：AI 第一张图里有几处不对劲，孩子自己发现问题，再告诉 AI 改哪里。
+8. 找茬儿任务：几张 AI 第一版图里有明显逻辑错误，孩子自己发现问题，再告诉 AI 改哪里。
 
 ## Scope Boundary
 
-第 8-9 页保留为独立出图实验页。前 7 页讲 AI 如何读线索并生成未来职业照；第 8 页让孩子体验一次“给 AI 清楚线索，看看它能画出什么”；第 9 页设计成“找茬儿任务”：AI 第一张图里故意有几处不对劲，孩子自己发现问题，一处一处告诉 AI 修改。
+第 8-9 页保留为独立出图实验页。前 7 页讲 AI 如何读线索并生成未来职业照；第 8 页让孩子体验一次“给 AI 清楚线索，看看它能画出什么”；第 9 页设计成“找茬儿任务”：几张 AI 第一版图里故意有明显逻辑错误，孩子自己发现问题，一处一处告诉 AI 修改。
 
 ## Text Risk Notes
 
@@ -69,7 +69,7 @@ Visible copy checks:
 - No teacher-control, backend, deployment, or product-planning language in the whitelist.
 - No创业方向三问 or software/tool-operation jump in the whitelist.
 - Child-facing phrases use concrete classroom actions: 看、说、画、找、圈、告诉 AI、看新版。
-- More child-natural wording has been preferred: `长大后的职业照`, `动物医院`, `房间可以再亮一点`。
+- More child-natural wording has been preferred: `长大后的职业照`, `动物医院`, `AI 画错了哪里`。
 
 ## Production Status
 

@@ -252,20 +252,21 @@ Vague note left, clear task card center, AI brain and first image right. Keep vi
 Create a find-the-problem task that naturally makes children ask AI for more changes.
 
 // KEY CONTENT
-Headline: 找茬儿：这张图哪里怪？
+Headline: 找茬儿：AI 画错了哪里？
 Body:
 - 找一找
-- 告诉 AI
+- 说清楚
 - 看新版
-- 这张图里藏着 3 个小问题。
-- 我想把小狗换成海龟。
-- 医生少了听诊器。
-- 房间可以再亮一点。
+- 先圈出来，再告诉 AI：哪里不对，想改成什么。
+- 把 ___ 改成 ___
+- 加上 ___
+- 让 ___ 更合理
+- 发现一处
+- 就让 AI 改一处
 
 // VISUAL
-Show one AI first draft future career picture with three easy-to-spot issues: the animal is a puppy but the child wanted a turtle, the doctor has no stethoscope, and the room is a little dark. A child circles one issue with a red marker and adds a sticky note asking to change the puppy into a turtle. A small improved thumbnail appears in the corner.
+Show three AI first draft future career pictures with clear logical mistakes children can spot quickly: a goldfish is lying on a clinic table without water, a moon house has no door and has open windows, and ice cream is being baked in an oven. Each picture should have a red circle around the strange part.
 
 // LAYOUT
 Layout: annotated-task
 Large picture in center, three circled problem spots, sticky note on side, small improved version in corner. Make it feel like a game, not a checklist.
-

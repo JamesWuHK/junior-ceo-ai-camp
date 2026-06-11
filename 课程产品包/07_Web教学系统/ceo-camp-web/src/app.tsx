@@ -506,11 +506,11 @@ const aiJudgementSketchnoteSlides: Array<{
   },
   {
     page_no: 9,
-    title: "找茬儿：这张图哪里怪？",
-    content_summary: "孩子找出图里的小问题，再告诉 AI 改哪里、看新版。",
+    title: "找茬儿：AI 画错了哪里？",
+    content_summary: "孩子从几张明显不合理的 AI 第一版里找问题，再告诉 AI 怎么改。",
     page_type: "experiment",
-    image: "09-slide-find-odd-details.webp",
-    alt: "手绘课件：孩子在 AI 第一张图里找出问题，并写便签让 AI 修改"
+    image: "09-slide-find-odd-details.webp?v=logic-errors-20260611",
+    alt: "手绘课件：三张 AI 第一版未来职业图里有鱼离开水、月球房子没门、冰淇淋进烤箱等明显错误，孩子圈出问题让 AI 修改"
   }
 ];
 
