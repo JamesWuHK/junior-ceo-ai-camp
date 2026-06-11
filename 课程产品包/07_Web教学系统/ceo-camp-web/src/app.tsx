@@ -1073,7 +1073,7 @@ function coursewarePages(module: CourseModule | null | undefined): DesignedLesso
     page_type: "story",
     activity_buttons: []
   };
-  return ([
+  return [
     {
       ...base,
       id: "future-photo-story",
@@ -1110,13 +1110,7 @@ function coursewarePages(module: CourseModule | null | undefined): DesignedLesso
       activity_buttons: ["投屏展示", "打开看板"],
       content_summary: "全班的未来照片一张张点亮"
     }
-  ] as DesignedLessonPage[]).concat(
-    sketchnoteLessonPages(module, base, {
-      idPrefix: "future-photo-ai-sketchnote",
-      pageOffset: 4,
-      kickerLead: "照片墙之后"
-    })
-  );
+  ] as DesignedLessonPage[];
 }
 
 function lessonPageTitle(module: CourseModule | null | undefined, page: DesignedLessonPage) {
