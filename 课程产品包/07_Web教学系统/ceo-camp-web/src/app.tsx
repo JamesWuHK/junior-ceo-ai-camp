@@ -18,6 +18,7 @@ import {
   LogOut,
   Maximize2,
   Megaphone,
+  Menu,
   MessageSquareText,
   Mic,
   Monitor,
@@ -3253,11 +3254,11 @@ function TeacherApp({
           camp={camp}
           students={students}
           teacher={teacher}
+          active={view}
           onLogout={() => {
             onLoggedOut();
           }}
         />
-        <TeacherFunctionLinks active={view} />
         {view === "lesson" ? (
           <section className="lesson-panel">
             <div className="lesson-title">
@@ -3328,17 +3329,23 @@ function TeacherApp({
 
 function TeacherFunctionLinks({ active }: { active: TeacherView }) {
   return (
-    <nav className="teacher-page-nav" aria-label="教师功能页">
-      {teacherViewLinks.map((item) => {
-        const meta = teacherViewMeta[item.key];
-        return (
-          <a key={item.key} className={active === item.key ? "active" : ""} href={meta.href}>
-            {item.icon}
-            <span>{meta.label}</span>
-          </a>
-        );
-      })}
-    </nav>
+    <details className="teacher-system-menu">
+      <summary aria-label="打开系统菜单">
+        <Menu size={18} />
+        <span>系统菜单</span>
+      </summary>
+      <nav className="teacher-system-menu-panel" aria-label="系统菜单">
+        {teacherViewLinks.map((item) => {
+          const meta = teacherViewMeta[item.key];
+          return (
+            <a key={item.key} className={active === item.key ? "active" : ""} href={meta.href}>
+              {item.icon}
+              <span>{meta.label}</span>
+            </a>
+          );
+        })}
+      </nav>
+    </details>
   );
 }
 
@@ -6868,11 +6875,13 @@ function TeacherHeader({
   camp,
   students,
   teacher,
+  active,
   onLogout
 }: {
   camp: Camp | null;
   students: Student[];
   teacher: TeacherAccount | null;
+  active: TeacherView;
   onLogout: () => void;
 }) {
   const counts = {
@@ -6896,6 +6905,7 @@ function TeacherHeader({
         </div>
         <div className="header-actions">
           <span className="teacher-badge">{teacher?.display_name || teacher?.username || "教师"}</span>
+          <TeacherFunctionLinks active={active} />
           <a className="icon-link" href="/wall" target="_blank" rel="noreferrer">
             <Monitor size={18} />
             大屏
