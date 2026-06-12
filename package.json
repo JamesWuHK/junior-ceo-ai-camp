@@ -33,6 +33,8 @@
     "seo:geo:readiness": "node scripts/seo/baidu-seo.mjs geo-readiness",
     "seo:weekly-priority": "node scripts/seo/baidu-seo.mjs weekly-priority",
     "seo:baidu:weekly-priority": "node scripts/seo/baidu-seo.mjs weekly-priority",
+    "seo:weekly-import": "node scripts/seo/baidu-seo.mjs measurements-import --source seo/baidu-weekly-measurements.csv --allow-partial --merge-existing",
+    "seo:baidu:weekly-import": "node scripts/seo/baidu-seo.mjs measurements-import --source seo/baidu-weekly-measurements.csv --allow-partial --merge-existing",
     "seo:submission": "node scripts/seo/baidu-seo.mjs submission",
     "seo:baidu:submission": "node scripts/seo/baidu-seo.mjs submission",
     "seo:submit-list": "node scripts/seo/baidu-seo.mjs submit-list",

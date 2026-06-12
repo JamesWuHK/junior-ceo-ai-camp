@@ -21,6 +21,7 @@ const RANK_PLAN_REPORT_FILE = 'reports/seo-baidu-rank-plan.md';
 const GEO_PROMPT_REPORT_FILE = 'reports/seo-geo-answer-prompts.md';
 const GEO_READINESS_REPORT_FILE = 'reports/seo-geo-readiness.md';
 const WEEKLY_PRIORITY_REPORT_FILE = 'reports/seo-weekly-priority.md';
+const WEEKLY_PRIORITY_CHECKLIST_CSV_FILE = 'reports/seo-weekly-priority-checklist.csv';
 const BAIDU_EVIDENCE_REPORT_FILE = 'reports/seo-baidu-evidence.md';
 const BAIDU_SUBMISSION_REPORT_FILE = 'reports/seo-baidu-submission.md';
 const BAIDU_MANUAL_SUBMIT_FILE = 'reports/seo-baidu-submit-urls.txt';
@@ -30,6 +31,7 @@ const MEASUREMENT_CHECKLIST_CSV_FILE = 'reports/seo-baidu-measurement-checklist.
 const MEASUREMENT_GUIDE_REPORT_FILE = 'reports/seo-baidu-measurement-guide.md';
 const BAIDU_MEASUREMENTS_FILE = 'seo/baidu-measurements.json';
 const BAIDU_MEASUREMENTS_EXAMPLE_FILE = 'seo/baidu-measurements.example.json';
+const WEEKLY_PRIVATE_CHECKLIST_CSV_FILE = 'seo/baidu-weekly-measurements.csv';
 const BAIDU_SUBMISSION_HISTORY_FILE = 'seo/baidu-submit-history.json';
 const SITEMAP_ENTRIES = [
   {
@@ -2296,6 +2298,14 @@ function hasMeasuredValue(value) {
   return Boolean(text && !/^(n\/a|null|unknown|未测|待测)$/i.test(text));
 }
 
+function hasIndexEvidence(record) {
+  return Boolean(record && [
+    record.indexed,
+    record.evidenceDate,
+    record.notes
+  ].some(hasMeasuredValue));
+}
+
 function hasKeywordEvidence(record) {
   return Boolean(record && [
     record.rank,
@@ -2328,6 +2338,94 @@ function hasGeoEvidence(record) {
     record.evidenceDate,
     record.notes
   ].some(hasMeasuredValue));
+}
+
+function filterMeasurementsWithEvidence(measurements) {
+  return {
+    ...measurements,
+    indexedUrls: arrayFrom(measurements.indexedUrls).filter(hasIndexEvidence),
+    urlMetrics: arrayFrom(measurements.urlMetrics).filter(hasUrlMetricEvidence),
+    keywordRankings: arrayFrom(measurements.keywordRankings).filter(hasKeywordEvidence),
+    geoAnswers: arrayFrom(measurements.geoAnswers).filter(hasGeoEvidence)
+  };
+}
+
+function measurementCounts(measurements) {
+  return {
+    indexedUrls: arrayFrom(measurements.indexedUrls).length,
+    urlMetrics: arrayFrom(measurements.urlMetrics).length,
+    keywordRankings: arrayFrom(measurements.keywordRankings).length,
+    geoAnswers: arrayFrom(measurements.geoAnswers).length
+  };
+}
+
+function totalMeasurementCount(measurements) {
+  const counts = measurementCounts(measurements);
+  return counts.indexedUrls + counts.urlMetrics + counts.keywordRankings + counts.geoAnswers;
+}
+
+function mergeMeasuredField(baseValue, incomingValue) {
+  return hasMeasuredValue(incomingValue) ? incomingValue : baseValue;
+}
+
+function mergeMeasurementRecord(baseRecord, incomingRecord) {
+  const merged = { ...baseRecord };
+  for (const [key, value] of Object.entries(incomingRecord || {})) {
+    if (['url', 'cluster', 'queryType', 'query', 'targetPage', 'markdownUrl', 'baiduCheckUrl'].includes(key)) {
+      merged[key] = value || merged[key] || '';
+    } else {
+      merged[key] = mergeMeasuredField(merged[key], value);
+    }
+  }
+  return merged;
+}
+
+function mergeRecords(baseRows, incomingRows, keyFn) {
+  const map = new Map();
+  for (const row of arrayFrom(baseRows)) {
+    const key = keyFn(row);
+    if (key) map.set(key, row);
+  }
+  for (const row of arrayFrom(incomingRows)) {
+    const key = keyFn(row);
+    if (!key) continue;
+    map.set(key, mergeMeasurementRecord(map.get(key) || {}, row));
+  }
+  return Array.from(map.values());
+}
+
+function mergeMeasurements(base, incoming) {
+  return {
+    generatedAt: localDate(),
+    site: SITE_URL,
+    source: 'Merged private Baidu/GEO measurements',
+    measurementLabel: `Merged from partial or full checklist imports into ${BAIDU_MEASUREMENTS_FILE}.`,
+    indexedUrls: mergeRecords(
+      base?.indexedUrls,
+      incoming?.indexedUrls,
+      (row) => normalizeUrlForCompare(row?.url)
+    ),
+    urlMetrics: mergeRecords(
+      base?.urlMetrics,
+      incoming?.urlMetrics,
+      (row) => normalizeUrlForCompare(row?.url)
+    ),
+    keywordRankings: mergeRecords(
+      base?.keywordRankings,
+      incoming?.keywordRankings,
+      (row) => keywordRecordKey(row?.cluster, row?.query, row?.targetPage || row?.pageUrl)
+    ),
+    geoAnswers: mergeRecords(
+      base?.geoAnswers,
+      incoming?.geoAnswers,
+      (row) => geoRecordKey(row?.cluster, row?.query)
+    ),
+    notes: [
+      'Merged by `npm run seo:measurements:import`.',
+      `Weekly partial source is usually ${WEEKLY_PRIVATE_CHECKLIST_CSV_FILE}.`,
+      'Do not commit this private measurements file.'
+    ]
+  };
 }
 
 function baiduEvidenceSnapshot() {
@@ -2814,6 +2912,8 @@ function buildWeeklyPriorityReport({ generatedAt, config, evidenceSnapshot, geoS
     '',
     `- Measurement source: ${evidenceSnapshot.source.status}`,
     `- Local GEO readiness: ${geoSnapshot.localStatus}`,
+    `- Weekly CSV template: ${WEEKLY_PRIORITY_CHECKLIST_CSV_FILE}`,
+    `- Private weekly input: ${WEEKLY_PRIVATE_CHECKLIST_CSV_FILE}`,
     `- URL index priority evidence: ${urlRecorded}/${evidenceSnapshot.urlRows.length} recorded; ${urlIndexed}/${evidenceSnapshot.urlRows.length} indexed.`,
     `- Priority keyword rank evidence: ${rankRecorded}/${priorityRankRows.length} recorded; ${rankPass}/${priorityRankRows.length} ranked.`,
     `- Priority GEO answer evidence: ${geoRecorded}/${priorityGeoRows.length} recorded; ${geoPass}/${priorityGeoRows.length} pass.`,
@@ -2831,8 +2931,9 @@ function buildWeeklyPriorityReport({ generatedAt, config, evidenceSnapshot, geoS
     `- P0: record URL index evidence for all ${evidenceSnapshot.urlRows.length} sitemap URLs.`,
     `- P1: record primary, brand-assisted, and site-restricted Baidu rank/no-rank evidence for all ${(config.clusters || []).length} keyword clusters.`,
     `- P1-GEO: record one representative AI answer check for each keyword cluster; any measured NEEDS_REPAIR answer is automatically included below.`,
+    `- Copy ${WEEKLY_PRIORITY_CHECKLIST_CSV_FILE} to ${WEEKLY_PRIVATE_CHECKLIST_CSV_FILE}, fill measured fields only, then run \`npm run seo:weekly-import\`.`,
     '- Repair any measured NOT_INDEXED, MEASURED_NO_RANK, or NEEDS_REPAIR item before expanding the keyword set.',
-    `- Import private measurements with \`npm run seo:measurements:import\`, then rerun \`npm run seo:weekly-priority\`, \`npm run seo:evidence\`, and \`npm run seo:monitor\`.`,
+    `- After importing private measurements, rerun \`npm run seo:weekly-priority\`, \`npm run seo:evidence\`, and \`npm run seo:monitor\`.`,
     '',
     '## P0 URL Index Evidence',
     '',
@@ -2872,8 +2973,10 @@ function weeklyPriority() {
   const status = weeklyPriorityStatus({ evidenceSnapshot, geoSnapshot, priorityRankRows, priorityGeoRows, repairRows });
   const report = buildWeeklyPriorityReport({ generatedAt, config, evidenceSnapshot, geoSnapshot });
   writeReport(WEEKLY_PRIORITY_REPORT_FILE, report);
+  writeReport(WEEKLY_PRIORITY_CHECKLIST_CSV_FILE, buildWeeklyPriorityChecklistCsv({ config, evidenceSnapshot }));
   console.log(`Weekly Baidu SEO/GEO priority status: ${status}`);
   console.log(`Report: ${WEEKLY_PRIORITY_REPORT_FILE}`);
+  console.log(`Checklist CSV: ${WEEKLY_PRIORITY_CHECKLIST_CSV_FILE}`);
   console.log(`URL index priorities: ${evidenceSnapshot.urlRows.length}`);
   console.log(`Keyword rank priorities: ${priorityRankRows.length}`);
   console.log(`GEO answer priorities: ${priorityGeoRows.length}`);
@@ -3876,6 +3979,8 @@ function measurementsImport(args = []) {
   const source = argValue(args, '--source', MEASUREMENT_CHECKLIST_CSV_FILE);
   const output = argValue(args, '--output', BAIDU_MEASUREMENTS_FILE);
   const dryRun = args.includes('--dry-run');
+  const allowPartial = args.includes('--allow-partial');
+  const mergeExisting = args.includes('--merge-existing');
   const sourcePath = join(ROOT, source);
   if (!existsSync(sourcePath)) {
     console.error(`Missing measurement checklist CSV: ${source}`);
@@ -3884,23 +3989,40 @@ function measurementsImport(args = []) {
   }
 
   const rows = parseCsv(readFileSync(sourcePath, 'utf8'));
-  const measurements = checklistRowsToMeasurements(rows);
-  const failures = measurementTemplateCoverageFailures(
-    measurements,
-    readJson(KEYWORD_CONFIG_FILE),
-    urlsFromSitemap()
-  );
+  const parsedMeasurements = checklistRowsToMeasurements(rows);
+  const measurementsWithEvidence = allowPartial
+    ? filterMeasurementsWithEvidence(parsedMeasurements)
+    : parsedMeasurements;
+  const existingMeasurements = mergeExisting ? readJsonIfExists(output) : null;
+  const measurements = mergeExisting
+    ? mergeMeasurements(existingMeasurements || {}, measurementsWithEvidence)
+    : measurementsWithEvidence;
+  const failures = allowPartial
+    ? []
+    : measurementTemplateCoverageFailures(
+        measurements,
+        readJson(KEYWORD_CONFIG_FILE),
+        urlsFromSitemap()
+      );
+  const parsedCounts = measurementCounts(parsedMeasurements);
+  const importCounts = measurementCounts(measurementsWithEvidence);
+  const finalCounts = measurementCounts(measurements);
 
   console.log(`Baidu measurement import source: ${source}`);
   console.log(`Output: ${output}`);
-  console.log(`URL index records: ${measurements.indexedUrls.length}`);
-  console.log(`URL metric records: ${measurements.urlMetrics.length}`);
-  console.log(`Keyword rank records: ${measurements.keywordRankings.length}`);
-  console.log(`GEO answer records: ${measurements.geoAnswers.length}`);
-  console.log(`Coverage: ${failures.length === 0 ? 'PASS' : 'FAIL'}`);
+  console.log(`Mode: ${allowPartial ? 'PARTIAL_ALLOWED' : 'FULL_REQUIRED'}${mergeExisting ? ' + MERGE_EXISTING' : ''}`);
+  console.log(`Parsed rows: URL index=${parsedCounts.indexedUrls}, URL metric=${parsedCounts.urlMetrics}, keyword=${parsedCounts.keywordRankings}, GEO=${parsedCounts.geoAnswers}`);
+  console.log(`Imported measured rows: URL index=${importCounts.indexedUrls}, URL metric=${importCounts.urlMetrics}, keyword=${importCounts.keywordRankings}, GEO=${importCounts.geoAnswers}`);
+  console.log(`Final records: URL index=${finalCounts.indexedUrls}, URL metric=${finalCounts.urlMetrics}, keyword=${finalCounts.keywordRankings}, GEO=${finalCounts.geoAnswers}`);
+  console.log(`Coverage: ${allowPartial ? 'SKIPPED_FOR_PARTIAL_IMPORT' : failures.length === 0 ? 'PASS' : 'FAIL'}`);
 
   if (failures.length > 0) {
     for (const failure of failures) console.log(`- ${failure}`);
+    process.exitCode = 1;
+    return;
+  }
+  if (allowPartial && !dryRun && totalMeasurementCount(measurementsWithEvidence) === 0) {
+    console.error('Partial import found no measured rows. Fill evidence fields before writing the private measurement file.');
     process.exitCode = 1;
     return;
   }
@@ -3913,8 +4035,8 @@ function measurementsImport(args = []) {
   console.log(`Wrote private measurement file: ${output}`);
 }
 
-function buildMeasurementChecklistCsv({ config, urls }) {
-  const columns = [
+function measurementCsvColumns() {
+  return [
     'type',
     'cluster',
     'queryType',
@@ -3936,6 +4058,17 @@ function buildMeasurementChecklistCsv({ config, urls }) {
     'source',
     'notes'
   ];
+}
+
+function buildMeasurementCsv(rows) {
+  const columns = measurementCsvColumns();
+  return [
+    columns.join(','),
+    ...rows.map((row) => columns.map((column) => csvEscape(row[column] ?? '')).join(','))
+  ].join('\n') + '\n';
+}
+
+function buildMeasurementChecklistCsv({ config, urls }) {
   const host = new URL(SITE_URL).host;
   const rows = [];
 
@@ -3982,10 +4115,52 @@ function buildMeasurementChecklistCsv({ config, urls }) {
     });
   }
 
-  return [
-    columns.join(','),
-    ...rows.map((row) => columns.map((column) => csvEscape(row[column] ?? '')).join(','))
-  ].join('\n') + '\n';
+  return buildMeasurementCsv(rows);
+}
+
+function buildWeeklyPriorityChecklistCsv({ config, evidenceSnapshot }) {
+  const host = new URL(SITE_URL).host;
+  const rows = [];
+
+  for (const row of evidenceSnapshot.urlRows) {
+    const inclusionQuery = `site:${host} ${row.url}`;
+    rows.push({
+      type: 'URL_INDEX',
+      query: inclusionQuery,
+      targetPage: row.url,
+      baiduCheckUrl: baiduSearchUrl(inclusionQuery),
+      source: 'Baidu Search Resource Platform or reproducible site: result'
+    });
+  }
+
+  for (const row of weeklyRankPriorityRows(evidenceSnapshot)) {
+    rows.push({
+      type: 'KEYWORD_RANK',
+      cluster: row.cluster,
+      queryType: row.queryType,
+      query: row.query,
+      targetPage: row.targetPage,
+      markdownUrl: row.markdownUrl,
+      baiduCheckUrl: row.baiduCheckUrl,
+      source: 'Baidu Search Resource Platform, compliant rank monitor, or manual result check'
+    });
+  }
+
+  for (const row of weeklyGeoPriorityRows({ config, evidenceSnapshot })) {
+    rows.push({
+      type: 'GEO_ANSWER',
+      cluster: row.cluster,
+      queryType: 'ai-answer',
+      query: row.query,
+      targetPage: row.targetPage,
+      markdownUrl: row.markdownUrl,
+      baiduCheckUrl: row.baiduCheckUrl,
+      positioning: 'unknown',
+      source: 'manual AI answer check'
+    });
+  }
+
+  return buildMeasurementCsv(rows);
 }
 
 function measurementsChecklist() {
@@ -4190,13 +4365,13 @@ function usage() {
     '                    Write a CSV checklist for Baidu index, rank, URL metric, and GEO answer checks',
     '  measurements-guide',
     '                    Write the manual Baidu/GEO measurement workflow and evidence rules',
-    '  measurements-import [--dry-run] [--source <csv>] [--output <json>]',
-    '                    Import the filled CSV checklist into private seo/baidu-measurements.json',
+    '  measurements-import [--dry-run] [--allow-partial] [--merge-existing] [--source <csv>] [--output <json>]',
+    '                    Import full or partial CSV checklist rows into private seo/baidu-measurements.json',
     '  monitor           Write a Baidu SEO/GEO monitoring report',
     '  rank-plan         Write a Baidu ranking and GEO query tracking sheet',
     '  geo-prompts       Write manual AI answer prompt pack for GEO citation checks',
     '  geo-readiness     Write local GEO readiness and AI citation evidence gap report',
-    '  weekly-priority   Write the weekly Baidu index/rank and GEO evidence priority report',
+    '  weekly-priority   Write the weekly Baidu index/rank and GEO evidence priority report plus CSV template',
     '  submission        Write Baidu URL push submission history report',
     '  submit-list       Write a one-URL-per-line Baidu manual submission package',
     '  check             Validate homepage SEO files and tags',

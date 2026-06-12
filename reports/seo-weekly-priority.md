@@ -1,6 +1,6 @@
 # Weekly Baidu SEO / GEO Priority Report
 
-Generated: 2026-06-13T00:50:10+08:00
+Generated: 2026-06-13T01:04:10+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_FIRST_MEASUREMENT
 
@@ -8,6 +8,8 @@ Overall status: NEEDS_FIRST_MEASUREMENT
 
 - Measurement source: WAITING_FOR_PRIVATE_MEASUREMENTS
 - Local GEO readiness: PASS
+- Weekly CSV template: reports/seo-weekly-priority-checklist.csv
+- Private weekly input: seo/baidu-weekly-measurements.csv
 - URL index priority evidence: 0/14 recorded; 0/14 indexed.
 - Priority keyword rank evidence: 0/39 recorded; 0/39 ranked.
 - Priority GEO answer evidence: 0/13 recorded; 0/13 pass.
@@ -25,8 +27,9 @@ Overall status: NEEDS_FIRST_MEASUREMENT
 - P0: record URL index evidence for all 14 sitemap URLs.
 - P1: record primary, brand-assisted, and site-restricted Baidu rank/no-rank evidence for all 13 keyword clusters.
 - P1-GEO: record one representative AI answer check for each keyword cluster; any measured NEEDS_REPAIR answer is automatically included below.
+- Copy reports/seo-weekly-priority-checklist.csv to seo/baidu-weekly-measurements.csv, fill measured fields only, then run `npm run seo:weekly-import`.
 - Repair any measured NOT_INDEXED, MEASURED_NO_RANK, or NEEDS_REPAIR item before expanding the keyword set.
-- Import private measurements with `npm run seo:measurements:import`, then rerun `npm run seo:weekly-priority`, `npm run seo:evidence`, and `npm run seo:monitor`.
+- After importing private measurements, rerun `npm run seo:weekly-priority`, `npm run seo:evidence`, and `npm run seo:monitor`.
 
 ## P0 URL Index Evidence
 
