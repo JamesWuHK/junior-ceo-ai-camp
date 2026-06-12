@@ -1,6 +1,6 @@
 # Baidu SEO / GEO Monitor
 
-Generated: 2026-06-10T01:40:13+08:00
+Generated: 2026-06-13T00:50:10+08:00
 Site URL: https://camps.wanli.wiki
 
 ## Status Summary
@@ -16,8 +16,8 @@ Site URL: https://camps.wanli.wiki
 - Baidu evidence file: seo/baidu-measurements.json missing
 - Baidu discovery push history: NO_PUSH_RECORDED
 - Baidu submission history file: seo/baidu-submit-history.json missing
-- Robots cache diagnosis: EDGE_CACHE_STALE
-- Critical asset cache diagnosis: EDGE_CACHE_STALE; stale canonical assets=4
+- Robots cache diagnosis: CANONICAL_PASS
+- Critical asset cache diagnosis: EDGE_CACHE_STALE; stale canonical assets=3
 
 ## Measurement Boundary
 
@@ -29,20 +29,20 @@ Site URL: https://camps.wanli.wiki
 
 ## Robots Cache Diagnosis
 
-- Status: EDGE_CACHE_STALE
+- Status: CANONICAL_PASS
 - Canonical URL: https://camps.wanli.wiki/robots.txt
-- Canonical result: WARN; HTTP 200; bytes=265; missing required=none; missing warning=User-agent: Baiduspider
-- Canonical cache evidence: etag="446770a1d8dd644a7dec36209fca76b7"; last-modified=Tue, 09 Jun 2026 11:01:10 GMT; x-cache-lookup=Cache Hit; server=tencent-cos
-- Source-bypass URL: https://camps.wanli.wiki/robots.txt?seo-monitor=source-1781024645845
-- Source-bypass result: PASS; HTTP 200; bytes=388; missing required=none; missing warning=none
-- Source-bypass cache evidence: cache-control=no-cache, max-age=0; etag="b54636c9d73e6a7066828a82fc838851"; last-modified=Tue, 09 Jun 2026 17:35:21 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
-- Recommended action: Purge https://camps.wanli.wiki/robots.txt in the CDN/DNSPod account that controls camps.wanli.wiki.cdn.dnsv1.com, or wait for the edge cache to expire.
+- Canonical result: PASS; HTTP 200; bytes=432; missing required=none; missing warning=none
+- Canonical cache evidence: cache-control=no-cache, max-age=0; etag="ef2b512035a3e18a44959dfbecfdd636"; last-modified=Fri, 12 Jun 2026 05:54:31 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+- Source-bypass URL: https://camps.wanli.wiki/robots.txt?seo-monitor=source-1781282967458
+- Source-bypass result: PASS; HTTP 200; bytes=432; missing required=none; missing warning=none
+- Source-bypass cache evidence: cache-control=no-cache, max-age=0; etag="ef2b512035a3e18a44959dfbecfdd636"; last-modified=Fri, 12 Jun 2026 05:54:31 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+- Recommended action: No robots cache repair needed.
 
 ## Critical Asset Cache Diagnosis
 
 - Status: EDGE_CACHE_STALE
 - Refresh checklist: reports/seo-cdn-refresh.md
-- Stale canonical URLs: https://camps.wanli.wiki/robots.txt, https://camps.wanli.wiki/sitemap-context.xml, https://camps.wanli.wiki/llms.txt, https://camps.wanli.wiki/site-facts.json
+- Stale canonical URLs: https://camps.wanli.wiki/sitemap-context.xml, https://camps.wanli.wiki/llms.txt, https://camps.wanli.wiki/site-facts.json
 - Source/canonical failures: none
 
 ## Official Baidu References
@@ -99,7 +99,7 @@ PASS | partner-cooperation | /partner-ai-pbl-camp.html | AI PBL 创业营机构�
 
 Status | Target | URL | HTTP | Bytes | Content-Type | Cache / headers | Content-Type error | Missing required | Missing warning | Error
 --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
-PASS | home | https://camps.wanli.wiki/ | 200 | 51873 | text/html | - | none | none | none | -
+PASS | home | https://camps.wanli.wiki/ | 200 | 51895 | text/html; charset=utf-8 | - | none | none | none | -
 PASS | - | https://camps.wanli.wiki/ai-pbl-camp.html | 200 | 11592 | text/html | - | none | none | none | -
 PASS | - | https://camps.wanli.wiki/ai-product-prototype-course.html | 200 | 12711 | text/html | - | none | none | none | -
 PASS | - | https://camps.wanli.wiki/beijing-shunyi-ai-course.html | 200 | 12980 | text/html | - | none | none | none | -
@@ -113,13 +113,13 @@ PASS | - | https://camps.wanli.wiki/ai-course-vs-coding.html | 200 | 11725 | tex
 PASS | - | https://camps.wanli.wiki/shunyi-ai-parent-class.html | 200 | 10460 | text/html | - | none | none | none | -
 PASS | - | https://camps.wanli.wiki/partner-ai-pbl-camp.html | 200 | 10862 | text/html | - | none | none | none | -
 PASS | - | https://camps.wanli.wiki/course-navigation.html | 200 | 10329 | text/html | - | none | none | none | -
-WARN | robots canonical | https://camps.wanli.wiki/robots.txt | 200 | 265 | text/plain | etag="446770a1d8dd644a7dec36209fca76b7"; last-modified=Tue, 09 Jun 2026 11:01:10 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | none | none | User-agent: Baiduspider | -
-PASS | robots source-bypass | https://camps.wanli.wiki/robots.txt?seo-monitor=source-1781024645845 | 200 | 388 | text/plain | cache-control=no-cache, max-age=0; etag="b54636c9d73e6a7066828a82fc838851"; last-modified=Tue, 09 Jun 2026 17:35:21 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | none | none | none | -
+PASS | robots canonical | https://camps.wanli.wiki/robots.txt | 200 | 432 | text/plain; charset=utf-8 | cache-control=no-cache, max-age=0; etag="ef2b512035a3e18a44959dfbecfdd636"; last-modified=Fri, 12 Jun 2026 05:54:31 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | none | none | none | -
+PASS | robots source-bypass | https://camps.wanli.wiki/robots.txt?seo-monitor=source-1781282967458 | 200 | 432 | text/plain; charset=utf-8 | cache-control=no-cache, max-age=0; etag="ef2b512035a3e18a44959dfbecfdd636"; last-modified=Fri, 12 Jun 2026 05:54:31 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | none | none | none | -
 PASS | - | https://camps.wanli.wiki/sitemap-index.xml | 200 | 352 | application/xml | - | none | none | none | -
 PASS | - | https://camps.wanli.wiki/sitemap.xml | 200 | 2675 | application/xml | - | none | none | none | -
 WARN | sitemap-context canonical | https://camps.wanli.wiki/sitemap-context.xml | 200 | 2836 | application/xml | etag="b76eb12f87ce1f8f7b887c34502a65dc"; last-modified=Tue, 09 Jun 2026 16:10:30 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | none | none | <loc>https://camps.wanli.wiki/site-facts.json</loc> | -
 PASS | sitemap-context source-bypass | https://camps.wanli.wiki/sitemap-context.xml?seo-monitor=source-1781024645897 | 200 | 3009 | application/xml | cache-control=no-cache, max-age=0; etag="c7a87e1343b5716bf35d204911f07624"; last-modified=Tue, 09 Jun 2026 17:35:26 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | none | none | none | -
-WARN | llms canonical | https://camps.wanli.wiki/llms.txt | 200 | 6108 | text/plain | etag="e2de09ea323d1d885a2e440866232fdd"; last-modified=Tue, 09 Jun 2026 11:01:05 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | none | none | Structured Facts, site-facts.json | -
+WARN | llms canonical | https://camps.wanli.wiki/llms.txt | 200 | 6108 | text/plain | etag="e2de09ea323d1d885a2e440866232fdd"; last-modified=Tue, 09 Jun 2026 11:01:05 GMT; x-cache-lookup=Cache Hit, Cache Miss; server=tencent-cos | none | none | Structured Facts, site-facts.json | -
 PASS | llms source-bypass | https://camps.wanli.wiki/llms.txt?seo-monitor=source-1781024645848 | 200 | 6326 | text/plain | cache-control=no-cache, max-age=0; etag="b596163f1cbd694adcf2f33e67eae542"; last-modified=Tue, 09 Jun 2026 17:35:23 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | none | none | none | -
 WARN | site-facts canonical | https://camps.wanli.wiki/site-facts.json | 200 | 18967 | application/json | etag="b6e17ff6beec4666e2ce43acdb046aca"; last-modified=Tue, 09 Jun 2026 17:04:48 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | none | none | "alternateName" | -
 PASS | site-facts source-bypass | https://camps.wanli.wiki/site-facts.json?seo-monitor=source-1781026502626 | 200 | 19247 | application/json | cache-control=no-cache, max-age=0; etag="deddb6a397cbd70fc79674255da833f8"; last-modified=Tue, 09 Jun 2026 17:35:27 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | none | none | none | -
@@ -135,7 +135,7 @@ PASS | - | https://camps.wanli.wiki/youth-ai-course-guide.md | 200 | 827 | text/
 PASS | - | https://camps.wanli.wiki/ai-course-vs-coding.md | 200 | 879 | text/markdown | - | none | none | none | -
 PASS | - | https://camps.wanli.wiki/shunyi-ai-parent-class.md | 200 | 751 | text/markdown | - | none | none | none | -
 PASS | - | https://camps.wanli.wiki/partner-ai-pbl-camp.md | 200 | 710 | text/markdown | - | none | none | none | -
-WARN | - | https://camps.wanli.wiki/course-navigation.md | 200 | 891 | application/octet-stream | - | none | none | canonical CDN edge stale: content-type=application/octet-stream expected text/markdown or text/plain; source-bypass https://camps.wanli.wiki/course-navigation.md?seo-monitor=source-1780988646531 content-type=text/markdown | -
+PASS | - | https://camps.wanli.wiki/course-navigation.md | 200 | 891 | text/markdown | - | none | none | none | -
 PASS | - | https://camps.wanli.wiki/entity-shaonian-ceo-ai-camp.md | 200 | 3462 | text/markdown | - | none | none | none | -
 
 ## AI Query Targets

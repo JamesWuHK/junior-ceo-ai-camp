@@ -1,6 +1,6 @@
 # SEO Internal Link Report
 
-Generated: 2026-06-10T00:11:21+08:00
+Generated: 2026-06-13T00:50:10+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: PASS
 
@@ -9,7 +9,7 @@ Overall status: PASS
 - Homepage should link to every public sitemap HTML page.
 - Every non-home public sitemap page should link back to the homepage.
 - Every non-home public sitemap page should link to at least 3 public sitemap pages so Baidu and users can discover related topics.
-- Internal `.html` links outside the sitemap are warnings unless they are known classroom utility pages.
+- Internal `.html` links outside the sitemap are warnings unless they are known classroom utility pages or the non-indexed `/classroom/` app.
 
 ## Link Graph
 

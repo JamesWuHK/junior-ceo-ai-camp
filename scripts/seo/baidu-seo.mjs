@@ -20,6 +20,7 @@ const CDN_REFRESH_REPORT_FILE = 'reports/seo-cdn-refresh.md';
 const RANK_PLAN_REPORT_FILE = 'reports/seo-baidu-rank-plan.md';
 const GEO_PROMPT_REPORT_FILE = 'reports/seo-geo-answer-prompts.md';
 const GEO_READINESS_REPORT_FILE = 'reports/seo-geo-readiness.md';
+const WEEKLY_PRIORITY_REPORT_FILE = 'reports/seo-weekly-priority.md';
 const BAIDU_EVIDENCE_REPORT_FILE = 'reports/seo-baidu-evidence.md';
 const BAIDU_SUBMISSION_REPORT_FILE = 'reports/seo-baidu-submission.md';
 const BAIDU_MANUAL_SUBMIT_FILE = 'reports/seo-baidu-submit-urls.txt';
@@ -1009,7 +1010,8 @@ function internalLinkSnapshot() {
       failures.push(`${row.source} has no incoming sitemap-page links`);
     }
     const unknownSeoLinks = row.unknownInternal
-      .filter((link) => !['/teacher.html', '/student.html', '/cards.html', '/slides.html'].includes(link.path));
+      .filter((link) => !['/teacher.html', '/student.html', '/cards.html', '/slides.html'].includes(link.path))
+      .filter((link) => !link.path.startsWith('/classroom/'));
     if (unknownSeoLinks.length > 0) {
       warnings.push(`${row.source} links to internal pages outside sitemap: ${unknownSeoLinks.map((link) => link.href).join(', ')}`);
     }
@@ -1048,7 +1050,7 @@ function buildInternalLinkReport(snapshot) {
     '- Homepage should link to every public sitemap HTML page.',
     '- Every non-home public sitemap page should link back to the homepage.',
     '- Every non-home public sitemap page should link to at least 3 public sitemap pages so Baidu and users can discover related topics.',
-    '- Internal `.html` links outside the sitemap are warnings unless they are known classroom utility pages.',
+    '- Internal `.html` links outside the sitemap are warnings unless they are known classroom utility pages or the non-indexed `/classroom/` app.',
     '',
     '## Link Graph',
     '',
@@ -2624,6 +2626,260 @@ function baiduEvidence() {
   console.log(`GEO answer evidence: ${snapshot.summary.geoPassCount}/${snapshot.summary.geoQueryCount} pass, ${snapshot.summary.missingGeoEvidenceCount} missing`);
 }
 
+function isEvidenceRecorded(status) {
+  return Boolean(status && status !== 'MISSING_EVIDENCE');
+}
+
+function urlIndexAction(status) {
+  if (status === 'INDEXED') return 'Keep monitoring weekly.';
+  if (status === 'NOT_INDEXED') return 'Verify HTTP, robots, canonical, sitemap, and internal links; then resubmit the URL.';
+  return 'Record Baidu index evidence from Search Resource Platform or a reproducible site: result.';
+}
+
+function keywordRankAction(status) {
+  if (status === 'RANKED') return 'Track impressions, clicks, CTR, and title/description fit.';
+  if (status === 'MEASURED_NO_RANK') return 'Strengthen exact-query answer coverage, internal links, title, and description.';
+  return 'Record rank or no-rank evidence with date, location/device/browser state, and source.';
+}
+
+function geoAnswerAction(status) {
+  if (status === 'PASS') return 'Keep monitoring the same query weekly.';
+  if (status === 'NEEDS_REPAIR') return 'Repair visible answer block, FAQ schema, Markdown context, and entity disambiguation.';
+  return 'Run the AI answer prompt and record engine, date, source behavior, and positioning.';
+}
+
+function weeklyRankPriorityRows(evidenceSnapshot) {
+  const priorityTypes = new Set(['primary', 'brand-assisted', 'site-restricted']);
+  return evidenceSnapshot.trackedKeywordRows
+    .filter((row) => priorityTypes.has(row.queryType))
+    .map((row) => ({
+      ...row,
+      priority: row.queryType === 'primary' ? 'P1-primary' : row.queryType === 'site-restricted' ? 'P1-site' : 'P1-brand',
+      action: keywordRankAction(row.status)
+    }));
+}
+
+function weeklyGeoPriorityRows({ config, evidenceSnapshot }) {
+  const evidenceByKey = new Map(evidenceSnapshot.geoRows.map((row) => [geoRecordKey(row.cluster, row.query), row]));
+  const targetRows = geoQueryRows(config);
+  const targetByKey = new Map(targetRows.map((row) => [geoRecordKey(row.cluster, row.query), row]));
+  const selected = new Set();
+  const rows = [];
+
+  for (const cluster of config.clusters || []) {
+    const query = arrayFrom(cluster.aiQueries)[0];
+    if (!query) continue;
+    const key = geoRecordKey(cluster.id, query);
+    const target = targetByKey.get(key);
+    const evidence = evidenceByKey.get(key);
+    if (!target || !evidence || selected.has(key)) continue;
+    selected.add(key);
+    rows.push({
+      ...evidence,
+      priority: 'P1-sample',
+      baiduCheckUrl: target.searchUrl,
+      action: geoAnswerAction(evidence.status)
+    });
+  }
+
+  for (const evidence of evidenceSnapshot.geoRows) {
+    if (evidence.status !== 'NEEDS_REPAIR') continue;
+    const key = geoRecordKey(evidence.cluster, evidence.query);
+    if (selected.has(key)) continue;
+    const target = targetByKey.get(key);
+    selected.add(key);
+    rows.push({
+      ...evidence,
+      priority: 'P0-repair',
+      baiduCheckUrl: target?.searchUrl || baiduSearchUrl(evidence.query),
+      action: geoAnswerAction(evidence.status)
+    });
+  }
+
+  return rows;
+}
+
+function weeklyRepairRows({ evidenceSnapshot, priorityRankRows, priorityGeoRows }) {
+  const repairs = [];
+  for (const row of evidenceSnapshot.urlRows.filter((item) => item.status === 'NOT_INDEXED')) {
+    repairs.push({
+      area: 'URL_INDEX',
+      status: row.status,
+      item: row.url,
+      target: row.url,
+      action: urlIndexAction(row.status)
+    });
+  }
+  for (const row of priorityRankRows.filter((item) => item.status === 'MEASURED_NO_RANK')) {
+    repairs.push({
+      area: 'KEYWORD_RANK',
+      status: row.status,
+      item: `${row.cluster} / ${row.query}`,
+      target: row.targetPage,
+      action: keywordRankAction(row.status)
+    });
+  }
+  for (const row of priorityGeoRows.filter((item) => item.status === 'NEEDS_REPAIR')) {
+    repairs.push({
+      area: 'GEO_ANSWER',
+      status: row.status,
+      item: `${row.cluster} / ${row.query}`,
+      target: row.targetPage,
+      action: geoAnswerAction(row.status)
+    });
+  }
+  return repairs;
+}
+
+function weeklyPriorityStatus({ evidenceSnapshot, geoSnapshot, priorityRankRows, priorityGeoRows, repairRows }) {
+  const urlRecorded = evidenceSnapshot.urlRows.filter((row) => isEvidenceRecorded(row.status)).length;
+  const rankRecorded = priorityRankRows.filter((row) => isEvidenceRecorded(row.status)).length;
+  const geoRecorded = priorityGeoRows.filter((row) => isEvidenceRecorded(row.status)).length;
+  if (geoSnapshot.localStatus === 'FAIL') return 'LOCAL_GEO_REPAIR_NEEDED';
+  if (repairRows.length > 0) return 'MEASURED_REPAIR_NEEDED';
+  if (urlRecorded === 0 && rankRecorded === 0 && geoRecorded === 0) return 'NEEDS_FIRST_MEASUREMENT';
+  if (urlRecorded < evidenceSnapshot.urlRows.length || rankRecorded < priorityRankRows.length || geoRecorded < priorityGeoRows.length) {
+    return 'MEASUREMENT_IN_PROGRESS';
+  }
+  return 'WEEKLY_PRIORITY_PASS';
+}
+
+function buildWeeklyPriorityReport({ generatedAt, config, evidenceSnapshot, geoSnapshot }) {
+  const host = new URL(SITE_URL).host;
+  const priorityRankRows = weeklyRankPriorityRows(evidenceSnapshot);
+  const priorityGeoRows = weeklyGeoPriorityRows({ config, evidenceSnapshot });
+  const repairRows = weeklyRepairRows({ evidenceSnapshot, priorityRankRows, priorityGeoRows });
+  const overallStatus = weeklyPriorityStatus({ evidenceSnapshot, geoSnapshot, priorityRankRows, priorityGeoRows, repairRows });
+  const urlRecorded = evidenceSnapshot.urlRows.filter((row) => isEvidenceRecorded(row.status)).length;
+  const urlIndexed = evidenceSnapshot.urlRows.filter((row) => row.status === 'INDEXED').length;
+  const rankRecorded = priorityRankRows.filter((row) => isEvidenceRecorded(row.status)).length;
+  const rankPass = priorityRankRows.filter((row) => row.status === 'RANKED').length;
+  const geoRecorded = priorityGeoRows.filter((row) => isEvidenceRecorded(row.status)).length;
+  const geoPass = priorityGeoRows.filter((row) => row.status === 'PASS').length;
+  const urlRows = evidenceSnapshot.urlRows.map((row) => [
+    'P0-index',
+    row.status,
+    row.url,
+    baiduSearchUrl(`site:${host} ${row.url}`),
+    row.evidenceDate,
+    row.source,
+    urlIndexAction(row.status)
+  ].map(escapeMarkdownCell).join(' | '));
+  const rankRows = priorityRankRows.map((row) => [
+    row.priority,
+    row.status,
+    row.cluster,
+    row.queryType,
+    row.query,
+    row.targetPage,
+    row.baiduCheckUrl,
+    row.rank,
+    row.evidenceDate,
+    row.source,
+    row.action
+  ].map(escapeMarkdownCell).join(' | '));
+  const geoRows = priorityGeoRows.map((row) => [
+    row.priority,
+    row.status,
+    row.cluster,
+    row.query,
+    row.targetPage,
+    row.markdownUrl,
+    row.baiduCheckUrl,
+    String(row.mentionsProject),
+    String(row.usesTargetPage),
+    row.positioning,
+    row.evidenceDate,
+    row.source,
+    row.action
+  ].map(escapeMarkdownCell).join(' | '));
+  const repairTableRows = repairRows.length > 0
+    ? repairRows.map((row) => [
+        row.area,
+        row.status,
+        row.item,
+        row.target,
+        row.action
+      ].map(escapeMarkdownCell).join(' | '))
+    : [['none', 'PASS', 'No measured repair item yet.', '-', 'Keep gathering evidence.'].map(escapeMarkdownCell).join(' | ')];
+
+  return [
+    '# Weekly Baidu SEO / GEO Priority Report',
+    '',
+    `Generated: ${generatedAt}`,
+    `Site URL: ${SITE_URL}`,
+    `Overall status: ${overallStatus}`,
+    '',
+    '## Summary',
+    '',
+    `- Measurement source: ${evidenceSnapshot.source.status}`,
+    `- Local GEO readiness: ${geoSnapshot.localStatus}`,
+    `- URL index priority evidence: ${urlRecorded}/${evidenceSnapshot.urlRows.length} recorded; ${urlIndexed}/${evidenceSnapshot.urlRows.length} indexed.`,
+    `- Priority keyword rank evidence: ${rankRecorded}/${priorityRankRows.length} recorded; ${rankPass}/${priorityRankRows.length} ranked.`,
+    `- Priority GEO answer evidence: ${geoRecorded}/${priorityGeoRows.length} recorded; ${geoPass}/${priorityGeoRows.length} pass.`,
+    `- Measured repair queue: ${repairRows.length}`,
+    '',
+    '## Measurement Boundary',
+    '',
+    '- This report prioritizes weekly evidence collection; it is not a SERP scraper and does not infer Baidu indexation, ranking, traffic, or AI citation.',
+    '- Treat Baidu Search Resource Platform exports as the preferred source for indexed URLs, impressions, clicks, crawl frequency, and query data.',
+    '- Manual Baidu checks must record date, location/device/browser state, exact query, target URL visibility, and source notes.',
+    '- GEO checks must record engine, date, exact prompt, whether the project is mentioned, whether the target page or Markdown context is used, and whether positioning is accurate.',
+    '',
+    '## This Week Gates',
+    '',
+    `- P0: record URL index evidence for all ${evidenceSnapshot.urlRows.length} sitemap URLs.`,
+    `- P1: record primary, brand-assisted, and site-restricted Baidu rank/no-rank evidence for all ${(config.clusters || []).length} keyword clusters.`,
+    `- P1-GEO: record one representative AI answer check for each keyword cluster; any measured NEEDS_REPAIR answer is automatically included below.`,
+    '- Repair any measured NOT_INDEXED, MEASURED_NO_RANK, or NEEDS_REPAIR item before expanding the keyword set.',
+    `- Import private measurements with \`npm run seo:measurements:import\`, then rerun \`npm run seo:weekly-priority\`, \`npm run seo:evidence\`, and \`npm run seo:monitor\`.`,
+    '',
+    '## P0 URL Index Evidence',
+    '',
+    'Priority | Status | URL | Baidu check URL | Evidence date | Source | Next action',
+    '--- | --- | --- | --- | --- | --- | ---',
+    ...urlRows,
+    '',
+    '## P1 Keyword Rank Evidence',
+    '',
+    'Priority | Status | Cluster | Query type | Query | Target page | Baidu check URL | Rank | Evidence date | Source | Next action',
+    '--- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---',
+    ...rankRows,
+    '',
+    '## P1 GEO Answer Evidence',
+    '',
+    'Priority | Status | Cluster | Query | Target page | Markdown context | Baidu check URL | Mentions project | Uses target page | Positioning | Evidence date | Source | Next action',
+    '--- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---',
+    ...geoRows,
+    '',
+    '## Measured Repair Queue',
+    '',
+    'Area | Status | Item | Target | Next action',
+    '--- | --- | --- | --- | ---',
+    ...repairTableRows,
+    ''
+  ].join('\n');
+}
+
+function weeklyPriority() {
+  const generatedAt = localTimestamp();
+  const config = readJson(KEYWORD_CONFIG_FILE);
+  const evidenceSnapshot = baiduEvidenceSnapshot();
+  const geoSnapshot = geoReadinessSnapshot();
+  const priorityRankRows = weeklyRankPriorityRows(evidenceSnapshot);
+  const priorityGeoRows = weeklyGeoPriorityRows({ config, evidenceSnapshot });
+  const repairRows = weeklyRepairRows({ evidenceSnapshot, priorityRankRows, priorityGeoRows });
+  const status = weeklyPriorityStatus({ evidenceSnapshot, geoSnapshot, priorityRankRows, priorityGeoRows, repairRows });
+  const report = buildWeeklyPriorityReport({ generatedAt, config, evidenceSnapshot, geoSnapshot });
+  writeReport(WEEKLY_PRIORITY_REPORT_FILE, report);
+  console.log(`Weekly Baidu SEO/GEO priority status: ${status}`);
+  console.log(`Report: ${WEEKLY_PRIORITY_REPORT_FILE}`);
+  console.log(`URL index priorities: ${evidenceSnapshot.urlRows.length}`);
+  console.log(`Keyword rank priorities: ${priorityRankRows.length}`);
+  console.log(`GEO answer priorities: ${priorityGeoRows.length}`);
+  console.log(`Measured repair queue: ${repairRows.length}`);
+}
+
 function robotsCacheDiagnosis(onlineResults) {
   const canonical = onlineResults.find((result) => result.label === 'robots canonical');
   const sourceBypass = onlineResults.find((result) => result.label === 'robots source-bypass');
@@ -3940,6 +4196,7 @@ function usage() {
     '  rank-plan         Write a Baidu ranking and GEO query tracking sheet',
     '  geo-prompts       Write manual AI answer prompt pack for GEO citation checks',
     '  geo-readiness     Write local GEO readiness and AI citation evidence gap report',
+    '  weekly-priority   Write the weekly Baidu index/rank and GEO evidence priority report',
     '  submission        Write Baidu URL push submission history report',
     '  submit-list       Write a one-URL-per-line Baidu manual submission package',
     '  check             Validate homepage SEO files and tags',
@@ -4001,6 +4258,9 @@ async function main() {
       break;
     case 'geo-readiness':
       geoReadiness();
+      break;
+    case 'weekly-priority':
+      weeklyPriority();
       break;
     case 'submission':
       writeSubmissionReport();
