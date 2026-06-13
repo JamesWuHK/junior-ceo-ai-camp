@@ -25,6 +25,7 @@ import {
   Monitor,
   Package,
   Pause,
+  Pencil,
   Play,
   Rocket,
   Route,
@@ -7563,8 +7564,13 @@ function TeacherStudents({ students, refresh }: { students: Student[]; refresh: 
   const [managedStudents, setManagedStudents] = useState<Student[]>([]);
   const [nickname, setNickname] = useState("");
   const [age, setAge] = useState("");
+  const [editingId, setEditingId] = useState("");
+  const [editStudentNo, setEditStudentNo] = useState("");
+  const [editNickname, setEditNickname] = useState("");
+  const [editAge, setEditAge] = useState("");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [editSavingId, setEditSavingId] = useState("");
   const [deletingId, setDeletingId] = useState("");
   const visibleStudents = managedStudents.length ? managedStudents : students;
 
@@ -7611,6 +7617,58 @@ function TeacherStudents({ students, refresh }: { students: Student[]; refresh: 
     }
   };
 
+  const startEditStudent = (student: Student) => {
+    setEditingId(student.id);
+    setEditStudentNo(student.student_no || "");
+    setEditNickname(student.nickname);
+    setEditAge(student.age === undefined || student.age === null ? "" : String(student.age));
+    setMessage("");
+  };
+
+  const cancelEditStudent = () => {
+    setEditingId("");
+    setEditStudentNo("");
+    setEditNickname("");
+    setEditAge("");
+  };
+
+  const saveStudentEdit = async (student: Student) => {
+    const nextNickname = editNickname.trim();
+    if (!nextNickname) {
+      setMessage("昵称不能为空。");
+      return;
+    }
+    const nextAge = editAge.trim() ? Number(editAge) : undefined;
+    if (editAge.trim() && (!Number.isFinite(nextAge) || Number(nextAge) <= 0)) {
+      setMessage("年龄要填数字。");
+      return;
+    }
+    setEditSavingId(student.id);
+    setMessage("");
+    try {
+      await api.saveStudents({
+        id: student.id,
+        student_no: editStudentNo.trim() || undefined,
+        nickname: nextNickname,
+        age: nextAge,
+        photo_authorization: student.photo_authorization,
+        projection_consent: student.projection_consent,
+        public_showcase_consent: student.public_showcase_consent,
+        team_id: student.team_id,
+        display_status: student.display_status,
+        username: student.username,
+        account_status: student.account_status
+      });
+      setMessage(`已更新 ${nextNickname}。`);
+      cancelEditStudent();
+      await Promise.all([loadStudents(), refresh()]);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setEditSavingId("");
+    }
+  };
+
   const deleteStudent = async (student: Student) => {
     const confirmed = window.confirm(`确定从本次营期名单中删除「${student.nickname}」吗？`);
     if (!confirmed) return;
@@ -7640,24 +7698,81 @@ function TeacherStudents({ students, refresh }: { students: Student[]; refresh: 
       </div>
       {message && <p className="hint">{message}</p>}
       <div className="student-table">
-        {visibleStudents.map((student) => (
-          <div key={student.id} className="student-row">
-            <span>{student.student_no || "--"}</span>
-            <strong>
-              {student.nickname}
-              {student.username && <small>账号 {student.username}</small>}
-            </strong>
-            <small>{statusText[student.display_status]}</small>
-            <button
-              className="danger-icon"
-              disabled={deletingId === student.id}
-              onClick={() => deleteStudent(student)}
-              aria-label={`删除${student.nickname}`}
-            >
-              {deletingId === student.id ? <Loader2 className="spin" size={16} /> : <Trash2 size={16} />}
-            </button>
-          </div>
-        ))}
+        {visibleStudents.map((student) => {
+          const isEditing = editingId === student.id;
+          return (
+            <div key={student.id} className={isEditing ? "student-row editing" : "student-row"}>
+              {isEditing ? (
+                <>
+                  <input
+                    value={editStudentNo}
+                    onChange={(event) => setEditStudentNo(event.target.value)}
+                    placeholder="学号"
+                    aria-label="学号"
+                  />
+                  <input
+                    value={editNickname}
+                    onChange={(event) => setEditNickname(event.target.value)}
+                    placeholder="昵称"
+                    aria-label="昵称"
+                  />
+                  <input
+                    value={editAge}
+                    onChange={(event) => setEditAge(event.target.value)}
+                    placeholder="年龄"
+                    inputMode="numeric"
+                    aria-label="年龄"
+                  />
+                  <div className="student-row-actions">
+                    <button
+                      className="student-action-icon save"
+                      disabled={editSavingId === student.id}
+                      onClick={() => void saveStudentEdit(student)}
+                      aria-label={`保存${student.nickname}`}
+                    >
+                      {editSavingId === student.id ? <Loader2 className="spin" size={16} /> : <CheckCircle2 size={16} />}
+                    </button>
+                    <button
+                      className="student-action-icon"
+                      disabled={editSavingId === student.id}
+                      onClick={cancelEditStudent}
+                      aria-label={`取消编辑${student.nickname}`}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span>{student.student_no || "--"}</span>
+                  <strong>
+                    {student.nickname}
+                    {student.username && <small>账号 {student.username}</small>}
+                  </strong>
+                  <small>{statusText[student.display_status]}</small>
+                  <div className="student-row-actions">
+                    <button
+                      className="student-action-icon"
+                      disabled={Boolean(deletingId)}
+                      onClick={() => startEditStudent(student)}
+                      aria-label={`编辑${student.nickname}`}
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      className="danger-icon"
+                      disabled={deletingId === student.id}
+                      onClick={() => deleteStudent(student)}
+                      aria-label={`删除${student.nickname}`}
+                    >
+                      {deletingId === student.id ? <Loader2 className="spin" size={16} /> : <Trash2 size={16} />}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })}
         {!visibleStudents.length && <p className="empty">先加学员，照片墙会先出现他们的名字。</p>}
       </div>
     </section>

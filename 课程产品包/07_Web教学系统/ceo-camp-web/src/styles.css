@@ -6173,7 +6173,44 @@ button:disabled {
 }
 
 .student-row {
-  grid-template-columns: 42px minmax(0, 1fr) 88px 36px;
+  grid-template-columns: 42px minmax(0, 1fr) 88px 74px;
+}
+
+.student-row.editing {
+  grid-template-columns: 64px minmax(0, 1fr) 78px 74px;
+}
+
+.student-row input {
+  width: 100%;
+  border: 1px solid #d9d4c4;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.student-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.student-action-icon {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d8e8d9;
+  border-radius: 6px;
+  background: #f1f8ef;
+  color: #2f6f43;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.student-action-icon.save {
+  background: #e7f5eb;
+  color: #1f6f50;
 }
 
 .student-row small,
