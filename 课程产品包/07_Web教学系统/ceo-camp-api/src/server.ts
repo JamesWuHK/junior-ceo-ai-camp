@@ -440,17 +440,9 @@ function wallData() {
   );
   return students.map((student) => {
     const submission = submissions.find((item) => item.student_id === student.id);
+    const serialized = serializeStudent(student);
     return {
-      id: student.id,
-      nickname: student.nickname,
-      student_no: student.student_no,
-      age: student.age,
-      team_id: student.team_id,
-      team_name: student.team_name,
-      display_status: student.display_status,
-      projection_consent: Boolean(student.projection_consent),
-      public_showcase_consent: Boolean(student.public_showcase_consent),
-      photo_authorization: student.photo_authorization,
+      ...serialized,
       future_photo: submission
         ? {
             id: submission.id,

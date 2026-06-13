@@ -2149,27 +2149,18 @@ function useTeacherData(enabled: boolean) {
   const [camp, setCamp] = useState<Camp | null>(null);
   const [modules, setModules] = useState<CourseModule[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
-  const [managedStudents, setManagedStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState("");
-  const [studentLoadError, setStudentLoadError] = useState("");
 
   const refresh = async () => {
-    let rosterError = "";
-    const [campResult, moduleResult, wallResult, rosterResult] = await Promise.all([
+    const [campResult, moduleResult, wallResult] = await Promise.all([
       api.currentCamp(),
       api.courseModules(),
-      api.wall(),
-      api.students().catch((err) => {
-        rosterError = err instanceof Error ? err.message : "学生名单加载失败";
-        return { students: [] as Student[] };
-      })
+      api.wall()
     ]);
     setCamp(campResult);
     setModules(normalizeCourseModules(moduleResult.modules));
     setStudents(wallResult.students);
-    setManagedStudents(rosterResult.students);
-    setStudentLoadError(rosterError);
   };
 
   useEffect(() => {
@@ -2178,8 +2169,6 @@ function useTeacherData(enabled: boolean) {
       setError("");
       setModules([]);
       setStudents([]);
-      setManagedStudents([]);
-      setStudentLoadError("");
       return undefined;
     }
     setLoading(true);
@@ -2190,16 +2179,10 @@ function useTeacherData(enabled: boolean) {
     return connectEvents((payload) => {
       setCamp(payload.camp);
       setStudents(payload.wall);
-      void api.students()
-        .then((result) => {
-          setManagedStudents(result.students);
-          setStudentLoadError("");
-        })
-        .catch((err) => setStudentLoadError(err instanceof Error ? err.message : "学生名单加载失败"));
     });
   }, [enabled]);
 
-  return { camp, modules, students, managedStudents, studentLoadError, loading, error, refresh };
+  return { camp, modules, students, loading, error, refresh };
 }
 
 function LiveDataRoute({ active }: { active: "student" | "wall" }) {
@@ -2402,8 +2385,6 @@ export function TeacherRoute({ initialView }: { initialView?: TeacherView } = {}
       camp={data.camp}
       modules={data.modules}
       students={data.students}
-      managedStudents={data.managedStudents}
-      studentLoadError={data.studentLoadError}
       refresh={data.refresh}
       teacher={teacher}
       view={view}
@@ -3616,8 +3597,6 @@ function TeacherApp({
   camp,
   modules,
   students,
-  managedStudents,
-  studentLoadError,
   refresh,
   teacher,
   view,
@@ -3626,8 +3605,6 @@ function TeacherApp({
   camp: Camp | null;
   modules: CourseModule[];
   students: Student[];
-  managedStudents: Student[];
-  studentLoadError: string;
   refresh: () => Promise<void>;
   teacher: TeacherAccount | null;
   view: TeacherView;
@@ -3934,8 +3911,7 @@ function TeacherApp({
           <TeacherStandalonePage view={view}>
             <TeacherViewPanels
               view={view}
-              students={view === "students" || view === "workspace" ? managedStudents : students}
-              studentLoadError={studentLoadError}
+              students={students}
               refresh={refresh}
               selectedModuleId={selectedModule?.id}
               highlighted={progressBoardPulse}
@@ -4004,14 +3980,12 @@ function TeacherStandalonePage({ view, children }: { view: Exclude<TeacherView, 
 function TeacherViewPanels({
   view,
   students,
-  studentLoadError,
   refresh,
   selectedModuleId,
   highlighted
 }: {
   view: Exclude<TeacherView, "lesson">;
   students: Student[];
-  studentLoadError?: string;
   refresh: () => Promise<void>;
   selectedModuleId?: string;
   highlighted?: boolean;
@@ -4032,7 +4006,7 @@ function TeacherViewPanels({
   if (view === "students") {
     return (
       <section className="teacher-grid">
-        <TeacherStudents students={students} loadError={studentLoadError || ""} refresh={refresh} />
+        <TeacherStudents students={students} refresh={refresh} />
         <FuturePhotoReview refresh={refresh} />
       </section>
     );
@@ -4305,7 +4279,7 @@ function TeacherTeamWorkspace({ students, refresh }: { students: Student[]; refr
 
   const load = async () => {
     try {
-      const [teamResult, studentResult] = await Promise.all([api.teams(), api.students()]);
+      const [teamResult, studentResult] = await Promise.all([api.teams(), api.wall()]);
       setTeams(teamResult.teams);
       setManagedStudents(studentResult.students);
     } catch (err) {
@@ -7620,16 +7594,7 @@ function Metric({ label, value }: { label: string; value: number }) {
   );
 }
 
-function TeacherStudents({
-  students,
-  loadError,
-  refresh
-}: {
-  students: Student[];
-  loadError: string;
-  refresh: () => Promise<void>;
-}) {
-  const [managedStudents, setManagedStudents] = useState<Student[]>(students);
+function TeacherStudents({ students, refresh }: { students: Student[]; refresh: () => Promise<void> }) {
   const [nickname, setNickname] = useState("");
   const [age, setAge] = useState("");
   const [editingId, setEditingId] = useState("");
@@ -7637,31 +7602,10 @@ function TeacherStudents({
   const [editNickname, setEditNickname] = useState("");
   const [editAge, setEditAge] = useState("");
   const [message, setMessage] = useState("");
-  const [localLoadError, setLocalLoadError] = useState("");
   const [saving, setSaving] = useState(false);
   const [editSavingId, setEditSavingId] = useState("");
   const [deletingId, setDeletingId] = useState("");
-  const visibleStudents = managedStudents;
-  const currentLoadError = localLoadError || loadError;
-
-  const loadStudents = async () => {
-    try {
-      const result = await api.students();
-      setManagedStudents(result.students);
-      setLocalLoadError("");
-    } catch (err) {
-      setLocalLoadError(err instanceof Error ? err.message : "学生名单加载失败");
-    }
-  };
-
-  useEffect(() => {
-    loadStudents();
-  }, []);
-
-  useEffect(() => {
-    setManagedStudents(students);
-    setLocalLoadError("");
-  }, [students]);
+  const visibleStudents = students;
 
   const addStudent = async () => {
     if (!nickname.trim()) return;
@@ -7685,7 +7629,7 @@ function TeacherStudents({
           ? `名单已加入，照片墙会先显示名字。学生账号：${created.username}`
           : "名单已加入，照片墙会先显示名字。"
       );
-      await Promise.all([loadStudents(), refresh()]);
+      await refresh();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "添加失败");
     } finally {
@@ -7737,7 +7681,7 @@ function TeacherStudents({
       });
       setMessage(`已更新 ${nextNickname}。`);
       cancelEditStudent();
-      await Promise.all([loadStudents(), refresh()]);
+      await refresh();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "保存失败");
     } finally {
@@ -7753,7 +7697,7 @@ function TeacherStudents({
     try {
       await api.deleteStudent(student.id);
       setMessage(`已删除 ${student.nickname}。`);
-      await Promise.all([loadStudents(), refresh()]);
+      await refresh();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "删除失败");
     } finally {
@@ -7773,7 +7717,6 @@ function TeacherStudents({
         <button disabled={saving} onClick={addStudent}>{saving ? "保存中" : "添加"}</button>
       </div>
       {message && <p className="hint">{message}</p>}
-      {currentLoadError && <p className="error">学生名单加载失败：{currentLoadError}</p>}
       <div className="student-table">
         {visibleStudents.map((student) => {
           const isEditing = editingId === student.id;
