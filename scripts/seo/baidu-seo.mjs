@@ -1906,6 +1906,7 @@ async function fetchOnlineTarget(target) {
     const expectedContentTypes = target.contentTypes || expectedContentTypesForUrl(target.url);
     let missingContentTypes = missingContentTypeMarkers(contentType, expectedContentTypes);
     const staleWarnings = [];
+    const staleContentTypeProofs = [];
 
     if (missingContentTypes.length > 0 && target.staleContentTypeSourceUrl) {
       try {
@@ -1917,6 +1918,12 @@ async function fetchOnlineTarget(target) {
 
         if (sourceResponse.ok && sourceMissingContentTypes.length === 0 && sourceMissingMarkers.length === 0) {
           staleWarnings.push(`canonical CDN edge stale: ${missingContentTypes.join('; ')}; source-bypass ${target.staleContentTypeSourceUrl} content-type=${sourceContentType}`);
+          staleContentTypeProofs.push({
+            sourceUrl: target.staleContentTypeSourceUrl,
+            sourceContentType,
+            sourceCacheHeaders: cacheHeaderSummary(sourceResponse.headers),
+            issue: missingContentTypes.join('; ')
+          });
           missingContentTypes = [];
         }
       } catch {
@@ -1926,7 +1933,7 @@ async function fetchOnlineTarget(target) {
 
     const ok = response.ok && missingMarkers.length === 0 && missingContentTypes.length === 0;
     const warning = ok && (missingWarningMarkers.length > 0 || staleWarnings.length > 0);
-    const cacheHeaders = target.includeCacheHeaders ? cacheHeaderSummary(response.headers) : '';
+    const cacheHeaders = target.includeCacheHeaders || staleContentTypeProofs.length > 0 ? cacheHeaderSummary(response.headers) : '';
     return {
       label: target.label || '',
       url: target.url,
@@ -1936,6 +1943,7 @@ async function fetchOnlineTarget(target) {
       missingMarkers,
       missingWarningMarkers: [...missingWarningMarkers, ...staleWarnings],
       missingContentTypes,
+      staleContentTypeProofs,
       cacheHeaders,
       ok,
       warning,
@@ -1951,6 +1959,7 @@ async function fetchOnlineTarget(target) {
       missingMarkers: target.markers || [],
       missingWarningMarkers: target.warningMarkers || [],
       missingContentTypes: [],
+      staleContentTypeProofs: [],
       cacheHeaders: '',
       ok: false,
       warning: false,
@@ -3065,6 +3074,15 @@ function robotsCacheDiagnosis(onlineResults) {
   };
 }
 
+function assetNameFromUrl(url) {
+  try {
+    const pathname = new URL(url).pathname;
+    return pathname.replace(/^\/+/, '') || '/';
+  } catch {
+    return String(url || '');
+  }
+}
+
 function criticalAssetCacheDiagnostics(onlineResults) {
   const pairs = [
     {
@@ -3097,7 +3115,7 @@ function criticalAssetCacheDiagnostics(onlineResults) {
     }
   ];
 
-  const rows = pairs.map((pair) => {
+  const fixedRows = pairs.map((pair) => {
     const canonical = onlineResults.find((result) => result.label === pair.canonicalLabel);
     const source = onlineResults.find((result) => result.label === pair.sourceLabel);
     let status = 'UNKNOWN';
@@ -3124,6 +3142,28 @@ function criticalAssetCacheDiagnostics(onlineResults) {
       sourceMissingWarning: source?.missingWarningMarkers?.length ? source.missingWarningMarkers.join(', ') : 'none'
     };
   });
+  const contextRows = onlineResults.flatMap((result) => arrayFrom(result.staleContentTypeProofs).map((proof) => ({
+    asset: assetNameFromUrl(result.url),
+    canonicalLabel: result.label || assetNameFromUrl(result.url),
+    sourceLabel: 'source-bypass content-type proof',
+    canonicalUrl: result.url,
+    impact: result.url.endsWith('.md')
+      ? 'Markdown GEO context content-type for Baidu and AI-compatible retrieval'
+      : 'Canonical content-type consistency for crawler retrieval',
+    status: 'EDGE_CACHE_STALE',
+    canonical: result,
+    source: {
+      url: proof.sourceUrl,
+      cacheHeaders: proof.sourceCacheHeaders || 'N/A'
+    },
+    canonicalStatus: onlineResultStatus(result),
+    sourceStatus: 'PASS',
+    canonicalMissingRequired: result.missingMarkers?.length ? result.missingMarkers.join(', ') : 'none',
+    canonicalMissingWarning: result.missingWarningMarkers?.length ? result.missingWarningMarkers.join(', ') : proof.issue || 'content-type stale',
+    sourceMissingRequired: 'none',
+    sourceMissingWarning: 'none'
+  })));
+  const rows = [...fixedRows, ...contextRows];
 
   const staleRows = rows.filter((row) => row.status === 'EDGE_CACHE_STALE');
   const failingRows = rows.filter((row) => row.status === 'SOURCE_AND_CANONICAL_FAIL' || row.status === 'CANONICAL_WARN_SOURCE_FAIL');
