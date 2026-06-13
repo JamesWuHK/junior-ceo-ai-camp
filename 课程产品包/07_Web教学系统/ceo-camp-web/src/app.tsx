@@ -125,25 +125,25 @@ const productTrackOptions = [
     value: "life-helper",
     label: "生活帮手",
     hint: "家里、生活、照护、饮食、整理里的小麻烦",
-    directions: ["研学/出行准备", "家庭整理", "生活提醒"]
+    directions: ["上学出门", "放学安排", "房间整理"]
   },
   {
     value: "learning-tool",
     label: "学习工具",
     hint: "作业、复习、背诵、错题、口语里的卡点",
-    directions: ["错题/作业辅导", "口语/语言练习", "考试/复习规划"]
+    directions: ["长题拆题", "单词复习", "口语练习"]
   },
   {
     value: "creative-studio",
     label: "创意工坊",
     hint: "写故事、画漫画、做歌、做视频的灵感和修改",
-    directions: ["故事/阅读", "漫画创作", "歌词/音乐创作"]
+    directions: ["故事开头", "漫画分镜", "海报视频"]
   },
   {
     value: "campus-community",
     label: "校园社区",
     hint: "班级信息、活动、趣事、新闻和连接",
-    directions: ["活动组队", "班级信息", "校园新闻/资讯"]
+    directions: ["活动组队", "班级提醒", "失物招领"]
   }
 ] as const;
 
@@ -248,6 +248,123 @@ const productTrackExamples: Record<
     nextStep: "下一版先加“人数满了自动显示候补”。"
   }
 };
+
+type TrackProjectChoice = {
+  title: string;
+  user: string;
+  story: string;
+  need: string;
+};
+
+const trackProjectChoices: Record<
+  ProductTrackValue,
+  {
+    pageTitle: string;
+    intro: string;
+    projects: TrackProjectChoice[];
+  }
+> = {
+  "life-helper": {
+    pageTitle: "生活帮手：每天都会发生的小麻烦",
+    intro: "生活帮手从每天反复出现的小卡点开始，先看见谁需要帮忙。",
+    projects: [
+      {
+        title: "校卡又躲起来了",
+        user: "早上赶着出门的同学",
+        story: "周二早上 7:20，安安已经背上书包，妈妈忽然问校卡、水杯、数学卷子带了吗。她把书包翻了三次，最后还是把红领巾落在沙发上。",
+        need: "出门前要确认的东西太多，通知又分散。"
+      },
+      {
+        title: "回家先做哪件事",
+        user: "放学后容易拖到很晚的同学",
+        story: "浩浩回家后先吃点心，又看了一会儿平板。等想起作业、跳绳和读英语时，已经快睡觉了，家里又开始催。",
+        need: "放学后的事情很多，他需要先看清今天的顺序。"
+      },
+      {
+        title: "房间刚收好又乱了",
+        user: "想把桌面收干净的同学",
+        story: "小米周末把书桌收好，周一写作业时又找不到橡皮和科学作业纸。她不是不想整理，是不知道东西该放回哪里。",
+        need: "常用物品没有固定位置，找东西会浪费时间。"
+      }
+    ]
+  },
+  "learning-tool": {
+    pageTitle: "学习工具：卡住时先看哪一步",
+    intro: "学习工具先帮同学找到第一步怎么开始。",
+    projects: [
+      {
+        title: "长应用题像一堵墙",
+        user: "看到大段题目就发愣的同学",
+        story: "辰辰会乘法，也会除法，可一看到 6 行应用题就停住。他读完最后一句，已经忘了前面说的是谁、买了什么、要问什么。",
+        need: "题目太长，人物、数字和问题混在一起。"
+      },
+      {
+        title: "单词背了又忘",
+        user: "英语小测前很紧张的同学",
+        story: "悠悠周一背了 20 个单词，周三听写时又混在一起。她把单词表从头读到尾，却不知道哪些是真的忘了，哪些只是看着熟。",
+        need: "复习没有顺序，也不知道该重点练哪几个词。"
+      },
+      {
+        title: "开口说英语有点卡",
+        user: "想练口语但没人陪练的同学",
+        story: "英语课要做 1 分钟自我介绍，阿泽在家练了好几遍，还是只会背稿。妈妈一问别的问题，他就不知道怎么接下去。",
+        need: "他需要一个能陪他练追问和回答的办法。"
+      }
+    ]
+  },
+  "creative-studio": {
+    pageTitle: "创意工坊：有想法但做不出来",
+    intro: "创意工坊帮创意从脑袋里走到纸上和屏幕上。",
+    projects: [
+      {
+        title: "故事开头写不出来",
+        user: "脑子里有世界观的小作者",
+        story: "朵朵想写一个海底学校的故事，已经想好了章鱼老师和会发光的操场。可打开文档后，她第一句写了又删，十分钟过去还是空白。",
+        need: "她有很多画面，却缺一个能开头的入口。"
+      },
+      {
+        title: "四格漫画卡在第二格",
+        user: "想画搞笑漫画的同学",
+        story: "明明画了第一格：机器人把作业本吃掉了。他知道结尾要好笑，但第二格和第三格怎么接，怎么都不顺。",
+        need: "故事需要顺序、转折和结尾节奏。"
+      },
+      {
+        title: "海报看起来乱乱的",
+        user: "要给班级活动做海报的同学",
+        story: "班级跳蚤市场要招摊主，嘉嘉把时间、地点、报名方式和漂亮贴纸都放上海报。大家看完却问：到底什么时候报名？",
+        need: "信息太多，最重要的内容没有先被看见。"
+      }
+    ]
+  },
+  "campus-community": {
+    pageTitle: "校园社区：让同学更容易连接",
+    intro: "校园社区先解决班级里一次真实的连接问题。",
+    projects: [
+      {
+        title: "想打球但凑不齐人",
+        user: "午休想参加活动的同学",
+        story: "周五午休，小杰想约 3 个人打乒乓球。他问了前后桌，有人没听见，有人已经约好了。等人数凑齐，午休快结束了。",
+        need: "想参加的人不知道谁也有同样兴趣。"
+      },
+      {
+        title: "值日提醒总有人漏看",
+        user: "负责班级小任务的同学",
+        story: "本周轮到第三组擦黑板、倒垃圾。组长在群里发过一次，可第二天还是有人忘了，最后只剩两个人补做。",
+        need: "班级小任务需要更清楚地让每个人知道自己哪天做什么。"
+      },
+      {
+        title: "谁捡到了我的水杯",
+        user: "在学校丢东西的同学",
+        story: "午饭后，然然发现蓝色水杯不见了。她去了操场、教室和食堂问了一圈，最后才知道杯子被放在图书角。",
+        need: "失物和认领信息散在不同地方，找起来很费劲。"
+      }
+    ]
+  }
+};
+
+function trackProjectForPage(page: Pick<LessonPage, "title">) {
+  return courseTrackExampleOrder.find((track) => trackProjectChoices[track].pageTitle === page.title) ?? null;
+}
 
 const techRouteOptions = [
   { value: "standard", label: "标准路线", hint: "用课堂推荐工具做出来" },
@@ -484,12 +601,15 @@ type LessonArtifactKind =
   | "ai-workbench"
   | "ai-pipeline"
   | "ai-check-lights"
-  | "evidence-check"
-  | "market-scout"
-  | "competitor-grid"
-  | "interview-card"
-  | "direction-map"
-  | "product-sentence"
+	  | "evidence-check"
+	  | "market-scout"
+	  | "competitor-grid"
+	  | "interview-card"
+	  | "direction-map"
+	  | "track-map"
+	  | "track-projects"
+	  | "direction-question"
+	  | "product-sentence"
   | "prompt-card"
   | "ai-revise"
   | "agent-card"
@@ -987,18 +1107,18 @@ const moduleDesigns: Record<
   "track-cases": {
     icon: Route,
     accent: "sun",
-    chips: ["选赛道", "定用户", "说卡点"],
-    steps: ["先选一条主路", "再说想帮谁", "最后写清卡在哪一步"],
+    chips: ["看故事", "选赛道", "找用户"],
+    steps: ["先看 12 个真实麻烦", "选最想继续追的一个", "写清要问谁、问什么"],
     cards: [
       { title: "赛道", text: "生活、学习、创意或校园" },
-      { title: "用户", text: "一个真实会遇到麻烦的人" },
-      { title: "卡点", text: "他在哪一步卡住" },
-      { title: "下一步", text: "准备去问谁、看什么" }
+      { title: "故事", text: "一个真实会发生的小麻烦" },
+      { title: "用户", text: "一个能被找到、能被采访的人" },
+      { title: "问题", text: "先留下要问的问题，办法由小组发明" }
     ],
     flow: [
-      { title: "选一条路", text: "给自己的项目找一个主方向" },
-      { title: "说清对象", text: "不要写所有人，先写一个人群" },
-      { title: "准备调研", text: "下午带着问题去问真人" }
+      { title: "看见", text: "他在什么时候卡住" },
+      { title: "选择", text: "我们想继续追哪一个" },
+      { title: "提问", text: "下午带着问题去问真人" }
     ]
   },
   "ai-superpowers": {
@@ -1235,12 +1355,16 @@ const fallbackLessonPages: Record<string, LessonPageSeed[]> = {
     { page_no: 5, title: "校园社区：校园活动组队板", page_type: "story", content_summary: "想参加活动，先找到同伴" },
     { page_no: 6, title: "Demo：从故事里拆出产品", page_type: "demo", content_summary: "把用户、需求、产品、第一步、使用效果和价值交换拆开看" },
     { page_no: 7, title: "轮到你：写帮忙卡", page_type: "experiment", content_summary: "写下想帮谁、卡在哪、先帮哪一步、少掉什么麻烦" }
-  ],
-  "track-cases": [
-    { page_no: 1, title: "四条赛道地图", page_type: "story", content_summary: "生活帮手、学习工具、创意工坊、校园社区，先选一条最想追的路" },
-    { page_no: 2, title: "选一条路，做自己的题", page_type: "experiment", content_summary: "选主赛道，再写出自己团队想帮的人" },
-    { page_no: 3, title: "团队讨论：想帮谁", page_type: "teamwork", content_summary: "把赛道变成一个真实用户和一个具体小麻烦" }
-  ],
+	  ],
+	  "track-cases": [
+	    { page_no: 1, title: "四条赛道，先看想帮谁", page_type: "story", content_summary: "生活、学习、创意、校园，先看真实的人和麻烦，再选想继续追的方向" },
+	    { page_no: 2, title: trackProjectChoices["life-helper"].pageTitle, page_type: "story", content_summary: "看 3 个每天都会出现的生活小麻烦，先选想帮助的人" },
+	    { page_no: 3, title: trackProjectChoices["learning-tool"].pageTitle, page_type: "story", content_summary: "看 3 个学习里卡住的时刻，先找第一步从哪里开始" },
+	    { page_no: 4, title: trackProjectChoices["creative-studio"].pageTitle, page_type: "story", content_summary: "看 3 个创作卡住的时刻，把解决办法留给小组发明" },
+	    { page_no: 5, title: trackProjectChoices["campus-community"].pageTitle, page_type: "story", content_summary: "看 3 个校园连接里的小麻烦，找到想继续调查的用户" },
+	    { page_no: 6, title: "团队讨论：选一个想追的麻烦", page_type: "teamwork", content_summary: "从 12 个故事或自己的发现里选一个，写清真实用户和发生场景" },
+	    { page_no: 7, title: "提交方向：先留下问题", page_type: "experiment", content_summary: "今天先提交赛道、真实用户、发生场景和要问的问题，解决办法由团队继续想" }
+	  ],
   "problem-wall": [
     { page_no: 1, title: "团队讨论：生活小麻烦", page_type: "teamwork", content_summary: "每个人先写一个真实遇到过的小麻烦" },
     { page_no: 2, title: "抓一张最想追的线索", page_type: "teamwork", content_summary: "团队把小麻烦写成谁、在哪、卡在哪" },
@@ -8422,8 +8546,12 @@ function artifactKindForPage(module: CourseModule, page: DesignedLessonPage): Le
     }
     return null;
   }
-  if (module.id === "workbuddy-webpage") return "product-browser";
-  if (module.id === "track-cases") return "direction-map";
+	  if (module.id === "workbuddy-webpage") return "product-browser";
+	  if (module.id === "track-cases") {
+	    if (trackProjectForPage(page)) return "track-projects";
+	    if (/四条赛道/.test(page.title)) return "track-map";
+	    return "direction-question";
+	  }
   if (module.id === "problem-wall") return "problem-wall";
   if (module.id === "ai-judgement") {
     if (/拆开看/.test(page.title)) return "ai-workbench";
@@ -8573,9 +8701,14 @@ function specialChipsForPage(page: DesignedLessonPage) {
     "学习工具：应用题拆题板": ["长题卡住", "拆成四块", "先下手"],
     "创意工坊：四格漫画分镜台": ["故事点子", "四格分镜", "自己改"],
     "校园社区：校园活动组队板": ["活动想法", "报名问题", "找同伴"],
-    "四条赛道地图": ["生活帮手", "学习工具", "创意工坊", "校园社区"],
-    "选一条路，做自己的题": ["选赛道", "找用户", "借方法"],
-    "12 个真实创业方向": ["生活帮手", "学习工具", "创意工坊", "校园社区"],
+	    "四条赛道，先看想帮谁": ["生活帮手", "学习工具", "创意工坊", "校园社区"],
+	    "生活帮手：每天都会发生的小麻烦": ["出门", "放学", "整理"],
+	    "学习工具：卡住时先看哪一步": ["长题", "单词", "口语"],
+	    "创意工坊：有想法但做不出来": ["故事", "漫画", "海报"],
+	    "校园社区：让同学更容易连接": ["组队", "提醒", "失物"],
+	    "团队讨论：选一个想追的麻烦": ["选故事", "找用户", "问细节"],
+	    "提交方向：先留下问题": ["主赛道", "真实用户", "要问什么"],
+	    "12 个真实创业方向": ["生活帮手", "学习工具", "创意工坊", "校园社区"],
     "作品可以有很多样子": ["浏览器打开", "作品卡片", "点击体验"],
     "真产品检查": ["能打开", "能完成动作", "能分享"],
     "定价三问": ["谁会用", "付出什么", "为什么值得"],
@@ -8626,8 +8759,15 @@ function childFacingSummaryForPage(module: CourseModule, page: DesignedLessonPag
     "故事：上学出门检查台": "乐乐早上想不全。一个小清单，帮他把东西带齐，出门不慌。",
     "老师演示：上学出门检查台": "把早上怕漏带这件事拆开，看它怎样变成一个能每天打开的小产品。",
     "别人为什么愿意换": "如果作品真的帮上忙，别人可能愿意试玩、推荐，甚至拿星星币来换。",
-    "轮到你：写帮忙卡": "用几句话写清：你们想帮谁，他卡在哪，先帮哪一步，帮完少烦什么。",
-    "四个项目都收到空话": "四条赛道各派一个项目来问 AI，结果都卡在同一个地方：任务单没说清楚。",
+	    "轮到你：写帮忙卡": "用几句话写清：你们想帮谁，他卡在哪，先帮哪一步，帮完少烦什么。",
+	    "四条赛道，先看想帮谁": "今天先不急着想产品名字。先看 12 个真实小麻烦，选一个你们最想继续调查的人。",
+	    "生活帮手：每天都会发生的小麻烦": "生活帮手从每天都会反复发生的小麻烦开始：出门、放学、整理，都可能藏着需求。",
+	    "学习工具：卡住时先看哪一步": "学习工具先看同学卡在哪一步：是看不懂长题，还是复习没重点，还是口语接不上。",
+	    "创意工坊：有想法但做不出来": "创意工坊先看创作卡点：有画面、有角色、有材料，但作品还没有顺利出来。",
+	    "校园社区：让同学更容易连接": "校园社区先看班级里真实的连接问题：谁想参加、谁该知道、东西在哪里。",
+	    "团队讨论：选一个想追的麻烦": "从 12 个故事里选一个，也可以写你们自己发现的麻烦。先把真实用户说清楚。",
+	    "提交方向：先留下问题": "今天先留下赛道、真实用户、发生场景和要问的问题，解决办法由你们小组继续发明。",
+	    "四个项目都收到空话": "四条赛道各派一个项目来问 AI，结果都卡在同一个地方：任务单没说清楚。",
     "老师演示：同一个项目，说清楚再问": "同一个项目，把问法说清楚，AI 就能交出能继续做的材料。",
     "AI 第一版，先挑能用的": "四个项目都拿到 AI 第一版，孩子要留下能用的，划掉没证据的。",
     "DeepSeek 当检查员": "让 DeepSeek 帮四个项目找出太大、没证据、今天做不到的句子。",
@@ -9400,8 +9540,13 @@ function specialStepsForPage(page: DesignedLessonPage) {
     "出门检查台跑一遍": ["粘贴课表和通知", "点击生成", "得到出门清单"],
     "给网页一句清楚任务": ["给谁用", "完成什么动作", "看到什么结果"],
     "第一版页面长什么样": ["输入区", "按钮", "结果区"],
-    "四条赛道地图": ["生活帮手", "学习工具", "创意工坊", "校园社区"],
-    "选一条路，做自己的题": ["选主赛道", "写真实用户", "借方法"],
+	    "四条赛道，先看想帮谁": ["先看四条路", "再听 12 个故事", "最后选想继续追的人"],
+	    "生活帮手：每天都会发生的小麻烦": ["看早上出门", "看放学回家", "看房间整理"],
+	    "学习工具：卡住时先看哪一步": ["看长题卡住", "看单词忘记", "看口语接不上"],
+	    "创意工坊：有想法但做不出来": ["看故事开头", "看漫画转折", "看海报重点"],
+	    "校园社区：让同学更容易连接": ["看活动凑人", "看值日提醒", "看失物认领"],
+	    "团队讨论：选一个想追的麻烦": ["选一个故事", "说出真实用户", "写下要问的问题"],
+	    "提交方向：先留下问题": ["写主赛道", "写真实用户", "写下一步要问谁"],
     "问题改写卡": ["选一个原始烦恼", "让豆包改成 3 个问题", "团队选一个今天继续追"],
     "AI 市场侦察卡": ["找一条用户声音", "找一个已有方案", "写下还要验证的问题"],
     "老师演示：DeepSeek 找已有方案": ["输入产品一句话", "看已有办法", "写下还要问真人的问题"],
@@ -9436,7 +9581,7 @@ function expectedOutputForLesson(module: CourseModule, page: DesignedLessonPage)
     "problem-wall": "提交一张问题卡：谁、在哪里、遇到什么麻烦",
     "ai-judgement": "提交一张 WorkBuddy 出图卡：画面描述、想修改的细节和下一步",
     "workbuddy-webpage": "提交一句网页任务：给谁用、完成什么动作、看到什么结果",
-    "track-cases": "选一条主赛道，并写下想帮助的真实用户",
+	    "track-cases": "提交方向问题卡：主赛道、真实用户、发生场景和要问的问题",
     "ai-superpowers": "提交一张侦察卡：原始烦恼、问题改写、已有方案和继续追问",
     "user-interview": "带回一条用户原话和一个新的发现",
     "project-launch": "写出产品一句话：帮谁、解决什么、怎么解决",
@@ -9697,9 +9842,9 @@ function LessonArtifact({
     );
   }
 
-  if (kind === "interview-card") {
-    return (
-      <div className="timeline-artifact artifact-interview">
+	  if (kind === "interview-card") {
+	    return (
+	      <div className="timeline-artifact artifact-interview">
         {["遇到过吗？", "多久一次？", "现在怎么解决？"].map((question, index) => (
           <article key={question}>
             <b>{index + 1}</b>
@@ -9708,12 +9853,85 @@ function LessonArtifact({
           </article>
         ))}
         <footer>把真实声音带回团队桌面</footer>
-      </div>
-    );
-  }
+	      </div>
+	    );
+	  }
 
-  if (kind === "direction-map") {
-    return (
+	  if (kind === "track-map") {
+	    return (
+	      <div className="timeline-artifact artifact-track-map">
+	        <header>
+	          <strong>先看人，再选路</strong>
+	          <span>每条赛道都有 3 个真实麻烦，办法留给你们来发明。</span>
+	        </header>
+	        {productTrackOptions.map((track, index) => (
+	          <article key={track.value}>
+	            <small>{String.fromCharCode(65 + index)}</small>
+	            <strong>{track.label}</strong>
+	            <span>{track.hint}</span>
+	            <div>
+	              {track.directions.map((direction) => (
+	                <b key={direction}>{direction}</b>
+	              ))}
+	            </div>
+	          </article>
+	        ))}
+	      </div>
+	    );
+	  }
+
+	  if (kind === "track-projects") {
+	    const trackKey = trackProjectForPage(page);
+	    const track = trackKey ? productTrackOptions.find((item) => item.value === trackKey) : null;
+	    const choice = trackKey ? trackProjectChoices[trackKey] : null;
+	    if (!track || !choice) return null;
+	    return (
+	      <div className="timeline-artifact artifact-track-projects">
+	        <header>
+	          <small>{track.label}</small>
+	          <strong>选一个想继续追的麻烦</strong>
+	          <span>{choice.intro}</span>
+	        </header>
+	        {choice.projects.map((project, index) => (
+	          <article key={project.title}>
+	            <small>{index + 1}</small>
+	            <strong>{project.title}</strong>
+	            <span className="track-project-user">{project.user}</span>
+	            <p>{project.story}</p>
+	            <em>{project.need}</em>
+	          </article>
+	        ))}
+	        <footer>你们会先问谁？想确认哪一个细节？</footer>
+	      </div>
+	    );
+	  }
+
+	  if (kind === "direction-question") {
+	    const fields = [
+	      ["主赛道", "生活、学习、创意或校园"],
+	      ["真实用户", "一个能找到、能采访的人"],
+	      ["发生场景", "什么时候、在哪里卡住"],
+	      ["要问的问题", "先问发生过吗、多久一次、现在怎么做"]
+	    ];
+	    return (
+	      <div className="timeline-artifact artifact-direction-question">
+	        <header>
+	          <strong>先把问题带回小组</strong>
+	          <span>办法由你们小组继续发明。</span>
+	        </header>
+	        {fields.map(([title, text], index) => (
+	          <article key={title}>
+	            <small>{index + 1}</small>
+	            <strong>{title}</strong>
+	            <span>{text}</span>
+	          </article>
+	        ))}
+	      </div>
+	    );
+	  }
+
+	  if (kind === "direction-map") {
+	    return (
       <div className="timeline-artifact artifact-directions">
         {productTrackOptions.map((track, index) => {
           const example = productTrackExamples[track.value];

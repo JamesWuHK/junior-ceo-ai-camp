@@ -1213,6 +1213,155 @@ button:disabled {
   text-align: center;
 }
 
+.artifact-track-map {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.artifact-track-map header,
+.artifact-track-projects header {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 5px;
+  padding: clamp(12px, 1.45vw, 18px);
+  background: #172018;
+}
+
+.artifact-track-map header strong,
+.artifact-track-projects header strong {
+  color: #fffdf6;
+  font-size: clamp(20px, 2.1vw, 34px);
+}
+
+.artifact-track-map header span,
+.artifact-track-projects header span,
+.artifact-track-projects header small {
+  color: #f8e7a5;
+}
+
+.artifact-track-map article {
+  min-height: clamp(132px, 12vw, 178px);
+  align-content: start;
+}
+
+.artifact-track-map article small,
+.artifact-track-projects article small {
+  width: clamp(30px, 2.8vw, 40px);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: #f7d66d;
+  color: #172018;
+  display: grid;
+  place-items: center;
+}
+
+.artifact-track-map article > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.artifact-track-map b {
+  border-radius: 999px;
+  background: #eff8ed;
+  color: #172018;
+  padding: 6px 9px;
+  font-size: clamp(11px, 0.92vw, 14px);
+  line-height: 1.15;
+}
+
+.artifact-track-projects {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.artifact-track-projects article {
+  min-height: clamp(260px, 25vw, 350px);
+  align-content: start;
+  background: #fffdf6;
+}
+
+.artifact-track-projects article:nth-of-type(2) {
+  background: #f4fbef;
+}
+
+.artifact-track-projects article:nth-of-type(3) {
+  background: #fff6d8;
+}
+
+.artifact-track-projects .track-project-user {
+  width: fit-content;
+  border-radius: 999px;
+  background: #e8f1ff;
+  color: #254f75;
+  padding: 5px 9px;
+  font-size: clamp(11px, 0.9vw, 14px);
+}
+
+.artifact-track-projects p {
+  margin: 2px 0 0;
+  color: #20352b;
+  font-size: clamp(12px, 0.98vw, 15px);
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.artifact-track-projects em {
+  align-self: end;
+  border-top: 1px dashed rgba(23, 32, 24, 0.2);
+  color: #1f6f50;
+  font-size: clamp(12px, 0.98vw, 15px);
+  font-style: normal;
+  font-weight: 950;
+  line-height: 1.35;
+  padding-top: 8px;
+}
+
+.artifact-track-projects footer {
+  grid-column: 1 / -1;
+  padding: 12px 16px;
+  background: #172018;
+  color: #fffdf6;
+  text-align: center;
+}
+
+.artifact-direction-question {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.artifact-direction-question header {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 6px;
+  padding: clamp(14px, 1.6vw, 22px);
+  background: #172018;
+}
+
+.artifact-direction-question header strong {
+  color: #fffdf6;
+  font-size: clamp(22px, 2.3vw, 36px);
+}
+
+.artifact-direction-question header span {
+  color: #f8e7a5;
+}
+
+.artifact-direction-question article {
+  min-height: clamp(126px, 12vw, 176px);
+  align-content: start;
+}
+
+.artifact-direction-question article small {
+  width: clamp(32px, 3vw, 44px);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: #f7d66d;
+  color: #172018;
+  display: grid;
+  place-items: center;
+}
+
 .artifact-directions article {
   min-height: clamp(172px, 18vw, 252px);
   align-content: start;
@@ -9864,9 +10013,12 @@ button:disabled {
   .artifact-ai-workbench,
   .artifact-ai-pipeline,
   .artifact-ai-lights,
-  .artifact-sheet,
-  .artifact-interview,
-  .artifact-directions,
+	  .artifact-sheet,
+	  .artifact-interview,
+	  .artifact-track-map,
+	  .artifact-track-projects,
+	  .artifact-direction-question,
+	  .artifact-directions,
   .artifact-board,
   .artifact-prompt,
   .artifact-agent,
