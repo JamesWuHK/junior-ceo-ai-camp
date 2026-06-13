@@ -1,0 +1,7 @@
+# Generated: 2026-06-13T09:29:08+08:00
+# Site URL: https://camps.wanli.wiki
+# URL list: reports/seo-cdn-purge-urls.txt
+# Run this in the Tencent Cloud account that owns camps.wanli.wiki as a CDN host.
+# This refreshes crawl/GEO context assets only; it is not Baidu index or rank evidence.
+
+tccli cdn PurgeUrlsCache --Urls '["https://camps.wanli.wiki/robots.txt","https://camps.wanli.wiki/sitemap-context.xml","https://camps.wanli.wiki/llms.txt","https://camps.wanli.wiki/site-facts.json"]'

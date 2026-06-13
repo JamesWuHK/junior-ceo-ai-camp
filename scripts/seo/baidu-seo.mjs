@@ -19,6 +19,7 @@ const COVERAGE_REPORT_FILE = 'reports/seo-baidu-geo-coverage.md';
 const MONITOR_REPORT_FILE = 'reports/seo-baidu-monitor.md';
 const CDN_REFRESH_REPORT_FILE = 'reports/seo-cdn-refresh.md';
 const CDN_PURGE_URLS_FILE = 'reports/seo-cdn-purge-urls.txt';
+const CDN_PURGE_COMMAND_FILE = 'reports/seo-cdn-purge-command.txt';
 const RANK_PLAN_REPORT_FILE = 'reports/seo-baidu-rank-plan.md';
 const GEO_PROMPT_REPORT_FILE = 'reports/seo-geo-answer-prompts.md';
 const GEO_READINESS_REPORT_FILE = 'reports/seo-geo-readiness.md';
@@ -3300,8 +3301,15 @@ function buildCdnRefreshReport({ generatedAt, diagnostics }) {
     '## URLs To Purge',
     '',
     `List file: ${CDN_PURGE_URLS_FILE}`,
+    `Command file: ${CDN_PURGE_COMMAND_FILE}`,
     '',
     ...(purgeUrls.length > 0 ? purgeUrls : ['- none']),
+    '',
+    '## Purge Command',
+    '',
+    diagnostics.staleRows.length > 0
+      ? `Copy the command from \`${CDN_PURGE_COMMAND_FILE}\` and run it in the Tencent Cloud account that owns the CDN host.`
+      : 'No purge command needed.',
     '',
     '## Source Object Proof',
     '',
@@ -3315,6 +3323,7 @@ function buildCdnRefreshReport({ generatedAt, diagnostics }) {
     '- `tccli ecdn DescribeDomains` currently returns that ECDN is not enabled for this account.',
     '- `tccli teo DescribeZones` currently returns no EdgeOne zones.',
     '- `tccli dnspod DescribeRecordList --Domain wanli.wiki` currently returns no permission for this domain.',
+    '- If `tccli cdn PurgeUrlsCache` returns `ResourceNotFound.CdnHostNotExists`, the current account does not own `camps.wanli.wiki` as a CDN host.',
     '- Use the Tencent Cloud account that owns `camps.wanli.wiki.cdn.dnsv1.com`, or wait for the edge cache TTL to expire.',
     ''
   ].join('\n');
@@ -3323,6 +3332,31 @@ function buildCdnRefreshReport({ generatedAt, diagnostics }) {
 function buildCdnPurgeUrlList(diagnostics) {
   const urls = diagnostics.staleRows.map((row) => row.canonicalUrl);
   return urls.length > 0 ? `${urls.join('\n')}\n` : '';
+}
+
+function shellSingleQuote(value) {
+  return `'${String(value).replace(/'/g, `'\\''`)}'`;
+}
+
+function buildCdnPurgeCommand({ generatedAt, diagnostics }) {
+  const urls = diagnostics.staleRows.map((row) => row.canonicalUrl);
+  const lines = [
+    `# Generated: ${generatedAt}`,
+    `# Site URL: ${SITE_URL}`,
+    `# URL list: ${CDN_PURGE_URLS_FILE}`,
+    '# Run this in the Tencent Cloud account that owns camps.wanli.wiki as a CDN host.',
+    '# This refreshes crawl/GEO context assets only; it is not Baidu index or rank evidence.',
+    ''
+  ];
+
+  if (urls.length === 0) {
+    lines.push('# No CDN purge URLs are currently required.');
+  } else {
+    lines.push(`tccli cdn PurgeUrlsCache --Urls ${shellSingleQuote(JSON.stringify(urls))}`);
+  }
+
+  lines.push('');
+  return lines.join('\n');
 }
 
 async function cdnPurgeList() {
@@ -3334,9 +3368,11 @@ async function cdnPurgeList() {
   const diagnostics = criticalAssetCacheDiagnostics(onlineResults);
   writeReport(CDN_REFRESH_REPORT_FILE, buildCdnRefreshReport({ generatedAt, diagnostics }));
   writeReport(CDN_PURGE_URLS_FILE, buildCdnPurgeUrlList(diagnostics));
+  writeReport(CDN_PURGE_COMMAND_FILE, buildCdnPurgeCommand({ generatedAt, diagnostics }));
   console.log(`SEO/GEO CDN refresh status: ${diagnostics.status}`);
   console.log(`Report: ${CDN_REFRESH_REPORT_FILE}`);
   console.log(`Purge URL list: ${CDN_PURGE_URLS_FILE}`);
+  console.log(`Purge command: ${CDN_PURGE_COMMAND_FILE}`);
   console.log(`Purge URL count: ${diagnostics.staleRows.length}`);
   for (const row of diagnostics.staleRows) console.log(`- ${row.canonicalUrl}`);
 }
@@ -5115,6 +5151,7 @@ async function monitor() {
   writeReport(BAIDU_SUBMISSION_REPORT_FILE, buildSubmissionReport(submissionSnapshot));
   writeReport(CDN_REFRESH_REPORT_FILE, buildCdnRefreshReport({ generatedAt, diagnostics: cacheDiagnostics }));
   writeReport(CDN_PURGE_URLS_FILE, buildCdnPurgeUrlList(cacheDiagnostics));
+  writeReport(CDN_PURGE_COMMAND_FILE, buildCdnPurgeCommand({ generatedAt, diagnostics: cacheDiagnostics }));
   writeReport(MONITOR_REPORT_FILE, report);
   console.log(`Baidu SEO/GEO monitor: local=${coverageSnapshot.status}, links=${linkSnapshot.status}, online=${onlineStatus}, token=${baidu.tokenConfigured ? 'configured' : 'missing'}, evidence=${evidenceSnapshot.summary.overallStatus}, submission=${submissionSnapshot.summary.latestStatus}`);
   console.log(`Report: ${MONITOR_REPORT_FILE}`);
@@ -5249,7 +5286,7 @@ function usage() {
     '  measurements-import [--dry-run] [--allow-partial] [--merge-existing] [--source <csv>] [--output <json>]',
     '                    Import full or partial CSV checklist rows into private seo/baidu-measurements.json',
     '  monitor           Write a Baidu SEO/GEO monitoring report',
-    '  cdn-purge-list    Write one-URL-per-line CDN purge list for stale SEO/GEO assets',
+    '  cdn-purge-list    Write CDN purge list and copyable command for stale SEO/GEO assets',
     '  rank-plan         Write a Baidu ranking and GEO query tracking sheet',
     '  serp-probe        Probe a small Baidu SERP sample and write a manual evidence pack',
     '  geo-prompts       Write manual AI answer prompt pack for GEO citation checks',
