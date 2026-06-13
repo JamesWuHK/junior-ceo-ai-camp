@@ -57,4 +57,13 @@ while IFS= read -r -d '' file; do
   upload_file "$file" "/$rel" "$content_type" "$cache_control"
 done < <(find "$SITE_DIR" -type f ! -path '*/.DS_Store' -print0)
 
+while IFS= read -r -d '' file; do
+  rel="${file#$SITE_DIR/}"
+  name="${rel%.html}"
+  if [[ "$rel" == "$name" || "$rel" == "index.html" || "$rel" == */* ]]; then
+    continue
+  fi
+  upload_file "$file" "/$name" "text/html; charset=utf-8" "$HTML_CACHE_CONTROL"
+done < <(find "$SITE_DIR" -maxdepth 1 -type f -name '*.html' -print0)
+
 echo "Homepage static deployed from $SITE_DIR"

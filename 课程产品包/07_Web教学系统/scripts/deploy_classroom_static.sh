@@ -63,4 +63,13 @@ while IFS= read -r -d '' file; do
   upload_file "$file" "$remote_path" "$content_type" "$cache_control"
 done < <(find "$DIST_DIR" -type f -print0)
 
+while IFS= read -r -d '' file; do
+  rel="${file#$DIST_DIR/}"
+  name="${rel%.html}"
+  if [[ "$rel" == "$name" || "$rel" == "index.html" || "$rel" == */* ]]; then
+    continue
+  fi
+  upload_file "$file" "${CLASSROOM_BASE}${name}" "text/html; charset=utf-8" "$HTML_CACHE_CONTROL"
+done < <(find "$DIST_DIR" -maxdepth 1 -type f -name '*.html' -print0)
+
 echo "Classroom static deployed to ${CLASSROOM_BASE}"
