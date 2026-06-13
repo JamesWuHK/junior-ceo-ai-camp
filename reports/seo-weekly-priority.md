@@ -1,6 +1,6 @@
 # Weekly Baidu SEO / GEO Priority Report
 
-Generated: 2026-06-13T08:57:22+08:00
+Generated: 2026-06-13T10:00:05+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_FIRST_MEASUREMENT
 
@@ -30,6 +30,14 @@ Overall status: NEEDS_FIRST_MEASUREMENT
 - Run `npm run seo:weekly-init` to create seo/baidu-weekly-measurements.csv, fill measured fields only, then run `npm run seo:weekly-import`.
 - Repair any measured NOT_INDEXED, MEASURED_NO_RANK, or NEEDS_REPAIR item before expanding the keyword set.
 - After importing private measurements, rerun `npm run seo:weekly-priority`, `npm run seo:evidence`, and `npm run seo:monitor`.
+
+## First Measurement Sprint
+
+1. Refresh the working CSV: `npm run seo:weekly-init` writes seo/baidu-weekly-measurements.csv; use `--force` only when you intentionally want to replace local private evidence notes.
+2. Complete the 14 P0 URL_INDEX rows first. A row counts only after `indexed`, `evidenceDate`, `source`, and a short note identify Baidu Search Resource Platform data or a reproducible browser `site:` result.
+3. Complete the 39 P1 KEYWORD_RANK rows next. For manual SERP checks, record rank or explicit no-rank evidence plus date, city/network, device, browser state, and exact query.
+4. Complete the 13 P1 GEO_ANSWER rows with one AI answer check per cluster. Record engine, date, exact prompt, whether the project is mentioned, whether the target page/context is used, and whether positioning is accurate.
+5. Validate before importing: `npm run seo:weekly-validate`. If it passes, run `npm run seo:weekly-import`, then `npm run seo:evidence`, `npm run seo:geo:readiness`, and `npm run seo:monitor`.
 
 ## P0 URL Index Evidence
 
