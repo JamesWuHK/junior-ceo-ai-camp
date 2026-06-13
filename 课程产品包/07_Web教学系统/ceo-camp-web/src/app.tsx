@@ -635,33 +635,200 @@ const aiJudgementSketchnoteSlides: Array<{
 
 const fourCaseJourneyCoursewarePath = classroomPath("courseware/four-case-journey/index.html");
 
-const doorChecklistComicFrames = [
+type CaseComicFrame = {
+  image: string;
+  caption: string;
+  text: string;
+  alt: string;
+};
+
+type CaseComicDeck = {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  ariaLabel: string;
+  closing: {
+    before: string;
+    strong: string;
+    after: string;
+  };
+  frames: CaseComicFrame[];
+};
+
+const doorChecklistComicFrames: CaseComicFrame[] = [
   {
     image: classroomPath("courseware/day1-door-checklist-comic-v2/images/01-door.webp"),
     caption: "彩笔带了吗？",
+    text: "乐乐要出门了，妈妈一句提醒，让他突然想起今天可能还有东西没带。",
     alt: "乐乐在家门口正要出门，妈妈从厨房探头提醒。"
   },
   {
     image: classroomPath("courseware/day1-door-checklist-comic-v2/images/02-messy-notes.webp"),
     caption: "体育、科学、美术，全挤在一起了。",
+    text: "课表、通知、作业要求都在不同地方，出门前一起冒出来。",
     alt: "课表、通知和作业本像纸片一样挤在乐乐脑袋旁边。"
   },
   {
     image: classroomPath("courseware/day1-door-checklist-comic-v2/images/03-art-class.webp"),
     caption: "我不是故意忘的，是早上想不全。",
+    text: "到了美术课才发现彩笔没带。他不是不认真，是早上信息太乱。",
     alt: "美术课上，乐乐发现没带彩笔，同桌递给他几支。"
   },
   {
     image: classroomPath("courseware/day1-door-checklist-comic-v2/images/04-product.webp"),
     caption: "清单分三栏：带什么、查什么、到校先做什么。",
+    text: "检查台只做一件事：把今天要带、要确认、到校先做的事摆清楚。",
     alt: "桌上的简单页面把课表和通知整理成清单。"
   },
   {
     image: classroomPath("courseware/day1-door-checklist-comic-v2/images/05-next-morning.webp"),
     caption: "东西带齐了，出门就不慌了。",
+    text: "第二天他按清单看一遍，发现跳绳还在阳台，马上补上。",
     alt: "第二天，乐乐拿好跳绳和彩笔，安心出门。"
   }
 ];
+
+const wordProblemComicFrames: CaseComicFrame[] = [
+  {
+    image: classroomPath("courseware/day1-word-problem-comic-v2/images/01-word-wall.webp"),
+    caption: "字好多，我先看哪句？",
+    text: "小宇不是怕数学，他是被一大段题目挡住了。",
+    alt: "数学练习课上，小宇盯着一大段应用题，笔停在空中。"
+  },
+  {
+    image: classroomPath("courseware/day1-word-problem-comic-v2/images/02-start-stuck.webp"),
+    caption: "我不是不会算，是不知道怎么开始。",
+    text: "别人已经开始算，他还没找到第一步，越看越急。",
+    alt: "同桌已经开始写算式，小宇的草稿纸上只有乱线和擦痕。"
+  },
+  {
+    image: classroomPath("courseware/day1-word-problem-comic-v2/images/03-wrong-guess.webp"),
+    caption: "乱猜一步，后面更乱。",
+    text: "随便猜一个算式，写到后面就发现对不上。",
+    alt: "小宇随便写了一步，又皱眉用橡皮擦掉。"
+  },
+  {
+    image: classroomPath("courseware/day1-word-problem-comic-v2/images/04-product-cards.webp"),
+    caption: "先把题目摆整齐。",
+    text: "拆题板不直接给答案，只把题目拆成能看清的四块。",
+    alt: "应用题拆题板把长题整理成谁、已知、要求、第一步四张卡。"
+  },
+  {
+    image: classroomPath("courseware/day1-word-problem-comic-v2/images/05-start-solving.webp"),
+    caption: "不是给答案，是帮我开始。",
+    text: "看见第一步以后，小宇终于可以自己动笔了。",
+    alt: "小宇看着第一步卡片，开始自己写算式。"
+  }
+];
+
+const fourPanelStoryComicFrames: CaseComicFrame[] = [
+  {
+    image: classroomPath("courseware/day1-four-panel-story-comic-v2/images/01-funny-idea.webp"),
+    caption: "这个点子好好笑！",
+    text: "安安想到一个有趣故事：文具半夜开会。",
+    alt: "午休时，安安兴奋地画铅笔盒里的文具半夜探头。"
+  },
+  {
+    image: classroomPath("courseware/day1-four-panel-story-comic-v2/images/02-blank-second.webp"),
+    caption: "我有点子，可排不成四格。",
+    text: "第一格画出来了，可第二格空着，她不知道后面怎么排。",
+    alt: "安安盯着第二格空白，桌边堆着橡皮屑。"
+  },
+  {
+    image: classroomPath("courseware/day1-four-panel-story-comic-v2/images/03-story-stuck.webp"),
+    caption: "故事卡在中间了。",
+    text: "擦来擦去，故事没有往前走，点子也快变凉了。",
+    alt: "第一格被擦了又画，文具小角色像在纸上等着出场。"
+  },
+  {
+    image: classroomPath("courseware/day1-four-panel-story-comic-v2/images/04-storyboard-product.webp"),
+    caption: "先排出四格草稿。",
+    text: "分镜台先给四格草稿，让故事有一个可以改的顺序。",
+    alt: "四格漫画分镜台把故事点子排成四张草稿卡。"
+  },
+  {
+    image: classroomPath("courseware/day1-four-panel-story-comic-v2/images/05-child-revises.webp"),
+    caption: "草稿先出来，我再改。",
+    text: "安安保留自己的笑点，把草稿改成自己的漫画。",
+    alt: "安安把最后一格改成自己的笑点，继续画完漫画。"
+  }
+];
+
+const teamUpComicFrames: CaseComicFrame[] = [
+  {
+    image: classroomPath("courseware/day1-team-up-comic-v2/images/01-drone-signup.webp"),
+    caption: "我想去，可还差队友。",
+    text: "航航想参加无人机体验，可报名表说要三人一组。",
+    alt: "航航在学校走廊公告板前看到无人机体验活动，需要组队。"
+  },
+  {
+    image: classroomPath("courseware/day1-team-up-comic-v2/images/02-asking-around.webp"),
+    caption: "再问下去，会不会太烦？",
+    text: "他问了几个同学，大家都有别的安排，继续问有点不好意思。",
+    alt: "航航连续问几位同学，大家想去不同活动。"
+  },
+  {
+    image: classroomPath("courseware/day1-team-up-comic-v2/images/03-almost-missed.webp"),
+    caption: "原来还有人也想去吗？",
+    text: "琪琪也想去，但不知道谁还缺队友，两个人差点错过。",
+    alt: "琪琪也站在公告板前想参加无人机体验，却不知道谁缺队友。"
+  },
+  {
+    image: classroomPath("courseware/day1-team-up-comic-v2/images/04-team-card.webp"),
+    caption: "让想参加的人看见彼此。",
+    text: "组队板把“还缺几人”亮出来，让想参加的人更容易看见彼此。",
+    alt: "校园活动组队板出现一张无人机体验活动卡。"
+  },
+  {
+    image: classroomPath("courseware/day1-team-up-comic-v2/images/05-team-ready.webp"),
+    caption: "组齐了，可以报名了！",
+    text: "三个人凑齐后，大家分好工，活动真的开始了。",
+    alt: "琪琪加入后，航航和同伴凑成三人组并分好工。"
+  }
+];
+
+const caseComicDecks: Record<string, CaseComicDeck> = {
+  "故事：上学出门检查台": {
+    eyebrow: "上学出门检查台",
+    title: "早上出门前，脑子突然乱了",
+    subtitle: "这个早上的小麻烦，可以做成一个小工具。",
+    ariaLabel: "上学出门检查台连环画",
+    closing: { before: "先帮乐乐", strong: "少慌一次", after: "就是一个产品的开始。" },
+    frames: doorChecklistComicFrames
+  },
+  "生活帮手：上学出门检查台": {
+    eyebrow: "上学出门检查台",
+    title: "早上出门前，脑子突然乱了",
+    subtitle: "这个早上的小麻烦，可以做成一个小工具。",
+    ariaLabel: "上学出门检查台连环画",
+    closing: { before: "先帮乐乐", strong: "少慌一次", after: "就是一个产品的开始。" },
+    frames: doorChecklistComicFrames
+  },
+  "学习工具：应用题拆题板": {
+    eyebrow: "应用题拆题板",
+    title: "字太多，小宇不知道先看哪句",
+    subtitle: "这个学习里的小卡点，也可以做成一个小工具。",
+    ariaLabel: "应用题拆题板连环画",
+    closing: { before: "先帮小宇", strong: "迈出第一步", after: "就是一个产品的开始。" },
+    frames: wordProblemComicFrames
+  },
+  "创意工坊：四格漫画分镜台": {
+    eyebrow: "四格漫画分镜台",
+    title: "有点子，可故事卡在第二格",
+    subtitle: "这个创作里的小卡点，也可以做成一个小工具。",
+    ariaLabel: "四格漫画分镜台连环画",
+    closing: { before: "先帮安安", strong: "排出草稿", after: "创作就能继续长出来。" },
+    frames: fourPanelStoryComicFrames
+  },
+  "校园社区：校园活动组队板": {
+    eyebrow: "校园活动组队板",
+    title: "想参加，可还差一个队友",
+    subtitle: "这个校园里的小麻烦，也可以做成一个小工具。",
+    ariaLabel: "校园活动组队板连环画",
+    closing: { before: "先帮同伴", strong: "互相看见", after: "活动就更容易发生。" },
+    frames: teamUpComicFrames
+  }
+};
 
 const fourCaseJourneyModuleIds = new Set([
   "team-formation",
@@ -1350,8 +1517,9 @@ function coursewarePages(module: CourseModule | null | undefined): DesignedLesso
   ] as DesignedLessonPage[];
 }
 
-function isDoorChecklistComicPage(module: CourseModule, page: DesignedLessonPage) {
-  return module.id === "team-formation" && (page.page_no === 2 || page.title === "故事：上学出门检查台" || page.title === "创业从帮助开始");
+function caseComicForPage(module: CourseModule, page: DesignedLessonPage) {
+  if (module.id !== "team-formation" && module.id !== "track-cases") return null;
+  return caseComicDecks[page.title] ?? null;
 }
 
 function lessonPageTitle(module: CourseModule | null | undefined, page: DesignedLessonPage) {
@@ -3370,7 +3538,10 @@ function TeacherApp({
   const selectedPage = lessonPages[selectedPageIndex] || lessonPages[0];
   const lessonRhythm = selectedModule ? lessonRhythmForModule(selectedModule, lessonPages) : null;
   const fourCaseDeckHref =
-    selectedModule && selectedModule.id !== "team-formation" && fourCaseJourneyModuleIds.has(selectedModule.id)
+    selectedModule &&
+    selectedModule.id !== "team-formation" &&
+    selectedModule.id !== "track-cases" &&
+    fourCaseJourneyModuleIds.has(selectedModule.id)
       ? fourCaseJourneyHref(selectedModule.id)
       : "";
   const byDay = useMemo(
@@ -10328,10 +10499,10 @@ function DesignedLessonSlide({ module, page }: { module: CourseModule; page: Des
   );
 }
 
-function DoorChecklistComicSlide() {
+function CaseComicSlide({ deck }: { deck: CaseComicDeck }) {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const viewerPointerStartRef = useRef<number | null>(null);
-  const activeFrame = viewerIndex === null ? null : doorChecklistComicFrames[viewerIndex];
+  const activeFrame = viewerIndex === null ? null : deck.frames[viewerIndex];
 
   useEffect(() => {
     if (viewerIndex === null) return undefined;
@@ -10344,26 +10515,26 @@ function DoorChecklistComicSlide() {
       if (event.key === "Escape") setViewerIndex(null);
       if (event.key === "ArrowLeft") {
         setViewerIndex((current) =>
-          current === null ? current : (current - 1 + doorChecklistComicFrames.length) % doorChecklistComicFrames.length
+          current === null ? current : (current - 1 + deck.frames.length) % deck.frames.length
         );
       }
       if (event.key === "ArrowRight") {
-        setViewerIndex((current) => (current === null ? current : (current + 1) % doorChecklistComicFrames.length));
+        setViewerIndex((current) => (current === null ? current : (current + 1) % deck.frames.length));
       }
     };
 
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [viewerIndex]);
+  }, [deck.frames.length, viewerIndex]);
 
   const showPreviousFrame = () => {
     setViewerIndex((current) =>
-      current === null ? current : (current - 1 + doorChecklistComicFrames.length) % doorChecklistComicFrames.length
+      current === null ? current : (current - 1 + deck.frames.length) % deck.frames.length
     );
   };
 
   const showNextFrame = () => {
-    setViewerIndex((current) => (current === null ? current : (current + 1) % doorChecklistComicFrames.length));
+    setViewerIndex((current) => (current === null ? current : (current + 1) % deck.frames.length));
   };
 
   const handleViewerPointerUp = (event: React.PointerEvent) => {
@@ -10381,13 +10552,13 @@ function DoorChecklistComicSlide() {
   return (
     <article className="lesson-canvas door-comic-slide">
       <header className="door-comic-head">
-        <span>上学出门检查台</span>
-        <h2>早上出门前，脑子突然乱了</h2>
-        <p>这个早上的小麻烦，可以做成一个小工具。</p>
+        <span>{deck.eyebrow}</span>
+        <h2>{deck.title}</h2>
+        <p>{deck.subtitle}</p>
       </header>
 
-      <section className="door-comic-grid" aria-label="上学出门检查台连环画">
-        {doorChecklistComicFrames.map((frame, index) => (
+      <section className="door-comic-grid" aria-label={deck.ariaLabel}>
+        {deck.frames.map((frame, index) => (
           <article className="door-comic-frame" key={frame.image}>
             <button
               type="button"
@@ -10399,16 +10570,19 @@ function DoorChecklistComicSlide() {
             </button>
             <p>
               <strong>{index + 1}</strong>
-              <span>{frame.caption}</span>
+              <span className="door-comic-copy">
+                <span className="door-comic-line">{frame.caption}</span>
+                <span className="door-comic-text">{frame.text}</span>
+              </span>
             </p>
           </article>
         ))}
       </section>
 
       <footer className="door-comic-close">
-        <span>先帮乐乐</span>
-        <strong>少慌一次</strong>
-        <span>就是一个产品的开始。</span>
+        <span>{deck.closing.before}</span>
+        <strong>{deck.closing.strong}</strong>
+        <span>{deck.closing.after}</span>
       </footer>
 
       {activeFrame && viewerIndex !== null && (
@@ -10427,8 +10601,11 @@ function DoorChecklistComicSlide() {
           >
             <img src={activeFrame.image} alt={activeFrame.alt} draggable={false} />
             <figcaption>
-              <strong>{viewerIndex + 1} / {doorChecklistComicFrames.length}</strong>
-              <span>{activeFrame.caption}</span>
+              <strong>{viewerIndex + 1} / {deck.frames.length}</strong>
+              <span className="door-comic-copy door-comic-viewer-copy">
+                <span className="door-comic-line">{activeFrame.caption}</span>
+                <span className="door-comic-text">{activeFrame.text}</span>
+              </span>
             </figcaption>
           </figure>
           <button className="door-comic-viewer-nav next" type="button" onClick={showNextFrame} aria-label="下一格">
@@ -10451,6 +10628,8 @@ function LessonPageCanvas({
   students: Student[];
   onOpenPhoto: (student: Student) => void;
 }) {
+  const caseComicDeck = caseComicForPage(module, page);
+
   if (page.slide_image) {
     return <AiSketchnoteSlide page={page} />;
   }
@@ -10470,8 +10649,8 @@ function LessonPageCanvas({
     return <PlayableTetrisSlide module={module} page={page} />;
   }
 
-  if (isDoorChecklistComicPage(module, page)) {
-    return <DoorChecklistComicSlide />;
+  if (caseComicDeck) {
+    return <CaseComicSlide deck={caseComicDeck} />;
   }
 
   return <DesignedLessonSlide module={module} page={page} />;

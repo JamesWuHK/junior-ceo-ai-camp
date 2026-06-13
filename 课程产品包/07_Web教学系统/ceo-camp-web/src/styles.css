@@ -1883,12 +1883,12 @@ button:disabled {
   margin: 0;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
+  align-items: start;
   gap: 10px;
   border-top: 3px solid var(--door-ink);
   background: #fffdf6;
   color: var(--door-ink);
-  font-size: clamp(15px, 1.35vw, 24px);
+  font-size: clamp(14px, 1.1vw, 20px);
   font-weight: 950;
   line-height: 1.18;
   padding: clamp(9px, 1vw, 14px);
@@ -1905,6 +1905,23 @@ button:disabled {
   box-shadow: 3px 3px 0 rgba(31, 42, 51, 0.14);
   font-size: 0.9em;
   line-height: 1;
+}
+
+.door-comic-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.door-comic-line {
+  font-weight: 950;
+}
+
+.door-comic-text {
+  color: #5d6872;
+  font-size: clamp(12px, 0.82vw, 16px);
+  font-weight: 800;
+  line-height: 1.28;
 }
 
 .door-comic-close {
@@ -1967,7 +1984,7 @@ button:disabled {
 .door-comic-viewer figcaption {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
+  align-items: start;
   gap: 14px;
   border-top: 3px solid #1f2a33;
   background: #fffdf6;
@@ -1985,6 +2002,14 @@ button:disabled {
   box-shadow: 3px 3px 0 rgba(31, 42, 51, 0.16);
   padding: 8px 13px;
   white-space: nowrap;
+}
+
+.door-comic-viewer-copy {
+  gap: 7px;
+}
+
+.door-comic-viewer-copy .door-comic-text {
+  font-size: clamp(16px, 1.35vw, 22px);
 }
 
 .door-comic-viewer-close,
