@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -948,6 +948,12 @@ function ensureReportDir() {
 function writeReport(relativePath, content) {
   ensureReportDir();
   writeFileSync(join(ROOT, relativePath), content, 'utf8');
+}
+
+function writePrivateFile(relativePath, content) {
+  const absolutePath = join(ROOT, relativePath);
+  mkdirSync(dirname(absolutePath), { recursive: true });
+  writeFileSync(absolutePath, content, 'utf8');
 }
 
 function internalLinkSnapshot() {
@@ -2932,7 +2938,7 @@ function buildWeeklyPriorityReport({ generatedAt, config, evidenceSnapshot, geoS
     `- P0: record URL index evidence for all ${evidenceSnapshot.urlRows.length} sitemap URLs.`,
     `- P1: record primary, brand-assisted, and site-restricted Baidu rank/no-rank evidence for all ${(config.clusters || []).length} keyword clusters.`,
     `- P1-GEO: record one representative AI answer check for each keyword cluster; any measured NEEDS_REPAIR answer is automatically included below.`,
-    `- Copy ${WEEKLY_PRIORITY_CHECKLIST_CSV_FILE} to ${WEEKLY_PRIVATE_CHECKLIST_CSV_FILE}, fill measured fields only, then run \`npm run seo:weekly-import\`.`,
+    `- Run \`npm run seo:weekly-init\` to create ${WEEKLY_PRIVATE_CHECKLIST_CSV_FILE}, fill measured fields only, then run \`npm run seo:weekly-import\`.`,
     '- Repair any measured NOT_INDEXED, MEASURED_NO_RANK, or NEEDS_REPAIR item before expanding the keyword set.',
     `- After importing private measurements, rerun \`npm run seo:weekly-priority\`, \`npm run seo:evidence\`, and \`npm run seo:monitor\`.`,
     '',
@@ -2982,6 +2988,32 @@ function weeklyPriority() {
   console.log(`Keyword rank priorities: ${priorityRankRows.length}`);
   console.log(`GEO answer priorities: ${priorityGeoRows.length}`);
   console.log(`Measured repair queue: ${repairRows.length}`);
+}
+
+function weeklyPrivateChecklistInit(args = []) {
+  const force = args.includes('--force');
+  const publicOutput = argValue(args, '--public-output', WEEKLY_PRIORITY_CHECKLIST_CSV_FILE);
+  const privateOutput = argValue(args, '--output', WEEKLY_PRIVATE_CHECKLIST_CSV_FILE);
+  const config = readJson(KEYWORD_CONFIG_FILE);
+  const evidenceSnapshot = baiduEvidenceSnapshot();
+  const csv = buildWeeklyPriorityChecklistCsv({ config, evidenceSnapshot });
+  const privatePath = join(ROOT, privateOutput);
+
+  writeReport(publicOutput, csv);
+
+  if (existsSync(privatePath) && !force) {
+    console.error(`${privateOutput} already exists. Add --force only when you intentionally want to replace the private weekly evidence CSV.`);
+    console.error(`Public checklist refreshed: ${publicOutput}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  writePrivateFile(privateOutput, csv);
+  const parsedCounts = measurementCounts(checklistRowsToMeasurements(parseCsv(csv)));
+  console.log(`Weekly private evidence CSV initialized: ${privateOutput}`);
+  console.log(`Public weekly checklist refreshed: ${publicOutput}`);
+  console.log(`Rows: URL index=${parsedCounts.indexedUrls}, keyword=${parsedCounts.keywordRankings}, GEO=${parsedCounts.geoAnswers}`);
+  console.log(`Next: fill measured fields in ${privateOutput}, then run npm run seo:weekly-import.`);
 }
 
 function robotsCacheDiagnosis(onlineResults) {
@@ -3986,6 +4018,8 @@ function buildMeasurementGuideReport({ generatedAt, config, urls }) {
     '1. Refresh the task files:',
     '',
     '```bash',
+    'npm run seo:weekly-priority',
+    'npm run seo:weekly-init',
     'npm run seo:measurements:checklist',
     'npm run seo:baidu:serp-probe',
     'npm run seo:geo:prompts',
@@ -4616,6 +4650,8 @@ function usage() {
     '  geo-prompts       Write manual AI answer prompt pack for GEO citation checks',
     '  geo-readiness     Write local GEO readiness and AI citation evidence gap report',
     '  weekly-priority   Write the weekly Baidu index/rank and GEO evidence priority report plus CSV template',
+    '  weekly-init [--force]',
+    '                    Initialize the ignored private weekly evidence CSV from the current priority checklist',
     '  submission        Write Baidu URL push submission history report',
     '  submit-list       Write a one-URL-per-line Baidu manual submission package',
     '  check             Validate homepage SEO files and tags',
@@ -4683,6 +4719,9 @@ async function main() {
       break;
     case 'weekly-priority':
       weeklyPriority();
+      break;
+    case 'weekly-init':
+      weeklyPrivateChecklistInit(args);
       break;
     case 'submission':
       writeSubmissionReport();

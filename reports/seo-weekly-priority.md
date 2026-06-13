@@ -1,6 +1,6 @@
 # Weekly Baidu SEO / GEO Priority Report
 
-Generated: 2026-06-13T01:04:10+08:00
+Generated: 2026-06-13T08:57:22+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: NEEDS_FIRST_MEASUREMENT
 
@@ -27,7 +27,7 @@ Overall status: NEEDS_FIRST_MEASUREMENT
 - P0: record URL index evidence for all 14 sitemap URLs.
 - P1: record primary, brand-assisted, and site-restricted Baidu rank/no-rank evidence for all 13 keyword clusters.
 - P1-GEO: record one representative AI answer check for each keyword cluster; any measured NEEDS_REPAIR answer is automatically included below.
-- Copy reports/seo-weekly-priority-checklist.csv to seo/baidu-weekly-measurements.csv, fill measured fields only, then run `npm run seo:weekly-import`.
+- Run `npm run seo:weekly-init` to create seo/baidu-weekly-measurements.csv, fill measured fields only, then run `npm run seo:weekly-import`.
 - Repair any measured NOT_INDEXED, MEASURED_NO_RANK, or NEEDS_REPAIR item before expanding the keyword set.
 - After importing private measurements, rerun `npm run seo:weekly-priority`, `npm run seo:evidence`, and `npm run seo:monitor`.
 

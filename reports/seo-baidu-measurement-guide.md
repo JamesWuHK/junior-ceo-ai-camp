@@ -1,6 +1,6 @@
 # Baidu / GEO Measurement Guide
 
-Generated: 2026-06-13T08:54:17+08:00
+Generated: 2026-06-13T08:57:49+08:00
 Site URL: https://camps.wanli.wiki
 Host: camps.wanli.wiki
 
@@ -42,6 +42,8 @@ GEO_ANSWER | Manual AI answer check from the target answer engine | `cluster`, `
 1. Refresh the task files:
 
 ```bash
+npm run seo:weekly-priority
+npm run seo:weekly-init
 npm run seo:measurements:checklist
 npm run seo:baidu:serp-probe
 npm run seo:geo:prompts
