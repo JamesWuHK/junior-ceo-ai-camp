@@ -540,6 +540,11 @@ const aiSketchnoteBasePath = classroomPath(
   "courseware/baoyu-ai-knowledge-sketchnote/slide-deck/day1-ai-basics-sketchnote"
 );
 
+const entrepreneurshipDefinitionSlide = {
+  src: classroomPath("courseware/day1-entrepreneurship-definition-sketchnote/01-entrepreneurship-definition.webp"),
+  alt: "手绘课件：创业是什么？帮别人解决问题，产生价值交换。"
+};
+
 const aiJudgementSketchnoteSlides: Array<{
   page_no: number;
   title: string;
@@ -1222,7 +1227,7 @@ const fallbackLessonPages: Record<string, LessonPageSeed[]> = {
     { page_no: 5, title: "第一版页面长什么样", page_type: "showcase", content_summary: "看见输入区、按钮和结果区怎样组成一个可试玩页面" }
   ],
   "team-formation": [
-    { page_no: 1, title: "两个小摊位", page_type: "story", content_summary: "一个只喊厉害，另一个说清帮谁少掉什么麻烦" },
+    { page_no: 1, title: "创业是什么？", page_type: "story", content_summary: "创业就是帮助别人解决问题，产生价值交换" },
     { page_no: 2, title: "生活帮手：上学出门检查台", page_type: "story", content_summary: "早上出门前想不全，清单先帮同学少漏带一样东西" },
     { page_no: 3, title: "学习工具：应用题拆题板", page_type: "story", content_summary: "长应用题一大段，先拆成能下手的几块" },
     { page_no: 4, title: "创意工坊：四格漫画分镜台", page_type: "story", content_summary: "有故事点子，先排出四格草稿" },
@@ -1453,7 +1458,8 @@ function decorateLessonPage(module: CourseModule, page: LessonPage): DesignedLes
     accent: design?.accent ?? "mint",
     cards: design?.cards,
     steps: design?.steps,
-    flow: design?.flow
+    flow: design?.flow,
+    slide_image: module.id === "team-formation" && page.page_no === 1 ? entrepreneurshipDefinitionSlide : undefined
   };
 }
 
@@ -8392,7 +8398,7 @@ function specialChipsForPage(page: DesignedLessonPage) {
     "老师演示：任务单一改，回答就变": ["模糊问题", "清楚任务单", "结果对比"],
     "轮到你实验：给 DeepSeek 一张任务单": ["帮谁", "什么麻烦", "先做什么"],
     "AI 的回答怎么用？": ["能用", "不确定", "太大太远"],
-    "两个小摊位": ["谁被帮到", "少掉麻烦", "愿意试试"],
+    "创业是什么？": ["真实麻烦", "帮别人", "价值交换"],
     "创业从帮助开始": ["用户", "需求", "产品"],
     "故事：上学出门检查台": ["早上想不全", "清单帮忙", "出门不慌"],
     "老师演示：上学出门检查台": ["用户", "需求", "第一步"],
@@ -8457,7 +8463,7 @@ function specialChipsForPage(page: DesignedLessonPage) {
 
 function childFacingSummaryForPage(module: CourseModule, page: DesignedLessonPage) {
   const summaries: Record<string, string> = {
-    "两个小摊位": "两个摊位都说自己很厉害，可只有一个说清楚了：帮谁、卡在哪、先帮哪一步。",
+    "创业是什么？": "创业就是看见别人遇到的真实麻烦，用产品或服务帮他解决，并产生价值交换。",
     "创业从帮助开始": "创业不是先做一个很大的东西，而是先帮一个真实的人少一点麻烦。",
     "故事：上学出门检查台": "乐乐早上想不全。一个小清单，帮他把东西带齐，出门不慌。",
     "老师演示：上学出门检查台": "把早上怕漏带这件事拆开，看它怎样变成一个能每天打开的小产品。",
@@ -8576,10 +8582,10 @@ function specialCardsForPage(page: DesignedLessonPage): LessonCard[] | null {
       { title: "不确定", text: "听起来有可能，就去问同学或用户" },
       { title: "太大太远", text: "今天做不了，就先放下" }
     ],
-    "两个小摊位": [
-      { title: "第一个摊位", text: "超厉害 AI 学习神器，什么都能帮" },
-      { title: "第二个摊位", text: "长应用题读不懂，先帮你找第一步" },
-      { title: "停下来的原因", text: "它说清了谁被帮到、卡在哪、先帮什么" }
+    "创业是什么？": [
+      { title: "真实麻烦", text: "先看见一个人卡在哪一步" },
+      { title: "产品或服务", text: "做一个办法帮他少一点麻烦" },
+      { title: "价值交换", text: "别人觉得有用，愿意继续用、推荐或付费" }
     ],
     "创业从帮助开始": [
       { title: "用户", text: "你想帮助的那个人" },
@@ -9225,7 +9231,7 @@ function specialStepsForPage(page: DesignedLessonPage) {
     "老师演示：任务单一改，回答就变": ["先问模糊问题", "再写清楚任务单", "对比哪版更能用"],
     "轮到你实验：给 DeepSeek 一张任务单": ["写团队方向", "问 DeepSeek", "留下能用一句"],
     "AI 的回答怎么用？": ["能帮我们往前走，就留下", "还不确定，就问同学或用户", "太大太远，就先放下"],
-    "两个小摊位": ["看第一个摊位", "看第二个摊位", "说谁更想试"],
+    "创业是什么？": ["看见真实麻烦", "做出帮忙办法", "产生价值交换"],
     "创业从帮助开始": ["看见用户", "发现需求", "做出产品"],
     "故事：上学出门检查台": ["看乐乐哪里慌", "看清单怎么帮", "说出少了哪个麻烦"],
     "老师演示：上学出门检查台": ["谁卡住", "先帮哪一步", "少掉什么麻烦"],
