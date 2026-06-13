@@ -1,6 +1,6 @@
 # Baidu SERP Probe and Manual Evidence Pack
 
-Generated: 2026-06-13T08:53:03+08:00
+Generated: 2026-06-13T09:02:18+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: AUTO_SERP_BLOCKED
 
@@ -25,11 +25,11 @@ Overall status: AUTO_SERP_BLOCKED
 
 Status | Type | Query | Target marker | Baidu URL | HTTP | Redirect | Bytes | Target visible | Evidence usable | Notes
 --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
-CAPTCHA_BLOCKED | site-host | site:camps.wanli.wiki | camps.wanli.wiki | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki | 302 | wappass.baidu.com captcha redirect | 490 | no | no | Baidu returned a verification/captcha flow; do not treat this as index or rank evidence.
-CAPTCHA_BLOCKED | site-home | site:camps.wanli.wiki https://camps.wanli.wiki/ | https://camps.wanli.wiki | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+https%3A%2F%2Fcamps.wanli.wiki%2F | 302 | wappass.baidu.com captcha redirect | 534 | no | no | Baidu returned a verification/captcha flow; do not treat this as index or rank evidence.
-CAPTCHA_BLOCKED | rank-primary | 少年CEO AI 创业营 | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO+AI+%E5%88%9B%E4%B8%9A%E8%90%A5 | 302 | wappass.baidu.com captcha redirect | 503 | no | no | Baidu returned a verification/captcha flow; do not treat this as index or rank evidence.
-CAPTCHA_BLOCKED | rank-brand-assisted | 少年CEO AI 创业营 少年CEO | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO+AI+%E5%88%9B%E4%B8%9A%E8%90%A5+%E5%B0%91%E5%B9%B4CEO | 302 | wappass.baidu.com captcha redirect | 539 | no | no | Baidu returned a verification/captcha flow; do not treat this as index or rank evidence.
-CAPTCHA_BLOCKED | rank-site-restricted | site:camps.wanli.wiki 少年CEO AI 创业营 | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%B0%91%E5%B9%B4CEO+AI+%E5%88%9B%E4%B8%9A%E8%90%A5 | 302 | wappass.baidu.com captcha redirect | 583 | no | no | Baidu returned a verification/captcha flow; do not treat this as index or rank evidence.
+CAPTCHA_BLOCKED | site-host | site:camps.wanli.wiki | camps.wanli.wiki | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki | 302 | wappass.baidu.com captcha redirect | 507 | no | no | Baidu returned a verification/captcha flow; do not treat this as index or rank evidence.
+CAPTCHA_BLOCKED | site-home | site:camps.wanli.wiki https://camps.wanli.wiki/ | https://camps.wanli.wiki | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+https%3A%2F%2Fcamps.wanli.wiki%2F | 302 | wappass.baidu.com captcha redirect | 552 | no | no | Baidu returned a verification/captcha flow; do not treat this as index or rank evidence.
+CAPTCHA_BLOCKED | rank-primary | 少年CEO AI 创业营 | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO+AI+%E5%88%9B%E4%B8%9A%E8%90%A5 | 302 | wappass.baidu.com captcha redirect | 566 | no | no | Baidu returned a verification/captcha flow; do not treat this as index or rank evidence.
+CAPTCHA_BLOCKED | rank-brand-assisted | 少年CEO AI 创业营 少年CEO | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=%E5%B0%91%E5%B9%B4CEO+AI+%E5%88%9B%E4%B8%9A%E8%90%A5+%E5%B0%91%E5%B9%B4CEO | 302 | wappass.baidu.com captcha redirect | 603 | no | no | Baidu returned a verification/captcha flow; do not treat this as index or rank evidence.
+CAPTCHA_BLOCKED | rank-site-restricted | site:camps.wanli.wiki 少年CEO AI 创业营 | https://camps.wanli.wiki/ | https://www.baidu.com/s?wd=site%3Acamps.wanli.wiki+%E5%B0%91%E5%B9%B4CEO+AI+%E5%88%9B%E4%B8%9A%E8%90%A5 | 302 | wappass.baidu.com captcha redirect | 592 | no | no | Baidu returned a verification/captcha flow; do not treat this as index or rank evidence.
 
 ## Manual P0 URL Index Checks
 

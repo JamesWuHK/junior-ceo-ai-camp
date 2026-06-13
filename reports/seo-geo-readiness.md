@@ -1,6 +1,6 @@
 # GEO Readiness Report
 
-Generated: 2026-06-10T01:47:31+08:00
+Generated: 2026-06-13T09:08:19+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: READY_NEEDS_GEO_EVIDENCE
 

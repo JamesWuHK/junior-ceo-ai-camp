@@ -30,6 +30,7 @@ const BAIDU_SERP_PROBE_REPORT_FILE = 'reports/seo-baidu-serp-probe.md';
 const INTERNAL_LINK_REPORT_FILE = 'reports/seo-internal-links.md';
 const MEASUREMENT_CHECKLIST_CSV_FILE = 'reports/seo-baidu-measurement-checklist.csv';
 const MEASUREMENT_GUIDE_REPORT_FILE = 'reports/seo-baidu-measurement-guide.md';
+const MEASUREMENT_VALIDATION_REPORT_FILE = 'reports/seo-measurement-validation.md';
 const BAIDU_MEASUREMENTS_FILE = 'seo/baidu-measurements.json';
 const BAIDU_MEASUREMENTS_EXAMPLE_FILE = 'seo/baidu-measurements.example.json';
 const WEEKLY_PRIVATE_CHECKLIST_CSV_FILE = 'seo/baidu-weekly-measurements.csv';
@@ -4020,6 +4021,7 @@ function buildMeasurementGuideReport({ generatedAt, config, urls }) {
     '```bash',
     'npm run seo:weekly-priority',
     'npm run seo:weekly-init',
+    'npm run seo:weekly-validate',
     'npm run seo:measurements:checklist',
     'npm run seo:baidu:serp-probe',
     'npm run seo:geo:prompts',
@@ -4039,6 +4041,7 @@ function buildMeasurementGuideReport({ generatedAt, config, urls }) {
     '7. Import and summarize the measured data:',
     '',
     '```bash',
+    'npm run seo:weekly-validate',
     'npm run seo:measurements:import',
     'npm run seo:evidence',
     'npm run seo:monitor',
@@ -4067,6 +4070,7 @@ function buildMeasurementGuideReport({ generatedAt, config, urls }) {
     `- Rank tracking plan: ${RANK_PLAN_REPORT_FILE}`,
     `- GEO prompt pack: ${GEO_PROMPT_REPORT_FILE}`,
     `- Measurement checklist CSV: ${MEASUREMENT_CHECKLIST_CSV_FILE}`,
+    `- Measurement validation report: ${MEASUREMENT_VALIDATION_REPORT_FILE}`,
     `- Measurement template JSON: ${BAIDU_MEASUREMENTS_EXAMPLE_FILE}`,
     `- Measured evidence report: ${BAIDU_EVIDENCE_REPORT_FILE}`,
     ''
@@ -4246,6 +4250,443 @@ function checklistRowsToMeasurements(rows) {
   return measurements;
 }
 
+function isUnknownCsvValue(value) {
+  const text = csvText(value);
+  return !text || /^(n\/a|null|unknown|未测|待测)$/i.test(text);
+}
+
+function csvBooleanStatus(value) {
+  const raw = csvText(value);
+  if (isUnknownCsvValue(raw)) {
+    return {
+      raw,
+      value: null,
+      valid: true,
+      provided: false
+    };
+  }
+  const parsed = csvBoolean(raw);
+  return {
+    raw,
+    value: parsed,
+    valid: parsed !== null,
+    provided: true
+  };
+}
+
+function csvNumberStatus(value) {
+  const raw = csvText(value);
+  if (isUnknownCsvValue(raw)) {
+    return {
+      raw,
+      value: null,
+      valid: true,
+      provided: false
+    };
+  }
+  const parsed = csvNumber(raw);
+  return {
+    raw,
+    value: parsed,
+    valid: parsed !== null,
+    provided: true
+  };
+}
+
+function isNoRankText(value) {
+  const text = normalizeForSearch(csvText(value));
+  return Boolean(text && [
+    'norank',
+    'notranked',
+    'notfound',
+    'notvisible',
+    'noresult',
+    'noranking',
+    '无排名',
+    '未排名',
+    '没排名',
+    '未出现',
+    '没出现',
+    '未找到',
+    '没找到'
+  ].includes(text));
+}
+
+function hasNoRankNote(row) {
+  return isNoRankText(row.rank) || /未排名|无排名|未出现|没出现|not ranked|no rank|not found|not visible/i.test(csvText(row.notes));
+}
+
+function isGenericEvidenceSource(type, source) {
+  const text = normalizeForSearch(source);
+  if (!text) return false;
+  if (type === 'URL_INDEX') return text.includes('baidusearchresourceplatformorreproduciblesiteresult');
+  if (type === 'URL_METRIC') return text === 'baidusearchresourceplatform';
+  if (type === 'KEYWORD_RANK') return text.includes('baidusearchresourceplatformcompliantrankmonitorormanualresultcheck');
+  if (type === 'GEO_ANSWER') return text === 'manualaianswercheck';
+  return false;
+}
+
+function measurementRowKey(type, row) {
+  if (type === 'URL_INDEX' || type === 'URL_METRIC') {
+    return `${type}|${normalizeUrlForCompare(row.targetPage)}`;
+  }
+  if (type === 'KEYWORD_RANK') {
+    return `${type}|${keywordRecordKey(row.cluster, row.query, row.targetPage)}`;
+  }
+  if (type === 'GEO_ANSWER') {
+    return `${type}|${geoRecordKey(row.cluster, row.query)}`;
+  }
+  return '';
+}
+
+function measurementRowLabel(type, row, lineNumber) {
+  if (type === 'URL_INDEX' || type === 'URL_METRIC') {
+    return `${type} ${csvText(row.targetPage) || `line ${lineNumber}`}`;
+  }
+  if (type === 'KEYWORD_RANK') {
+    return `${type} ${csvText(row.cluster) || '-'} / ${csvText(row.query) || `line ${lineNumber}`}`;
+  }
+  if (type === 'GEO_ANSWER') {
+    return `${type} ${csvText(row.cluster) || '-'} / ${csvText(row.query) || `line ${lineNumber}`}`;
+  }
+  return `line ${lineNumber}`;
+}
+
+function measurementRowHasEvidence(type, row) {
+  if (type === 'URL_INDEX') {
+    return csvBooleanStatus(row.indexed).provided || !isUnknownCsvValue(row.evidenceDate) || Boolean(csvText(row.notes));
+  }
+  if (type === 'URL_METRIC') {
+    return ['impressions', 'clicks', 'ctr', 'avgRank', 'crawlCount'].some((field) => csvNumberStatus(row[field]).provided)
+      || !isUnknownCsvValue(row.evidenceDate)
+      || Boolean(csvText(row.notes));
+  }
+  if (type === 'KEYWORD_RANK') {
+    return csvNumberStatus(row.rank).provided
+      || isNoRankText(row.rank)
+      || ['impressions', 'clicks'].some((field) => csvNumberStatus(row[field]).provided)
+      || !isUnknownCsvValue(row.evidenceDate)
+      || Boolean(csvText(row.notes));
+  }
+  if (type === 'GEO_ANSWER') {
+    return csvBooleanStatus(row.mentionsProject).provided
+      || csvBooleanStatus(row.usesTargetPage).provided
+      || !isUnknownCsvValue(row.positioning)
+      || !isUnknownCsvValue(row.evidenceDate)
+      || Boolean(csvText(row.notes));
+  }
+  return false;
+}
+
+function validationIssue(level, type, lineNumber, row, message, action) {
+  return {
+    level,
+    type: type || 'UNKNOWN',
+    lineNumber,
+    item: measurementRowLabel(type, row, lineNumber),
+    message,
+    action
+  };
+}
+
+function requireIdentityFields({ type, row, lineNumber, errors }) {
+  if ((type === 'URL_INDEX' || type === 'URL_METRIC') && !csvText(row.targetPage)) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Missing targetPage.', 'Keep the target page URL from the generated checklist.'));
+  }
+  if ((type === 'KEYWORD_RANK' || type === 'GEO_ANSWER') && !csvText(row.cluster)) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Missing cluster.', 'Keep the cluster id from seo/keywords.json.'));
+  }
+  if ((type === 'KEYWORD_RANK' || type === 'GEO_ANSWER') && !csvText(row.query)) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Missing query.', 'Keep the exact keyword or AI answer query from the generated checklist.'));
+  }
+  if ((type === 'KEYWORD_RANK' || type === 'GEO_ANSWER') && !csvText(row.targetPage)) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Missing targetPage.', 'Keep the target HTML page from the generated checklist.'));
+  }
+}
+
+function validateMeasuredCommon({ type, row, lineNumber, warnings, errors }) {
+  if (isUnknownCsvValue(row.evidenceDate)) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Measured row is missing evidenceDate.', 'Record the check date before importing this evidence.'));
+  }
+  if (isUnknownCsvValue(row.source)) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Measured row is missing source.', 'Record Baidu platform export, rank monitor, browser check, or AI engine source.'));
+  } else if (isGenericEvidenceSource(type, row.source)) {
+    warnings.push(validationIssue('WARN', type, lineNumber, row, 'Evidence source is still generic.', 'Replace the template source with the concrete platform/export/browser/engine used for this check.'));
+  }
+}
+
+function validateUrlIndexRow({ row, lineNumber, errors, warnings }) {
+  const type = 'URL_INDEX';
+  const indexed = csvBooleanStatus(row.indexed);
+  if (indexed.provided && !indexed.valid) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, `Invalid indexed value: ${indexed.raw}.`, 'Use true/false, yes/no, 是/否, 已收录/未收录.'));
+  }
+  if (!indexed.provided) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Measured URL index row has no indexed value.', 'Record whether Baidu confirms the URL as indexed.'));
+  }
+  if (indexed.value === false && !csvText(row.notes)) {
+    warnings.push(validationIssue('WARN', type, lineNumber, row, 'URL is marked not indexed without notes.', 'Add the Baidu platform section or reproducible site: check used to confirm this.'));
+  }
+}
+
+function validateUrlMetricRow({ row, lineNumber, errors, warnings }) {
+  const type = 'URL_METRIC';
+  const numericFields = ['impressions', 'clicks', 'ctr', 'avgRank', 'crawlCount'];
+  const numbers = Object.fromEntries(numericFields.map((field) => [field, csvNumberStatus(row[field])]));
+  for (const [field, status] of Object.entries(numbers)) {
+    if (status.provided && !status.valid) {
+      errors.push(validationIssue('ERROR', type, lineNumber, row, `Invalid numeric ${field}: ${status.raw}.`, 'Use a plain number; use 12.5% for percent CTR values.'));
+    }
+  }
+  if (!numericFields.some((field) => numbers[field].provided && numbers[field].valid)) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Measured URL metric row has no numeric metric.', 'Record at least one measured metric from Baidu Search Resource Platform.'));
+  }
+  if (numbers.impressions.valid && numbers.clicks.valid && numbers.impressions.value !== null && numbers.clicks.value !== null && numbers.clicks.value > numbers.impressions.value) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Clicks exceed impressions.', 'Check the Baidu export columns before importing.'));
+  }
+  if (numbers.ctr.valid && numbers.ctr.value !== null && numbers.ctr.value > 1) {
+    warnings.push(validationIssue('WARN', type, lineNumber, row, 'CTR is greater than 1.', 'If this is a percent, enter it with % so 12.5% imports as 0.125.'));
+  }
+}
+
+function validateKeywordRankRow({ row, lineNumber, errors, warnings }) {
+  const type = 'KEYWORD_RANK';
+  const rank = csvNumberStatus(row.rank);
+  const impressions = csvNumberStatus(row.impressions);
+  const clicks = csvNumberStatus(row.clicks);
+  if (rank.provided && !rank.valid && !isNoRankText(row.rank)) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, `Invalid rank value: ${rank.raw}.`, 'Use a positive number for rank, or leave rank blank and add a no-rank note.'));
+  }
+  if (rank.valid && rank.value !== null && rank.value <= 0) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Rank must be greater than 0.', 'Use a positive SERP position number.'));
+  }
+  if (!rank.provided && !hasNoRankNote(row) && !impressions.provided && !clicks.provided) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Measured keyword row has no rank, no no-rank note, and no query metric.', 'Record a rank, Baidu query metric, or explicit no-rank evidence note.'));
+  }
+  for (const [field, status] of Object.entries({ impressions, clicks })) {
+    if (status.provided && !status.valid) {
+      errors.push(validationIssue('ERROR', type, lineNumber, row, `Invalid numeric ${field}: ${status.raw}.`, 'Use a plain number from Baidu platform or the rank monitor.'));
+    }
+  }
+  if (impressions.valid && clicks.valid && impressions.value !== null && clicks.value !== null && clicks.value > impressions.value) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Clicks exceed impressions.', 'Check the Baidu query export before importing.'));
+  }
+  if (!csvText(row.queryType)) {
+    warnings.push(validationIssue('WARN', type, lineNumber, row, 'Missing queryType.', 'Keep primary, brand-assisted, site-restricted, or secondary from the generated checklist.'));
+  }
+}
+
+function validateGeoAnswerRow({ row, lineNumber, errors, warnings }) {
+  const type = 'GEO_ANSWER';
+  const mentionsProject = csvBooleanStatus(row.mentionsProject);
+  const usesTargetPage = csvBooleanStatus(row.usesTargetPage);
+  if (!mentionsProject.provided) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Measured GEO row has no mentionsProject value.', 'Record whether the AI answer mentions 少年CEO AI 创业营 or a close entity variant.'));
+  } else if (!mentionsProject.valid) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, `Invalid mentionsProject value: ${mentionsProject.raw}.`, 'Use true/false, yes/no, 是/否, 提到/未提到.'));
+  }
+  if (!usesTargetPage.provided) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Measured GEO row has no usesTargetPage value.', 'Record whether the AI answer cites or uses the target HTML/Markdown context.'));
+  } else if (!usesTargetPage.valid) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, `Invalid usesTargetPage value: ${usesTargetPage.raw}.`, 'Use true/false, yes/no, 是/否, 使用/未使用.'));
+  }
+  if (isUnknownCsvValue(row.positioning)) {
+    errors.push(validationIssue('ERROR', type, lineNumber, row, 'Measured GEO row has no positioning value.', 'Use accurate, partial, wrong, or a short positioning note.'));
+  }
+  if ((mentionsProject.value === false || usesTargetPage.value === false) && !csvText(row.notes)) {
+    warnings.push(validationIssue('WARN', type, lineNumber, row, 'GEO repair evidence has no notes.', 'Add the answer behavior or short excerpt so the content repair is actionable.'));
+  }
+}
+
+function validateMeasurementRows(rows, source) {
+  const errors = [];
+  const warnings = [];
+  const duplicateKeys = new Map();
+  const knownTypes = new Set(['URL_INDEX', 'URL_METRIC', 'KEYWORD_RANK', 'GEO_ANSWER']);
+  const byType = Object.fromEntries(Array.from(knownTypes).map((type) => [type, {
+    total: 0,
+    measured: 0,
+    pending: 0,
+    errors: 0,
+    warnings: 0
+  }]));
+
+  rows.forEach((row, index) => {
+    const lineNumber = index + 2;
+    const type = csvText(row.type).toUpperCase();
+    if (!knownTypes.has(type)) {
+      errors.push(validationIssue('ERROR', type, lineNumber, row, `Unknown row type: ${type || 'blank'}.`, 'Use URL_INDEX, URL_METRIC, KEYWORD_RANK, or GEO_ANSWER.'));
+      return;
+    }
+
+    byType[type].total += 1;
+    requireIdentityFields({ type, row, lineNumber, errors });
+
+    const key = measurementRowKey(type, row);
+    if (key) {
+      const previousLine = duplicateKeys.get(key);
+      if (previousLine) {
+        warnings.push(validationIssue('WARN', type, lineNumber, row, `Duplicate measurement key also appears on line ${previousLine}.`, 'Keep one row per target unless you intentionally merge partial evidence.'));
+      } else {
+        duplicateKeys.set(key, lineNumber);
+      }
+    }
+
+    if (!measurementRowHasEvidence(type, row)) {
+      byType[type].pending += 1;
+      return;
+    }
+
+    byType[type].measured += 1;
+    validateMeasuredCommon({ type, row, lineNumber, warnings, errors });
+    if (type === 'URL_INDEX') validateUrlIndexRow({ row, lineNumber, errors, warnings });
+    if (type === 'URL_METRIC') validateUrlMetricRow({ row, lineNumber, errors, warnings });
+    if (type === 'KEYWORD_RANK') validateKeywordRankRow({ row, lineNumber, errors, warnings });
+    if (type === 'GEO_ANSWER') validateGeoAnswerRow({ row, lineNumber, errors, warnings });
+  });
+
+  for (const issue of errors) {
+    if (byType[issue.type]) byType[issue.type].errors += 1;
+  }
+  for (const issue of warnings) {
+    if (byType[issue.type]) byType[issue.type].warnings += 1;
+  }
+
+  const measuredRows = Object.values(byType).reduce((sum, row) => sum + row.measured, 0);
+  const pendingRows = Object.values(byType).reduce((sum, row) => sum + row.pending, 0);
+  const overallStatus = errors.length > 0
+    ? 'FAIL'
+    : measuredRows === 0
+      ? 'WAITING_FOR_MEASURED_ROWS'
+      : warnings.length > 0
+        ? 'WARN'
+        : 'PASS';
+
+  return {
+    generatedAt: localTimestamp(),
+    source,
+    overallStatus,
+    totalRows: rows.length,
+    measuredRows,
+    pendingRows,
+    byType,
+    errors,
+    warnings
+  };
+}
+
+function buildMeasurementValidationReport(snapshot) {
+  const typeRows = Object.entries(snapshot.byType).map(([type, row]) => [
+    type,
+    row.total,
+    row.measured,
+    row.pending,
+    row.errors,
+    row.warnings
+  ].map(escapeMarkdownCell).join(' | '));
+  const issueRows = (issues) => issues.length > 0
+    ? issues.map((issue) => [
+        issue.level,
+        issue.type,
+        issue.lineNumber,
+        issue.item,
+        issue.message,
+        issue.action
+      ].map(escapeMarkdownCell).join(' | '))
+    : ['PASS | - | - | No issues. | - | -'];
+
+  return [
+    '# Baidu / GEO Measurement Validation Report',
+    '',
+    `Generated: ${snapshot.generatedAt}`,
+    `Source CSV: ${snapshot.source}`,
+    `Overall status: ${snapshot.overallStatus}`,
+    '',
+    '## Summary',
+    '',
+    `- Total rows: ${snapshot.totalRows}`,
+    `- Measured rows: ${snapshot.measuredRows}`,
+    `- Pending rows: ${snapshot.pendingRows}`,
+    `- Errors: ${snapshot.errors.length}`,
+    `- Warnings: ${snapshot.warnings.length}`,
+    '',
+    'Type | Total | Measured | Pending | Errors | Warnings',
+    '--- | --- | --- | --- | --- | ---',
+    ...typeRows,
+    '',
+    '## Validation Boundary',
+    '',
+    '- This report checks whether filled rows are importable measured evidence. It does not prove Baidu inclusion, ranking, traffic, or AI citation by itself.',
+    '- Empty rows are allowed and counted as pending, because unknown values should stay blank until measured.',
+    '- A row becomes measured when it contains a measured field such as indexed status, rank, traffic metric, GEO booleans, evidence date, or notes.',
+    '- The report avoids printing private notes or platform details; keep source CSV files under `seo/` out of git.',
+    '',
+    '## Errors',
+    '',
+    'Level | Type | CSV line | Item | Problem | Action',
+    '--- | --- | --- | --- | --- | ---',
+    ...issueRows(snapshot.errors),
+    '',
+    '## Warnings',
+    '',
+    'Level | Type | CSV line | Item | Problem | Action',
+    '--- | --- | --- | --- | --- | ---',
+    ...issueRows(snapshot.warnings),
+    '',
+    '## Next Actions',
+    '',
+    '- If status is `WAITING_FOR_MEASURED_ROWS`, collect Baidu Search Resource Platform or manual AI answer evidence before importing.',
+    '- If status is `FAIL`, fix the CSV rows above before running `npm run seo:weekly-import` or `npm run seo:measurements:import`.',
+    '- If status is `WARN`, import is allowed, but tighten source details and notes so future SEO/GEO repairs remain traceable.',
+    '- After a clean import, rerun `npm run seo:evidence`, `npm run seo:geo:readiness`, and `npm run seo:monitor`.',
+    ''
+  ].join('\n');
+}
+
+function defaultMeasurementValidationSource() {
+  if (existsSync(join(ROOT, WEEKLY_PRIVATE_CHECKLIST_CSV_FILE))) return WEEKLY_PRIVATE_CHECKLIST_CSV_FILE;
+  if (existsSync(join(ROOT, MEASUREMENT_CHECKLIST_CSV_FILE))) return MEASUREMENT_CHECKLIST_CSV_FILE;
+  return WEEKLY_PRIORITY_CHECKLIST_CSV_FILE;
+}
+
+function measurementValidationSnapshot(args = []) {
+  const source = argValue(args, '--source', defaultMeasurementValidationSource());
+  const sourcePath = join(ROOT, source);
+  if (!existsSync(sourcePath)) {
+    return {
+      generatedAt: localTimestamp(),
+      source,
+      overallStatus: 'FAIL',
+      totalRows: 0,
+      measuredRows: 0,
+      pendingRows: 0,
+      byType: {
+        URL_INDEX: { total: 0, measured: 0, pending: 0, errors: 0, warnings: 0 },
+        URL_METRIC: { total: 0, measured: 0, pending: 0, errors: 0, warnings: 0 },
+        KEYWORD_RANK: { total: 0, measured: 0, pending: 0, errors: 0, warnings: 0 },
+        GEO_ANSWER: { total: 0, measured: 0, pending: 0, errors: 0, warnings: 0 }
+      },
+      errors: [validationIssue('ERROR', 'UNKNOWN', 0, {}, `Missing measurement CSV: ${source}.`, 'Run npm run seo:weekly-init or npm run seo:measurements:checklist first.')],
+      warnings: []
+    };
+  }
+
+  return validateMeasurementRows(parseCsv(readFileSync(sourcePath, 'utf8')), source);
+}
+
+function measurementsValidate(args = []) {
+  const output = argValue(args, '--output', MEASUREMENT_VALIDATION_REPORT_FILE);
+  const snapshot = measurementValidationSnapshot(args);
+  writeReport(output, buildMeasurementValidationReport(snapshot));
+  console.log(`Baidu/GEO measurement validation status: ${snapshot.overallStatus}`);
+  console.log(`Source: ${snapshot.source}`);
+  console.log(`Report: ${output}`);
+  console.log(`Measured rows: ${snapshot.measuredRows}/${snapshot.totalRows}`);
+  console.log(`Errors: ${snapshot.errors.length}`);
+  console.log(`Warnings: ${snapshot.warnings.length}`);
+  if (snapshot.errors.length > 0) process.exitCode = 1;
+}
+
 function argValue(args, name, fallback) {
   const index = args.indexOf(name);
   if (index === -1 || index + 1 >= args.length) return fallback;
@@ -4266,6 +4707,14 @@ function measurementsImport(args = []) {
   }
 
   const rows = parseCsv(readFileSync(sourcePath, 'utf8'));
+  const validation = validateMeasurementRows(rows, source);
+  writeReport(MEASUREMENT_VALIDATION_REPORT_FILE, buildMeasurementValidationReport(validation));
+  if (validation.errors.length > 0) {
+    console.error(`Measurement validation failed: ${validation.errors.length} error(s).`);
+    console.error(`Report: ${MEASUREMENT_VALIDATION_REPORT_FILE}`);
+    process.exitCode = 1;
+    return;
+  }
   const parsedMeasurements = checklistRowsToMeasurements(rows);
   const measurementsWithEvidence = allowPartial
     ? filterMeasurementsWithEvidence(parsedMeasurements)
@@ -4291,6 +4740,7 @@ function measurementsImport(args = []) {
   console.log(`Parsed rows: URL index=${parsedCounts.indexedUrls}, URL metric=${parsedCounts.urlMetrics}, keyword=${parsedCounts.keywordRankings}, GEO=${parsedCounts.geoAnswers}`);
   console.log(`Imported measured rows: URL index=${importCounts.indexedUrls}, URL metric=${importCounts.urlMetrics}, keyword=${importCounts.keywordRankings}, GEO=${importCounts.geoAnswers}`);
   console.log(`Final records: URL index=${finalCounts.indexedUrls}, URL metric=${finalCounts.urlMetrics}, keyword=${finalCounts.keywordRankings}, GEO=${finalCounts.geoAnswers}`);
+  console.log(`Validation: ${validation.overallStatus}; report=${MEASUREMENT_VALIDATION_REPORT_FILE}`);
   console.log(`Coverage: ${allowPartial ? 'SKIPPED_FOR_PARTIAL_IMPORT' : failures.length === 0 ? 'PASS' : 'FAIL'}`);
 
   if (failures.length > 0) {
@@ -4642,6 +5092,8 @@ function usage() {
     '                    Write a CSV checklist for Baidu index, rank, URL metric, and GEO answer checks',
     '  measurements-guide',
     '                    Write the manual Baidu/GEO measurement workflow and evidence rules',
+    '  measurements-validate [--source <csv>] [--output <md>]',
+    '                    Validate filled Baidu/GEO measurement CSV evidence before import',
     '  measurements-import [--dry-run] [--allow-partial] [--merge-existing] [--source <csv>] [--output <json>]',
     '                    Import full or partial CSV checklist rows into private seo/baidu-measurements.json',
     '  monitor           Write a Baidu SEO/GEO monitoring report',
@@ -4652,6 +5104,7 @@ function usage() {
     '  weekly-priority   Write the weekly Baidu index/rank and GEO evidence priority report plus CSV template',
     '  weekly-init [--force]',
     '                    Initialize the ignored private weekly evidence CSV from the current priority checklist',
+    '  weekly-validate    Validate the ignored private weekly evidence CSV before weekly import',
     '  submission        Write Baidu URL push submission history report',
     '  submit-list       Write a one-URL-per-line Baidu manual submission package',
     '  check             Validate homepage SEO files and tags',
@@ -4698,6 +5151,10 @@ async function main() {
       break;
     case 'measurements-guide':
       measurementsGuide();
+      break;
+    case 'measurements-validate':
+    case 'weekly-validate':
+      measurementsValidate(args);
       break;
     case 'measurements-import':
       measurementsImport(args);
