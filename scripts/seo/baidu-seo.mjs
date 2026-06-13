@@ -198,8 +198,8 @@ const MARKDOWN_ENTRIES = [
     note: '合作对象、支持内容和推荐引用描述。'
   },
   {
-    path: '/course-navigation.md',
-    source: 'course-navigation.md',
+    path: '/course-navigation-context.md',
+    source: 'course-navigation-context.md',
     title: '课程导航 Markdown 上下文',
     note: '公开课程页面地图、顺义本地页面、能力主题和机构合作入口。'
   },
@@ -252,7 +252,7 @@ const ALTERNATE_CONTEXT_BY_SOURCE = {
     { href: siteUrl('/partner-ai-pbl-camp.md'), type: 'text/markdown' }
   ],
   'course-navigation.html': [
-    { href: siteUrl('/course-navigation.md'), type: 'text/markdown' }
+    { href: siteUrl('/course-navigation-context.md'), type: 'text/markdown' }
   ]
 };
 const LLM_MARKERS = [
@@ -335,6 +335,7 @@ const PUBLIC_INTERNAL_TERMS = [
 const ROBOTS_PRIVATE_PATHS = [
   '/teacher.html',
   '/student.html',
+  '/classroom/',
   '/cards.html',
   '/slides/'
 ];
@@ -1846,18 +1847,46 @@ function onlineTargets() {
     { url: siteUrl('/ai-course-vs-coding.html'), markers: ['少儿编程和AI课程区别', 'application/ld+json', '孩子该学AI还是编程', ...alternateMarkersForSource('ai-course-vs-coding.html'), ...schemaMarkersForSource('ai-course-vs-coding.html'), ...(htmlAiQueryMarkers.get('ai-course-vs-coding.html') || [])] },
     { url: siteUrl('/shunyi-ai-parent-class.html'), markers: ['北京顺义 AI 家长公益课', 'application/ld+json', 'AI时代孩子', ...alternateMarkersForSource('shunyi-ai-parent-class.html'), ...schemaMarkersForSource('shunyi-ai-parent-class.html'), ...(htmlAiQueryMarkers.get('shunyi-ai-parent-class.html') || [])] },
     { url: siteUrl('/partner-ai-pbl-camp.html'), markers: ['AI PBL 创业营机构合作', 'application/ld+json', '培训机构', ...alternateMarkersForSource('partner-ai-pbl-camp.html'), ...schemaMarkersForSource('partner-ai-pbl-camp.html'), ...(htmlAiQueryMarkers.get('partner-ai-pbl-camp.html') || [])] },
-    { url: siteUrl('/course-navigation.html'), markers: ['少年CEO AI 创业营课程导航', 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('course-navigation.html'), ...schemaMarkersForSource('course-navigation.html')] },
-    { label: 'robots canonical', url: siteUrl('/robots.txt'), markers: robotsCanonicalRequiredMarkers(), warningMarkers: robotsRecommendedMarkers(), includeCacheHeaders: true },
+    {
+      label: 'course-navigation canonical',
+      url: siteUrl('/course-navigation.html'),
+      staleMarkerSourceUrl: sourceBypassUrl('/course-navigation.html', 'course-navigation.html'),
+      markers: ['少年CEO AI 创业营课程导航', 'application/ld+json', '北京顺义AI课程', ...alternateMarkersForSource('course-navigation.html'), ...schemaMarkersForSource('course-navigation.html')],
+      includeCacheHeaders: true
+    },
+    {
+      label: 'robots canonical',
+      url: siteUrl('/robots.txt'),
+      staleMarkerSourceUrl: sourceBypassUrl('/robots.txt', 'robots.txt'),
+      markers: robotsCanonicalRequiredMarkers(),
+      warningMarkers: robotsRecommendedMarkers(),
+      includeCacheHeaders: true
+    },
     { label: 'robots source-bypass', url: sourceBypassUrl('/robots.txt', 'robots.txt'), markers: robotsRequiredMarkers(), includeCacheHeaders: true },
     { url: siteUrl('/sitemap-index.xml'), markers: [`<loc>${siteUrl('/sitemap.xml')}</loc>`, `<loc>${siteUrl('/sitemap-context.xml')}</loc>`] },
     { url: siteUrl('/sitemap.xml'), markers: SITEMAP_ENTRIES.map((entry) => `<loc>${siteUrl(entry.path)}</loc>`) },
-    { label: 'sitemap-context canonical', url: siteUrl('/sitemap-context.xml'), markers: contextSitemapRequiredMarkers(), warningMarkers: contextSitemapRecommendedMarkers(), includeCacheHeaders: true },
+    {
+      label: 'sitemap-context canonical',
+      url: siteUrl('/sitemap-context.xml'),
+      staleMarkerSourceUrl: sourceBypassUrl('/sitemap-context.xml', 'sitemap-context.xml'),
+      markers: contextSitemapRequiredMarkers(),
+      warningMarkers: contextSitemapRecommendedMarkers(),
+      includeCacheHeaders: true
+    },
     { label: 'sitemap-context source-bypass', url: sourceBypassUrl('/sitemap-context.xml', 'sitemap-context.xml'), markers: [...contextSitemapRequiredMarkers(), ...contextSitemapRecommendedMarkers()], includeCacheHeaders: true },
-    { label: 'llms canonical', url: siteUrl('/llms.txt'), markers: llmsRequiredMarkers(), warningMarkers: llmsRecommendedMarkers(), includeCacheHeaders: true },
+    {
+      label: 'llms canonical',
+      url: siteUrl('/llms.txt'),
+      staleMarkerSourceUrl: sourceBypassUrl('/llms.txt', 'llms.txt'),
+      markers: llmsRequiredMarkers(),
+      warningMarkers: llmsRecommendedMarkers(),
+      includeCacheHeaders: true
+    },
     { label: 'llms source-bypass', url: sourceBypassUrl('/llms.txt', 'llms.txt'), markers: LLM_MARKERS, includeCacheHeaders: true },
     {
       label: 'site-facts canonical',
       url: siteUrl(`/${SITE_FACTS_FILE}`),
+      staleMarkerSourceUrl: sourceBypassUrl(`/${SITE_FACTS_FILE}`, SITE_FACTS_FILE),
       markers: ['"name": "少年CEO AI 创业营"', '"keywordClusters"', '"canonicalAnswers"', '"AI PBL 创业营"', '"北京顺义AI课程"'],
       warningMarkers: ['"alternateName"'],
       includeCacheHeaders: true
@@ -1975,13 +2004,14 @@ async function fetchOnlineTarget(target) {
     const body = response.body;
     const markers = target.markers || [];
     const warningMarkers = target.warningMarkers || [];
-    const missingMarkers = markers.filter((marker) => !body.includes(marker));
-    const missingWarningMarkers = warningMarkers.filter((marker) => !body.includes(marker));
+    let missingMarkers = markers.filter((marker) => !body.includes(marker));
+    let missingWarningMarkers = warningMarkers.filter((marker) => !body.includes(marker));
     const contentType = response.headers.get('content-type') || '';
     const expectedContentTypes = target.contentTypes || expectedContentTypesForUrl(target.url);
     let missingContentTypes = missingContentTypeMarkers(contentType, expectedContentTypes);
     const staleWarnings = [];
     const staleContentTypeProofs = [];
+    const staleMarkerProofs = [];
 
     if (missingContentTypes.length > 0 && target.staleContentTypeSourceUrl) {
       try {
@@ -2006,9 +2036,36 @@ async function fetchOnlineTarget(target) {
       }
     }
 
+    const staleMarkerCandidates = () => [...missingMarkers, ...missingWarningMarkers];
+    if (staleMarkerCandidates().length > 0 && target.staleMarkerSourceUrl) {
+      try {
+        const sourceResponse = await fetchTextResponse(target.staleMarkerSourceUrl);
+        const sourceBody = sourceResponse.body;
+        const sourceContentType = sourceResponse.headers.get('content-type') || '';
+        const sourceMissingContentTypes = missingContentTypeMarkers(sourceContentType, expectedContentTypes);
+        const sourceMissingMarkers = markers.filter((marker) => !sourceBody.includes(marker));
+        const sourceMissingWarningMarkers = warningMarkers.filter((marker) => !sourceBody.includes(marker));
+        const staleMarkerIssue = staleMarkerCandidates().join(', ');
+
+        if (sourceResponse.ok && sourceMissingContentTypes.length === 0 && sourceMissingMarkers.length === 0 && sourceMissingWarningMarkers.length === 0) {
+          staleWarnings.push(`canonical CDN edge stale: missing markers ${staleMarkerIssue}; source-bypass ${target.staleMarkerSourceUrl} has expected markers`);
+          staleMarkerProofs.push({
+            sourceUrl: target.staleMarkerSourceUrl,
+            sourceContentType,
+            sourceCacheHeaders: cacheHeaderSummary(sourceResponse.headers),
+            issue: staleMarkerIssue
+          });
+          missingMarkers = [];
+          missingWarningMarkers = [];
+        }
+      } catch {
+        // Keep the canonical marker failure when the source-bypass proof cannot be fetched.
+      }
+    }
+
     const ok = response.ok && missingMarkers.length === 0 && missingContentTypes.length === 0;
     const warning = ok && (missingWarningMarkers.length > 0 || staleWarnings.length > 0);
-    const cacheHeaders = target.includeCacheHeaders || staleContentTypeProofs.length > 0 ? cacheHeaderSummary(response.headers) : '';
+    const cacheHeaders = target.includeCacheHeaders || staleContentTypeProofs.length > 0 || staleMarkerProofs.length > 0 ? cacheHeaderSummary(response.headers) : '';
     return {
       label: target.label || '',
       url: target.url,
@@ -2019,6 +2076,7 @@ async function fetchOnlineTarget(target) {
       missingWarningMarkers: [...missingWarningMarkers, ...staleWarnings],
       missingContentTypes,
       staleContentTypeProofs,
+      staleMarkerProofs,
       cacheHeaders,
       ok,
       warning,
@@ -3231,7 +3289,10 @@ function criticalAssetCacheDiagnostics(onlineResults) {
       sourceMissingWarning: source?.missingWarningMarkers?.length ? source.missingWarningMarkers.join(', ') : 'none'
     };
   });
-  const contextRows = onlineResults.flatMap((result) => arrayFrom(result.staleContentTypeProofs).map((proof) => ({
+  const fixedCanonicalLabels = new Set(pairs.map((pair) => pair.canonicalLabel));
+  const contentTypeRows = onlineResults
+    .filter((result) => !fixedCanonicalLabels.has(result.label))
+    .flatMap((result) => arrayFrom(result.staleContentTypeProofs).map((proof) => ({
     asset: assetNameFromUrl(result.url),
     canonicalLabel: result.label || assetNameFromUrl(result.url),
     sourceLabel: 'source-bypass content-type proof',
@@ -3252,7 +3313,30 @@ function criticalAssetCacheDiagnostics(onlineResults) {
     sourceMissingRequired: 'none',
     sourceMissingWarning: 'none'
   })));
-  const rows = [...fixedRows, ...contextRows];
+  const markerRows = onlineResults
+    .filter((result) => !fixedCanonicalLabels.has(result.label))
+    .flatMap((result) => arrayFrom(result.staleMarkerProofs).map((proof) => ({
+      asset: assetNameFromUrl(result.url),
+      canonicalLabel: result.label || assetNameFromUrl(result.url),
+      sourceLabel: 'source-bypass marker proof',
+      canonicalUrl: result.url,
+      impact: result.url.endsWith('.html')
+        ? 'HTML GEO alternate/schema marker freshness for crawler retrieval'
+        : 'Canonical marker freshness for crawler retrieval',
+      status: 'EDGE_CACHE_STALE',
+      canonical: result,
+      source: {
+        url: proof.sourceUrl,
+        cacheHeaders: proof.sourceCacheHeaders || 'N/A'
+      },
+      canonicalStatus: onlineResultStatus(result),
+      sourceStatus: 'PASS',
+      canonicalMissingRequired: result.missingMarkers?.length ? result.missingMarkers.join(', ') : 'none',
+      canonicalMissingWarning: result.missingWarningMarkers?.length ? result.missingWarningMarkers.join(', ') : proof.issue || 'marker stale',
+      sourceMissingRequired: 'none',
+      sourceMissingWarning: 'none'
+    })));
+  const rows = [...fixedRows, ...contentTypeRows, ...markerRows];
 
   const staleRows = rows.filter((row) => row.status === 'EDGE_CACHE_STALE');
   const failingRows = rows.filter((row) => row.status === 'SOURCE_AND_CANONICAL_FAIL' || row.status === 'CANONICAL_WARN_SOURCE_FAIL');

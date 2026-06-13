@@ -1,6 +1,6 @@
 # SEO / GEO CDN Refresh Checklist
 
-Generated: 2026-06-13T09:41:00+08:00
+Generated: 2026-06-13T09:55:36+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: EDGE_CACHE_STALE
 
@@ -14,11 +14,11 @@ Overall status: EDGE_CACHE_STALE
 
 Status | Asset | Canonical URL | Canonical status | Source-bypass URL | Source status | Missing required | Missing warning | SEO/GEO impact
 --- | --- | --- | --- | --- | --- | --- | --- | ---
-EDGE_CACHE_STALE | robots.txt | https://camps.wanli.wiki/robots.txt | WARN | https://camps.wanli.wiki/robots.txt?seo-monitor=source-1781282967458 | PASS | none | User-agent: Baiduspider | Baidu crawl rules and explicit Baiduspider discovery signal
-CANONICAL_PASS | sitemap-context.xml | https://camps.wanli.wiki/sitemap-context.xml | PASS | https://camps.wanli.wiki/sitemap-context.xml?seo-monitor=source-1781024645897 | PASS | none | none | AI/GEO context discovery for Markdown and structured facts
-EDGE_CACHE_STALE | llms.txt | https://camps.wanli.wiki/llms.txt | WARN | https://camps.wanli.wiki/llms.txt?seo-monitor=source-1781024645848 | PASS | none | Structured Facts, site-facts.json | AI agent context, canonical answers, and entity disambiguation
-CANONICAL_PASS | site-facts.json | https://camps.wanli.wiki/site-facts.json | PASS | https://camps.wanli.wiki/site-facts.json?seo-monitor=source-1781026502626 | PASS | none | none | Machine-readable GEO facts, keyword clusters, and entity aliases
-EDGE_CACHE_STALE | course-navigation.md | https://camps.wanli.wiki/course-navigation.md | WARN | https://camps.wanli.wiki/course-navigation.md?seo-monitor=source-1780988646531 | PASS | none | canonical CDN edge stale: content-type=application/octet-stream expected text/markdown or text/plain; source-bypass https://camps.wanli.wiki/course-navigation.md?seo-monitor=source-1780988646531 content-type=text/markdown | Markdown GEO context content-type for Baidu and AI-compatible retrieval
+EDGE_CACHE_STALE | robots.txt | https://camps.wanli.wiki/robots.txt | WARN | https://camps.wanli.wiki/robots.txt?seo-monitor=source-1781315377907 | PASS | none | canonical CDN edge stale: missing markers Disallow: /classroom/, User-agent: Baiduspider; source-bypass https://camps.wanli.wiki/robots.txt?seo-monitor=source-1781315377907 has expected markers | Baidu crawl rules and explicit Baiduspider discovery signal
+EDGE_CACHE_STALE | sitemap-context.xml | https://camps.wanli.wiki/sitemap-context.xml | WARN | https://camps.wanli.wiki/sitemap-context.xml?seo-monitor=source-1781315377953 | PASS | none | canonical CDN edge stale: missing markers <loc>https://camps.wanli.wiki/course-navigation-context.md</loc>, <loc>https://camps.wanli.wiki/site-facts.json</loc>; source-bypass https://camps.wanli.wiki/sitemap-context.xml?seo-monitor=source-1781315377953 has expected markers | AI/GEO context discovery for Markdown and structured facts
+EDGE_CACHE_STALE | llms.txt | https://camps.wanli.wiki/llms.txt | WARN | https://camps.wanli.wiki/llms.txt?seo-monitor=source-1781315377909 | PASS | none | canonical CDN edge stale: missing markers Structured Facts, site-facts.json; source-bypass https://camps.wanli.wiki/llms.txt?seo-monitor=source-1781315377909 has expected markers | AI agent context, canonical answers, and entity disambiguation
+EDGE_CACHE_STALE | site-facts.json | https://camps.wanli.wiki/site-facts.json | WARN | https://camps.wanli.wiki/site-facts.json?seo-monitor=source-1781315377916 | PASS | none | canonical CDN edge stale: missing markers "alternateName"; source-bypass https://camps.wanli.wiki/site-facts.json?seo-monitor=source-1781315377916 has expected markers | Machine-readable GEO facts, keyword clusters, and entity aliases
+EDGE_CACHE_STALE | course-navigation.html | https://camps.wanli.wiki/course-navigation.html | WARN | https://camps.wanli.wiki/course-navigation.html?seo-monitor=source-1781315158664 | PASS | none | canonical CDN edge stale: missing markers href="https://camps.wanli.wiki/course-navigation-context.md"; source-bypass https://camps.wanli.wiki/course-navigation.html?seo-monitor=source-1781315158664 has expected markers | HTML GEO alternate/schema marker freshness for crawler retrieval
 
 ## URLs To Purge
 
@@ -26,8 +26,10 @@ List file: reports/seo-cdn-purge-urls.txt
 Command file: reports/seo-cdn-purge-command.txt
 
 - https://camps.wanli.wiki/robots.txt
+- https://camps.wanli.wiki/sitemap-context.xml
 - https://camps.wanli.wiki/llms.txt
-- https://camps.wanli.wiki/course-navigation.md
+- https://camps.wanli.wiki/site-facts.json
+- https://camps.wanli.wiki/course-navigation.html
 
 ## Purge Command
 
@@ -37,16 +39,11 @@ Copy the command from `reports/seo-cdn-purge-command.txt` and run it in the Tenc
 
 Asset | Canonical cache evidence | Source-bypass cache evidence
 --- | --- | ---
-robots.txt | etag="446770a1d8dd644a7dec36209fca76b7"; last-modified=Tue, 09 Jun 2026 11:01:10 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | cache-control=no-cache, max-age=0; etag="ef2b512035a3e18a44959dfbecfdd636"; last-modified=Sat, 13 Jun 2026 01:40:31 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
-sitemap-context.xml | cache-control=no-cache, max-age=0; etag="c7a87e1343b5716bf35d204911f07624"; last-modified=Sat, 13 Jun 2026 01:40:36 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | cache-control=no-cache, max-age=0; etag="c7a87e1343b5716bf35d204911f07624"; last-modified=Sat, 13 Jun 2026 01:40:36 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
-llms.txt | etag="e2de09ea323d1d885a2e440866232fdd"; last-modified=Tue, 09 Jun 2026 11:01:05 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | cache-control=no-cache, max-age=0; etag="b596163f1cbd694adcf2f33e67eae542"; last-modified=Sat, 13 Jun 2026 01:40:33 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
-site-facts.json | cache-control=no-cache, max-age=0; etag="deddb6a397cbd70fc79674255da833f8"; last-modified=Sat, 13 Jun 2026 01:40:38 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | cache-control=no-cache, max-age=0; etag="deddb6a397cbd70fc79674255da833f8"; last-modified=Sat, 13 Jun 2026 01:40:38 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
-course-navigation.md | etag="bb740aea2eb71e9cd4b1fbf4c647b503"; last-modified=Tue, 09 Jun 2026 07:16:31 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | cache-control=no-cache, max-age=0; etag="bb740aea2eb71e9cd4b1fbf4c647b503"; last-modified=Sat, 13 Jun 2026 01:40:53 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
-
-## Latest Automated Actions
-
-- 2026-06-13T09:40+08:00: `npm run seo:upload:cos` succeeded and re-uploaded robots, llms, sitemap, site-facts, and Markdown GEO context assets with explicit Content-Type and Cache-Control metadata.
-- 2026-06-13T09:41+08:00: `tccli cdn PurgeUrlsCache` for the three URLs above failed with `ResourceNotFound.CdnHostNotExists`; requestId `460354e4-1782-44fb-bdc2-f769b2cc4780`. This confirms the current Tencent Cloud account still does not own the CDN host for `camps.wanli.wiki`.
+robots.txt | etag="446770a1d8dd644a7dec36209fca76b7"; last-modified=Tue, 09 Jun 2026 11:01:10 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | cache-control=no-cache, max-age=0; etag="ef2b512035a3e18a44959dfbecfdd636"; last-modified=Sat, 13 Jun 2026 01:49:53 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+sitemap-context.xml | etag="b76eb12f87ce1f8f7b887c34502a65dc"; last-modified=Tue, 09 Jun 2026 16:10:30 GMT; x-cache-lookup=Cache Hit, Cache Miss; server=tencent-cos | cache-control=no-cache, max-age=0; etag="d5a52dfde84234605bbfc289a821174b"; last-modified=Sat, 13 Jun 2026 01:49:57 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+llms.txt | etag="e2de09ea323d1d885a2e440866232fdd"; last-modified=Tue, 09 Jun 2026 11:01:05 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | cache-control=no-cache, max-age=0; etag="1092a9620679058b15f80f08e1feabf9"; last-modified=Sat, 13 Jun 2026 01:49:54 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+site-facts.json | etag="b6e17ff6beec4666e2ce43acdb046aca"; last-modified=Tue, 09 Jun 2026 17:04:48 GMT; x-cache-lookup=Cache Hit, Cache Miss; server=tencent-cos | cache-control=no-cache, max-age=0; etag="0a27d047a9f60ed5a36892ede1ab2b7e"; last-modified=Sat, 13 Jun 2026 01:49:59 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+course-navigation.html | etag="77052409ac76e929a45e014ff21906bb"; last-modified=Tue, 09 Jun 2026 07:16:30 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | cache-control=no-cache, max-age=0; etag="44aa097058abe17829bae50c5b511b50"; last-modified=Sat, 13 Jun 2026 01:47:13 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
 
 ## Current Account Check
 

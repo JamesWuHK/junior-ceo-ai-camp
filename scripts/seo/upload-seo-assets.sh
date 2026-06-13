@@ -46,6 +46,7 @@ markdown_files=(
   "shunyi-ai-parent-class.md"
   "partner-ai-pbl-camp.md"
   "course-navigation.md"
+  "course-navigation-context.md"
   "entity-shaonian-ceo-ai-camp.md"
 )
 
