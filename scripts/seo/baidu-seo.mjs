@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,6 +18,7 @@ const SITE_FACTS_FILE = 'site-facts.json';
 const COVERAGE_REPORT_FILE = 'reports/seo-baidu-geo-coverage.md';
 const MONITOR_REPORT_FILE = 'reports/seo-baidu-monitor.md';
 const CDN_REFRESH_REPORT_FILE = 'reports/seo-cdn-refresh.md';
+const CDN_PURGE_URLS_FILE = 'reports/seo-cdn-purge-urls.txt';
 const RANK_PLAN_REPORT_FILE = 'reports/seo-baidu-rank-plan.md';
 const GEO_PROMPT_REPORT_FILE = 'reports/seo-geo-answer-prompts.md';
 const GEO_READINESS_REPORT_FILE = 'reports/seo-geo-readiness.md';
@@ -1894,10 +1896,82 @@ function missingContentTypeMarkers(actual, expected) {
   return [`content-type=${actual || 'missing'} expected ${expected.join(' or ')}`];
 }
 
+function headerAccessor(values) {
+  return {
+    get(name) {
+      return values.get(String(name || '').toLowerCase()) || null;
+    }
+  };
+}
+
+function parseCurlHeadOutput(output) {
+  const blocks = String(output || '').split(/\r?\n\r?\n/).map((block) => block.trim()).filter(Boolean);
+  let headerLines = [];
+
+  for (const block of blocks) {
+    const lines = block.split(/\r?\n/).filter(Boolean);
+    const statusLine = lines[0] || '';
+    if (/^HTTP\/\S+\s+\d+/.test(statusLine) && !/Connection established/i.test(statusLine)) {
+      headerLines = lines;
+    }
+  }
+
+  const status = Number((headerLines[0] || '').match(/^HTTP\/\S+\s+(\d+)/)?.[1] || 0);
+  const values = new Map();
+  for (const line of headerLines.slice(1)) {
+    const separator = line.indexOf(':');
+    if (separator === -1) continue;
+    const key = line.slice(0, separator).trim().toLowerCase();
+    const value = line.slice(separator + 1).trim();
+    if (!key) continue;
+    values.set(key, values.has(key) ? `${values.get(key)}, ${value}` : value);
+  }
+
+  return { status, headers: headerAccessor(values) };
+}
+
+function fetchTextResponseWithCurl(url) {
+  const head = spawnSync('curl', ['-sSI', '-L', '--max-time', '20', url], {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024
+  });
+  if (head.error) throw head.error;
+  if (head.status !== 0) throw new Error((head.stderr || `curl HEAD exited ${head.status}`).trim());
+
+  const { status, headers } = parseCurlHeadOutput(head.stdout);
+  const body = spawnSync('curl', ['-sS', '-L', '--max-time', '20', url], {
+    encoding: 'utf8',
+    maxBuffer: 8 * 1024 * 1024
+  });
+  if (body.error) throw body.error;
+  if (body.status !== 0) throw new Error((body.stderr || `curl GET exited ${body.status}`).trim());
+
+  return {
+    status,
+    ok: status >= 200 && status < 300,
+    headers,
+    body: body.stdout || ''
+  };
+}
+
+async function fetchTextResponse(url) {
+  try {
+    const response = await fetch(url, { redirect: 'follow' });
+    return {
+      status: response.status,
+      ok: response.ok,
+      headers: response.headers,
+      body: await response.text()
+    };
+  } catch {
+    return fetchTextResponseWithCurl(url);
+  }
+}
+
 async function fetchOnlineTarget(target) {
   try {
-    const response = await fetch(target.url, { redirect: 'follow' });
-    const body = await response.text();
+    const response = await fetchTextResponse(target.url);
+    const body = response.body;
     const markers = target.markers || [];
     const warningMarkers = target.warningMarkers || [];
     const missingMarkers = markers.filter((marker) => !body.includes(marker));
@@ -1910,8 +1984,8 @@ async function fetchOnlineTarget(target) {
 
     if (missingContentTypes.length > 0 && target.staleContentTypeSourceUrl) {
       try {
-        const sourceResponse = await fetch(target.staleContentTypeSourceUrl, { redirect: 'follow' });
-        const sourceBody = await sourceResponse.text();
+        const sourceResponse = await fetchTextResponse(target.staleContentTypeSourceUrl);
+        const sourceBody = sourceResponse.body;
         const sourceContentType = sourceResponse.headers.get('content-type') || '';
         const sourceMissingContentTypes = missingContentTypeMarkers(sourceContentType, expectedContentTypes);
         const sourceMissingMarkers = markers.filter((marker) => !sourceBody.includes(marker));
@@ -1966,6 +2040,20 @@ async function fetchOnlineTarget(target) {
       error: error.message
     };
   }
+}
+
+function isTransientOnlineFailure(result) {
+  return Boolean(result.error) || result.status === 0 || result.status >= 500;
+}
+
+async function fetchOnlineTargetWithRetry(target, attempts = 2) {
+  let lastResult;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    lastResult = await fetchOnlineTarget(target);
+    if (!isTransientOnlineFailure(lastResult) || attempt === attempts) return lastResult;
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+  return lastResult;
 }
 
 function onlineResultStatus(result) {
@@ -3211,6 +3299,8 @@ function buildCdnRefreshReport({ generatedAt, diagnostics }) {
     '',
     '## URLs To Purge',
     '',
+    `List file: ${CDN_PURGE_URLS_FILE}`,
+    '',
     ...(purgeUrls.length > 0 ? purgeUrls : ['- none']),
     '',
     '## Source Object Proof',
@@ -3228,6 +3318,27 @@ function buildCdnRefreshReport({ generatedAt, diagnostics }) {
     '- Use the Tencent Cloud account that owns `camps.wanli.wiki.cdn.dnsv1.com`, or wait for the edge cache TTL to expire.',
     ''
   ].join('\n');
+}
+
+function buildCdnPurgeUrlList(diagnostics) {
+  const urls = diagnostics.staleRows.map((row) => row.canonicalUrl);
+  return urls.length > 0 ? `${urls.join('\n')}\n` : '';
+}
+
+async function cdnPurgeList() {
+  const generatedAt = localTimestamp();
+  const onlineResults = [];
+  for (const target of onlineTargets()) {
+    onlineResults.push(await fetchOnlineTargetWithRetry(target));
+  }
+  const diagnostics = criticalAssetCacheDiagnostics(onlineResults);
+  writeReport(CDN_REFRESH_REPORT_FILE, buildCdnRefreshReport({ generatedAt, diagnostics }));
+  writeReport(CDN_PURGE_URLS_FILE, buildCdnPurgeUrlList(diagnostics));
+  console.log(`SEO/GEO CDN refresh status: ${diagnostics.status}`);
+  console.log(`Report: ${CDN_REFRESH_REPORT_FILE}`);
+  console.log(`Purge URL list: ${CDN_PURGE_URLS_FILE}`);
+  console.log(`Purge URL count: ${diagnostics.staleRows.length}`);
+  for (const row of diagnostics.staleRows) console.log(`- ${row.canonicalUrl}`);
 }
 
 function buildMonitorReport({ generatedAt, baidu, urls, coverageSnapshot, linkSnapshot, onlineStatus, onlineResults, evidenceSnapshot, submissionSnapshot }) {
@@ -4977,7 +5088,7 @@ async function monitor() {
   const onlineResults = [];
 
   for (const target of onlineTargets()) {
-    onlineResults.push(await fetchOnlineTarget(target));
+    onlineResults.push(await fetchOnlineTargetWithRetry(target));
   }
 
   const cacheDiagnostics = criticalAssetCacheDiagnostics(onlineResults);
@@ -5003,6 +5114,7 @@ async function monitor() {
   writeReport(INTERNAL_LINK_REPORT_FILE, buildInternalLinkReport(linkSnapshot));
   writeReport(BAIDU_SUBMISSION_REPORT_FILE, buildSubmissionReport(submissionSnapshot));
   writeReport(CDN_REFRESH_REPORT_FILE, buildCdnRefreshReport({ generatedAt, diagnostics: cacheDiagnostics }));
+  writeReport(CDN_PURGE_URLS_FILE, buildCdnPurgeUrlList(cacheDiagnostics));
   writeReport(MONITOR_REPORT_FILE, report);
   console.log(`Baidu SEO/GEO monitor: local=${coverageSnapshot.status}, links=${linkSnapshot.status}, online=${onlineStatus}, token=${baidu.tokenConfigured ? 'configured' : 'missing'}, evidence=${evidenceSnapshot.summary.overallStatus}, submission=${submissionSnapshot.summary.latestStatus}`);
   console.log(`Report: ${MONITOR_REPORT_FILE}`);
@@ -5020,7 +5132,7 @@ async function checkOnline() {
   const warnings = [];
 
   for (const target of onlineTargets()) {
-    const result = await fetchOnlineTarget(target);
+    const result = await fetchOnlineTargetWithRetry(target);
     console.log(`${onlineResultStatus(result)} ${result.label ? `${result.label} ` : ''}${result.url}: HTTP ${result.status || 'n/a'}, bytes=${result.bytes}, content-type=${result.contentType || 'n/a'}`);
     const targetLabel = result.label ? `${result.label} ${result.url}` : result.url;
     if (result.error) failures.push(`${targetLabel} fetch failed: ${result.error}`);
@@ -5137,6 +5249,7 @@ function usage() {
     '  measurements-import [--dry-run] [--allow-partial] [--merge-existing] [--source <csv>] [--output <json>]',
     '                    Import full or partial CSV checklist rows into private seo/baidu-measurements.json',
     '  monitor           Write a Baidu SEO/GEO monitoring report',
+    '  cdn-purge-list    Write one-URL-per-line CDN purge list for stale SEO/GEO assets',
     '  rank-plan         Write a Baidu ranking and GEO query tracking sheet',
     '  serp-probe        Probe a small Baidu SERP sample and write a manual evidence pack',
     '  geo-prompts       Write manual AI answer prompt pack for GEO citation checks',
@@ -5201,6 +5314,9 @@ async function main() {
       break;
     case 'monitor':
       await monitor();
+      break;
+    case 'cdn-purge-list':
+      await cdnPurgeList();
       break;
     case 'rank-plan':
       rankPlan();
