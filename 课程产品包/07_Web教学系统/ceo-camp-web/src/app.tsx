@@ -924,8 +924,8 @@ const moduleDesigns: Record<
   "team-formation": {
     icon: UsersRound,
     accent: "blue",
-    chips: ["帮助别人", "价值交换", "第一版"],
-    steps: ["先看谁卡住", "再看帮完少烦什么", "最后想别人愿意换什么"],
+    chips: ["小麻烦", "产品", "价值交换"],
+    steps: ["先看真实麻烦", "再看产品怎么帮", "最后写自己的帮忙卡"],
     cards: [
       { title: "用户", text: "你想帮助的那个人" },
       { title: "需求", text: "他反复遇到的小麻烦" },
@@ -981,18 +981,18 @@ const moduleDesigns: Record<
   "track-cases": {
     icon: Route,
     accent: "sun",
-    chips: ["生活帮手", "学习工具", "创意工坊", "校园社区"],
-    steps: ["先看谁卡住", "再看第一版怎么帮", "最后看为什么还想用"],
+    chips: ["选赛道", "定用户", "说卡点"],
+    steps: ["先选一条主路", "再说想帮谁", "最后写清卡在哪一步"],
     cards: [
-      { title: "谁", text: "谁在哪一步卡住" },
-      { title: "怎么帮", text: "第一版先帮他完成什么" },
-      { title: "少麻烦", text: "用完以后少掉什么麻烦" },
-      { title: "还想用", text: "为什么别人愿意再打开一次" }
+      { title: "赛道", text: "生活、学习、创意或校园" },
+      { title: "用户", text: "一个真实会遇到麻烦的人" },
+      { title: "卡点", text: "他在哪一步卡住" },
+      { title: "下一步", text: "准备去问谁、看什么" }
     ],
     flow: [
-      { title: "看故事", text: "每条赛道看一个产品故事" },
-      { title: "借方法", text: "借走发现麻烦的方法" },
-      { title: "选一条路", text: "给自己的项目找一个主方向" }
+      { title: "选一条路", text: "给自己的项目找一个主方向" },
+      { title: "说清对象", text: "不要写所有人，先写一个人群" },
+      { title: "准备调研", text: "下午带着问题去问真人" }
     ]
   },
   "ai-superpowers": {
@@ -1223,18 +1223,17 @@ const fallbackLessonPages: Record<string, LessonPageSeed[]> = {
   ],
   "team-formation": [
     { page_no: 1, title: "两个小摊位", page_type: "story", content_summary: "一个只喊厉害，另一个说清帮谁少掉什么麻烦" },
-    { page_no: 2, title: "故事：上学出门检查台", page_type: "story", content_summary: "乐乐早上出门前想不全，后来用清单少漏带、少慌张" },
-    { page_no: 3, title: "老师演示：上学出门检查台", page_type: "demo", content_summary: "把用户、需求、产品、第一步和少掉的麻烦拆开看" },
-    { page_no: 4, title: "别人为什么愿意换", page_type: "demo", content_summary: "从试玩、推荐、星星币，看懂价值交换和价格" },
-    { page_no: 5, title: "轮到你：写帮忙卡", page_type: "experiment", content_summary: "写下想帮谁、卡在哪、先帮哪一步、少掉什么麻烦" }
-  ],
-  "track-cases": [
-    { page_no: 1, title: "四条赛道地图", page_type: "story", content_summary: "生活帮手、学习工具、创意工坊、校园社区都从真实麻烦开始" },
-    { page_no: 2, title: "生活帮手：上学出门检查台", page_type: "story", content_summary: "明天要上学，最怕早上漏带东西。它把课表和通知变成出门清单" },
+    { page_no: 2, title: "生活帮手：上学出门检查台", page_type: "story", content_summary: "早上出门前想不全，清单先帮同学少漏带一样东西" },
     { page_no: 3, title: "学习工具：应用题拆题板", page_type: "story", content_summary: "长应用题一大段，先拆成能下手的几块" },
     { page_no: 4, title: "创意工坊：四格漫画分镜台", page_type: "story", content_summary: "有故事点子，先排出四格草稿" },
     { page_no: 5, title: "校园社区：校园活动组队板", page_type: "story", content_summary: "想参加活动，先找到同伴" },
-    { page_no: 6, title: "选一条路，做自己的题", page_type: "experiment", content_summary: "选主赛道，再写出自己团队想帮的人" }
+    { page_no: 6, title: "Demo：从故事里拆出产品", page_type: "demo", content_summary: "把用户、需求、产品、第一步、使用效果和价值交换拆开看" },
+    { page_no: 7, title: "轮到你：写帮忙卡", page_type: "experiment", content_summary: "写下想帮谁、卡在哪、先帮哪一步、少掉什么麻烦" }
+  ],
+  "track-cases": [
+    { page_no: 1, title: "四条赛道地图", page_type: "story", content_summary: "生活帮手、学习工具、创意工坊、校园社区，先选一条最想追的路" },
+    { page_no: 2, title: "选一条路，做自己的题", page_type: "experiment", content_summary: "选主赛道，再写出自己团队想帮的人" },
+    { page_no: 3, title: "团队讨论：想帮谁", page_type: "teamwork", content_summary: "把赛道变成一个真实用户和一个具体小麻烦" }
   ],
   "problem-wall": [
     { page_no: 1, title: "团队讨论：生活小麻烦", page_type: "teamwork", content_summary: "每个人先写一个真实遇到过的小麻烦" },
@@ -1355,6 +1354,56 @@ function fallbackPagesFor(module: CourseModule): LessonPage[] {
     activity_buttons: seed.activity_buttons ?? [],
     content_summary: seed.content_summary
   }));
+}
+
+function pagesFromSeeds(moduleId: string, seeds: LessonPageSeed[]): LessonPage[] {
+  return seeds.map((seed) => ({
+    id: `${moduleId}-${seed.page_no}`,
+    module_id: moduleId,
+    page_no: seed.page_no,
+    title: seed.title,
+    page_type: seed.page_type,
+    activity_buttons: seed.activity_buttons ?? [],
+    content_summary: seed.content_summary
+  }));
+}
+
+function normalizeCourseModules(modules: CourseModule[]) {
+  return modules
+    .map((module) => {
+      if (module.id === "team-formation") {
+        return {
+          ...module,
+          sequence: 3,
+          title: "创业知识输入：从一个小麻烦开始",
+          subtitle: "先看真实麻烦，再看产品怎样帮别人",
+          time_range: "10:35-11:25",
+          pages: pagesFromSeeds(module.id, fallbackLessonPages["team-formation"])
+        };
+      }
+
+      if (module.id === "workbuddy-webpage") {
+        return {
+          ...module,
+          sequence: 4,
+          time_range: "11:25-11:50"
+        };
+      }
+
+      if (module.id === "track-cases") {
+        return {
+          ...module,
+          sequence: 5,
+          title: "选择赛道和真实用户",
+          subtitle: "团队选一条路，说清想帮谁",
+          time_range: "13:30-14:20",
+          pages: pagesFromSeeds(module.id, fallbackLessonPages["track-cases"])
+        };
+      }
+
+      return module;
+    })
+    .sort((a, b) => a.day - b.day || a.sequence - b.sequence);
 }
 
 function visualForPage(page: LessonPage): DesignedLessonPage["visual"] {
@@ -1518,7 +1567,7 @@ function coursewarePages(module: CourseModule | null | undefined): DesignedLesso
 }
 
 function caseComicForPage(module: CourseModule, page: DesignedLessonPage) {
-  if (module.id !== "team-formation" && module.id !== "track-cases") return null;
+  if (module.id !== "team-formation") return null;
   return caseComicDecks[page.title] ?? null;
 }
 
@@ -2025,7 +2074,7 @@ function useInitialData(active: "student" | "wall") {
         }))
     ]);
     setCamp(campResult);
-    setModules(moduleResult.modules);
+        setModules(normalizeCourseModules(moduleResult.modules));
     setStudents(wallResult.students);
     setShowcaseItems(showcaseResult.showcase_items);
     setWallArtifacts(artifactResult.artifacts);
@@ -2069,7 +2118,7 @@ function useTeacherData(enabled: boolean) {
       api.wall()
     ]);
     setCamp(campResult);
-    setModules(moduleResult.modules);
+    setModules(normalizeCourseModules(moduleResult.modules));
     setStudents(wallResult.students);
   };
 
@@ -8154,7 +8203,6 @@ const knowledgeInputModules = new Set([
   "ai-judgement",
   "workbuddy-webpage",
   "team-formation",
-  "track-cases",
   "ai-superpowers",
   "ai-lab",
   "tool-demo",
