@@ -1374,8 +1374,28 @@ function pagesFromSeeds(moduleId: string, seeds: LessonPageSeed[]): LessonPage[]
   }));
 }
 
+function fallbackCourseModule(
+  id: string,
+  day: number,
+  sequence: number,
+  title: string,
+  subtitle: string,
+  timeRange: string
+): CourseModule {
+  return {
+    id,
+    day,
+    sequence,
+    title,
+    subtitle,
+    time_range: timeRange,
+    status: "READY",
+    pages: pagesFromSeeds(id, fallbackLessonPages[id] ?? [])
+  };
+}
+
 function normalizeCourseModules(modules: CourseModule[]) {
-  return modules
+  const normalized = modules
     .map((module) => {
       if (module.id === "team-formation") {
         return {
@@ -1408,8 +1428,22 @@ function normalizeCourseModules(modules: CourseModule[]) {
       }
 
       return module;
-    })
-    .sort((a, b) => a.day - b.day || a.sequence - b.sequence);
+    });
+
+  if (!normalized.some((module) => module.id === "workbuddy-webpage")) {
+    normalized.push(
+      fallbackCourseModule(
+        "workbuddy-webpage",
+        1,
+        3.5,
+        "WorkBuddy 变网页",
+        "看一句话怎样变成能点开的页面",
+        "11:25-11:50"
+      )
+    );
+  }
+
+  return normalized.sort((a, b) => a.day - b.day || a.sequence - b.sequence);
 }
 
 function visualForPage(page: LessonPage): DesignedLessonPage["visual"] {
