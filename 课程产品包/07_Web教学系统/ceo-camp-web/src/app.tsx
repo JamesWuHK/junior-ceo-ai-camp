@@ -1400,10 +1400,10 @@ function normalizeCourseModules(modules: CourseModule[]) {
       if (module.id === "team-formation") {
         return {
           ...module,
-          sequence: 3,
+          sequence: 4,
           title: "创业知识输入：从一个小麻烦开始",
           subtitle: "先看真实麻烦，再看产品怎样帮别人",
-          time_range: "10:35-11:25",
+          time_range: "11:00-11:50",
           pages: pagesFromSeeds(module.id, fallbackLessonPages["team-formation"])
         };
       }
@@ -1411,8 +1411,8 @@ function normalizeCourseModules(modules: CourseModule[]) {
       if (module.id === "workbuddy-webpage") {
         return {
           ...module,
-          sequence: 4,
-          time_range: "11:25-11:50"
+          sequence: 3,
+          time_range: "10:35-11:00"
         };
       }
 
@@ -1435,10 +1435,10 @@ function normalizeCourseModules(modules: CourseModule[]) {
       fallbackCourseModule(
         "workbuddy-webpage",
         1,
-        3.5,
+        3,
         "WorkBuddy 变网页",
         "看一句话怎样变成能点开的页面",
-        "11:25-11:50"
+        "10:35-11:00"
       )
     );
   }
