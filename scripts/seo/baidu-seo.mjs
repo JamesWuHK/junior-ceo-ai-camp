@@ -26,6 +26,7 @@ const BAIDU_EVIDENCE_REPORT_FILE = 'reports/seo-baidu-evidence.md';
 const BAIDU_SUBMISSION_REPORT_FILE = 'reports/seo-baidu-submission.md';
 const BAIDU_MANUAL_SUBMIT_FILE = 'reports/seo-baidu-submit-urls.txt';
 const BAIDU_MANUAL_SUBMIT_REPORT_FILE = 'reports/seo-baidu-manual-submit.md';
+const BAIDU_SERP_PROBE_REPORT_FILE = 'reports/seo-baidu-serp-probe.md';
 const INTERNAL_LINK_REPORT_FILE = 'reports/seo-internal-links.md';
 const MEASUREMENT_CHECKLIST_CSV_FILE = 'reports/seo-baidu-measurement-checklist.csv';
 const MEASUREMENT_GUIDE_REPORT_FILE = 'reports/seo-baidu-measurement-guide.md';
@@ -3303,6 +3304,246 @@ function baiduSearchUrl(query) {
   return url.toString();
 }
 
+function baiduSerpProbeTargets({ config, evidenceSnapshot }) {
+  const host = new URL(SITE_URL).host;
+  const priorityRankRows = weeklyRankPriorityRows(evidenceSnapshot);
+  return [
+    {
+      type: 'site-host',
+      query: `site:${host}`,
+      target: host,
+      purpose: 'Check whether a command-line Baidu SERP fetch reaches a normal site: result page.'
+    },
+    {
+      type: 'site-home',
+      query: `site:${host} ${SITE_URL}/`,
+      target: SITE_URL,
+      purpose: 'Check whether the homepage-specific site: query can be fetched without captcha.'
+    },
+    ...priorityRankRows.slice(0, 3).map((row) => ({
+      type: `rank-${row.queryType}`,
+      query: row.query,
+      target: row.targetPage,
+      purpose: `Probe priority keyword cluster ${row.cluster}.`
+    }))
+  ];
+}
+
+function classifyBaiduSerpProbe({ httpStatus, redirectLocation, text, target }) {
+  const haystack = `${redirectLocation || ''}\n${text || ''}`;
+  if (/wappass\.baidu\.com|captcha|tuxing_v2|verify/i.test(haystack)) {
+    return {
+      status: 'CAPTCHA_BLOCKED',
+      targetVisible: false,
+      evidenceUsable: false,
+      notes: 'Baidu returned a verification/captcha flow; do not treat this as index or rank evidence.'
+    };
+  }
+  if (!httpStatus || httpStatus >= 500) {
+    return {
+      status: 'FETCH_FAILED',
+      targetVisible: false,
+      evidenceUsable: false,
+      notes: 'SERP probe did not return a usable Baidu response.'
+    };
+  }
+  if (httpStatus >= 300 && httpStatus < 400) {
+    return {
+      status: 'REDIRECTED',
+      targetVisible: false,
+      evidenceUsable: false,
+      notes: 'Baidu redirected the request; use a browser or Search Resource Platform for evidence.'
+    };
+  }
+  const normalizedText = String(text || '').toLowerCase();
+  const normalizedTarget = String(target || '').toLowerCase().replace(/^https?:\/\//, '');
+  const targetVisible = Boolean(normalizedTarget && normalizedText.includes(normalizedTarget));
+  return {
+    status: targetVisible ? 'TARGET_MARKER_VISIBLE' : 'NO_TARGET_MARKER_IN_FETCHED_HTML',
+    targetVisible,
+    evidenceUsable: targetVisible,
+    notes: targetVisible
+      ? 'Target marker was visible in fetched HTML; manually verify the rendered result before importing evidence.'
+      : 'No target marker was visible in fetched HTML; this is not proof of no index/rank because Baidu SERPs can personalize, paginate, or hide content from command-line clients.'
+  };
+}
+
+async function fetchBaiduSerpProbe(target) {
+  const url = baiduSearchUrl(target.query);
+  try {
+    const response = await fetch(url, {
+      redirect: 'manual',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; SEOEvidenceProbe/1.0; +https://camps.wanli.wiki/)'
+      }
+    });
+    const text = await response.text();
+    const redirectLocation = response.headers.get('location') || '';
+    const classification = classifyBaiduSerpProbe({
+      httpStatus: response.status,
+      redirectLocation,
+      text,
+      target: target.target
+    });
+    return {
+      ...target,
+      ...classification,
+      baiduUrl: url,
+      httpStatus: response.status,
+      redirectLocation,
+      bytes: Buffer.byteLength(text || '', 'utf8')
+    };
+  } catch (error) {
+    const cause = error.cause?.message ? `; cause=${error.cause.message}` : '';
+    return {
+      ...target,
+      baiduUrl: url,
+      httpStatus: 'N/A',
+      redirectLocation: 'N/A',
+      bytes: 0,
+      status: 'FETCH_ERROR',
+      targetVisible: false,
+      evidenceUsable: false,
+      notes: `${error.message}${cause}`
+    };
+  }
+}
+
+function buildBaiduSerpProbeReport({ generatedAt, probeRows, config, evidenceSnapshot }) {
+  const host = new URL(SITE_URL).host;
+  const urlRows = evidenceSnapshot.urlRows.map((row) => {
+    const query = `site:${host} ${row.url}`;
+    return [
+      row.status,
+      query,
+      row.url,
+      baiduSearchUrl(query),
+      'Fill evidenceDate/indexed/source/notes in the weekly private CSV only after a reproducible result or Baidu platform record.'
+    ].map(escapeMarkdownCell).join(' | ');
+  });
+  const rankRows = weeklyRankPriorityRows(evidenceSnapshot).map((row) => [
+    row.status,
+    row.cluster,
+    row.queryType,
+    row.query,
+    row.targetPage,
+    row.baiduCheckUrl,
+    'Record rank/no-rank with date, location/device/browser state, and source.'
+  ].map(escapeMarkdownCell).join(' | '));
+  const geoRows = weeklyGeoPriorityRows({ config, evidenceSnapshot }).map((row) => [
+    row.status,
+    row.cluster,
+    row.query,
+    row.targetPage,
+    row.markdownUrl,
+    'Record engine, date, exact prompt, mention/source behavior, and positioning.'
+  ].map(escapeMarkdownCell).join(' | '));
+  const probeTableRows = probeRows.map((row) => [
+    row.status,
+    row.type,
+    row.query,
+    row.target,
+    row.baiduUrl,
+    row.httpStatus,
+    row.status === 'CAPTCHA_BLOCKED' ? 'wappass.baidu.com captcha redirect' : row.redirectLocation || '-',
+    row.bytes,
+    row.targetVisible ? 'yes' : 'no',
+    row.evidenceUsable ? 'maybe-after-manual-rendered-verification' : 'no',
+    row.notes
+  ].map(escapeMarkdownCell).join(' | '));
+  const captchaCount = probeRows.filter((row) => row.status === 'CAPTCHA_BLOCKED').length;
+  const unavailableCount = probeRows.filter((row) => ['FETCH_ERROR', 'FETCH_FAILED', 'REDIRECTED'].includes(row.status)).length;
+  const usableCount = probeRows.filter((row) => row.evidenceUsable).length;
+  const overallStatus = unavailableCount === probeRows.length
+    ? 'AUTO_SERP_UNAVAILABLE'
+    : captchaCount === probeRows.length
+    ? 'AUTO_SERP_BLOCKED'
+    : usableCount > 0
+      ? 'MANUAL_VERIFICATION_REQUIRED'
+      : 'AUTO_SERP_NOT_EVIDENCE';
+
+  return [
+    '# Baidu SERP Probe and Manual Evidence Pack',
+    '',
+    `Generated: ${generatedAt}`,
+    `Site URL: ${SITE_URL}`,
+    `Overall status: ${overallStatus}`,
+    '',
+    '## Summary',
+    '',
+    `- Automated Baidu SERP probes: ${probeRows.length}`,
+    `- Captcha/verification blocked: ${captchaCount}`,
+    `- Fetch/redirect unavailable: ${unavailableCount}`,
+    `- Target markers visible in fetched HTML: ${usableCount}`,
+    `- Weekly private CSV: ${WEEKLY_PRIVATE_CHECKLIST_CSV_FILE}`,
+    `- Public weekly checklist: ${WEEKLY_PRIORITY_CHECKLIST_CSV_FILE}`,
+    '',
+    '## Measurement Boundary',
+    '',
+    '- This probe is an evidence-quality check, not a Baidu rank scraper.',
+    '- A captcha, redirect, empty fetched HTML, or missing target marker is not proof that a URL is unindexed or not ranking.',
+    '- Use Baidu Search Resource Platform as the preferred source for indexed URLs, impressions, clicks, crawl data, and query data.',
+    '- Use manual browser checks only when they are reproducible and recorded with date, location/device/browser state, exact query, target visibility, and notes.',
+    '- Import only reliable measured rows into the private weekly CSV, then run `npm run seo:weekly-import`.',
+    '',
+    '## Automated Probe Results',
+    '',
+    'Status | Type | Query | Target marker | Baidu URL | HTTP | Redirect | Bytes | Target visible | Evidence usable | Notes',
+    '--- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---',
+    ...probeTableRows,
+    '',
+    '## Manual P0 URL Index Checks',
+    '',
+    'Current status | Query | Target page | Baidu check URL | Recording note',
+    '--- | --- | --- | --- | ---',
+    ...urlRows,
+    '',
+    '## Manual P1 Keyword Rank Checks',
+    '',
+    'Current status | Cluster | Query type | Query | Target page | Baidu check URL | Recording note',
+    '--- | --- | --- | --- | --- | --- | ---',
+    ...rankRows,
+    '',
+    '## GEO Companion Checks',
+    '',
+    'Current status | Cluster | Prompt | Target page | Markdown context | Recording note',
+    '--- | --- | --- | --- | --- | ---',
+    ...geoRows,
+    '',
+    '## Next Actions',
+    '',
+    `- Copy ${WEEKLY_PRIORITY_CHECKLIST_CSV_FILE} to ${WEEKLY_PRIVATE_CHECKLIST_CSV_FILE} before recording private evidence.`,
+    '- Run the manual Baidu checks in a normal browser or Baidu Search Resource Platform, not from captcha-blocked command-line HTML.',
+    '- Fill only measured fields in the private weekly CSV, then run `npm run seo:weekly-import`.',
+    '- Rerun `npm run seo:weekly-priority`, `npm run seo:evidence`, `npm run seo:geo:readiness`, and `npm run seo:monitor` after importing evidence.',
+    ''
+  ].join('\n');
+}
+
+async function baiduSerpProbe() {
+  const generatedAt = localTimestamp();
+  const config = readJson(KEYWORD_CONFIG_FILE);
+  const evidenceSnapshot = baiduEvidenceSnapshot();
+  const targets = baiduSerpProbeTargets({ config, evidenceSnapshot });
+  const probeRows = [];
+  for (const target of targets) {
+    probeRows.push(await fetchBaiduSerpProbe(target));
+  }
+  const report = buildBaiduSerpProbeReport({ generatedAt, probeRows, config, evidenceSnapshot });
+  writeReport(BAIDU_SERP_PROBE_REPORT_FILE, report);
+  const captchaCount = probeRows.filter((row) => row.status === 'CAPTCHA_BLOCKED').length;
+  const unavailableCount = probeRows.filter((row) => ['FETCH_ERROR', 'FETCH_FAILED', 'REDIRECTED'].includes(row.status)).length;
+  const usableCount = probeRows.filter((row) => row.evidenceUsable).length;
+  console.log(`Baidu SERP probe report: ${BAIDU_SERP_PROBE_REPORT_FILE}`);
+  console.log(`Automated probes: ${probeRows.length}`);
+  console.log(`Captcha/verification blocked: ${captchaCount}`);
+  console.log(`Fetch/redirect unavailable: ${unavailableCount}`);
+  console.log(`Target markers visible: ${usableCount}`);
+  if (captchaCount > 0) {
+    console.log('Command-line Baidu SERP checks are not reliable evidence; use browser or Baidu platform checks before importing measurements.');
+  }
+}
+
 function baiduSubmissionSnapshot() {
   const generatedAt = localTimestamp();
   const history = readJsonIfExists(BAIDU_SUBMISSION_HISTORY_FILE);
@@ -3746,6 +3987,7 @@ function buildMeasurementGuideReport({ generatedAt, config, urls }) {
     '',
     '```bash',
     'npm run seo:measurements:checklist',
+    'npm run seo:baidu:serp-probe',
     'npm run seo:geo:prompts',
     'npm run seo:baidu:submit-list',
     '```',
@@ -3787,6 +4029,7 @@ function buildMeasurementGuideReport({ generatedAt, config, urls }) {
     '',
     `- Manual Baidu URL submit list: ${BAIDU_MANUAL_SUBMIT_FILE}`,
     `- Manual Baidu submit report: ${BAIDU_MANUAL_SUBMIT_REPORT_FILE}`,
+    `- Baidu SERP probe and manual evidence pack: ${BAIDU_SERP_PROBE_REPORT_FILE}`,
     `- Rank tracking plan: ${RANK_PLAN_REPORT_FILE}`,
     `- GEO prompt pack: ${GEO_PROMPT_REPORT_FILE}`,
     `- Measurement checklist CSV: ${MEASUREMENT_CHECKLIST_CSV_FILE}`,
@@ -4369,6 +4612,7 @@ function usage() {
     '                    Import full or partial CSV checklist rows into private seo/baidu-measurements.json',
     '  monitor           Write a Baidu SEO/GEO monitoring report',
     '  rank-plan         Write a Baidu ranking and GEO query tracking sheet',
+    '  serp-probe        Probe a small Baidu SERP sample and write a manual evidence pack',
     '  geo-prompts       Write manual AI answer prompt pack for GEO citation checks',
     '  geo-readiness     Write local GEO readiness and AI citation evidence gap report',
     '  weekly-priority   Write the weekly Baidu index/rank and GEO evidence priority report plus CSV template',
@@ -4427,6 +4671,9 @@ async function main() {
       break;
     case 'rank-plan':
       rankPlan();
+      break;
+    case 'serp-probe':
+      await baiduSerpProbe();
       break;
     case 'geo-prompts':
       geoPrompts();

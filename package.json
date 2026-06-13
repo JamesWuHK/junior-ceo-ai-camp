@@ -28,6 +28,8 @@
     "seo:baidu:import": "node scripts/seo/baidu-seo.mjs measurements-import",
     "seo:rank-plan": "node scripts/seo/baidu-seo.mjs rank-plan",
     "seo:baidu:rank-plan": "node scripts/seo/baidu-seo.mjs rank-plan",
+    "seo:serp-probe": "node scripts/seo/baidu-seo.mjs serp-probe",
+    "seo:baidu:serp-probe": "node scripts/seo/baidu-seo.mjs serp-probe",
     "seo:geo:queries": "node scripts/seo/baidu-seo.mjs rank-plan",
     "seo:geo:prompts": "node scripts/seo/baidu-seo.mjs geo-prompts",
     "seo:geo:readiness": "node scripts/seo/baidu-seo.mjs geo-readiness",
