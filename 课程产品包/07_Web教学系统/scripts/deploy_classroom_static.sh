@@ -33,7 +33,7 @@ upload_file() {
   local headers
 
   headers="{\"Content-Type\":\"$content_type\",\"Cache-Control\":\"$cache_control\"}"
-  coscmd -c "$COS_CONFIG" -b "$COS_BUCKET" -r "$COS_REGION" upload -f -s -H "$headers" "$local_path" "$remote_path"
+  coscmd -c "$COS_CONFIG" -b "$COS_BUCKET" -r "$COS_REGION" upload -f -H "$headers" "$local_path" "$remote_path"
 }
 
 guess_content_type() {
