@@ -1,2 +1,3 @@
 https://camps.wanli.wiki/robots.txt
 https://camps.wanli.wiki/llms.txt
+https://camps.wanli.wiki/course-navigation.md

@@ -1,6 +1,6 @@
 # SEO / GEO CDN Refresh Checklist
 
-Generated: 2026-06-13T09:36:23+08:00
+Generated: 2026-06-13T09:41:00+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: EDGE_CACHE_STALE
 
@@ -18,6 +18,7 @@ EDGE_CACHE_STALE | robots.txt | https://camps.wanli.wiki/robots.txt | WARN | htt
 CANONICAL_PASS | sitemap-context.xml | https://camps.wanli.wiki/sitemap-context.xml | PASS | https://camps.wanli.wiki/sitemap-context.xml?seo-monitor=source-1781024645897 | PASS | none | none | AI/GEO context discovery for Markdown and structured facts
 EDGE_CACHE_STALE | llms.txt | https://camps.wanli.wiki/llms.txt | WARN | https://camps.wanli.wiki/llms.txt?seo-monitor=source-1781024645848 | PASS | none | Structured Facts, site-facts.json | AI agent context, canonical answers, and entity disambiguation
 CANONICAL_PASS | site-facts.json | https://camps.wanli.wiki/site-facts.json | PASS | https://camps.wanli.wiki/site-facts.json?seo-monitor=source-1781026502626 | PASS | none | none | Machine-readable GEO facts, keyword clusters, and entity aliases
+EDGE_CACHE_STALE | course-navigation.md | https://camps.wanli.wiki/course-navigation.md | WARN | https://camps.wanli.wiki/course-navigation.md?seo-monitor=source-1780988646531 | PASS | none | canonical CDN edge stale: content-type=application/octet-stream expected text/markdown or text/plain; source-bypass https://camps.wanli.wiki/course-navigation.md?seo-monitor=source-1780988646531 content-type=text/markdown | Markdown GEO context content-type for Baidu and AI-compatible retrieval
 
 ## URLs To Purge
 
@@ -26,6 +27,7 @@ Command file: reports/seo-cdn-purge-command.txt
 
 - https://camps.wanli.wiki/robots.txt
 - https://camps.wanli.wiki/llms.txt
+- https://camps.wanli.wiki/course-navigation.md
 
 ## Purge Command
 
@@ -35,10 +37,16 @@ Copy the command from `reports/seo-cdn-purge-command.txt` and run it in the Tenc
 
 Asset | Canonical cache evidence | Source-bypass cache evidence
 --- | --- | ---
-robots.txt | etag="446770a1d8dd644a7dec36209fca76b7"; last-modified=Tue, 09 Jun 2026 11:01:10 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | cache-control=no-cache, max-age=0; etag="ef2b512035a3e18a44959dfbecfdd636"; last-modified=Fri, 12 Jun 2026 16:52:38 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
-sitemap-context.xml | cache-control=no-cache, max-age=0; etag="c7a87e1343b5716bf35d204911f07624"; last-modified=Tue, 09 Jun 2026 17:35:26 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | cache-control=no-cache, max-age=0; etag="c7a87e1343b5716bf35d204911f07624"; last-modified=Tue, 09 Jun 2026 17:35:26 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
-llms.txt | etag="e2de09ea323d1d885a2e440866232fdd"; last-modified=Tue, 09 Jun 2026 11:01:05 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | cache-control=no-cache, max-age=0; etag="b596163f1cbd694adcf2f33e67eae542"; last-modified=Tue, 09 Jun 2026 17:35:23 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
-site-facts.json | cache-control=no-cache, max-age=0; etag="deddb6a397cbd70fc79674255da833f8"; last-modified=Tue, 09 Jun 2026 17:35:27 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | cache-control=no-cache, max-age=0; etag="deddb6a397cbd70fc79674255da833f8"; last-modified=Tue, 09 Jun 2026 17:35:27 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+robots.txt | etag="446770a1d8dd644a7dec36209fca76b7"; last-modified=Tue, 09 Jun 2026 11:01:10 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | cache-control=no-cache, max-age=0; etag="ef2b512035a3e18a44959dfbecfdd636"; last-modified=Sat, 13 Jun 2026 01:40:31 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+sitemap-context.xml | cache-control=no-cache, max-age=0; etag="c7a87e1343b5716bf35d204911f07624"; last-modified=Sat, 13 Jun 2026 01:40:36 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | cache-control=no-cache, max-age=0; etag="c7a87e1343b5716bf35d204911f07624"; last-modified=Sat, 13 Jun 2026 01:40:36 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+llms.txt | etag="e2de09ea323d1d885a2e440866232fdd"; last-modified=Tue, 09 Jun 2026 11:01:05 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | cache-control=no-cache, max-age=0; etag="b596163f1cbd694adcf2f33e67eae542"; last-modified=Sat, 13 Jun 2026 01:40:33 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+site-facts.json | cache-control=no-cache, max-age=0; etag="deddb6a397cbd70fc79674255da833f8"; last-modified=Sat, 13 Jun 2026 01:40:38 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | cache-control=no-cache, max-age=0; etag="deddb6a397cbd70fc79674255da833f8"; last-modified=Sat, 13 Jun 2026 01:40:38 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+course-navigation.md | etag="bb740aea2eb71e9cd4b1fbf4c647b503"; last-modified=Tue, 09 Jun 2026 07:16:31 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | cache-control=no-cache, max-age=0; etag="bb740aea2eb71e9cd4b1fbf4c647b503"; last-modified=Sat, 13 Jun 2026 01:40:53 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+
+## Latest Automated Actions
+
+- 2026-06-13T09:40+08:00: `npm run seo:upload:cos` succeeded and re-uploaded robots, llms, sitemap, site-facts, and Markdown GEO context assets with explicit Content-Type and Cache-Control metadata.
+- 2026-06-13T09:41+08:00: `tccli cdn PurgeUrlsCache` for the three URLs above failed with `ResourceNotFound.CdnHostNotExists`; requestId `460354e4-1782-44fb-bdc2-f769b2cc4780`. This confirms the current Tencent Cloud account still does not own the CDN host for `camps.wanli.wiki`.
 
 ## Current Account Check
 
