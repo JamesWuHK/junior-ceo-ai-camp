@@ -4449,6 +4449,94 @@ button:disabled {
   gap: 8px;
 }
 
+.student-admin-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.student-admin-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #ece7d8;
+}
+
+.student-admin-heading .panel-title {
+  margin-bottom: 6px;
+}
+
+.student-admin-heading p {
+  max-width: 560px;
+  margin: 0;
+  color: #60705f;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.student-count-pill {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #172018;
+  color: #fffdf6;
+  padding: 8px 13px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.student-admin-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: 18px;
+  align-items: start;
+}
+
+.student-roster-section {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.student-list-title {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.student-list-title span,
+.student-add-block span,
+.student-list-title small {
+  color: #60705f;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.student-list-title h3,
+.student-add-block h3 {
+  margin: 2px 0 0;
+  color: #172018;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.student-add-block {
+  display: grid;
+  gap: 12px;
+  padding-left: 18px;
+  border-left: 1px solid #ece7d8;
+}
+
+.student-add-block .student-form {
+  grid-template-columns: minmax(0, 1fr) 86px;
+}
+
+.student-add-block .student-form button {
+  grid-column: 1 / -1;
+}
+
 .student-form input,
 .student-card input,
 .student-card select,
@@ -6161,6 +6249,12 @@ button:disabled {
   overflow: auto;
 }
 
+.student-table.roster-table {
+  margin-top: 0;
+  max-height: none;
+  overflow: visible;
+}
+
 .student-row,
 .review-item {
   display: grid;
@@ -6174,6 +6268,10 @@ button:disabled {
 
 .student-row {
   grid-template-columns: 42px minmax(0, 1fr) 88px 74px;
+}
+
+.roster-table .student-row {
+  grid-template-columns: 52px minmax(0, 1fr) 98px 80px;
 }
 
 .student-row.editing {
@@ -9504,6 +9602,16 @@ button:disabled {
   .project-story-grid {
     grid-template-columns: 1fr;
   }
+
+  .student-admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .student-add-block {
+    padding: 16px 0 0;
+    border-left: 0;
+    border-top: 1px solid #ece7d8;
+  }
 }
 
 @media (max-width: 620px) {
@@ -9580,6 +9688,28 @@ button:disabled {
 
   .student-current strong {
     font-size: 18px;
+  }
+
+  .student-admin-heading,
+  .student-list-title {
+    display: grid;
+  }
+
+  .student-count-pill {
+    justify-self: start;
+  }
+
+  .roster-table .student-row,
+  .roster-table .student-row.editing {
+    grid-template-columns: 1fr;
+  }
+
+  .student-row-actions {
+    justify-content: flex-start;
+  }
+
+  .student-add-block .student-form {
+    grid-template-columns: 1fr;
   }
 
   .d1-artifact-card header {

@@ -7706,94 +7706,117 @@ function TeacherStudents({ students, refresh }: { students: Student[]; refresh: 
   };
 
   return (
-    <section className="panel">
-      <div className="panel-title">
-        <UsersRound size={20} />
-        <h2>学生名单</h2>
-      </div>
-      <div className="student-form">
-        <input value={nickname} onChange={(event) => setNickname(event.target.value)} placeholder="昵称" />
-        <input value={age} onChange={(event) => setAge(event.target.value)} placeholder="年龄" inputMode="numeric" />
-        <button disabled={saving} onClick={addStudent}>{saving ? "保存中" : "添加"}</button>
+    <section className="panel student-admin-panel">
+      <div className="student-admin-heading">
+        <div>
+          <div className="panel-title">
+            <UsersRound size={20} />
+            <h2>学生名单</h2>
+          </div>
+          <p>这里就是照片墙会使用的名单。改这里，照片墙也会跟着用这份名单。</p>
+        </div>
+        <strong className="student-count-pill">{visibleStudents.length} 人</strong>
       </div>
       {message && <p className="hint">{message}</p>}
-      <div className="student-table">
-        {visibleStudents.map((student) => {
-          const isEditing = editingId === student.id;
-          return (
-            <div key={student.id} className={isEditing ? "student-row editing" : "student-row"}>
-              {isEditing ? (
-                <>
-                  <input
-                    value={editStudentNo}
-                    onChange={(event) => setEditStudentNo(event.target.value)}
-                    placeholder="学号"
-                    aria-label="学号"
-                  />
-                  <input
-                    value={editNickname}
-                    onChange={(event) => setEditNickname(event.target.value)}
-                    placeholder="昵称"
-                    aria-label="昵称"
-                  />
-                  <input
-                    value={editAge}
-                    onChange={(event) => setEditAge(event.target.value)}
-                    placeholder="年龄"
-                    inputMode="numeric"
-                    aria-label="年龄"
-                  />
-                  <div className="student-row-actions">
-                    <button
-                      className="student-action-icon save"
-                      disabled={editSavingId === student.id}
-                      onClick={() => void saveStudentEdit(student)}
-                      aria-label={`保存${student.nickname}`}
-                    >
-                      {editSavingId === student.id ? <Loader2 className="spin" size={16} /> : <CheckCircle2 size={16} />}
-                    </button>
-                    <button
-                      className="student-action-icon"
-                      disabled={editSavingId === student.id}
-                      onClick={cancelEditStudent}
-                      aria-label={`取消编辑${student.nickname}`}
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <span>{student.student_no || "--"}</span>
-                  <strong>
-                    {student.nickname}
-                    {student.username && <small>账号 {student.username}</small>}
-                  </strong>
-                  <small>{statusText[student.display_status]}</small>
-                  <div className="student-row-actions">
-                    <button
-                      className="student-action-icon"
-                      disabled={Boolean(deletingId)}
-                      onClick={() => startEditStudent(student)}
-                      aria-label={`编辑${student.nickname}`}
-                    >
-                      <Pencil size={16} />
-                    </button>
-                    <button
-                      className="danger-icon"
-                      disabled={deletingId === student.id}
-                      onClick={() => deleteStudent(student)}
-                      aria-label={`删除${student.nickname}`}
-                    >
-                      {deletingId === student.id ? <Loader2 className="spin" size={16} /> : <Trash2 size={16} />}
-                    </button>
-                  </div>
-                </>
-              )}
+      <div className="student-admin-layout">
+        <section className="student-roster-section" aria-labelledby="student-roster-title">
+          <div className="student-list-title">
+            <div>
+              <span>本次营期</span>
+              <h3 id="student-roster-title">全部学生</h3>
             </div>
-          );
-        })}
-        {!visibleStudents.length && <p className="empty">先加学员，照片墙会先出现他们的名字。</p>}
+            <small>照片墙按这份名单显示</small>
+          </div>
+          <div className="student-table roster-table">
+            {visibleStudents.map((student) => {
+              const isEditing = editingId === student.id;
+              return (
+                <div key={student.id} className={isEditing ? "student-row editing" : "student-row"}>
+                  {isEditing ? (
+                    <>
+                      <input
+                        value={editStudentNo}
+                        onChange={(event) => setEditStudentNo(event.target.value)}
+                        placeholder="学号"
+                        aria-label="学号"
+                      />
+                      <input
+                        value={editNickname}
+                        onChange={(event) => setEditNickname(event.target.value)}
+                        placeholder="昵称"
+                        aria-label="昵称"
+                      />
+                      <input
+                        value={editAge}
+                        onChange={(event) => setEditAge(event.target.value)}
+                        placeholder="年龄"
+                        inputMode="numeric"
+                        aria-label="年龄"
+                      />
+                      <div className="student-row-actions">
+                        <button
+                          className="student-action-icon save"
+                          disabled={editSavingId === student.id}
+                          onClick={() => void saveStudentEdit(student)}
+                          aria-label={`保存${student.nickname}`}
+                        >
+                          {editSavingId === student.id ? <Loader2 className="spin" size={16} /> : <CheckCircle2 size={16} />}
+                        </button>
+                        <button
+                          className="student-action-icon"
+                          disabled={editSavingId === student.id}
+                          onClick={cancelEditStudent}
+                          aria-label={`取消编辑${student.nickname}`}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <span>{student.student_no || "--"}</span>
+                      <strong>
+                        {student.nickname}
+                        {student.username && <small>账号 {student.username}</small>}
+                      </strong>
+                      <small>{statusText[student.display_status]}</small>
+                      <div className="student-row-actions">
+                        <button
+                          className="student-action-icon"
+                          disabled={Boolean(deletingId)}
+                          onClick={() => startEditStudent(student)}
+                          aria-label={`编辑${student.nickname}`}
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          className="danger-icon"
+                          disabled={deletingId === student.id}
+                          onClick={() => deleteStudent(student)}
+                          aria-label={`删除${student.nickname}`}
+                        >
+                          {deletingId === student.id ? <Loader2 className="spin" size={16} /> : <Trash2 size={16} />}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+            {!visibleStudents.length && <p className="empty">先加学员，照片墙会先出现他们的名字。</p>}
+          </div>
+        </section>
+        <aside className="student-add-block" aria-label="添加学生">
+          <div>
+            <span>添加学生</span>
+            <h3>新同学</h3>
+          </div>
+          <div className="student-form">
+            <input value={nickname} onChange={(event) => setNickname(event.target.value)} placeholder="昵称" />
+            <input value={age} onChange={(event) => setAge(event.target.value)} placeholder="年龄" inputMode="numeric" />
+            <button disabled={saving} onClick={addStudent}>{saving ? "保存中" : "添加"}</button>
+          </div>
+        </aside>
       </div>
     </section>
   );
