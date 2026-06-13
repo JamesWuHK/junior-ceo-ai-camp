@@ -1,4 +1,3 @@
 https://camps.wanli.wiki/robots.txt
 https://camps.wanli.wiki/sitemap-context.xml
 https://camps.wanli.wiki/llms.txt
-https://camps.wanli.wiki/site-facts.json
