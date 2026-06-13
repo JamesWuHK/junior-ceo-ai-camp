@@ -1277,7 +1277,7 @@ button:disabled {
 }
 
 .artifact-track-projects article {
-  min-height: clamp(260px, 25vw, 350px);
+  min-height: clamp(306px, 28vw, 408px);
   align-content: start;
   background: #fffdf6;
 }
@@ -1299,12 +1299,23 @@ button:disabled {
   font-size: clamp(11px, 0.9vw, 14px);
 }
 
-.artifact-track-projects p {
+.track-story-beats {
+  display: grid;
+  gap: 6px;
   margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.track-story-beats li {
+  border-left: 4px solid #f7d66d;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.72);
   color: #20352b;
   font-size: clamp(12px, 0.98vw, 15px);
   font-weight: 850;
-  line-height: 1.45;
+  line-height: 1.35;
+  padding: 7px 8px;
 }
 
 .artifact-track-projects em {
