@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>从一个小麻烦开始｜四个项目故事</title>
+  <style>
+    :root {
+      --ink: #25211b;
+      --paper: #fff8e8;
+      --paper-deep: #f4e7c6;
+      --line: #312b24;
+      --yellow: #f6b73c;
+      --blue: #77a9d8;
+      --green: #8fbf72;
+      --red: #e27b63;
+      --shadow: rgba(49, 43, 36, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(246, 183, 60, 0.18), transparent 24rem),
+        radial-gradient(circle at 88% 18%, rgba(119, 169, 216, 0.16), transparent 26rem),
+        linear-gradient(180deg, #fffdf3 0%, #f5ead2 100%);
+      color: var(--ink);
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    .deck {
+      width: min(1280px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0 42px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      transform: rotate(-1deg);
+      box-shadow: 3px 3px 0 var(--shadow);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 62px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    header p {
+      margin: 10px 0 0;
+      max-width: 760px;
+      font-size: clamp(16px, 2vw, 22px);
+      line-height: 1.5;
+      color: #5f5548;
+    }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav button {
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      padding: 9px 13px;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink);
+      cursor: pointer;
+      box-shadow: 3px 3px 0 var(--shadow);
+    }
+
+    .nav button.active {
+      background: var(--yellow);
+    }
+
+    .comic-stage {
+      position: relative;
+    }
+
+    .comic-page {
+      display: none;
+      min-height: 720px;
+      border: 3px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, rgba(49, 43, 36, 0.035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(49, 43, 36, 0.035) 1px, transparent 1px),
+        var(--paper);
+      background-size: 28px 28px;
+      box-shadow: 10px 12px 0 var(--shadow);
+      padding: clamp(18px, 3vw, 34px);
+      transform: rotate(-0.2deg);
+    }
+
+    .comic-page.active {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 18px;
+    }
+
+    .comic-title {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .comic-title h2 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 48px);
+      line-height: 1.05;
+    }
+
+    .track-tag {
+      border: 2px dashed var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: #fff;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .panels {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(2, minmax(250px, 1fr));
+      gap: 14px;
+    }
+
+    .panel {
+      position: relative;
+      overflow: hidden;
+      border: 3px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.72);
+      padding: 18px;
+      box-shadow: inset 0 0 0 2px rgba(49, 43, 36, 0.04);
+    }
+
+    .panel:nth-child(2) {
+      transform: rotate(0.4deg);
+    }
+
+    .panel:nth-child(3) {
+      transform: rotate(-0.5deg);
+    }
+
+    .panel-no {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+      background: var(--yellow);
+      font-weight: 900;
+    }
+
+    .scene {
+      min-height: 122px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      padding: 8px 12px 12px;
+    }
+
+    .kid {
+      position: relative;
+      width: 74px;
+      height: 138px;
+      flex: 0 0 auto;
+    }
+
+    .kid::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 21px;
+      width: 34px;
+      height: 34px;
+      border: 3px solid var(--line);
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    .kid::after {
+      content: "";
+      position: absolute;
+      top: 42px;
+      left: 28px;
+      width: 20px;
+      height: 54px;
+      border: 3px solid var(--line);
+      border-radius: 14px;
+      background: var(--shirt, #fff);
+    }
+
+    .limbs {
+      position: absolute;
+      inset: 0;
+    }
+
+    .limbs::before,
+    .limbs::after {
+      content: "";
+      position: absolute;
+      top: 58px;
+      width: 36px;
+      height: 3px;
+      background: var(--line);
+      transform-origin: center;
+    }
+
+    .limbs::before {
+      left: 4px;
+      transform: rotate(-28deg);
+    }
+
+    .limbs::after {
+      right: 0;
+      transform: rotate(24deg);
+    }
+
+    .legs {
+      position: absolute;
+      left: 24px;
+      top: 92px;
+      width: 30px;
+      height: 42px;
+      border-left: 3px solid var(--line);
+      border-right: 3px solid var(--line);
+      transform: rotate(3deg);
+    }
+
+    .bubble,
+    .label-card,
+    .screen,
+    .note {
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px 12px;
+      font-weight: 900;
+      line-height: 1.35;
+      box-shadow: 4px 4px 0 var(--shadow);
+    }
+
+    .bubble {
+      max-width: 320px;
+      font-size: clamp(17px, 2vw, 24px);
+    }
+
+    .small {
+      font-size: clamp(15px, 1.5vw, 18px);
+      color: #5f5548;
+    }
+
+    .scribbles {
+      display: grid;
+      gap: 8px;
+      min-width: 160px;
+    }
+
+    .note {
+      border-style: dashed;
+      background: #fffdf4;
+      transform: rotate(var(--tilt, -2deg));
+    }
+
+    .note.accent,
+    .screen.accent,
+    .label-card.accent {
+      background: #ffe8a5;
+    }
+
+    .screen {
+      min-width: min(100%, 310px);
+      background: #f8fbff;
+    }
+
+    .screen h3,
+    .screen strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: clamp(18px, 2.2vw, 28px);
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .columns span,
+    .chips span {
+      display: block;
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 7px;
+      text-align: center;
+      font-weight: 900;
+    }
+
+    .chips {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .result-line {
+      margin: 0;
+      padding: 12px 16px;
+      border: 3px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      font-size: clamp(20px, 2.8vw, 32px);
+      font-weight: 900;
+      text-align: center;
+      box-shadow: 6px 6px 0 var(--shadow);
+    }
+
+    .result-line b {
+      display: inline-block;
+      background: var(--yellow);
+      border-radius: 999px;
+      padding: 2px 10px;
+      margin: 0 4px;
+    }
+
+    .arrow {
+      font-size: 46px;
+      font-weight: 900;
+      transform: rotate(-6deg);
+    }
+
+    .paper-stack {
+      display: grid;
+      gap: 10px;
+      min-width: 190px;
+    }
+
+    .join-card {
+      min-width: 260px;
+    }
+
+    .join-card button {
+      width: 100%;
+      margin-top: 10px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: var(--yellow);
+      padding: 8px 10px;
+      font: inherit;
+      font-weight: 900;
+    }
+
+    @media (max-width: 860px) {
+      header,
+      .comic-title {
+        grid-template-columns: 1fr;
+      }
+
+      .nav {
+        justify-content: flex-start;
+      }
+
+      .panels {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, minmax(230px, auto));
+      }
+
+      .comic-page {
+        min-height: auto;
+      }
+
+      .scene {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck">
+    <header>
+      <div>
+        <span class="eyebrow">从一个小麻烦开始</span>
+        <h1>四个项目故事</h1>
+        <p>先看到没有产品时的麻烦，再看到产品怎样帮人完成一步，最后看到使用后的变化。</p>
+      </div>
+      <nav class="nav" aria-label="项目故事">
+        <button class="active" data-target="0">出门检查台</button>
+        <button data-target="1">应用题拆题板</button>
+        <button data-target="2">漫画分镜台</button>
+        <button data-target="3">活动组队板</button>
+      </nav>
+    </header>
+
+    <section class="comic-stage">
+      <article class="comic-page active" data-page="0">
+        <div class="comic-title">
+          <h2>早上又漏带了</h2>
+          <span class="track-tag">生活帮手</span>
+        </div>
+        <div class="panels">
+          <section class="panel">
+            <span class="panel-no">1</span>
+            <div class="scene">
+              <div class="kid" style="--shirt:#d8ebff"><span class="limbs"></span><span class="legs"></span></div>
+              <div class="bubble">妈妈：美术彩笔带了吗？<br>乐乐：啊？我不确定。</div>
+            </div>
+            <p class="small">鞋穿好了，书包背上了，出门前突然被问住。</p>
+          </section>
+          <section class="panel">
+            <span class="panel-no">2</span>
+            <div class="scene">
+              <div class="kid" style="--shirt:#d8ebff"><span class="limbs"></span><span class="legs"></span></div>
+              <div class="scribbles">
+                <span class="note" style="--tilt:-4deg">课表</span>
+                <span class="note" style="--tilt:3deg">老师通知</span>
+                <span class="note" style="--tilt:-1deg">作业本</span>
+              </div>
+            </div>
+            <p class="bubble">体育、科学、美术，全挤在一起了。</p>
+          </section>
+          <section class="panel">
+            <span class="panel-no">3</span>
+            <div class="scene">
+              <div class="paper-stack">
+                <span class="note">课表</span>
+                <span class="note">通知</span>
+              </div>
+              <span class="arrow">→</span>
+              <div class="screen accent">
+                <strong>出门检查台</strong>
+                <div class="columns">
+                  <span>必带</span>
+                  <span>确认</span>
+                  <span>到校先做</span>
+                </div>
+              </div>
+            </div>
+            <p class="small">第一版不管所有生活，只管出门前这一分钟。</p>
+          </section>
+          <section class="panel">
+            <span class="panel-no">4</span>
+            <div class="scene">
+              <div class="kid" style="--shirt:#d8ebff"><span class="limbs"></span><span class="legs"></span></div>
+              <div class="screen">
+                <strong>今天勾一下</strong>
+                <div class="chips">
+                  <span>跳绳</span>
+                  <span>彩笔</span>
+                  <span>记录单</span>
+                  <span>水杯</span>
+                </div>
+              </div>
+            </div>
+            <p class="bubble">这下放心了！</p>
+          </section>
+        </div>
+        <p class="result-line">产品效果：<b>少漏带</b>，<b>少慌张</b></p>
+      </article>
+
+      <article class="comic-page" data-page="1">
+        <div class="comic-title">
+          <h2>长应用题读到一半就乱</h2>
+          <span class="track-tag">学习工具</span>
+        </div>
+        <div class="panels">
+          <section class="panel">
+            <span class="panel-no">1</span>
+            <div class="scene">
+              <div class="kid" style="--shirt:#e7f3cf"><span class="limbs"></span><span class="legs"></span></div>
+              <div class="screen">
+                <strong>一大段题目</strong>
+                <p class="small">小明……借出……还剩……一共……</p>
+              </div>
+            </div>
+            <p class="bubble">字好多，我先看哪句？</p>
+          </section>
+          <section class="panel">
+            <span class="panel-no">2</span>
+            <div class="scene">
+              <div class="screen">
+                <strong>旁边同学</strong>
+                <p>算式已经写了两行</p>
+              </div>
+              <div class="kid" style="--shirt:#e7f3cf"><span class="limbs"></span><span class="legs"></span></div>
+            </div>
+            <p class="bubble">我不是不会算，是不知道怎么开始。</p>
+          </section>
+          <section class="panel">
+            <span class="panel-no">3</span>
+            <div class="scene">
+              <div class="screen accent">
+                <strong>应用题拆题板</strong>
+                <div class="chips">
+                  <span>谁</span>
+                  <span>已知</span>
+                  <span>要求</span>
+                  <span>第一步</span>
+                </div>
+              </div>
+            </div>
+            <p class="small">先把题目摆整齐，不直接给答案。</p>
+          </section>
+          <section class="panel">
+            <span class="panel-no">4</span>
+            <div class="scene">
+              <div class="kid" style="--shirt:#e7f3cf"><span class="limbs"></span><span class="legs"></span></div>
+              <div class="label-card">先求这一块！<br><span class="small">小宇开始写算式</span></div>
+            </div>
+            <p class="bubble">哦，我知道第一步了。</p>
+          </section>
+        </div>
+        <p class="result-line">产品效果：不是给答案，是帮我<b>开始</b></p>
+      </article>
+
+      <article class="comic-page" data-page="2">
+        <div class="comic-title">
+          <h2>脑子里有故事，纸上排不出来</h2>
+          <span class="track-tag">创意工坊</span>
+        </div>
+        <div class="panels">
+          <section class="panel">
+            <span class="panel-no">1</span>
+            <div class="scene">
+              <div class="kid" style="--shirt:#ffe2d7"><span class="limbs"></span><span class="legs"></span></div>
+              <div class="screen">
+                <strong>铅笔盒半夜开会</strong>
+                <p class="small">第一格画完，第二格卡住</p>
+              </div>
+            </div>
+            <p class="bubble">第二格画什么？</p>
+          </section>
+          <section class="panel">
+            <span class="panel-no">2</span>
+            <div class="scene">
+              <div class="paper-stack">
+                <span class="note">擦掉</span>
+                <span class="note">重画</span>
+                <span class="note">又卡住</span>
+              </div>
+              <div class="kid" style="--shirt:#ffe2d7"><span class="limbs"></span><span class="legs"></span></div>
+            </div>
+            <p class="bubble">我有点子，可排不成四格。</p>
+          </section>
+          <section class="panel">
+            <span class="panel-no">3</span>
+            <div class="scene">
+              <div class="screen accent">
+                <strong>四格漫画分镜台</strong>
+                <div class="chips">
+                  <span>醒来</span>
+                  <span>抱怨</span>
+                  <span>争论</span>
+                  <span>橡皮发言</span>
+                </div>
+              </div>
+            </div>
+            <p class="small">产品先给草稿，孩子继续选择和修改。</p>
+          </section>
+          <section class="panel">
+            <span class="panel-no">4</span>
+            <div class="scene">
+              <div class="kid" style="--shirt:#ffe2d7"><span class="limbs"></span><span class="legs"></span></div>
+              <div class="label-card">我把最后一句改好笑一点。</div>
+            </div>
+            <p class="bubble">草稿先出来，我再改！</p>
+          </section>
+        </div>
+        <p class="result-line">产品效果：先有<b>草稿</b>，创作就动起来</p>
+      </article>
+
+      <article class="comic-page" data-page="3">
+        <div class="comic-title">
+          <h2>想参加活动，却找不到同伴</h2>
+          <span class="track-tag">校园社区</span>
+        </div>
+        <div class="panels">
+          <section class="panel">
+            <span class="panel-no">1</span>
+            <div class="scene">
+              <div class="kid" style="--shirt:#d9f0e2"><span class="limbs"></span><span class="legs"></span></div>
+              <div class="screen">
+                <strong>无人机体验</strong>
+                <p>三人一组</p>
+              </div>
+            </div>
+            <p class="bubble">我想去，可还差队友。</p>
+          </section>
+          <section class="panel">
+            <span class="panel-no">2</span>
+            <div class="scene">
+              <div class="kid" style="--shirt:#d9f0e2"><span class="limbs"></span><span class="legs"></span></div>
+              <div class="kid" style="--shirt:#fff0c2"><span class="limbs"></span><span class="legs"></span></div>
+            </div>
+            <p class="bubble">琪琪：原来还有人也想去吗？</p>
+            <p class="small">两个想参加的人，差点互相看不见。</p>
+          </section>
+          <section class="panel">
+            <span class="panel-no">3</span>
+            <div class="scene">
+              <div class="screen accent join-card">
+                <strong>校园活动组队板</strong>
+                <p>无人机体验</p>
+                <p>还缺 1 人</p>
+                <button>我也想加入</button>
+              </div>
+            </div>
+            <p class="small">第一版只做一张能看懂的活动卡。</p>
+          </section>
+          <section class="panel">
+            <span class="panel-no">4</span>
+            <div class="scene">
+              <div class="kid" style="--shirt:#d9f0e2"><span class="limbs"></span><span class="legs"></span></div>
+              <div class="kid" style="--shirt:#fff0c2"><span class="limbs"></span><span class="legs"></span></div>
+              <div class="label-card">三人组凑齐</div>
+            </div>
+            <p class="bubble">太好了，组齐了！</p>
+          </section>
+        </div>
+        <p class="result-line">产品效果：想参加的人<b>看见彼此</b></p>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const buttons = [...document.querySelectorAll(".nav button")];
+    const pages = [...document.querySelectorAll(".comic-page")];
+
+    function showPage(index) {
+      pages.forEach((page, pageIndex) => page.classList.toggle("active", pageIndex === index));
+      buttons.forEach((button, buttonIndex) => button.classList.toggle("active", buttonIndex === index));
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => showPage(Number(button.dataset.target || 0)));
+    });
+
+    window.addEventListener("keydown", (event) => {
+      const current = pages.findIndex((page) => page.classList.contains("active"));
+      if (event.key === "ArrowRight") showPage(Math.min(current + 1, pages.length - 1));
+      if (event.key === "ArrowLeft") showPage(Math.max(current - 1, 0));
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="html-slides v0.9.4">
+  <title>四个项目跑完整个创业营</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ===========================================
+       VIEWPORT FITTING: MANDATORY BASE STYLES
+       =========================================== */
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+    }
+
+    html {
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .slide:not(.active) {
+      display: none;
+    }
+
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-height: 100%;
+      overflow: hidden;
+      padding: var(--slide-padding);
+    }
+
+    :root {
+      --title-size: clamp(2rem, 5.2vw, 5.1rem);
+      --h2-size: clamp(1.55rem, 3.4vw, 3rem);
+      --h3-size: clamp(1.05rem, 2vw, 1.55rem);
+      --body-size: clamp(0.82rem, 1.35vw, 1.18rem);
+      --small-size: clamp(0.68rem, 1vw, 0.92rem);
+      --slide-padding: clamp(1rem, 4vw, 4rem);
+      --content-gap: clamp(0.65rem, 1.8vw, 1.8rem);
+      --element-gap: clamp(0.35rem, 1vw, 1rem);
+    }
+
+    .card, .container, .content-box {
+      max-width: min(90vw, 1000px);
+      max-height: min(80vh, 700px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+      gap: clamp(0.5rem, 1.5vw, 1rem);
+    }
+
+    img, .image-container {
+      max-width: 100%;
+      max-height: min(50vh, 400px);
+      object-fit: contain;
+    }
+
+    @media (max-height: 700px) {
+      :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+      }
+    }
+
+    @media (max-height: 600px) {
+      :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+      }
+
+      .nav-dots, .keyboard-hint, .decorative {
+        display: none;
+      }
+    }
+
+    @media (max-height: 500px) {
+      :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+      }
+    }
+
+    @media (max-width: 600px) {
+      :root {
+        --title-size: clamp(1.25rem, 7vw, 2.5rem);
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+      }
+
+      html {
+        scroll-behavior: auto;
+      }
+    }
+
+    /* ===========================================
+       THEME
+       =========================================== */
+    :root {
+      --paper: #fbf4df;
+      --paper-deep: #f1dfb9;
+      --ink: #243127;
+      --muted: #67705f;
+      --green: #78a66a;
+      --blue: #6aa6c9;
+      --orange: #ef9c51;
+      --coral: #df6d5f;
+      --yellow: #f1c857;
+      --line: #2c3328;
+      --shadow: rgba(68, 48, 22, 0.18);
+      --font-display: "Kaiti SC", "STKaiti", "KaiTi", "Microsoft YaHei", "PingFang SC", sans-serif;
+      --font-body: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --duration-normal: 0.6s;
+    }
+
+    body {
+      color: var(--ink);
+      font-family: var(--font-body);
+      background: var(--paper);
+    }
+
+    .deck {
+      background:
+        linear-gradient(rgba(36, 49, 39, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(36, 49, 39, 0.035) 1px, transparent 1px),
+        var(--paper);
+      background-size: 34px 34px;
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: clamp(0.7rem, 1.5vw, 1.4rem);
+      border: clamp(2px, 0.25vw, 4px) solid rgba(36, 49, 39, 0.18);
+      border-radius: 24px 18px 28px 16px;
+      pointer-events: none;
+    }
+
+    .slide::after {
+      content: attr(data-doodle);
+      position: absolute;
+      right: clamp(1.2rem, 4vw, 4rem);
+      bottom: clamp(1rem, 4vw, 3rem);
+      z-index: 0;
+      font-size: clamp(5.5rem, 15vw, 12rem);
+      line-height: 1;
+      opacity: 0.11;
+      transform: rotate(-9deg);
+      pointer-events: none;
+      filter: saturate(0.95);
+    }
+
+    .slide-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .slide:nth-child(4n+1) { background: #fbf4df; }
+    .slide:nth-child(4n+2) { background: #f6efd9; }
+    .slide:nth-child(4n+3) { background: #f8f1dc; }
+    .slide:nth-child(4n+4) { background: #fbf0d0; }
+
+    h1, h2, h3 {
+      font-family: var(--font-display);
+      letter-spacing: 0;
+      line-height: 1.05;
+    }
+
+    h1 {
+      font-size: var(--title-size);
+      max-width: 12ch;
+    }
+
+    h2 {
+      font-size: var(--h2-size);
+      max-width: 16ch;
+    }
+
+    h3 {
+      font-size: var(--h3-size);
+    }
+
+    p, li, span, strong {
+      font-size: var(--body-size);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #fffaf0;
+      box-shadow: 4px 4px 0 var(--line);
+      padding: clamp(0.35rem, 0.8vw, 0.65rem) clamp(0.65rem, 1.2vw, 1rem);
+      font-size: var(--small-size);
+      font-weight: 900;
+      margin-bottom: var(--content-gap);
+    }
+
+    .title-row {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(280px, 1.1fr);
+      align-items: center;
+      gap: clamp(1rem, 4vw, 4rem);
+      min-height: 70vh;
+    }
+
+    .subline {
+      margin-top: var(--content-gap);
+      max-width: 34rem;
+      color: var(--muted);
+      line-height: 1.65;
+      font-weight: 700;
+    }
+
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(0.6rem, 1.1vw, 1rem);
+    }
+
+    .case-overview-head {
+      display: grid;
+      gap: clamp(0.4rem, 1vw, 0.85rem);
+      margin-bottom: clamp(0.8rem, 2vw, 1.5rem);
+      max-width: min(78vw, 56rem);
+    }
+
+    .case-overview-head h2 {
+      max-width: none;
+    }
+
+    .case-overview-head p {
+      max-width: 42rem;
+      color: var(--muted);
+      line-height: 1.55;
+      font-weight: 800;
+    }
+
+    .case-grid .project-card {
+      min-height: clamp(9.5rem, 25vh, 13.5rem);
+    }
+
+    .case-grid .doodle {
+      height: clamp(3.2rem, 9vh, 5rem);
+      font-size: clamp(1.8rem, 4vw, 3.2rem);
+    }
+
+    .case-story {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.95fr) minmax(0, 1.05fr);
+      gap: clamp(1rem, 2.2vw, 2rem);
+      align-items: center;
+      min-height: clamp(24rem, 60vh, 38rem);
+    }
+
+    .case-title {
+      max-width: none;
+      margin-bottom: clamp(0.65rem, 1.4vw, 1rem);
+    }
+
+    .case-scene {
+      border: 3px solid var(--line);
+      border-radius: 24px 18px 28px 16px;
+      background: #fffaf0;
+      box-shadow: 8px 8px 0 var(--line);
+      padding: clamp(1rem, 2vw, 1.8rem);
+      display: grid;
+      gap: clamp(0.7rem, 1.4vw, 1.2rem);
+      min-height: clamp(18rem, 54vh, 26rem);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .case-scene::after {
+      content: attr(data-icon);
+      position: absolute;
+      right: clamp(0.7rem, 2vw, 1.5rem);
+      bottom: clamp(0.6rem, 2vw, 1.4rem);
+      font-size: clamp(4rem, 11vw, 8rem);
+      opacity: 0.16;
+      transform: rotate(-8deg);
+    }
+
+    .case-scene strong {
+      font-family: var(--font-display);
+      font-size: clamp(1.25rem, 2.5vw, 2.1rem);
+      line-height: 1.12;
+    }
+
+    .case-scene p {
+      color: #3d4a3c;
+      font-weight: 900;
+      line-height: 1.55;
+      max-width: 30rem;
+    }
+
+    .case-proof {
+      display: grid;
+      gap: clamp(0.7rem, 1.4vw, 1rem);
+    }
+
+    .proof-card {
+      border: 3px solid var(--line);
+      border-radius: 16px 20px 14px 18px;
+      background: rgba(255, 250, 240, 0.92);
+      box-shadow: 5px 5px 0 var(--line);
+      padding: clamp(0.65rem, 1.2vw, 1rem);
+    }
+
+    .proof-card small {
+      display: block;
+      color: var(--muted);
+      font-size: var(--small-size);
+      font-weight: 900;
+      margin-bottom: 0.3rem;
+    }
+
+    .proof-card p {
+      line-height: 1.45;
+      font-weight: 800;
+      color: #4c594b;
+    }
+
+    .project-card,
+    .note-card,
+    .story-panel,
+    .demo-panel,
+    .task-card,
+    .ticket {
+      border: 3px solid var(--line);
+      border-radius: 18px 14px 20px 12px;
+      background: #fffaf0;
+      box-shadow: 6px 6px 0 var(--line);
+      padding: clamp(0.7rem, 1.4vw, 1.25rem);
+    }
+
+    .project-card {
+      display: grid;
+      gap: clamp(0.4rem, 0.9vw, 0.8rem);
+      min-height: clamp(11rem, 28vh, 16rem);
+    }
+
+    .project-card small,
+    .note-card small,
+    .ticket small {
+      color: var(--muted);
+      font-size: var(--small-size);
+      font-weight: 900;
+    }
+
+    .project-card strong {
+      display: block;
+      font-size: clamp(1rem, 2vw, 1.55rem);
+      line-height: 1.15;
+    }
+
+    .project-card p,
+    .note-card p,
+    .task-card p,
+    .ticket p {
+      color: #4c594b;
+      line-height: 1.55;
+      font-weight: 700;
+    }
+
+    .doodle {
+      height: clamp(4rem, 12vh, 6.5rem);
+      display: grid;
+      place-items: center;
+      border: 3px dashed rgba(36, 49, 39, 0.35);
+      border-radius: 999px 60px 999px 70px;
+      font-size: clamp(2rem, 5vw, 4rem);
+      background: #fff5d6;
+    }
+
+    .track-life .doodle { background: #e8f2d7; }
+    .track-learn .doodle { background: #dff0f9; }
+    .track-create .doodle { background: #ffe4d6; }
+    .track-campus .doodle { background: #f7e2ef; }
+
+    .chapter {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+      gap: clamp(1rem, 2vw, 2rem);
+      align-items: stretch;
+    }
+
+    .chapter-text {
+      display: flex;
+      flex-direction: column;
+      gap: var(--content-gap);
+      justify-content: center;
+    }
+
+    .big-question {
+      font-size: clamp(1rem, 1.9vw, 1.55rem);
+      font-weight: 900;
+      line-height: 1.5;
+      color: #3d4a3c;
+    }
+
+    .tool-hint {
+      display: inline-flex;
+      width: fit-content;
+      margin: 0 0 clamp(0.7rem, 1.4vw, 1.1rem);
+      padding: clamp(0.45rem, 0.9vw, 0.7rem) clamp(0.7rem, 1.2vw, 1rem);
+      border: 2px dashed rgba(36, 49, 39, 0.45);
+      border-radius: 999px;
+      background: rgba(255, 250, 240, 0.76);
+      color: #3d4a3c;
+      font-size: var(--small-size);
+      font-weight: 900;
+    }
+
+    .note-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(0.7rem, 1.4vw, 1.2rem);
+      align-content: center;
+    }
+
+    .note-card {
+      min-height: clamp(8rem, 20vh, 12rem);
+      transform: rotate(var(--tilt, -1deg));
+    }
+
+    .note-card:nth-child(2n) { --tilt: 1.2deg; }
+    .note-card:nth-child(3n) { --tilt: -1.6deg; }
+
+    .flow-line {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: clamp(0.45rem, 1vw, 1rem);
+      align-items: center;
+    }
+
+    .flow-line article {
+      min-height: clamp(7rem, 16vh, 10rem);
+      border: 3px solid var(--line);
+      border-radius: 18px;
+      background: #fffaf0;
+      padding: clamp(0.55rem, 1.1vw, 1rem);
+      box-shadow: 4px 4px 0 var(--line);
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .flow-line b {
+      width: clamp(1.8rem, 3vw, 2.4rem);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--yellow);
+      border: 2px solid var(--line);
+      font-size: var(--small-size);
+    }
+
+    .flow-line span {
+      color: var(--muted);
+      font-size: var(--small-size);
+      font-weight: 800;
+      line-height: 1.45;
+    }
+
+    .demo-board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(0.55rem, 1vw, 1rem);
+    }
+
+    .demo-board .demo-panel {
+      min-height: clamp(12rem, 34vh, 18rem);
+      display: grid;
+      gap: 0.45rem;
+      align-content: start;
+    }
+
+    .demo-panel strong {
+      font-size: clamp(0.95rem, 1.65vw, 1.35rem);
+      line-height: 1.2;
+    }
+
+    .demo-panel p {
+      line-height: 1.5;
+      color: #4c594b;
+      font-weight: 700;
+    }
+
+    .task-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(0.7rem, 1.4vw, 1.2rem);
+    }
+
+    .task-card {
+      min-height: clamp(10rem, 23vh, 13rem);
+      display: grid;
+      align-content: start;
+      gap: 0.55rem;
+    }
+
+    .task-card b {
+      display: inline-grid;
+      place-items: center;
+      width: clamp(2rem, 4vw, 3rem);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--green);
+      border: 2px solid var(--line);
+      color: #fff;
+    }
+
+    .ticket-grid {
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: clamp(1rem, 2vw, 2rem);
+      align-items: stretch;
+    }
+
+    .ticket {
+      display: grid;
+      gap: clamp(0.55rem, 1vw, 0.9rem);
+    }
+
+    .ticket-row {
+      display: grid;
+      grid-template-columns: 8ch minmax(0, 1fr);
+      gap: 0.6rem;
+      align-items: start;
+      border-top: 2px dashed rgba(36, 49, 39, 0.22);
+      padding-top: 0.55rem;
+    }
+
+    .ticket-row b {
+      font-size: var(--small-size);
+    }
+
+    .progress-bar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 6px;
+      width: 0;
+      background: linear-gradient(90deg, var(--green), var(--blue), var(--orange), var(--coral));
+      z-index: 20;
+      transition: width 0.4s ease;
+    }
+
+    .slide-counter {
+      position: fixed;
+      right: 18px;
+      bottom: 16px;
+      z-index: 20;
+      padding: 0.45rem 0.75rem;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #fffaf0;
+      box-shadow: 3px 3px 0 var(--line);
+      font-size: var(--small-size);
+      font-weight: 900;
+    }
+
+    .slide-nav {
+      position: fixed;
+      left: 16px;
+      bottom: 18px;
+      z-index: 20;
+      display: flex;
+      gap: 6px;
+    }
+
+    .slide-nav-dot {
+      width: 10px;
+      height: 10px;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+      background: #fffaf0;
+      cursor: pointer;
+    }
+
+    .slide-nav-dot.active {
+      background: var(--orange);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity var(--duration-normal) var(--ease-out-expo),
+                  transform var(--duration-normal) var(--ease-out-expo);
+    }
+
+    .slide.active .reveal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal:nth-child(1) { transition-delay: 0.08s; }
+    .reveal:nth-child(2) { transition-delay: 0.16s; }
+    .reveal:nth-child(3) { transition-delay: 0.24s; }
+    .reveal:nth-child(4) { transition-delay: 0.32s; }
+    .reveal:nth-child(5) { transition-delay: 0.40s; }
+
+    @media (max-width: 980px) {
+      .title-row,
+      .chapter,
+      .ticket-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .project-grid,
+      .demo-board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .flow-line {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .project-grid,
+      .demo-board,
+      .note-grid,
+      .task-strip,
+      .flow-line {
+        grid-template-columns: 1fr;
+      }
+
+      .slide::before {
+        inset: 0.45rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-bar" id="progress"></div>
+  <div class="slide-counter" id="counter"></div>
+  <div class="slide-nav" id="slideNav"></div>
+
+  <div class="deck" id="deck">
+    <div class="slide active" data-slide="0">
+      <div class="slide-content">
+        <div class="title-row">
+          <div>
+            <span class="eyebrow reveal">三天创业营样本项目</span>
+            <h1 class="reveal">四个项目，跑完整个创业营</h1>
+            <p class="subline reveal">同一批案例，从真实麻烦一路讲到 AI、原型、试玩、价值和作品发布。孩子看完马上回到自己的团队里试。</p>
+          </div>
+          <div class="project-grid reveal">
+            <article class="project-card track-life"><div class="doodle">🎒</div><small>生活帮手</small><strong>上学出门检查台</strong><p>把课表和通知变成出门清单。</p></article>
+            <article class="project-card track-learn"><div class="doodle">📐</div><small>学习工具</small><strong>应用题拆题板</strong><p>把长题拆成能下手的四块。</p></article>
+            <article class="project-card track-create"><div class="doodle">🎬</div><small>创意工坊</small><strong>四格漫画分镜台</strong><p>把故事点子排成四格草稿。</p></article>
+            <article class="project-card track-campus"><div class="doodle">🤝</div><small>校园社区</small><strong>校园活动组队板</strong><p>把活动想法变成报名卡。</p></article>
+          </div>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"四个项目，跑完整个创业营","script":"这套课件不是再讲四个孤立例子。我们会一直用这四个样本项目，看它们怎么从一个真实麻烦长成可以展示的作品。","notes":["四个项目固定贯穿三天","孩子看案例后马上回到自己的团队实践","案例服务 AI、创业、开发和发布"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="1">
+      <div class="slide-content">
+        <div class="case-overview-head reveal">
+          <span class="eyebrow">先认识四个样本项目</span>
+          <h2>四个真实麻烦，四种帮忙办法</h2>
+          <p>先看见谁卡住，再看 AI 能帮哪一步。后面三天，我们一直拿这四个项目当样板。</p>
+        </div>
+        <div class="project-grid case-grid">
+          <article class="project-card track-life reveal"><div class="doodle">🎒</div><small>谁卡住</small><strong>早上出门前怕漏带的同学</strong><p>课表、作业和老师通知分散在不同地方。</p></article>
+          <article class="project-card track-learn reveal"><div class="doodle">📐</div><small>谁卡住</small><strong>一看到长应用题就停住的同学</strong><p>会算乘法，可不知道题目里先看哪句话。</p></article>
+          <article class="project-card track-create reveal"><div class="doodle">🎬</div><small>谁卡住</small><strong>有故事点子却排不出四格的创作者</strong><p>月球便利店、机器人、会飞的面包都有了，四格顺序还没想好。</p></article>
+          <article class="project-card track-campus reveal"><div class="doodle">🤝</div><small>谁卡住</small><strong>想参加活动却找不到同伴的同学</strong><p>想发起桌游或球赛，问了一圈也不知道谁愿意来。</p></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"四个样本项目","script":"先让孩子看见人。每个项目都不是从功能开始，而是从一个具体的人卡住开始。","notes":["生活帮手：早上怕漏带","学习工具：应用题不知道从哪开始","创意工坊：故事点子排不成四格","校园社区：活动凑不齐同伴"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="2">
+      <div class="slide-content">
+        <div class="chapter">
+          <div class="chapter-text">
+            <span class="eyebrow reveal">Day 1 · 故事</span>
+            <h2 class="reveal">今天你是小投资人</h2>
+            <p class="big-question reveal">你只有 3 枚星星币。不能只投给名字酷的项目，要看它是不是真的帮别人走过卡住的那一步。</p>
+          </div>
+          <div class="note-grid reveal">
+            <article class="note-card"><small>看人</small><h3>谁卡住了？</h3><p>不是“大家”，先找到一个真实的人。</p></article>
+            <article class="note-card"><small>看时刻</small><h3>什么时候卡住？</h3><p>早上出门、读应用题、排四格、发起活动时。</p></article>
+            <article class="note-card"><small>看一步</small><h3>先帮哪一步？</h3><p>第一版不用大，先帮一小步。</p></article>
+            <article class="note-card"><small>看价值</small><h3>愿意继续用吗？</h3><p>愿意再打开、推荐或投星星币，价值才站得住。</p></article>
+          </div>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"今天你是小投资人","script":"创业知识从小投资人的游戏开始。孩子先学会判断项目，不急着背概念。","notes":["判断不看名字酷不酷","先看真实用户和卡住时刻","价值来自别人愿意继续用"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="3">
+      <div class="slide-content">
+        <span class="eyebrow reveal">生活帮手 · 完整案例</span>
+        <h2 class="case-title reveal">上学出门检查台</h2>
+        <div class="case-story">
+          <div class="case-scene reveal" data-icon="🎒">
+            <small>真实麻烦</small>
+            <strong>早上越急，越怕漏掉关键东西</strong>
+            <p>明天要上学。课表、作业和老师通知里写着练习册、水杯、运动鞋、美术材料，孩子早上还是不确定书包该放什么。</p>
+          </div>
+          <div class="case-proof">
+            <article class="proof-card reveal"><small>第一版产品</small><p>上学出门检查台：粘贴课表、作业和老师通知，生成三栏出门清单。</p></article>
+            <article class="proof-card reveal"><small>AI 帮哪一步</small><p>AI 读课表和通知，把分散要求整理成孩子能自己勾选的清单。</p></article>
+            <article class="proof-card reveal"><small>为什么有人愿意继续用</small><p>少漏带关键物品，早上出门少一点慌张和反复确认。</p></article>
+          </div>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"上学出门检查台","script":"生活帮手不从大而全开始，而是从每天早上出门前的真实小慌张出发。课表、作业和老师通知分散在不同地方，这个项目把它们变成能勾选的清单。","notes":["需求：早上怕漏带","产品：三栏出门清单","AI：读课表和通知，整理要求","价值：每天都可能用"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="4">
+      <div class="slide-content">
+        <span class="eyebrow reveal">学习工具 · 完整案例</span>
+        <h2 class="case-title reveal">应用题拆题板</h2>
+        <div class="case-story">
+          <div class="case-scene reveal" data-icon="📐">
+            <small>真实麻烦</small>
+            <strong>题目太长，第一步不知道看哪里</strong>
+            <p>孩子会算乘法，可应用题里人物、数字和问题混在一起，盯了半天还是不知道先写什么。</p>
+          </div>
+          <div class="case-proof">
+            <article class="proof-card reveal"><small>第一版产品</small><p>应用题拆题板：粘贴或拍下题目，拆成谁、已知、要求、第一步提示。</p></article>
+            <article class="proof-card reveal"><small>AI 帮哪一步</small><p>AI 读长题，整理结构，但不直接算最终答案。</p></article>
+            <article class="proof-card reveal"><small>为什么有人愿意继续用</small><p>它让同学遇到长题时先能开始，而不是直接放弃或抄答案。</p></article>
+          </div>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"应用题拆题板","script":"学习工具不能变成抄答案工具。应用题拆题板只帮孩子拆题目结构，让第一步变清楚。","notes":["需求：长应用题不知道从哪开始","产品：谁、已知、要求、第一步","AI：读题拆结构，不给最终答案","价值：先能下手"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="5">
+      <div class="slide-content">
+        <span class="eyebrow reveal">创意工坊 · 完整案例</span>
+        <h2 class="case-title reveal">四格漫画分镜台</h2>
+        <div class="case-story">
+          <div class="case-scene reveal" data-icon="🎬">
+            <small>真实麻烦</small>
+            <strong>脑子里有电影，四格顺序还没排好</strong>
+            <p>孩子已经想到月球便利店、机器人和会漂浮的面包，可不知道第 1 格、第 2 格、第 3 格、第 4 格分别画什么。</p>
+          </div>
+          <div class="case-proof">
+            <article class="proof-card reveal"><small>第一版产品</small><p>四格漫画分镜台：输入主角、地点、麻烦和结尾心情，生成 4 格分镜和对白草稿。</p></article>
+            <article class="proof-card reveal"><small>AI 帮哪一步</small><p>AI 先排出可改草稿，孩子继续选择、删改和画出自己的风格。</p></article>
+            <article class="proof-card reveal"><small>为什么有人愿意继续用</small><p>它不替孩子完成漫画，而是让创作真的开始。</p></article>
+          </div>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"四格漫画分镜台","script":"创意工坊的重点是保留孩子的表达。AI 不替孩子完成作品，只把混在脑子里的故事排成可改的四格草稿。","notes":["需求：故事点子排不成四格","产品：4 格分镜和对白草稿","AI：给可改草稿","价值：创作真的开始"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="6">
+      <div class="slide-content">
+        <span class="eyebrow reveal">校园社区 · 完整案例</span>
+        <h2 class="case-title reveal">校园活动组队板</h2>
+        <div class="case-story">
+          <div class="case-scene reveal" data-icon="🤝">
+            <small>真实麻烦</small>
+            <strong>想参加活动，却不知道谁也想来</strong>
+            <p>同学想在周五午休组织桌游，至少要 4 个人。问了一圈，大家答得零零散散，最后还是没凑齐。</p>
+          </div>
+          <div class="case-proof">
+            <article class="proof-card reveal"><small>第一版产品</small><p>校园活动组队板：输入活动想法，生成活动卡、报名问题和人数进度。</p></article>
+            <article class="proof-card reveal"><small>AI 帮哪一步</small><p>AI 把活动想法改写成同学看得懂的报名卡，顺手列出要问的 3 个问题。</p></article>
+            <article class="proof-card reveal"><small>为什么有人愿意继续用</small><p>想参加的人更快找到同伴，发起人也不用一圈圈去问。</p></article>
+          </div>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"校园活动组队板","script":"校园社区不一定要做热闹的大平台。它可以先从一个活动凑不齐人的具体场景开始。","notes":["需求：活动凑不齐同伴","产品：活动卡、报名问题和人数进度","AI：改写活动卡和报名问题","价值：更快找到一起参加的人"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="7">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 1 · Demo</span>
+        <h2 class="reveal">把一个麻烦拆成三句话</h2>
+        <div class="demo-board">
+          <article class="demo-panel reveal"><small>出门检查</small><strong>谁</strong><p>早上出门前怕漏带的同学。</p><strong>卡住</strong><p>课表和通知太散，怕漏带。</p><strong>先帮</strong><p>生成三栏出门清单。</p></article>
+          <article class="demo-panel reveal"><small>拆题板</small><strong>谁</strong><p>一看到长应用题就停住的同学。</p><strong>卡住</strong><p>不知道先看哪句话。</p><strong>先帮</strong><p>拆出谁、已知、要求、第一步。</p></article>
+          <article class="demo-panel reveal"><small>漫画分镜</small><strong>谁</strong><p>有故事点子的同学。</p><strong>卡住</strong><p>四格顺序排不出来。</p><strong>先帮</strong><p>生成 4 格分镜草稿。</p></article>
+          <article class="demo-panel reveal"><small>活动组队</small><strong>谁</strong><p>想参加或发起活动的同学。</p><strong>卡住</strong><p>找不到一起参加的人。</p><strong>先帮</strong><p>生成活动卡和报名问题。</p></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"把麻烦拆成三句话","script":"老师先演示怎么拆。每个项目都说清楚谁、卡在哪里、第一版先帮哪一步。","notes":["三句话：谁、卡住时刻、先帮一步","每个项目都能落到一个小动作","给团队接下来的方向卡做示范"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="8">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 1 · 实验</span>
+        <h2 class="reveal">轮到你们写第一张帮忙卡</h2>
+        <div class="task-strip reveal">
+          <article class="task-card"><b>1</b><h3>我们想帮谁？</h3><p>像出门检查、应用题拆题、四格分镜、活动组队一样，写一个真实的人。</p></article>
+          <article class="task-card"><b>2</b><h3>他在哪一步卡住？</h3><p>说清时间、地点和最不顺的一步。</p></article>
+          <article class="task-card"><b>3</b><h3>明天先帮哪一步？</h3><p>小到 30 秒能看懂，别人能试一次。</p></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"写第一张帮忙卡","script":"看完四个案例之后，马上回到团队。孩子不用写很多字，只要像四个样本一样，把真实用户、卡住时刻和先帮一步填清楚。","notes":["团队实践紧跟知识输入","产出：真实用户、卡住时刻、Day 2 第一动作","适合学生端短表单或语音输入"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="9">
+      <div class="slide-content">
+        <div class="chapter">
+          <div class="chapter-text">
+            <span class="eyebrow reveal">Day 2 · 故事</span>
+            <h2 class="reveal">四个项目都收到空话</h2>
+            <p class="big-question reveal">它们在豆包或 DeepSeek 里问：“帮我做个好产品。”AI 很快回答了一堆好听的话，可没有一句能直接放进作品。</p>
+          </div>
+          <div class="note-grid reveal">
+            <article class="note-card"><small>少了目标</small><h3>要 AI 做什么？</h3><p>列出门清单、拆应用题、排四格分镜，还是写活动报名卡？</p></article>
+            <article class="note-card"><small>少了用户</small><h3>给谁用？</h3><p>用户不同，AI 给的结果也不同。</p></article>
+            <article class="note-card"><small>少了材料</small><h3>你已经知道什么？</h3><p>采访原话、照片、题目、故事想法都要给它。</p></article>
+            <article class="note-card"><small>少了格式</small><h3>交回什么？</h3><p>一张卡、四格分镜、三行答案，都要说清楚。</p></article>
+          </div>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"四个项目都收到空话","script":"AI 知识和创业项目在这里接上。孩子看到不是豆包或 DeepSeek 没用，而是任务没有说清楚。","notes":["模糊提问会得到空话","五句提示词服务真实项目","孩子马上给自己的团队项目写任务单"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="10">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 2 · Demo</span>
+        <h2 class="reveal">五句提示词，把 AI 叫到正确位置</h2>
+        <p class="tool-hint reveal">先让豆包出第一版，再请 DeepSeek 当检查员。</p>
+        <div class="flow-line reveal">
+          <article><b>1</b><h3>目标</h3><span>帮我生成应用题拆题板的第一版结果。</span></article>
+          <article><b>2</b><h3>用户</h3><span>给一看到长应用题就不知道从哪下手的同学。</span></article>
+          <article><b>3</b><h3>材料</h3><span>这里有一道长应用题。</span></article>
+          <article><b>4</b><h3>限制</h3><span>不要直接算最终答案。</span></article>
+          <article><b>5</b><h3>格式</h3><span>输出谁、已知、要求和第一步提示。</span></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"五句提示词","script":"这一页用应用题拆题板做现场演示。老师可以先让豆包出第一版，再让 DeepSeek 检查有没有偷偷给答案、有没有真的拆清楚。","notes":["五句：目标、用户、材料、限制、格式","清楚任务让 AI 产出可用材料","示范后团队写自己的提示词卡"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="11">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 2 · Demo</span>
+        <h2 class="reveal">第一版只救一个动作</h2>
+        <div class="demo-board">
+          <article class="demo-panel reveal"><small>出门检查</small><strong>先做</strong><p>粘贴课表和老师通知，生成三栏出门清单。</p></article>
+          <article class="demo-panel reveal"><small>拆题板</small><strong>先做</strong><p>粘贴一道应用题，看到谁、已知、要求和第一步。</p></article>
+          <article class="demo-panel reveal"><small>漫画分镜</small><strong>先做</strong><p>输入主角、地点、麻烦和结尾心情，得到 4 格分镜草稿。</p></article>
+          <article class="demo-panel reveal"><small>活动组队</small><strong>先做</strong><p>输入一个活动想法，生成活动卡和报名问题。</p></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"第一版只救一个动作","script":"MVP 不是把想法做小气，而是先让用户完成一个动作。四个样本项目各留下一步。","notes":["MVP 解释为先跑通一个动作","四案例各有明确 V1","孩子团队圈出自己的第一个动作"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="12">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 2 · 实验</span>
+        <h2 class="reveal">让你们的 V1 打开一次</h2>
+        <div class="task-strip reveal">
+          <article class="task-card"><b>1</b><h3>写核心动作</h3><p>像出门清单、拆题板、四格分镜、组队卡一样，只写别人第一步做什么。</p></article>
+          <article class="task-card"><b>2</b><h3>做出可看版本</h3><p>可以是秒搭页面、扣子智能体、表单卡片，先让结果出现在屏幕上。</p></article>
+          <article class="task-card"><b>3</b><h3>保留证据</h3><p>留下链接、截图或录屏：清单长什么样，拆题怎么显示，组队卡怎么打开。</p></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"让 V1 打开一次","script":"讲完案例，孩子马上开工。上学出门检查台、应用题拆题板、四格漫画分镜台和校园活动组队板都先让一个结果出现在屏幕上。","notes":["团队实践：做出 V1","作品形态可以多样，但要能打开或演示","保存链接、截图或录屏，为 Day 3 发布做准备"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="13">
+      <div class="slide-content">
+        <div class="chapter">
+          <div class="chapter-text">
+            <span class="eyebrow reveal">Day 2 · 故事</span>
+            <h2 class="reveal">别人第一次用，才知道哪里卡</h2>
+            <p class="big-question reveal">团队自己都会用，不代表用户也会用。第一批用户来了，先别急着解释，看看他停在哪里。</p>
+          </div>
+          <div class="note-grid reveal">
+            <article class="note-card"><small>出门检查</small><h3>清单够短吗？</h3><p>第一次用的人能不能 30 秒看懂今天要带什么？</p></article>
+            <article class="note-card"><small>拆题板</small><h3>偷偷给答案了吗？</h3><p>如果它直接算出答案，就要改回“拆题”。</p></article>
+            <article class="note-card"><small>漫画分镜</small><h3>好改吗？</h3><p>四格草稿有没有给孩子继续创作的空间？</p></article>
+            <article class="note-card"><small>活动组队</small><h3>能报名吗？</h3><p>有没有时间、地点、人数和报名问题？</p></article>
+          </div>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"别人第一次用","script":"试玩互测是产品开发的一部分。四个案例各有不同的观察点：出门清单够不够短，拆题板有没有偷给答案，四格分镜好不好改，活动组队卡能不能报名。","notes":["测试不是讲解，是观察","停顿和提问能变成修改点","团队提交反馈卡和迭代清单"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="14">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 2 · Demo 检查</span>
+        <h2 class="reveal">2 分钟，只跑一条主线</h2>
+        <p class="big-question reveal">别把所有想法都讲完。让大家看见：谁卡住了，作品怎么帮，结果变好了什么。</p>
+        <div class="demo-board">
+          <article class="demo-panel reveal"><small>出门检查</small><strong>用户</strong><p>早上出门前怕漏带的同学。</p></article>
+          <article class="demo-panel reveal"><small>拆题板</small><strong>作品</strong><p>粘贴长应用题后看到四块结构。</p></article>
+          <article class="demo-panel reveal"><small>漫画分镜</small><strong>结果</strong><p>故事点子变成 4 格分镜草稿，可以继续改。</p></article>
+          <article class="demo-panel reveal"><small>活动组队</small><strong>下一步</strong><p>让更多同学试试报名问题够不够清楚。</p></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"2 分钟 Demo","script":"2 分钟 Demo 不是把所有功能讲完，而是让别人看见用户、作品和结果连在一起。四个案例各拿一块做示范，然后团队回到自己的作品。","notes":["Demo 主线：用户、作品、结果、下一步","四案例帮助孩子检查自己的表达","团队实践：准备明天发布会要带的材料"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="15">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 3 · 故事</span>
+        <h2 class="reveal">星星币市场开张</h2>
+        <div class="demo-board">
+          <article class="demo-panel reveal"><small>出门检查</small><strong>为什么愿意换？</strong><p>它把课表和通知变成清单，我早上能自己查。</p></article>
+          <article class="demo-panel reveal"><small>拆题板</small><strong>为什么愿意换？</strong><p>它不替我算答案，但让我知道先看哪句话。</p></article>
+          <article class="demo-panel reveal"><small>漫画分镜</small><strong>为什么愿意换？</strong><p>它让我把故事点子排成能改的四格。</p></article>
+          <article class="demo-panel reveal"><small>活动组队</small><strong>为什么愿意换？</strong><p>它让我更快找到一起参加活动的人。</p></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"星星币市场开张","script":"价值不是自己喊出来的。孩子用星星币、时间和推荐来判断作品有没有用。","notes":["价值来自真实变化","四案例展示不同价值","孩子写自己的价值小票"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="16">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 3 · Demo</span>
+        <div class="ticket-grid">
+          <div class="chapter-text">
+            <h2 class="reveal">一张价值小票</h2>
+            <p class="big-question reveal">不是“我们的产品很厉害”。要写清楚，谁会用，少烦什么，愿意拿什么来换。</p>
+          </div>
+          <article class="ticket reveal">
+            <small>价值小票</small>
+            <div class="ticket-row"><b>谁会用</b><p>一看到长应用题就不知道从哪下手的同学。</p></div>
+            <div class="ticket-row"><b>少烦什么</b><p>不用盯着长题发呆，先知道谁、已知、要求和第一步。</p></div>
+            <div class="ticket-row"><b>愿意换</b><p>愿意下次再打开，也愿意推荐给同桌。</p></div>
+            <div class="ticket-row"><b>证据</b><p>“我会算乘法，可这题太长，我不知道先看哪句话。”</p></div>
+          </article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"一张价值小票","script":"老师先用应用题拆题板写一张价值小票，再让团队给自己的作品写。","notes":["价值小票：用户、变化、交换、证据","商业思维建立在帮助别人上","团队实践：提交价值卡"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="17">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 3 · Demo</span>
+        <h2 class="reveal">发布 PPT 一页只讲一件事</h2>
+        <p class="tool-hint reveal">把作品链接、截图和证据交给 WorkBuddy，先排顺序，再由团队删改。</p>
+        <div class="flow-line reveal">
+          <article><b>1</b><h3>用户</h3><span>谁真的需要：漏带、长题、四格、找同伴？</span></article>
+          <article><b>2</b><h3>问题</h3><span>他在哪一步卡住：看通知、读题、排分镜、发活动？</span></article>
+          <article><b>3</b><h3>作品</h3><span>打开后看见清单、拆题板、四格分镜或组队卡。</span></article>
+          <article><b>4</b><h3>证据</h3><span>采访原话、试玩停顿、愿意再用的理由。</span></article>
+          <article><b>5</b><h3>下一步</h3><span>清单更短，拆题更清，分镜好改，报名更顺。</span></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"发布 PPT 一页只讲一件事","script":"作品发布不是大人路演。四个案例都按用户、问题、作品、证据、下一步来排，WorkBuddy 只帮忙整理，最后由团队删改。","notes":["发布材料包要轻","每页只讲一件事","系统任务收作品链接和发布 PPT"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="18">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 3 · 实验</span>
+        <h2 class="reveal">轮到你们上台发布</h2>
+        <div class="task-strip reveal">
+          <article class="task-card"><b>1</b><h3>打开作品</h3><p>像四个样本一样，让大家看见一个真实动作跑起来。</p></article>
+          <article class="task-card"><b>2</b><h3>拿出证据</h3><p>谁说漏带、长题、四格分镜或找同伴真的让他卡住？</p></article>
+          <article class="task-card"><b>3</b><h3>说下一步</h3><p>如果继续做，先改清单、拆题、分镜或报名卡的一处。</p></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"轮到你们上台发布","script":"最后一页把孩子带回自己的作品。四个样本项目给了发布结构，真正上台时，团队自己的用户、作品和证据成为主角。","notes":["最终发布：用户、作品、证据、下一步","观察员追问用证据回答","课程结果回到孩子自己的团队作品"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="19">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 1 · AI 故事</span>
+        <h2 class="reveal">AI 像见过很多例子的聪明大脑</h2>
+        <p class="tool-hint reveal">多模态：文字、图片、声音，都能变成 AI 的线索。</p>
+        <div class="demo-board">
+          <article class="demo-panel reveal"><small>出门检查</small><strong>它读到</strong><p>课表、作业和老师通知。</p><strong>它交回</strong><p>三栏出门清单。</p></article>
+          <article class="demo-panel reveal"><small>拆题板</small><strong>它读到</strong><p>一段长应用题。</p><strong>它交回</strong><p>谁、已知、要求和第一步。</p></article>
+          <article class="demo-panel reveal"><small>漫画分镜</small><strong>它读到</strong><p>主角、地点、麻烦和结尾心情。</p><strong>它交回</strong><p>4 格分镜草稿。</p></article>
+          <article class="demo-panel reveal"><small>活动组队</small><strong>它读到</strong><p>活动想法、时间和人数。</p><strong>它交回</strong><p>活动卡和报名问题。</p></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"AI 像见过很多例子的聪明大脑","script":"AI 基本原理不从术语开始。先让孩子看见多模态：AI 会读文字、看图片、听声音，然后按任务交回一个结果。","notes":["多模态：文字、图片、声音都能当线索","任务越清楚，结果越接近需要","四个项目都要给 AI 清楚材料和要求"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="20">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 2 · 开工前</span>
+        <h2 class="reveal">昨天的帮忙卡，今天变成第一动作</h2>
+        <div class="flow-line reveal">
+          <article><b>出门</b><h3>列清单</h3><span>课表、作业和老师通知，先生成三栏出门清单。</span></article>
+          <article><b>应用题</b><h3>拆结构</h3><span>谁、已知、要求、第一步先看清。</span></article>
+          <article><b>漫画</b><h3>排四格</h3><span>先让 4 格分镜草稿出现在纸上。</span></article>
+          <article><b>活动</b><h3>找同伴</h3><span>活动卡、报名问题、人数进度先跑通。</span></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"帮忙卡变成第一动作","script":"Day 2 开工时，孩子要把 Day 1 的方向变成今天能做出来的第一动作。四个样本项目都不贪多，只先跑通一件事。","notes":["承接 Day 1 方向卡","今天先做一个核心动作","团队实践：确认今天必须跑通什么"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="21">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 2 · 技术路线</span>
+        <h2 class="reveal">四个 V1，可以长得不一样</h2>
+        <div class="demo-board">
+          <article class="demo-panel reveal"><small>出门检查</small><strong>表单 + 清单</strong><p>输入课表和通知，生成可勾选的三栏出门清单。</p></article>
+          <article class="demo-panel reveal"><small>拆题板</small><strong>文本 + 卡片</strong><p>粘贴应用题，AI 按固定格式拆出四块。</p></article>
+          <article class="demo-panel reveal"><small>漫画分镜</small><strong>生成器页面</strong><p>输入主角和麻烦，页面吐出 4 格分镜。</p></article>
+          <article class="demo-panel reveal"><small>活动组队</small><strong>报名卡片</strong><p>活动想法变成可分享的组队卡。</p></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"四个 V1 可以长得不一样","script":"产品多数在浏览器里体验，但不必长成同一种样子。路线选择要看用户第一步需要什么。","notes":["浏览器体验可以是表单、聊天框、生成器或卡片","技术路线服务核心动作","团队实践：画出 3-5 步使用流程"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="22">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 3 · 彩排</span>
+        <h2 class="reveal">上台前，只留下别人能听懂的主线</h2>
+        <div class="task-strip reveal">
+          <article class="task-card"><b>1</b><h3>用户一句话</h3><p>背包、应用题、漫画、活动，先说清谁卡住。</p></article>
+          <article class="task-card"><b>2</b><h3>作品打开一次</h3><p>让大家看见清单、拆题板、分镜草稿或组队卡。</p></article>
+          <article class="task-card"><b>3</b><h3>证据拿出来</h3><p>采访原话、试玩反馈或现场结果。</p></article>
+          <article class="task-card"><b>4</b><h3>下一步说清楚</h3><p>继续做，先改一个别人最容易卡住的地方。</p></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"彩排只留下主线","script":"彩排不是背更多话，而是删到别人听得懂。四个样本项目都按同一条主线检查：用户、作品、证据、下一步。","notes":["彩排重点是删掉多余内容","作品必须能打开或演示","团队实践：确认每个人负责哪一步"]}
+      </script>
+    </div>
+
+    <div class="slide" data-slide="23">
+      <div class="slide-content">
+        <span class="eyebrow reveal">Day 3 · 带走什么</span>
+        <h2 class="reveal">每个人都留下一个被看见的贡献</h2>
+        <div class="note-grid reveal">
+          <article class="note-card"><small>共情力</small><h3>听见一个真实麻烦</h3><p>漏带、长题、四格、找同伴，都先听见人。</p></article>
+          <article class="note-card"><small>提问力</small><h3>把问题问清楚</h3><p>让 AI 和用户都知道你在问什么。</p></article>
+          <article class="note-card"><small>创造力</small><h3>做出一个可试版本</h3><p>清单、拆题板、漫画分镜或组队卡，能打开一次。</p></article>
+          <article class="note-card"><small>判断力</small><h3>用证据改作品</h3><p>留下能用的，改掉挡路的。</p></article>
+          <article class="note-card"><small>领导力</small><h3>让团队往前走一步</h3><p>分工、提醒、补位、上台，都算贡献。</p></article>
+        </div>
+      </div>
+      <script type="application/json" class="slide-notes">
+      {"title":"每个人的贡献被看见","script":"结营不只看最后作品，也看每个孩子在三天里贡献了哪一步。无论团队做的是出门清单、拆题板、漫画分镜还是组队卡，贡献都要具体，能被同伴说出来。","notes":["五力证书要有真实证据","团队作品背后有个人贡献","孩子带走下一次指挥 AI 的方法"]}
+      </script>
+    </div>
+  </div>
+
+  <script>
+    var slides = document.querySelectorAll('.slide');
+    var current = 0;
+    var total = slides.length;
+    var slideDoodles = [
+      '🚀', '🧭', '⭐', '🎒', '📐', '🎬',
+      '🔎', '✂️', '📝', '💬', '🎯', '🛟',
+      '🖥️', '👀', '⏱️', '🪙', '🎟️', '📣',
+      '🎤', '🧠', '✅', '🧩', '🎬', '🏅'
+    ];
+    var moduleStart = {
+      "ai-judgement": 19,
+      "team-formation": 2,
+      "project-launch": 7,
+      "day1-reflection": 8,
+      "day2-kickoff": 20,
+      "ai-lab": 9,
+      "product-prototype": 11,
+      "tech-route": 21,
+      "tool-demo": 12,
+      "build-sprint": 12,
+      "user-testing": 13,
+      "demo-check": 14,
+      "roadshow-rehearsal": 17,
+      "value-experiment": 15,
+      "product-packaging": 17,
+      "brand-story": 17,
+      "rehearsal": 22,
+      "final-showcase": 18,
+      "awards-reflection": 23
+    };
+
+    function goTo(index) {
+      if (index < 0 || index >= total) return;
+      current = index;
+      slides.forEach(function(s, i) {
+        s.classList.toggle('active', i === current);
+      });
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      updateUI();
+      showSpeakerNotes(current);
+    }
+
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    function updateUI() {
+      var progress = document.getElementById('progress');
+      if (progress) progress.style.width = ((current + 1) / total * 100) + '%';
+      var counter = document.getElementById('counter');
+      if (counter) counter.textContent = (current + 1) + ' / ' + total;
+      document.querySelectorAll('.slide-nav-dot').forEach(function(d, i) {
+        d.classList.toggle('active', i === current);
+      });
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+      if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+      if (e.key === 'End') { e.preventDefault(); goTo(total - 1); }
+    });
+
+    var touchStart = 0;
+    document.addEventListener('touchstart', function(e) { touchStart = e.touches[0].clientX; });
+    document.addEventListener('touchend', function(e) {
+      var diff = touchStart - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 50) { diff > 0 ? next() : prev(); }
+    });
+
+    var wheelCD = false;
+    document.addEventListener('wheel', function(e) {
+      if (wheelCD) return;
+      wheelCD = true;
+      setTimeout(function() { wheelCD = false; }, 600);
+      if (e.deltaY > 0 || e.deltaX > 0) next(); else prev();
+    }, { passive: true });
+
+    var slideNav = document.getElementById('slideNav');
+    if (slideNav) {
+      slides.forEach(function(_, i) {
+        var dot = document.createElement('div');
+        dot.className = 'slide-nav-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', function() { goTo(i); });
+        slideNav.appendChild(dot);
+      });
+    }
+
+    slides.forEach(function(slide, i) {
+      slide.setAttribute('data-doodle', slideDoodles[i] || '');
+    });
+
+    function showSpeakerNotes(index) {
+      var slide = slides[index];
+      var notesEl = slide.querySelector('script.slide-notes');
+      console.clear();
+      if (notesEl) {
+        try {
+          var n = JSON.parse(notesEl.textContent);
+          console.group('%cSlide ' + (index + 1) + '/' + total + ': ' + (n.title || ''),
+            'font-size:16px;font-weight:bold;color:#2f6f55;');
+          if (n.script) console.log('%c' + n.script, 'font-size:14px;color:#243127;line-height:1.6;');
+          if (n.notes && n.notes.length) {
+            console.log('%cKey points:', 'font-size:12px;color:#6b705c;margin-top:4px;');
+            n.notes.forEach(function(note) { console.log('%c  - ' + note, 'font-size:12px;color:#4c594b;'); });
+          }
+          console.groupEnd();
+        } catch (e) {}
+      }
+    }
+
+    function initFromUrl() {
+      var params = new URLSearchParams(window.location.search);
+      var module = params.get('module');
+      if (params.has('slide')) {
+        var slide = Number(params.get('slide'));
+        if (Number.isFinite(slide) && slide >= 0) return goTo(slide);
+      }
+      if (module && moduleStart[module] !== undefined) return goTo(moduleStart[module]);
+      goTo(0);
+    }
+
+    updateUI();
+    setTimeout(initFromUrl, 100);
+  </script>
+</body>
+</html>

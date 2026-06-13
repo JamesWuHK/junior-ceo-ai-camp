@@ -23,7 +23,7 @@ Source file: `source-day1-ai-basics-sketchnote.md`
 - Alternative style: `hand-drawn-edu`
 - Audience: `Beginners/learners`
 - Language: `zh`
-- Slide count: 9
+- Slide count: 10
 - Image backend: Codex native `imagegen`
 - Outline review: yes
 - Prompt review: yes
@@ -41,11 +41,12 @@ Source file: `source-day1-ai-basics-sketchnote.md`
 5. 提示词就是任务纸条。
 6. AI 生成结果后，人来判断和修改。
 7. 单独实验：孩子试着把模糊想法改成清楚的出图任务单。
-8. 找茬儿任务：几张 AI 第一版图里有明显逻辑错误，孩子自己发现问题，再告诉 AI 改哪里。
+8. 孩子先发言，说清自己想画的未来职业图。
+9. 打开 WorkBuddy，用自己的任务单生成一张图，再选一处继续改。
 
 ## Scope Boundary
 
-第 8-9 页保留为独立出图实验页。前 7 页讲 AI 如何读线索并生成未来职业照；第 8 页让孩子体验一次“给 AI 清楚线索，看看它能画出什么”；第 9 页设计成“找茬儿任务”：几张 AI 第一版图里故意有明显逻辑错误，孩子自己发现问题，一处一处告诉 AI 修改。
+第 8-10 页保留为独立出图实验页。前 7 页讲 AI 如何读线索并生成未来职业照；第 8 页让孩子体验一次“给 AI 清楚线索，看看它能画出什么”；第 9 页让孩子先说出自己脑子里的画面；第 10 页进入 WorkBuddy 实操，生成第一张图并选择一处继续修改。
 
 ## Text Risk Notes
 
@@ -68,8 +69,8 @@ Visible copy checks:
 
 - No teacher-control, backend, deployment, or product-planning language in the whitelist.
 - No创业方向三问 or software/tool-operation jump in the whitelist.
-- Child-facing phrases use concrete classroom actions: 看、说、画、找、圈、告诉 AI、看新版。
-- More child-natural wording has been preferred: `长大后的职业照`, `动物医院`, `AI 画错了哪里`。
+- Child-facing phrases use concrete classroom actions: 看、说、画、打开、发出任务、生成图片、再改一处。
+- More child-natural wording has been preferred: `长大后的职业照`, `动物医院`, `你想画什么`, `画一张自己的图`。
 
 ## Production Status
 
@@ -77,7 +78,7 @@ Step 1 setup and analysis completed.
 
 Outline and prompt files have been prepared for `baoyu-slide-deck`.
 
-Prompt completeness checked on 2026-06-10: 9 prompt files are present under `prompts/`.
+Prompt completeness checked on 2026-06-13: 10 active prompt files are present under `prompts/`.
 
 Child-visible prompt gate checked on 2026-06-10: the formal prompt files do not contain the project-blocked internal/system terms. The only slide text to render is listed under each prompt's `Visible text, exactly` block.
 
@@ -91,7 +92,14 @@ Image generation completed after explicit user confirmation. Generated files:
 - `06-slide-clear-task.png`
 - `07-slide-human-director.png`
 - `08-slide-first-image-task.png`
-- `09-slide-find-odd-details.png`
+- `10-slide-say-your-picture.png`
+- `11-slide-workbuddy-draw.png`
 - `day1-ai-basics-sketchnote.pptx`
 - `day1-ai-basics-sketchnote.pdf`
 - `index.html`
+
+Update on 2026-06-13:
+
+- User removed the old find-the-error slide.
+- Slides 10 and 11 were generated with `baoyu-slide-deck` prompts in `sketch-notes` style through `baoyu-image-gen --provider codex-cli`.
+- System now loads active image pages: 01-08, 10, 11.

@@ -5,7 +5,7 @@
 **Dimensions**: organic + warm + handwritten + balanced
 **Audience**: 8-16 岁孩子，按 10 岁可理解水平设计
 **Language**: zh
-**Slide Count**: 9 slides
+**Slide Count**: 10 slides
 **Generated**: 2026-06-10
 
 ---
@@ -50,7 +50,7 @@ Style Rules:
 
 ---
 
-## Slide 1 of 9
+## Slide 1 of 10
 
 **Type**: Cover
 **Filename**: 01-slide-ai-brain.png
@@ -74,7 +74,7 @@ Large headline top left, child and future photo lower left, robot brain hero on 
 
 ---
 
-## Slide 2 of 9
+## Slide 2 of 10
 
 **Type**: Content
 **Filename**: 02-slide-task-starts.png
@@ -97,7 +97,7 @@ Left: child and sticky note. Middle: flying note arrow. Right: robot brain start
 
 ---
 
-## Slide 3 of 9
+## Slide 3 of 10
 
 **Type**: Content
 **Filename**: 03-slide-photo-clue.png
@@ -121,7 +121,7 @@ Photo large in the center, magnifying glass over it, three rounded labels around
 
 ---
 
-## Slide 4 of 9
+## Slide 4 of 10
 
 **Type**: Content
 **Filename**: 04-slide-many-examples.png
@@ -145,7 +145,7 @@ AI brain in the center, example cards around it, soft arrows showing learning fr
 
 ---
 
-## Slide 5 of 9
+## Slide 5 of 10
 
 **Type**: Content
 **Filename**: 05-slide-three-clues.png
@@ -169,7 +169,7 @@ Three clue cards on left, AI brain in middle, new future photo on right, hand-dr
 
 ---
 
-## Slide 6 of 9
+## Slide 6 of 10
 
 **Type**: Content
 **Filename**: 06-slide-clear-task.png
@@ -192,7 +192,7 @@ Left: vague note and fuzzy output. Right: clear note and detailed output. Headli
 
 ---
 
-## Slide 7 of 9
+## Slide 7 of 10
 
 **Type**: Content
 **Filename**: 07-slide-human-director.png
@@ -216,7 +216,7 @@ Child director on left, three picture candidates on right, labels as small stick
 
 ---
 
-## Slide 8 of 9
+## Slide 8 of 10
 
 **Type**: Content
 **Filename**: 08-slide-first-image-task.png
@@ -243,30 +243,60 @@ Vague note left, clear task card center, AI brain and first image right. Keep vi
 
 ---
 
-## Slide 9 of 9
+## Slide 9 of 10
 
-**Type**: Back Cover
-**Filename**: 09-slide-find-odd-details.png
+**Type**: Activity
+**Filename**: 10-slide-say-your-picture.png
 
 // NARRATIVE GOAL
-Create a find-the-problem task that naturally makes children ask AI for more changes.
+Let children speak out the picture in their mind before using WorkBuddy to draw it.
 
 // KEY CONTENT
-Headline: 找茬儿：AI 画错了哪里？
+Headline: 先说清楚：你想画什么？
 Body:
-- 找一找
-- 说清楚
-- 看新版
-- 先圈出来，再告诉 AI：哪里不对，想改成什么。
-- 把 ___ 改成 ___
-- 加上 ___
-- 让 ___ 更合理
-- 发现一处
-- 就让 AI 改一处
+- 谁
+- 在哪里
+- 做什么
+- 加一个细节
+- 我想画一张……
+- 未来的我
+- 海边动物医院
+- 给海龟检查
+- 蓝色药箱
 
 // VISUAL
-Show three AI first draft future career pictures with clear logical mistakes children can spot quickly: a goldfish is lying on a clinic table without water, a moon house has no door and has open windows, and ice cream is being baked in an oven. Each picture should have a red circle around the strange part.
+Show a child speaking the picture idea. Four big planning cards turn the spoken sentence into concrete clues: who, where, action, detail. On the right, a future career picture begins to form.
 
 // LAYOUT
-Layout: annotated-task
-Large picture in center, three circled problem spots, sticky note on side, small improved version in corner. Make it feel like a game, not a checklist.
+Layout: left-to-right-flow
+Child speaking on the left, four planning cards in the center, future career picture frame on the right.
+
+---
+
+## Slide 10 of 10
+
+**Type**: Activity
+**Filename**: 11-slide-workbuddy-draw.png
+
+// NARRATIVE GOAL
+Teach children the practical WorkBuddy image generation flow: open WorkBuddy, send the clear picture task, generate one image, then ask for one change.
+
+// KEY CONTENT
+Headline: 打开 WorkBuddy，画一张自己的图
+Body:
+- 打开
+- 发出任务
+- 生成图片
+- 再改一处
+- 请画一张未来职业图
+- 我是一名____
+- 在____
+- 正在____
+- 加上____
+
+// VISUAL
+Show a child using a friendly WorkBuddy-like drawing screen. The task card becomes a first image, then a revised image after one detail is changed.
+
+// LAYOUT
+Layout: process-flow
+Four clear steps from left to right: open, send task, generate image, revise one detail.

@@ -1,11 +1,12 @@
 import "./styles.css";
+import { classroomPath } from "./routes";
 
 const entries = [
-  { title: "教师端", text: "课件与课堂流程", href: "/teacher.html", marker: "T" },
-  { title: "学生端", text: "当前课堂任务", href: "/student.html", marker: "S" },
-  { title: "课堂大屏", text: "照片墙与作品秀", href: "/wall.html", marker: "W" },
-  { title: "作品展", text: "结营路演作品", href: "/showcase.html", marker: "P" },
-  { title: "家长观察", text: "作品展示与观察评分", href: "/parents.html", marker: "F" }
+  { title: "教师端", text: "课件与课堂流程", href: classroomPath("teacher.html"), marker: "T" },
+  { title: "学生端", text: "当前课堂任务", href: classroomPath("student.html"), marker: "S" },
+  { title: "课堂大屏", text: "照片墙与作品秀", href: classroomPath("wall.html"), marker: "W" },
+  { title: "作品展", text: "结营路演作品", href: classroomPath("showcase.html"), marker: "P" },
+  { title: "家长观察", text: "作品展示与观察评分", href: classroomPath("parents.html"), marker: "F" }
 ];
 
 const root = document.getElementById("root");

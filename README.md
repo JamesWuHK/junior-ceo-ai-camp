@@ -28,7 +28,17 @@
 ## 部署
 
 ### 网站
-部署 `camp-website/` 到 COS 或其他静态托管。
+官网静态页与课堂系统静态页必须分开部署：
+
+- 官网根目录：部署 `camp-website/` 到站点根路径 `/`
+- 课堂系统：部署 `课程产品包/07_Web教学系统/ceo-camp-web/dist` 到子路径 `/classroom/`
+
+推荐使用这两个独立脚本：
+
+```bash
+课程产品包/07_Web教学系统/scripts/deploy_homepage_static.sh
+课程产品包/07_Web教学系统/scripts/deploy_classroom_static.sh
+```
 
 ### 百度 SEO
 根目录提供轻量 SEO 脚本，适合静态官网使用：

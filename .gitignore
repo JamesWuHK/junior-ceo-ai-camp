@@ -6,3 +6,10 @@
 seo/baidu-measurements.json
 seo/baidu-weekly-measurements.csv
 seo/baidu-submit-history.json
+
+.baoyu-skills/
+.playwright-cli/
+comic/
+
+**/tmp/
+课程产品包/07_Web教学系统/ceo-camp-web/courseware-source/**/rendered/

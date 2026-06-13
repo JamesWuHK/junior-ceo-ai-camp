@@ -754,7 +754,7 @@ function nextSupportAction(
   const firstMissing = milestoneStates.find((milestone) => !milestone.done);
   if (!firstMissing) return "可以安排彩排或进入作品秀顺序。";
   if (firstMissing.key === "team_card") return "请小组先补一张团队名片：团队名、产品方向和一句亮相。";
-  if (!team.selected_problem_id) return "先从问题卡里给小组定一个要继续调查的问题。";
+  if (!team.selected_problem_id) return "请小组先选出要继续调查的问题。";
   if (firstMissing.key === "market_scout") return "先补一张侦察卡：AI 改写、用户声音、已有方案、继续验证。";
   if (firstMissing.key === "user_voice") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条用户声音，先补真实采访。`;
   if (firstMissing.key === "product_feedback") return `还差 ${Math.max(0, firstMissing.target - firstMissing.count)} 条互测反馈，安排别组打开作品试用。`;
@@ -1672,11 +1672,13 @@ app.post("/teams", async (request, reply) => {
   if (!requireTeacher(request)) return reply.code(401).send({ error: "UNAUTHORIZED" });
   const body = request.body as Record<string, unknown>;
   const id = String(body.id ?? randomUUID());
+  const groupNo = Number(body.group_no ?? 1);
+  const existingTeam = row<Record<string, any>>("SELECT * FROM teams WHERE id = ? AND camp_id = ?", [id, campId()]);
   const record = {
     id,
     camp_id: campId(),
-    group_no: Number(body.group_no ?? 1),
-    name: String(body.name ?? "未命名小组"),
+    group_no: groupNo,
+    name: existingTeam?.name ?? String(body.name ?? `第 ${groupNo} 组`),
     table_no: body.table_no ? String(body.table_no) : null,
     roles: JSON.stringify(body.roles ?? {}),
     project_status: String(body.project_status ?? "NOT_STARTED"),
@@ -1695,19 +1697,16 @@ app.post("/teams", async (request, reply) => {
        @selected_problem_id, @selected_problem_title, @selected_problem_votes, @updated_at)
      ON CONFLICT(id) DO UPDATE SET
       group_no = excluded.group_no,
-      name = excluded.name,
       table_no = excluded.table_no,
       roles = excluded.roles,
       project_status = excluded.project_status,
       showcase_status = excluded.showcase_status,
-      selected_problem_id = excluded.selected_problem_id,
-      selected_problem_title = excluded.selected_problem_title,
-      selected_problem_votes = excluded.selected_problem_votes,
       updated_at = excluded.updated_at`
   ).run(record);
   audit("teams.upsert", "teams", id, record);
   emitState("teams.changed");
-  return { team: serializeTeam(record) };
+  const updated = row<Record<string, any>>("SELECT * FROM teams WHERE id = ? AND camp_id = ?", [id, campId()]);
+  return { team: serializeTeam(updated ?? record) };
 });
 
 app.post("/teams/:id/problem", async (request, reply) => {

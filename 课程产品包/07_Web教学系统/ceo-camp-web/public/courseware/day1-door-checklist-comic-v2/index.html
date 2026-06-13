@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>上学出门检查台</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1f2a33;
+        --muted: #5d6872;
+        --paper: #fff8e8;
+        --panel: #fffdf6;
+        --line: #26323a;
+        --accent: #f5b43b;
+        --blue: #4a8fd9;
+        --green: #49a86f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+          "Microsoft YaHei", sans-serif;
+        background:
+          radial-gradient(circle at 12% 10%, rgba(245, 180, 59, 0.22), transparent 26rem),
+          radial-gradient(circle at 90% 16%, rgba(74, 143, 217, 0.18), transparent 24rem),
+          linear-gradient(180deg, #fff7df 0%, #f6ead0 100%);
+        color: var(--ink);
+      }
+
+      .stage {
+        width: min(1600px, 100vw);
+        min-height: 100vh;
+        margin: 0 auto;
+        padding: clamp(20px, 3vw, 44px);
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: clamp(16px, 2vw, 28px);
+      }
+
+      header {
+        display: grid;
+        gap: 10px;
+      }
+
+      .eyebrow {
+        width: fit-content;
+        padding: 6px 12px;
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        background: #ffffff;
+        box-shadow: 4px 4px 0 rgba(31, 42, 51, 0.14);
+        font-size: clamp(15px, 1.3vw, 20px);
+        font-weight: 800;
+      }
+
+      h1 {
+        margin: 0;
+        max-width: 14em;
+        font-size: clamp(34px, 5vw, 76px);
+        line-height: 1.02;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        margin: 0;
+        max-width: 28em;
+        color: var(--muted);
+        font-size: clamp(18px, 1.65vw, 28px);
+        font-weight: 700;
+        line-height: 1.35;
+      }
+
+      .comic {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr 1fr;
+        grid-template-rows: minmax(250px, 1fr) minmax(250px, 1fr);
+        gap: clamp(14px, 1.4vw, 22px);
+        min-height: 0;
+      }
+
+      .frame {
+        display: grid;
+        grid-template-rows: 1fr auto;
+        min-width: 0;
+        min-height: 0;
+        border: 3px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 7px 7px 0 rgba(31, 42, 51, 0.16);
+        overflow: hidden;
+      }
+
+      .frame:nth-child(1) {
+        grid-row: span 2;
+      }
+
+      .frame:nth-child(4) {
+        grid-column: span 1;
+      }
+
+      .art {
+        min-height: 0;
+        border: 0;
+        background: #f8edd8;
+        cursor: zoom-in;
+        display: block;
+        overflow: hidden;
+        padding: 0;
+        text-align: inherit;
+        width: 100%;
+      }
+
+      .art:focus-visible {
+        outline: 4px solid var(--blue);
+        outline-offset: -4px;
+      }
+
+      .art img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .caption {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: 12px;
+        padding: clamp(12px, 1.3vw, 18px);
+        border-top: 3px solid var(--line);
+        background: #fffdf6;
+        font-size: clamp(18px, 1.65vw, 30px);
+        font-weight: 900;
+        line-height: 1.2;
+      }
+
+      .num {
+        display: grid;
+        place-items: center;
+        width: clamp(34px, 3vw, 52px);
+        aspect-ratio: 1;
+        border: 3px solid var(--line);
+        border-radius: 50%;
+        background: var(--accent);
+        font-size: 0.86em;
+        box-shadow: 3px 3px 0 rgba(31, 42, 51, 0.16);
+      }
+
+      .closing {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: clamp(14px, 1.5vw, 22px) clamp(16px, 2vw, 28px);
+        border: 3px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 6px 6px 0 rgba(31, 42, 51, 0.14);
+        font-size: clamp(20px, 1.8vw, 32px);
+        font-weight: 900;
+      }
+
+      .closing strong {
+        color: #166a41;
+      }
+
+      .chips {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .chip {
+        padding: 8px 12px;
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        background: #fff6cf;
+        font-size: clamp(14px, 1vw, 18px);
+        white-space: nowrap;
+      }
+
+      .viewer {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: none;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: clamp(12px, 2vw, 24px);
+        background: rgba(15, 20, 18, 0.84);
+        padding: clamp(18px, 3vw, 46px);
+      }
+
+      .viewer.open {
+        display: grid;
+      }
+
+      .viewer figure {
+        min-width: 0;
+        max-width: min(1180px, 86vw);
+        max-height: min(86vh, 900px);
+        margin: 0 auto;
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) auto;
+        overflow: hidden;
+        border: 4px solid #fffdf6;
+        border-radius: 8px;
+        background: #fffdf6;
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.48);
+        touch-action: pan-y;
+        user-select: none;
+      }
+
+      .viewer img {
+        display: block;
+        width: 100%;
+        height: min(72vh, 760px);
+        object-fit: contain;
+        background: #f8edd8;
+      }
+
+      .viewer figcaption {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 14px;
+        border-top: 3px solid var(--line);
+        background: #fffdf6;
+        color: var(--ink);
+        font-size: clamp(20px, 2vw, 34px);
+        font-weight: 950;
+        line-height: 1.18;
+        padding: clamp(14px, 1.5vw, 22px);
+      }
+
+      .viewer figcaption strong {
+        border: 3px solid var(--line);
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow: 3px 3px 0 rgba(31, 42, 51, 0.16);
+        padding: 8px 13px;
+        white-space: nowrap;
+      }
+
+      .viewer button {
+        border: 3px solid var(--line);
+        background: #fffdf6;
+        color: var(--ink);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.24);
+      }
+
+      .viewer-close {
+        position: absolute;
+        top: clamp(14px, 2vw, 28px);
+        right: clamp(14px, 2vw, 28px);
+        width: 50px;
+        aspect-ratio: 1;
+        border-radius: 999px;
+        font-size: 28px;
+        z-index: 2;
+      }
+
+      .viewer-nav {
+        width: clamp(48px, 5vw, 70px);
+        aspect-ratio: 1;
+        border-radius: 999px;
+        font-size: clamp(34px, 4vw, 50px);
+        line-height: 1;
+      }
+
+      .viewer button:hover,
+      .viewer button:focus-visible {
+        background: var(--accent);
+        outline: none;
+      }
+
+      @media (max-width: 980px) {
+        .stage {
+          min-height: auto;
+        }
+
+        .comic {
+          grid-template-columns: 1fr;
+          grid-template-rows: none;
+        }
+
+        .frame,
+        .frame:nth-child(1),
+        .frame:nth-child(4) {
+          grid-column: auto;
+          grid-row: auto;
+        }
+
+        .art {
+          aspect-ratio: 4 / 3;
+        }
+
+        .closing {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .chips {
+          justify-content: flex-start;
+        }
+
+        .viewer {
+          grid-template-columns: 1fr;
+          grid-template-rows: minmax(0, 1fr) auto;
+          padding: 18px;
+        }
+
+        .viewer figure {
+          max-width: 100%;
+          max-height: 82vh;
+        }
+
+        .viewer img {
+          height: auto;
+          max-height: 62vh;
+        }
+
+        .viewer-nav.previous {
+          justify-self: start;
+          grid-row: 2;
+        }
+
+        .viewer-nav.next {
+          justify-self: end;
+          grid-row: 2;
+          margin-top: calc(clamp(48px, 5vw, 70px) * -1);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <header>
+        <div class="eyebrow">上学出门检查台</div>
+        <h1>早上出门前，脑子突然乱了</h1>
+        <p class="subtitle">这个早上的小麻烦，可以做成一个小工具。</p>
+      </header>
+
+      <section class="comic" aria-label="上学出门检查台连环画">
+        <article class="frame">
+          <button type="button" class="art" data-index="0" aria-label="放大看第 1 格：彩笔带了吗？">
+            <img src="images/01-door.webp" alt="乐乐在家门口正要出门，妈妈从厨房探头提醒。" />
+          </button>
+          <div class="caption"><span class="num">1</span><span>彩笔带了吗？</span></div>
+        </article>
+
+        <article class="frame">
+          <button type="button" class="art" data-index="1" aria-label="放大看第 2 格：体育、科学、美术，全挤在一起了。">
+            <img src="images/02-messy-notes.webp" alt="课表、通知和作业本像纸片一样挤在乐乐脑袋旁边。" />
+          </button>
+          <div class="caption"><span class="num">2</span><span>体育、科学、美术，全挤在一起了。</span></div>
+        </article>
+
+        <article class="frame">
+          <button type="button" class="art" data-index="2" aria-label="放大看第 3 格：我不是故意忘的，是早上想不全。">
+            <img src="images/03-art-class.webp" alt="美术课上，乐乐发现没带彩笔，同桌递给他几支。" />
+          </button>
+          <div class="caption"><span class="num">3</span><span>我不是故意忘的，是早上想不全。</span></div>
+        </article>
+
+        <article class="frame">
+          <button type="button" class="art" data-index="3" aria-label="放大看第 4 格：清单分三栏：带什么、查什么、到校先做什么。">
+            <img src="images/04-product.webp" alt="桌上的简单页面把课表和通知整理成清单。" />
+          </button>
+          <div class="caption"><span class="num">4</span><span>清单分三栏：带什么、查什么、到校先做什么。</span></div>
+        </article>
+
+        <article class="frame">
+          <button type="button" class="art" data-index="4" aria-label="放大看第 5 格：东西带齐了，出门就不慌了。">
+            <img src="images/05-next-morning.webp" alt="第二天，乐乐拿好跳绳和彩笔，安心出门。" />
+          </button>
+          <div class="caption"><span class="num">5</span><span>东西带齐了，出门就不慌了。</span></div>
+        </article>
+      </section>
+
+      <footer class="closing">
+        <span>先帮乐乐 <strong>少慌一次</strong>，就是一个产品的开始。</span>
+        <div class="chips" aria-hidden="true">
+          <span class="chip">看见麻烦</span>
+          <span class="chip">清单帮忙</span>
+          <span class="chip">出门不慌</span>
+        </div>
+      </footer>
+    </main>
+
+    <section class="viewer" aria-label="连环画浏览" aria-modal="true" role="dialog">
+      <button class="viewer-close" type="button" aria-label="关闭连环画">×</button>
+      <button class="viewer-nav previous" type="button" aria-label="上一格">‹</button>
+      <figure>
+        <img src="images/01-door.webp" alt="乐乐在家门口正要出门，妈妈从厨房探头提醒。" draggable="false" />
+        <figcaption><strong>1 / 5</strong><span>彩笔带了吗？</span></figcaption>
+      </figure>
+      <button class="viewer-nav next" type="button" aria-label="下一格">›</button>
+    </section>
+
+    <script>
+      const frames = Array.from(document.querySelectorAll(".frame")).map((frame, index) => {
+        const img = frame.querySelector("img");
+        const caption = frame.querySelector(".caption span:last-child");
+        return {
+          image: img.getAttribute("src"),
+          alt: img.getAttribute("alt"),
+          caption: caption.textContent,
+          index
+        };
+      });
+      const viewer = document.querySelector(".viewer");
+      const viewerImg = viewer.querySelector("img");
+      const viewerCount = viewer.querySelector("figcaption strong");
+      const viewerCaption = viewer.querySelector("figcaption span");
+      let activeIndex = 0;
+      let startX = null;
+
+      function showFrame(index) {
+        activeIndex = (index + frames.length) % frames.length;
+        const frame = frames[activeIndex];
+        viewerImg.src = frame.image;
+        viewerImg.alt = frame.alt;
+        viewerCount.textContent = `${activeIndex + 1} / ${frames.length}`;
+        viewerCaption.textContent = frame.caption;
+      }
+
+      function openViewer(index) {
+        showFrame(index);
+        viewer.classList.add("open");
+      }
+
+      function closeViewer() {
+        viewer.classList.remove("open");
+      }
+
+      document.querySelectorAll(".art").forEach((button) => {
+        button.addEventListener("click", () => openViewer(Number(button.dataset.index || 0)));
+      });
+      viewer.querySelector(".viewer-close").addEventListener("click", closeViewer);
+      viewer.querySelector(".previous").addEventListener("click", () => showFrame(activeIndex - 1));
+      viewer.querySelector(".next").addEventListener("click", () => showFrame(activeIndex + 1));
+      viewer.querySelector("figure").addEventListener("pointerdown", (event) => {
+        startX = event.clientX;
+      });
+      viewer.querySelector("figure").addEventListener("pointerup", (event) => {
+        if (startX === null) return;
+        const distance = event.clientX - startX;
+        startX = null;
+        if (Math.abs(distance) < 48) return;
+        showFrame(activeIndex + (distance > 0 ? -1 : 1));
+      });
+      window.addEventListener("keydown", (event) => {
+        if (!viewer.classList.contains("open")) return;
+        if (event.key === "Escape") closeViewer();
+        if (event.key === "ArrowLeft") showFrame(activeIndex - 1);
+        if (event.key === "ArrowRight") showFrame(activeIndex + 1);
+      });
+    </script>
+  </body>
+</html>
