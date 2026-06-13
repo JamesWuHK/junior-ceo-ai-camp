@@ -1,6 +1,6 @@
 # SEO / GEO CDN Refresh Checklist
 
-Generated: 2026-06-13T09:31:21+08:00
+Generated: 2026-06-13T09:36:23+08:00
 Site URL: https://camps.wanli.wiki
 Overall status: EDGE_CACHE_STALE
 
@@ -15,7 +15,7 @@ Overall status: EDGE_CACHE_STALE
 Status | Asset | Canonical URL | Canonical status | Source-bypass URL | Source status | Missing required | Missing warning | SEO/GEO impact
 --- | --- | --- | --- | --- | --- | --- | --- | ---
 EDGE_CACHE_STALE | robots.txt | https://camps.wanli.wiki/robots.txt | WARN | https://camps.wanli.wiki/robots.txt?seo-monitor=source-1781282967458 | PASS | none | User-agent: Baiduspider | Baidu crawl rules and explicit Baiduspider discovery signal
-EDGE_CACHE_STALE | sitemap-context.xml | https://camps.wanli.wiki/sitemap-context.xml | WARN | https://camps.wanli.wiki/sitemap-context.xml?seo-monitor=source-1781024645897 | PASS | none | <loc>https://camps.wanli.wiki/site-facts.json</loc> | AI/GEO context discovery for Markdown and structured facts
+CANONICAL_PASS | sitemap-context.xml | https://camps.wanli.wiki/sitemap-context.xml | PASS | https://camps.wanli.wiki/sitemap-context.xml?seo-monitor=source-1781024645897 | PASS | none | none | AI/GEO context discovery for Markdown and structured facts
 EDGE_CACHE_STALE | llms.txt | https://camps.wanli.wiki/llms.txt | WARN | https://camps.wanli.wiki/llms.txt?seo-monitor=source-1781024645848 | PASS | none | Structured Facts, site-facts.json | AI agent context, canonical answers, and entity disambiguation
 CANONICAL_PASS | site-facts.json | https://camps.wanli.wiki/site-facts.json | PASS | https://camps.wanli.wiki/site-facts.json?seo-monitor=source-1781026502626 | PASS | none | none | Machine-readable GEO facts, keyword clusters, and entity aliases
 
@@ -25,7 +25,6 @@ List file: reports/seo-cdn-purge-urls.txt
 Command file: reports/seo-cdn-purge-command.txt
 
 - https://camps.wanli.wiki/robots.txt
-- https://camps.wanli.wiki/sitemap-context.xml
 - https://camps.wanli.wiki/llms.txt
 
 ## Purge Command
@@ -36,9 +35,9 @@ Copy the command from `reports/seo-cdn-purge-command.txt` and run it in the Tenc
 
 Asset | Canonical cache evidence | Source-bypass cache evidence
 --- | --- | ---
-robots.txt | etag="446770a1d8dd644a7dec36209fca76b7"; last-modified=Tue, 09 Jun 2026 11:01:10 GMT; x-cache-lookup=Cache Hit, Cache Miss; server=tencent-cos | cache-control=no-cache, max-age=0; etag="ef2b512035a3e18a44959dfbecfdd636"; last-modified=Fri, 12 Jun 2026 16:52:38 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
-sitemap-context.xml | etag="b76eb12f87ce1f8f7b887c34502a65dc"; last-modified=Tue, 09 Jun 2026 16:10:30 GMT; x-cache-lookup=Cache Hit, Cache Miss; server=tencent-cos | cache-control=no-cache, max-age=0; etag="c7a87e1343b5716bf35d204911f07624"; last-modified=Tue, 09 Jun 2026 17:35:26 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
-llms.txt | etag="e2de09ea323d1d885a2e440866232fdd"; last-modified=Tue, 09 Jun 2026 11:01:05 GMT; x-cache-lookup=Cache Hit, Cache Miss; server=tencent-cos | cache-control=no-cache, max-age=0; etag="b596163f1cbd694adcf2f33e67eae542"; last-modified=Tue, 09 Jun 2026 17:35:23 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+robots.txt | etag="446770a1d8dd644a7dec36209fca76b7"; last-modified=Tue, 09 Jun 2026 11:01:10 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | cache-control=no-cache, max-age=0; etag="ef2b512035a3e18a44959dfbecfdd636"; last-modified=Fri, 12 Jun 2026 16:52:38 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+sitemap-context.xml | cache-control=no-cache, max-age=0; etag="c7a87e1343b5716bf35d204911f07624"; last-modified=Tue, 09 Jun 2026 17:35:26 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | cache-control=no-cache, max-age=0; etag="c7a87e1343b5716bf35d204911f07624"; last-modified=Tue, 09 Jun 2026 17:35:26 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
+llms.txt | etag="e2de09ea323d1d885a2e440866232fdd"; last-modified=Tue, 09 Jun 2026 11:01:05 GMT; x-cache-lookup=Cache Hit; server=tencent-cos | cache-control=no-cache, max-age=0; etag="b596163f1cbd694adcf2f33e67eae542"; last-modified=Tue, 09 Jun 2026 17:35:23 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
 site-facts.json | cache-control=no-cache, max-age=0; etag="deddb6a397cbd70fc79674255da833f8"; last-modified=Tue, 09 Jun 2026 17:35:27 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos | cache-control=no-cache, max-age=0; etag="deddb6a397cbd70fc79674255da833f8"; last-modified=Tue, 09 Jun 2026 17:35:27 GMT; age=0; x-cache-lookup=Cache Miss, Cache Miss; server=tencent-cos
 
 ## Current Account Check
