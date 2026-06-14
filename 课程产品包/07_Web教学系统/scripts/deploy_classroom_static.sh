@@ -11,6 +11,7 @@ CLASSROOM_PREFIX="${CLASSROOM_PREFIX:-classroom}"
 CLASSROOM_BASE="/${CLASSROOM_PREFIX#/}/"
 STATIC_CACHE_CONTROL="${STATIC_CACHE_CONTROL:-public, max-age=31536000, immutable}"
 HTML_CACHE_CONTROL="${HTML_CACHE_CONTROL:-no-cache, max-age=0}"
+ROOT_ENTRY_ALIASES="${ROOT_ENTRY_ALIASES:-true}"
 
 if ! command -v coscmd >/dev/null 2>&1; then
   echo "coscmd not found" >&2
@@ -71,5 +72,18 @@ while IFS= read -r -d '' file; do
   fi
   upload_file "$file" "${CLASSROOM_BASE}${name}" "text/html; charset=utf-8" "$HTML_CACHE_CONTROL"
 done < <(find "$DIST_DIR" -maxdepth 1 -type f -name '*.html' -print0)
+
+if [[ "$ROOT_ENTRY_ALIASES" == "true" ]]; then
+  while IFS= read -r -d '' file; do
+    rel="${file#$DIST_DIR/}"
+    name="${rel%.html}"
+    if [[ "$rel" == "$name" || "$rel" == "index.html" || "$rel" == */* ]]; then
+      continue
+    fi
+    upload_file "$file" "/$rel" "text/html; charset=utf-8" "$HTML_CACHE_CONTROL"
+    upload_file "$file" "/$name" "text/html; charset=utf-8" "$HTML_CACHE_CONTROL"
+    upload_file "$file" "/$name/index.html" "text/html; charset=utf-8" "$HTML_CACHE_CONTROL"
+  done < <(find "$DIST_DIR" -maxdepth 1 -type f -name '*.html' -print0)
+fi
 
 echo "Classroom static deployed to ${CLASSROOM_BASE}"
