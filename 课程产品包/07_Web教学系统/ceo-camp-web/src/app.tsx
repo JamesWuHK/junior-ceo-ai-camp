@@ -9732,6 +9732,146 @@ function cardLimitForPage(page: DesignedLessonPage, cards: LessonCard[]) {
   return Math.min(cards.length, 4);
 }
 
+function TrackProjectArtifact({ page }: { page: DesignedLessonPage }) {
+  const trackKey = trackProjectForPage(page);
+  const track = trackKey ? productTrackOptions.find((item) => item.value === trackKey) : null;
+  const choice = trackKey ? trackProjectChoices[trackKey] : null;
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const viewerPointerStartRef = useRef<number | null>(null);
+  const activeProject = viewerIndex === null ? null : choice?.projects[viewerIndex] ?? null;
+
+  useEffect(() => {
+    if (!choice || viewerIndex === null) return undefined;
+
+    const onKey = (event: KeyboardEvent) => {
+      if (!["Escape", "ArrowLeft", "ArrowRight"].includes(event.key)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      if (event.key === "Escape") setViewerIndex(null);
+      if (event.key === "ArrowLeft") {
+        setViewerIndex((current) =>
+          current === null ? current : (current - 1 + choice.projects.length) % choice.projects.length
+        );
+      }
+      if (event.key === "ArrowRight") {
+        setViewerIndex((current) => (current === null ? current : (current + 1) % choice.projects.length));
+      }
+    };
+
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [choice, viewerIndex]);
+
+  if (!track || !choice) return null;
+
+  const showPreviousStory = () => {
+    setViewerIndex((current) =>
+      current === null ? current : (current - 1 + choice.projects.length) % choice.projects.length
+    );
+  };
+
+  const showNextStory = () => {
+    setViewerIndex((current) => (current === null ? current : (current + 1) % choice.projects.length));
+  };
+
+  const handleViewerPointerUp = (event: React.PointerEvent) => {
+    if (viewerPointerStartRef.current === null) return;
+    const distance = event.clientX - viewerPointerStartRef.current;
+    viewerPointerStartRef.current = null;
+    if (Math.abs(distance) < 48) return;
+    if (distance > 0) {
+      showPreviousStory();
+    } else {
+      showNextStory();
+    }
+  };
+
+  return (
+    <div className="timeline-artifact artifact-track-projects">
+      <header>
+        <small>{track.label}</small>
+        <strong>选一个最想帮的小麻烦</strong>
+        <span>{choice.intro}</span>
+      </header>
+      {choice.projects.map((project, index) => (
+        <article key={project.title}>
+          <small>{index + 1}</small>
+          <strong>{project.title}</strong>
+          <span className="track-project-user">{project.user}</span>
+          <figure className="track-comic-figure">
+            <button
+              type="button"
+              className="track-comic-open"
+              onClick={() => setViewerIndex(index)}
+              aria-label={`放大看：${project.title}`}
+            >
+              <img src={project.image} alt={project.imageAlt} loading="lazy" />
+              <span>放大看故事</span>
+            </button>
+          </figure>
+          <ol className="track-comic-captions" aria-label={`${project.title} 四格字幕`}>
+            {project.frames.map((frame, panelIndex) => (
+              <li key={`${project.title}-${frame.caption}`}>
+                <b>{panelIndex + 1}</b>
+                <span>
+                  <strong>{frame.caption}</strong>
+                  <em>{frame.text}</em>
+                </span>
+              </li>
+            ))}
+          </ol>
+          <p className="track-story-line">{project.story}</p>
+          <em>{project.question}</em>
+        </article>
+      ))}
+      <footer>你们想先问谁？最想问清哪件小事？</footer>
+
+      {activeProject && viewerIndex !== null && (
+        <section className="track-comic-viewer" role="dialog" aria-modal="true" aria-label="放大看故事">
+          <button className="track-comic-viewer-close" type="button" onClick={() => setViewerIndex(null)} aria-label="关闭">
+            <X size={24} />
+          </button>
+          <button className="track-comic-viewer-nav previous" type="button" onClick={showPreviousStory} aria-label="上一个故事">
+            <ChevronLeft size={34} />
+          </button>
+          <figure
+            onPointerDown={(event) => {
+              viewerPointerStartRef.current = event.clientX;
+            }}
+            onPointerUp={handleViewerPointerUp}
+          >
+            <img src={activeProject.image} alt={activeProject.imageAlt} draggable={false} />
+            <figcaption>
+              <div className="track-comic-viewer-head">
+                <small>{track.label}</small>
+                <strong>{activeProject.title}</strong>
+                <span>{activeProject.user}</span>
+              </div>
+              <ol className="track-comic-viewer-captions" aria-label={`${activeProject.title} 四格字幕`}>
+                {activeProject.frames.map((frame, panelIndex) => (
+                  <li key={`${activeProject.title}-${frame.caption}`}>
+                    <b>{panelIndex + 1}</b>
+                    <span>
+                      <strong>{frame.caption}</strong>
+                      <em>{frame.text}</em>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+              <p>{activeProject.story}</p>
+              <em>{activeProject.question}</em>
+            </figcaption>
+          </figure>
+          <button className="track-comic-viewer-nav next" type="button" onClick={showNextStory} aria-label="下一个故事">
+            <ChevronRight size={34} />
+          </button>
+        </section>
+      )}
+    </div>
+  );
+}
+
 function LessonArtifact({
   kind,
   page,
@@ -9919,43 +10059,7 @@ function LessonArtifact({
 	  }
 
 	  if (kind === "track-projects") {
-	    const trackKey = trackProjectForPage(page);
-	    const track = trackKey ? productTrackOptions.find((item) => item.value === trackKey) : null;
-	    const choice = trackKey ? trackProjectChoices[trackKey] : null;
-	    if (!track || !choice) return null;
-	    return (
-	      <div className="timeline-artifact artifact-track-projects">
-	        <header>
-	          <small>{track.label}</small>
-	          <strong>选一个最想帮的小麻烦</strong>
-	          <span>{choice.intro}</span>
-	        </header>
-	        {choice.projects.map((project, index) => (
-	          <article key={project.title}>
-	            <small>{index + 1}</small>
-	            <strong>{project.title}</strong>
-	            <span className="track-project-user">{project.user}</span>
-	            <figure className="track-comic-figure">
-	              <img src={project.image} alt={project.imageAlt} loading="lazy" />
-	            </figure>
-	            <ol className="track-comic-captions" aria-label={`${project.title} 四格字幕`}>
-	              {project.frames.map((frame, panelIndex) => (
-	                <li key={`${project.title}-${frame.caption}`}>
-	                  <b>{panelIndex + 1}</b>
-	                  <span>
-	                    <strong>{frame.caption}</strong>
-	                    <em>{frame.text}</em>
-	                  </span>
-	                </li>
-	              ))}
-	            </ol>
-	            <p className="track-story-line">{project.story}</p>
-	            <em>{project.question}</em>
-	          </article>
-	        ))}
-	        <footer>你们想先问谁？最想问清哪件小事？</footer>
-	      </div>
-	    );
+	    return <TrackProjectArtifact page={page} />;
 	  }
 
 	  if (kind === "direction-question") {
