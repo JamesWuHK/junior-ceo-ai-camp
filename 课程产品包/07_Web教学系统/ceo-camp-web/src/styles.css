@@ -8946,6 +8946,96 @@ button:disabled {
   box-shadow: none;
 }
 
+.presentation-slide .track-comic-slide {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(10px, 1.2vw, 18px);
+  padding: clamp(18px, 2.2vw, 34px) clamp(20px, 2.6vw, 40px) clamp(82px, 8vh, 104px);
+}
+
+.presentation-slide .track-comic-slide .timeline-copy {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px clamp(14px, 2vw, 28px);
+  align-content: start;
+}
+
+.presentation-slide .track-comic-slide .timeline-copy small,
+.presentation-slide .track-comic-slide .lesson-beat-strip {
+  display: none;
+}
+
+.presentation-slide .track-comic-slide .timeline-copy h2 {
+  font-size: clamp(30px, 3.4vw, 50px);
+}
+
+.presentation-slide .track-comic-slide .timeline-copy p {
+  font-size: clamp(15px, 1.25vw, 20px);
+  max-width: 50ch;
+}
+
+.presentation-slide .track-comic-slide .timeline-chip-row {
+  display: none;
+}
+
+.presentation-slide .track-comic-slide .timeline-visual {
+  display: grid;
+  min-height: 0;
+  padding: clamp(12px, 1.4vw, 22px);
+}
+
+.presentation-slide .track-comic-slide .artifact-track-projects {
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  align-content: stretch;
+  gap: clamp(10px, 1vw, 16px);
+}
+
+.presentation-slide .track-comic-slide .artifact-track-projects header {
+  padding: clamp(10px, 1vw, 16px);
+}
+
+.presentation-slide .track-comic-slide .artifact-track-projects article {
+  min-height: 0;
+  height: 100%;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto auto;
+  align-content: stretch;
+  gap: clamp(6px, 0.72vw, 10px);
+  overflow: hidden;
+  padding: clamp(10px, 1vw, 16px);
+}
+
+.presentation-slide .track-comic-slide .track-comic-figure {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 0;
+  height: 100%;
+  margin: 0;
+}
+
+.presentation-slide .track-comic-slide .track-comic-figure img {
+  height: 100%;
+  max-height: none;
+  aspect-ratio: auto;
+  object-fit: contain;
+}
+
+.presentation-slide .track-comic-slide .track-comic-captions li {
+  padding: 6px 7px;
+}
+
+.presentation-slide .track-comic-slide .track-comic-captions strong {
+  font-size: clamp(11px, 0.85vw, 14px);
+}
+
+.presentation-slide .track-comic-slide .track-comic-captions em,
+.presentation-slide .track-comic-slide .track-story-line,
+.presentation-slide .track-comic-slide .artifact-track-projects article > em {
+  font-size: clamp(10px, 0.76vw, 13px);
+}
+
 .presentation-slide .photo-wall.lesson {
   max-height: calc(100dvh - 170px);
 }
