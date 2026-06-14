@@ -1097,6 +1097,18 @@ const moduleDesigns: Record<
       { title: "价格", text: "别人觉得值得换多少" }
     ]
   },
+  "team-building": {
+    icon: UsersRound,
+    accent: "mint",
+    chips: ["找队友", "起队名", "亮个相"],
+    steps: ["找到今天的队友", "坐到同一张桌子", "给团队起一个名字"],
+    cards: [
+      { title: "队友", text: "今天一起做项目的人" },
+      { title: "桌号", text: "找到自己的团队桌" },
+      { title: "团队名", text: "短一点，好记一点" },
+      { title: "亮相", text: "让大家知道你们来了" }
+    ]
+  },
   "problem-wall": {
     icon: StickyNote,
     accent: "coral",
@@ -1378,6 +1390,11 @@ const moduleDesigns: Record<
 };
 
 const fallbackLessonPages: Record<string, LessonPageSeed[]> = {
+  "team-building": [
+    { page_no: 1, title: "找到今天的队友", page_type: "teamwork", content_summary: "看见今天一起做项目的伙伴，先坐到同一张桌子。" },
+    { page_no: 2, title: "给团队起一个名字", page_type: "teamwork", content_summary: "名字短一点、好记一点，大家都愿意喊。" },
+    { page_no: 3, title: "团队亮个相", page_type: "experiment", content_summary: "说出团队名和成员，让全班记住你们。" }
+  ],
   "workbuddy-webpage": [
     { page_no: 1, title: "一句话让小游戏跑起来", page_type: "story", content_summary: "输入一句话，浏览器里出现一个能玩的俄罗斯方块页面" },
     { page_no: 2, title: "它不只会做游戏", page_type: "demo", content_summary: "同样的能力也能做帮助别人的小页面" },
@@ -1403,6 +1420,12 @@ const fallbackLessonPages: Record<string, LessonPageSeed[]> = {
 	    { page_no: 6, title: "小组时间：选一个最想帮的小麻烦", page_type: "teamwork", content_summary: "从 12 个故事或自己的发现里选一个，说清想帮谁、麻烦在哪里发生" },
 	    { page_no: 7, title: "留下方向和一个问题", page_type: "experiment", content_summary: "今天先写下想帮谁、事情发生在哪里、你们最想问的一句话" }
 	  ],
+  "project-launch": [
+    { page_no: 1, title: "团队讨论：定下今天要做的项目", page_type: "teamwork", content_summary: "从刚才的故事和真实发现里，选一个最想继续做的小麻烦。" },
+    { page_no: 2, title: "写清想帮的人", page_type: "teamwork", content_summary: "这个人是谁？什么时候会卡住？最烦的是哪一步？" },
+    { page_no: 3, title: "产品一句话", page_type: "teamwork", content_summary: "我们做一个产品，帮谁在什么场景里少掉一个麻烦。" },
+    { page_no: 4, title: "把团队方向放上来", page_type: "experiment", content_summary: "放上团队名、主赛道、想帮谁、卡点和产品一句话。" }
+  ],
   "problem-wall": [
     { page_no: 1, title: "团队讨论：生活小麻烦", page_type: "teamwork", content_summary: "每个人先写一个真实遇到过的小麻烦" },
     { page_no: 2, title: "抓一张最想追的线索", page_type: "teamwork", content_summary: "团队把小麻烦写成谁、在哪、卡在哪" },
@@ -1559,10 +1582,46 @@ function fallbackCourseModule(
 function normalizeCourseModules(modules: CourseModule[]) {
   const normalized = modules
     .map((module) => {
-      if (module.id === "team-formation") {
+      if (module.id === "future-photo-studio") {
+        return {
+          ...module,
+          sequence: 1,
+          time_range: "09:00-09:40"
+        };
+      }
+
+      if (module.id === "team-building") {
+        return {
+          ...module,
+          day: 1,
+          sequence: 2,
+          title: "组建团队",
+          subtitle: "找到队友，起一个团队名",
+          time_range: "09:40-10:00",
+          pages: pagesFromSeeds(module.id, fallbackLessonPages["team-building"])
+        };
+      }
+
+      if (module.id === "ai-judgement") {
+        return {
+          ...module,
+          sequence: 3,
+          time_range: "10:00-10:35"
+        };
+      }
+
+      if (module.id === "workbuddy-webpage") {
         return {
           ...module,
           sequence: 4,
+          time_range: "10:35-11:00"
+        };
+      }
+
+      if (module.id === "team-formation") {
+        return {
+          ...module,
+          sequence: 5,
           title: "从一个小麻烦开始",
           subtitle: "先看真实麻烦，再看产品怎样帮别人",
           time_range: "11:00-11:50",
@@ -1570,18 +1629,10 @@ function normalizeCourseModules(modules: CourseModule[]) {
         };
       }
 
-      if (module.id === "workbuddy-webpage") {
-        return {
-          ...module,
-          sequence: 3,
-          time_range: "10:35-11:00"
-        };
-      }
-
       if (module.id === "track-cases") {
         return {
           ...module,
-          sequence: 5,
+          sequence: 6,
           title: "选方向，找想帮的人",
           subtitle: "先听故事，再决定要问谁",
           time_range: "13:30-14:20",
@@ -1589,15 +1640,39 @@ function normalizeCourseModules(modules: CourseModule[]) {
         };
       }
 
+      if (module.id === "project-launch") {
+        return {
+          ...module,
+          sequence: 7,
+          title: "定下项目方向",
+          subtitle: "说清想帮谁，明天先做哪一步",
+          time_range: "14:20-15:10",
+          pages: pagesFromSeeds(module.id, fallbackLessonPages["project-launch"])
+        };
+      }
+
       return module;
     });
+
+  if (!normalized.some((module) => module.id === "team-building")) {
+    normalized.push(
+      fallbackCourseModule(
+        "team-building",
+        1,
+        2,
+        "组建团队",
+        "找到队友，起一个团队名",
+        "09:40-10:00"
+      )
+    );
+  }
 
   if (!normalized.some((module) => module.id === "workbuddy-webpage")) {
     normalized.push(
       fallbackCourseModule(
         "workbuddy-webpage",
         1,
-        3,
+        4,
         "WorkBuddy 变网页",
         "看一句话怎样变成能点开的页面",
         "10:35-11:00"
@@ -1918,6 +1993,7 @@ function taskTypeForAction(action: string, page: DesignedLessonPage) {
   if (action === "进入评分") return "score";
   if (action === "发起互动") return "interaction";
   if (action === "打开看板") return "board";
+  if (page.module_id === "team-building") return "team_card";
   if (page.module_id === "workbuddy-webpage" || page.module_id === "track-cases") return "product_definition";
   if (/卡在哪里|卡点写清楚|需要帮/.test(page.title)) return "blocker_note";
   if (page.title.includes("下一次我怎么指挥 AI")) return "growth_reflection";
@@ -1954,6 +2030,7 @@ function isTeamCardTask(camp: Camp | null) {
   return (
     activityType === "team_card" ||
     payloadType === "team_card" ||
+    moduleId === "team-building" ||
     moduleId === "team-formation" ||
     /团队名片|团队名称和方向|团队名和方向卡|帮忙卡|给团队起名|找到你的桌号|找到队友|名字和方向/.test(title)
   );
@@ -4360,6 +4437,7 @@ const progressFocusMilestones: Record<Exclude<ProgressFocusKey, "current">, Arra
 
 const moduleProgressFocus: Record<string, Exclude<ProgressFocusKey, "current" | "all">> = {
   "future-photo-studio": "d1",
+  "team-building": "d1",
   "team-formation": "d1",
   "problem-wall": "d1",
   "ai-judgement": "d1",
@@ -8578,6 +8656,8 @@ function artifactKindForPage(module: CourseModule, page: DesignedLessonPage): Le
   ]);
   if (storyCardPages.has(page.title)) return null;
 
+  if (module.id === "team-building") return "team-roles";
+
   if (module.id === "team-formation") {
     if (/为什么愿意换|价值交换|价格/.test(page.title)) {
       return "pricing-ticket";
@@ -9615,6 +9695,7 @@ function specialStepsForPage(page: DesignedLessonPage) {
 
 function expectedOutputForLesson(module: CourseModule, page: DesignedLessonPage) {
   const outputs: Record<string, string> = {
+    "team-building": "提交一张团队名片：团队名、成员和一句亮相",
     "team-formation": "提交一张帮忙卡：想帮谁、卡在哪、先帮哪一步、少掉什么麻烦",
     "problem-wall": "提交一张问题卡：谁、在哪里、遇到什么麻烦",
     "ai-judgement": "提交一张 WorkBuddy 出图卡：画面描述、想修改的细节和下一步",
@@ -9886,8 +9967,8 @@ function LessonArtifact({
   if (kind === "team-roles") {
     const teamCards = [
       ["成员", "老师分好的小组", "看见今天一起出发的人"],
+      ["桌号", "找到团队桌", "先坐到一起"],
       ["名称", "给团队起名", "起一个能被记住的名字"],
-      ["方向", "选一个真实问题", "先定想继续做哪件事"],
       ["亮相", "一句话出场", "让大家记住你们"]
     ];
     return (
@@ -12337,6 +12418,10 @@ function StudentTeamCardTask({
   const [exchangeGuess, setExchangeGuess] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
+  const activeTaskTitle = taskTitle || camp?.active_task?.title || "";
+  const isTeamNameOnly =
+    camp?.active_task?.module_id === "team-building" ||
+    /组建团队|找到今天的队友|给团队起一个名字|团队亮个相/.test(activeTaskTitle);
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
@@ -12382,24 +12467,28 @@ function StudentTeamCardTask({
       showMessage("error", "先给团队起一个能被记住的名字。");
       return;
     }
-    if (!targetUser.trim()) {
+    if (!isTeamNameOnly && !targetUser.trim()) {
       showMessage("error", "先写你们想帮谁。");
       return;
     }
-    if (!stuckPoint.trim()) {
+    if (!isTeamNameOnly && !stuckPoint.trim()) {
       showMessage("error", "写清他卡在哪一步。");
       return;
     }
-    if (!firstStep.trim()) {
+    if (!isTeamNameOnly && !firstStep.trim()) {
       showMessage("error", "写清你们先帮哪一步。");
       return;
     }
-    if (!lessTrouble.trim()) {
+    if (!isTeamNameOnly && !lessTrouble.trim()) {
       showMessage("error", "写清帮完以后少掉什么麻烦。");
       return;
     }
-    const productDirection = `帮${targetUser.trim()}，先做${firstStep.trim()}，让他少掉${lessTrouble.trim()}`;
-    const launchLine = `我们是${teamName.trim()}，想帮${targetUser.trim()}。他卡在${stuckPoint.trim()}，第一版先做${firstStep.trim()}，让他少掉${lessTrouble.trim()}。`;
+    const productDirection = isTeamNameOnly
+      ? ""
+      : `帮${targetUser.trim()}，先做${firstStep.trim()}，让他少掉${lessTrouble.trim()}`;
+    const launchLine = isTeamNameOnly
+      ? `我们是${teamName.trim()}。`
+      : `我们是${teamName.trim()}，想帮${targetUser.trim()}。他卡在${stuckPoint.trim()}，第一版先做${firstStep.trim()}，让他少掉${lessTrouble.trim()}。`;
     setSubmitting(true);
     setMessage(null);
     try {
@@ -12421,7 +12510,7 @@ function StudentTeamCardTask({
           class_team_name: student.team_name || ""
         }
       });
-      showMessage("success", "收到。你们的帮忙卡已经上墙准备亮相。");
+      showMessage("success", isTeamNameOnly ? "收到。你们的团队名已经准备亮相。" : "收到。你们的帮忙卡已经上墙准备亮相。");
       await refresh();
     } catch (err) {
       showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
@@ -12434,8 +12523,8 @@ function StudentTeamCardTask({
     <main className="student-page">
       <section className="student-shell">
         <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
-        <h1>{taskTitle || "写第一张帮忙卡"}</h1>
-        <p>老师已经分好成员。你们来决定团队名和第一张帮忙卡。</p>
+        <h1>{taskTitle || (isTeamNameOnly ? "给团队起一个名字" : "写第一张帮忙卡")}</h1>
+        <p>{isTeamNameOnly ? "老师已经分好成员。你们先给团队起一个名字。" : "老师已经分好成员。你们来决定团队名和第一张帮忙卡。"}</p>
         <div className="student-card d1-task-card team-card-form">
           <div className="student-current">
             <div>
@@ -12469,126 +12558,136 @@ function StudentTeamCardTask({
               ))}
             </div>
           )}
-          <label>
-            <span className="field-helper-row">
-              <span>我们想帮谁</span>
-              <FieldVoiceButton
-                fieldKey="target-user"
-                label="说出你们想帮谁"
-                listeningKey={listeningKey}
-                onStart={() => startVoiceInput("target-user", setTargetUser)}
-              />
-            </span>
-            <textarea
-              value={targetUser}
-              onChange={(event) => setTargetUser(event.target.value)}
-              placeholder="例如：课间拿不定主意的同学"
-              rows={2}
-            />
-          </label>
-          <label>
-            <span className="field-helper-row">
-              <span>他卡在哪</span>
-              <FieldVoiceButton
-                fieldKey="stuck-point"
-                label="说出卡住的一步"
-                listeningKey={listeningKey}
-                onStart={() => startVoiceInput("stuck-point", setStuckPoint)}
-              />
-            </span>
-            <textarea
-              value={stuckPoint}
-              onChange={(event) => setStuckPoint(event.target.value)}
-              placeholder="例如：大家讨论玩什么就花掉很多时间"
-              rows={2}
-            />
-          </label>
-          <label>
-            <span className="field-helper-row">
-              <span>还有谁也会遇到</span>
-              <FieldVoiceButton
-                fieldKey="other-users"
-                label="说出还有谁会遇到"
-                listeningKey={listeningKey}
-                onStart={() => startVoiceInput("other-users", setOtherUsers)}
-              />
-            </span>
-            <textarea
-              value={otherUsers}
-              onChange={(event) => setOtherUsers(event.target.value)}
-              placeholder="例如：别的班同学、兴趣小组、放学后的同学"
-              rows={2}
-            />
-          </label>
-          <label>
-            <span className="field-helper-row">
-              <span>我们先帮哪一步</span>
-              <FieldVoiceButton
-                fieldKey="first-step"
-                label="说出先帮哪一步"
-                listeningKey={listeningKey}
-                onStart={() => startVoiceInput("first-step", setFirstStep)}
-              />
-            </span>
-            <textarea
-              value={firstStep}
-              onChange={(event) => setFirstStep(event.target.value)}
-              placeholder="例如：先生成上学出门清单，或者先把应用题拆成四块"
-              rows={2}
-            />
-          </label>
-          <label>
-            <span className="field-helper-row">
-              <span>帮完以后少掉什么麻烦</span>
-              <FieldVoiceButton
-                fieldKey="less-trouble"
-                label="说出少掉什么麻烦"
-                listeningKey={listeningKey}
-                onStart={() => startVoiceInput("less-trouble", setLessTrouble)}
-              />
-            </span>
-            <textarea
-              value={lessTrouble}
-              onChange={(event) => setLessTrouble(event.target.value)}
-              placeholder="例如：出门前不用一遍遍问有没有漏带"
-              rows={2}
-            />
-          </label>
-          <label>
-            <span className="field-helper-row">
-              <span>他可能愿意拿什么来换（可选）</span>
-              <FieldVoiceButton
-                fieldKey="exchange-guess"
-                label="说出愿意换什么"
-                listeningKey={listeningKey}
-                onStart={() => startVoiceInput("exchange-guess", setExchangeGuess)}
-              />
-            </span>
-            <textarea
-              value={exchangeGuess}
-              onChange={(event) => setExchangeGuess(event.target.value)}
-              placeholder="例如：愿意花 30 秒打开，或者推荐给同桌"
-              rows={2}
-            />
-          </label>
+          {!isTeamNameOnly && (
+            <>
+              <label>
+                <span className="field-helper-row">
+                  <span>我们想帮谁</span>
+                  <FieldVoiceButton
+                    fieldKey="target-user"
+                    label="说出你们想帮谁"
+                    listeningKey={listeningKey}
+                    onStart={() => startVoiceInput("target-user", setTargetUser)}
+                  />
+                </span>
+                <textarea
+                  value={targetUser}
+                  onChange={(event) => setTargetUser(event.target.value)}
+                  placeholder="例如：课间拿不定主意的同学"
+                  rows={2}
+                />
+              </label>
+              <label>
+                <span className="field-helper-row">
+                  <span>他卡在哪</span>
+                  <FieldVoiceButton
+                    fieldKey="stuck-point"
+                    label="说出卡住的一步"
+                    listeningKey={listeningKey}
+                    onStart={() => startVoiceInput("stuck-point", setStuckPoint)}
+                  />
+                </span>
+                <textarea
+                  value={stuckPoint}
+                  onChange={(event) => setStuckPoint(event.target.value)}
+                  placeholder="例如：大家讨论玩什么就花掉很多时间"
+                  rows={2}
+                />
+              </label>
+              <label>
+                <span className="field-helper-row">
+                  <span>还有谁也会遇到</span>
+                  <FieldVoiceButton
+                    fieldKey="other-users"
+                    label="说出还有谁会遇到"
+                    listeningKey={listeningKey}
+                    onStart={() => startVoiceInput("other-users", setOtherUsers)}
+                  />
+                </span>
+                <textarea
+                  value={otherUsers}
+                  onChange={(event) => setOtherUsers(event.target.value)}
+                  placeholder="例如：别的班同学、兴趣小组、放学后的同学"
+                  rows={2}
+                />
+              </label>
+              <label>
+                <span className="field-helper-row">
+                  <span>我们先帮哪一步</span>
+                  <FieldVoiceButton
+                    fieldKey="first-step"
+                    label="说出先帮哪一步"
+                    listeningKey={listeningKey}
+                    onStart={() => startVoiceInput("first-step", setFirstStep)}
+                  />
+                </span>
+                <textarea
+                  value={firstStep}
+                  onChange={(event) => setFirstStep(event.target.value)}
+                  placeholder="例如：先生成上学出门清单，或者先把应用题拆成四块"
+                  rows={2}
+                />
+              </label>
+              <label>
+                <span className="field-helper-row">
+                  <span>帮完以后少掉什么麻烦</span>
+                  <FieldVoiceButton
+                    fieldKey="less-trouble"
+                    label="说出少掉什么麻烦"
+                    listeningKey={listeningKey}
+                    onStart={() => startVoiceInput("less-trouble", setLessTrouble)}
+                  />
+                </span>
+                <textarea
+                  value={lessTrouble}
+                  onChange={(event) => setLessTrouble(event.target.value)}
+                  placeholder="例如：出门前不用一遍遍问有没有漏带"
+                  rows={2}
+                />
+              </label>
+              <label>
+                <span className="field-helper-row">
+                  <span>他可能愿意拿什么来换（可选）</span>
+                  <FieldVoiceButton
+                    fieldKey="exchange-guess"
+                    label="说出愿意换什么"
+                    listeningKey={listeningKey}
+                    onStart={() => startVoiceInput("exchange-guess", setExchangeGuess)}
+                  />
+                </span>
+                <textarea
+                  value={exchangeGuess}
+                  onChange={(event) => setExchangeGuess(event.target.value)}
+                  placeholder="例如：愿意花 30 秒打开，或者推荐给同桌"
+                  rows={2}
+                />
+              </label>
+            </>
+          )}
           <div className="team-card-preview" aria-label="帮忙卡预览">
-            <span>帮忙卡</span>
+            <span>{isTeamNameOnly ? "团队名片" : "帮忙卡"}</span>
             <strong>{teamName.trim() || "还没起名"}</strong>
             <div>
               <p><b>成员</b>{teamMembers.join("、") || student.nickname}</p>
-              <p><b>想帮谁</b>{targetUser.trim() || "写一个真实的人"}</p>
-              <p><b>卡在哪</b>{stuckPoint.trim() || "写清最烦的一步"}</p>
-              <p><b>先帮哪一步</b>{firstStep.trim() || "写一个能先试的小动作"}</p>
-              <p><b>少掉麻烦</b>{lessTrouble.trim() || "写帮完以后轻松了哪里"}</p>
-              <p><b>愿意换</b>{exchangeGuess.trim() || "可以先空着，等试玩后再改"}</p>
+              {isTeamNameOnly ? (
+                <p><b>亮相</b>{teamName.trim() ? `我们是${teamName.trim()}` : "起好名字后亮相"}</p>
+              ) : (
+                <>
+                  <p><b>想帮谁</b>{targetUser.trim() || "写一个真实的人"}</p>
+                  <p><b>卡在哪</b>{stuckPoint.trim() || "写清最烦的一步"}</p>
+                  <p><b>先帮哪一步</b>{firstStep.trim() || "写一个能先试的小动作"}</p>
+                  <p><b>少掉麻烦</b>{lessTrouble.trim() || "写帮完以后轻松了哪里"}</p>
+                  <p><b>愿意换</b>{exchangeGuess.trim() || "可以先空着，等试玩后再改"}</p>
+                </>
+              )}
             </div>
-            <small>{otherUsers.trim() || "还可以写：还有谁也会遇到"}</small>
+            <small>{isTeamNameOnly ? "方向等下午看完项目故事以后再定。" : otherUsers.trim() || "还可以写：还有谁也会遇到"}</small>
           </div>
           <button className="submit-button" disabled={submitting} onClick={submit}>
             {submitting ? <Loader2 className="spin" size={18} /> : <UsersRound size={18} />}
             提交
           </button>
-          <p className="hint">每格只写一句就够，也可以直接说出来。</p>
+          <p className="hint">{isTeamNameOnly ? "现在只起团队名，项目方向等下午再定。" : "每格只写一句就够，也可以直接说出来。"}</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
