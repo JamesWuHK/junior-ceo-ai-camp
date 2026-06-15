@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" role="img" aria-labelledby="title desc">
+  <title id="title">奶奶端热汤太烫四格连环画</title>
+  <desc id="desc">奶奶从厨房端热汤，手被烫到，汤差点洒出，孩子思考怎样端得更安全。</desc>
+  <defs>
+    <style>
+      .bg { fill: #fff8e8; }
+      .panel { fill: #fffdf6; stroke: #172018; stroke-width: 8; rx: 34; }
+      .line { fill: none; stroke: #172018; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+      .thin { fill: none; stroke: #172018; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+      .skin { fill: #f4c9a6; stroke: #172018; stroke-width: 6; }
+      .hair { fill: #dfe4dc; stroke: #172018; stroke-width: 6; }
+      .shirt { fill: #7cc7a4; stroke: #172018; stroke-width: 6; }
+      .kid { fill: #f6c85f; stroke: #172018; stroke-width: 6; }
+      .soup { fill: #f58b49; stroke: #172018; stroke-width: 6; }
+      .steam { fill: none; stroke: #ef7d58; stroke-width: 7; stroke-linecap: round; }
+      .accent { fill: #65a8d8; stroke: #172018; stroke-width: 6; }
+      .danger { fill: #f05f57; stroke: #172018; stroke-width: 6; }
+      text { font-family: "PingFang SC", "Noto Sans CJK SC", sans-serif; fill: #172018; font-weight: 800; }
+      .cap { font-size: 44px; }
+      .num { font-size: 34px; fill: #fffdf6; }
+    </style>
+  </defs>
+  <rect class="bg" width="1600" height="1200"/>
+  <g transform="translate(55 45)">
+    <rect class="panel" x="0" y="0" width="710" height="520" rx="34"/>
+    <rect class="panel" x="780" y="0" width="710" height="520" rx="34"/>
+    <rect class="panel" x="0" y="590" width="710" height="520" rx="34"/>
+    <rect class="panel" x="780" y="590" width="710" height="520" rx="34"/>
+
+    <g transform="translate(34 28)">
+      <circle class="danger" cx="38" cy="38" r="28"/><text class="num" x="28" y="50">1</text>
+      <rect class="accent" x="48" y="335" width="190" height="72" rx="12"/>
+      <path class="thin" d="M62 335v-90h130v90M92 255h70M120 255v-60"/>
+      <circle class="skin" cx="365" cy="142" r="56"/>
+      <path class="hair" d="M312 132c18-72 106-72 112 3 20 15 19 58-9 75-28 17-83 10-102-7-28-25-31-56-1-71z"/>
+      <path class="shirt" d="M304 230c46-30 100-30 144 0l36 170H270z"/>
+      <path class="line" d="M294 278c-45 20-74 48-88 82M468 278c48 20 78 48 94 82"/>
+      <ellipse class="soup" cx="383" cy="355" rx="112" ry="44"/>
+      <path class="soup" d="M276 355h214l-30 92H306z"/>
+      <path class="steam" d="M336 292c-28-34 28-43 0-82M386 292c-28-34 28-43 0-82M436 292c-28-34 28-43 0-82"/>
+      <text class="cap" x="248" y="472">这碗汤好烫</text>
+    </g>
+
+    <g transform="translate(814 28)">
+      <circle class="danger" cx="38" cy="38" r="28"/><text class="num" x="28" y="50">2</text>
+      <circle class="skin" cx="360" cy="135" r="54"/>
+      <path class="hair" d="M307 130c20-68 103-72 112 2 21 18 18 60-12 76-28 15-82 9-100-10-25-25-27-51 0-68z"/>
+      <path class="shirt" d="M295 222c50-28 98-28 142 0l37 168H258z"/>
+      <path class="line" d="M284 282c-42 10-66 34-70 70"/>
+      <path class="line" d="M472 282c42 10 66 34 70 70"/>
+      <ellipse class="soup" cx="380" cy="356" rx="104" ry="42"/>
+      <path class="soup" d="M280 356h200l-32 88H312z"/>
+      <path class="steam" d="M333 292c-22-31 22-43 0-76M383 292c-22-31 22-43 0-76M433 292c-22-31 22-43 0-76"/>
+      <path class="thin" d="M214 352c-48 8-78 28-100 63M542 352c48 8 78 28 100 63"/>
+      <text class="cap" x="252" y="472">先放哪儿？</text>
+    </g>
+
+    <g transform="translate(34 618)">
+      <circle class="danger" cx="38" cy="38" r="28"/><text class="num" x="28" y="50">3</text>
+      <path class="thin" d="M90 405h515M150 405v-130h400v130"/>
+      <circle class="skin" cx="280" cy="135" r="54"/>
+      <path class="hair" d="M226 130c20-68 103-72 112 2 21 18 18 60-12 76-28 15-82 9-100-10-25-25-27-51 0-68z"/>
+      <path class="shirt" d="M215 222c50-28 98-28 142 0l37 150H178z"/>
+      <path class="line" d="M210 282c-48 28-82 62-102 110"/>
+      <path class="line" d="M408 278c46 4 88 25 125 68"/>
+      <ellipse class="soup" cx="483" cy="292" rx="102" ry="38" transform="rotate(10 483 292)"/>
+      <path class="soup" d="M386 292l196 35-45 83-132-20z"/>
+      <path class="danger" d="M546 372c48 20 85 35 110 34-28 22-72 25-130 5z"/>
+      <text class="cap" x="214" y="472">差点洒出来</text>
+    </g>
+
+    <g transform="translate(814 618)">
+      <circle class="danger" cx="38" cy="38" r="28"/><text class="num" x="28" y="50">4</text>
+      <circle class="skin" cx="212" cy="160" r="52"/>
+      <path class="kid" d="M150 242c44-25 92-25 132 0l36 154H120z"/>
+      <path class="line" d="M138 292c-58 12-90 46-104 86M304 292c54 12 90 46 106 86"/>
+      <ellipse class="soup" cx="515" cy="238" rx="112" ry="42"/>
+      <path class="soup" d="M408 238h214l-30 82H438z"/>
+      <path class="steam" d="M468 180c-22-30 22-40 0-72M520 180c-22-30 22-40 0-72M570 180c-22-30 22-40 0-72"/>
+      <path class="accent" d="M380 350h280l-36 86H416z"/>
+      <path class="thin" d="M408 350c0-54 224-54 224 0M450 392h140"/>
+      <path class="line" d="M326 196c56 28 92 68 116 118"/>
+      <path class="line" d="M324 196c54-18 96-8 128 28"/>
+      <text class="cap" x="156" y="472">怎样端得更安全？</text>
+    </g>
+  </g>
+</svg>

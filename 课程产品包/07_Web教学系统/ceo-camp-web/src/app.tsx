@@ -124,26 +124,26 @@ const productTrackOptions = [
   {
     value: "life-helper",
     label: "生活帮手",
-    hint: "出门、放学、整理、吃饭这些每天会碰到的小麻烦",
-    directions: ["上学出门", "放学安排", "房间整理"]
+    hint: "先从家里、上学路、自己的房间看起，找每天真的会发生的不方便",
+    directions: ["出门怕漏带", "老人手机消息", "钱一下没了"]
   },
   {
     value: "learning-tool",
     label: "学习工具",
-    hint: "作业、复习、背诵、错题、口语里卡住的地方",
-    directions: ["长题拆题", "单词复习", "口语练习"]
+    hint: "题太长、错题改不明白、英语想开口却接不上",
+    directions: ["长题看不懂", "错题找原因", "英语接不上"]
   },
   {
     value: "creative-studio",
     label: "创意工坊",
-    hint: "写作文、做游戏、把文字变画面时，有想法却卡住了",
-    directions: ["作文开头", "小游戏规则", "作文漫画"]
+    hint: "作文、小游戏、漫画，脑子里有画面，手上做不出来",
+    directions: ["作文开不了头", "游戏规则说不清", "作文变漫画"]
   },
   {
     value: "campus-community",
-    label: "校园社区",
-    hint: "想学一个本领、想换一个东西、想请同学做小作品",
-    directions: ["同伴小课", "闲置交换", "专属小作品"]
+    label: "家庭社区",
+    hint: "爸妈、爷爷奶奶、宠物和家庭回忆里，也藏着每天会发生的真实需要",
+    directions: ["周末安排太乱", "宠物照顾交接", "照片没人整理"]
   }
 ] as const;
 
@@ -231,21 +231,21 @@ const productTrackExamples: Record<
     nextStep: "下一版先加“换一个更精彩的第 2 格”。"
   },
   "campus-community": {
-    track: "校园社区",
-    productName: "同伴小课卡片墙",
-    user: "想学一个小本领，却不知道谁愿意教的同学",
-    need: "班里有人会魔方、折纸、投篮、画头像，也有人想学，但他们平时不一定遇得上。",
-    product: "同伴小课卡片墙：发布我想学、谁会教、什么时候有空，帮想学的人找到愿意教 10 分钟的同学。",
-    vagueAsk: "帮我做个校园产品。",
-    clearAsk: "我想学 3 阶魔方复原，午休有 10 分钟。请写一张 10 岁同学看得懂的小课卡，说明我想学什么、需要谁教、什么时候有空。",
-    aiFirstDraft: "小课卡：我想学 3 阶魔方第一层；时间：周三午休 10 分钟；希望会魔方的同学教我一个步骤。",
-    usefulPart: "小课卡能直接变成卡片墙，让想学和会教的人互相看见。",
-    checkPoint: "删掉“给陌生人用”，先保留班级内的一张想学卡和一张可教卡。",
-    mvpAction: "发布一张我想学的小课卡，看到谁愿意教、什么时候有空。",
-    value: "让同学的小本领流动起来，想学的人少错过，愿意教的人被看见。",
-    stallCard: "把“我想学一个小本领”，变成同学能回应的小课卡。",
-    evidence: "同学说：“我想学魔方，可不知道谁愿意教我 10 分钟。”",
-    nextStep: "下一版先加“我会教什么”的同伴小课卡。"
+    track: "家庭社区",
+    productName: "周末出门卡",
+    user: "周末活动一多就容易漏安排的家庭",
+    need: "周末课程、探望、活动和要带的东西散在不同消息里，家里人很难一眼看清谁负责什么。",
+    product: "周末出门卡：把去哪、几点出发、要带什么、谁负责，整理成全家都能看的卡片。",
+    vagueAsk: "帮我做个家庭产品。",
+    clearAsk: "这是我们周六的安排：篮球课、去爷爷家、科学展。请帮 10 岁孩子整理成一张出门卡，分成去哪、几点、带什么、谁负责四栏。",
+    aiFirstDraft: "周六出门卡：9:00 篮球课，带水杯和护具，爸爸负责；10:30 去爷爷家，带药和水果，妈妈负责；14:00 科学展，带预约码，孩子负责提醒。",
+    usefulPart: "四栏出门卡能让孩子也参与准备，不只是等爸妈提醒。",
+    checkPoint: "删掉自动读取家庭消息，保留手动输入安排、整理卡片和勾选。",
+    mvpAction: "输入一天安排，生成一张周末出门卡。",
+    value: "让全家少漏东西，出门前少翻消息、少互相催。",
+    stallCard: "把周末安排，变成全家都看得懂的出门卡。",
+    evidence: "爸爸说：“车开到半路才想起科学展预约码没截图。”",
+    nextStep: "下一版先加“每个人负责哪一项”的勾选状态。"
   }
 };
 
@@ -273,9 +273,23 @@ const trackProjectChoices: Record<
   }
 > = {
   "life-helper": {
-    pageTitle: "生活帮手：每天都会发生的小麻烦",
-    intro: "生活帮手先看每天反复发生的小麻烦：谁卡住了？卡在哪里？",
+    pageTitle: "生活帮手：先从家里找需要",
+    intro: "生活帮手先从家里和身边看起：谁做一件小事时不方便、不安全，或者总要麻烦别人？",
     projects: [
+      {
+        title: "爷爷看不懂手机消息",
+        user: "收到手机消息却怕点错的爷爷奶奶",
+        image: classroomPath("courseware/day1-track-project-comics/images/02-grandpa-phone-message.svg"),
+        imageAlt: "四格连环画：爷爷手机弹出多条小字消息，他看不懂哪条重要，错过预约确认，孩子思考怎样把消息讲清楚。",
+        story: "爷爷手机上弹出快递、医院、银行和家族群消息，字小又复杂。他不是不会用手机，而是不知道哪条重要、下一步该做什么。",
+        frames: [
+          { caption: "手机又响了。", text: "长辈每天会收到很多消息。" },
+          { caption: "这条在说什么？", text: "他不是不想看，是看不明白。" },
+          { caption: "重要消息错过了。", text: "看不懂消息会带来真实麻烦。" },
+          { caption: "能不能讲明白？", text: "还差一个把消息讲成大白话的办法。" }
+        ],
+        question: "如果帮爷爷奶奶看一条手机消息，最该先讲清哪三件事？"
+      },
       {
         title: "上学前 3 分钟检查",
         user: "早上容易漏带东西的同学",
@@ -289,20 +303,6 @@ const trackProjectChoices: Record<
           { caption: "出门前先查哪几样？", text: "还差一个快速检查的办法。" }
         ],
         question: "如果只剩 3 分钟，出门前最该先查哪几样？"
-      },
-      {
-        title: "水杯一天还是满的",
-        user: "带了水杯却经常忘记喝水的同学",
-        image: classroomPath("courseware/day1-track-project-comics/images/02-water-bottle.jpg"),
-        imageAlt: "四格连环画：晴晴放学拿出几乎满着的水杯，一天里几次忘记喝水，下午才觉得口渴，最后思考哪些时间该喝水。",
-        story: "晴晴不是不想喝水，是早读、体育后、午饭后总被别的事打断，等想起来时已经太晚。",
-        frames: [
-          { caption: "怎么还是满的？", text: "水杯带了，但一天没怎么喝。" },
-          { caption: "不是不喝，是总忘。", text: "喝水机会被一天里的事情挤掉。" },
-          { caption: "现在喝太晚了。", text: "想起来时已经口渴，也不舒服。" },
-          { caption: "哪几个时间最该喝水？", text: "还差一个提醒喝水的办法。" }
-        ],
-        question: "一天里哪几个时间，最适合提醒自己喝几口水？"
       },
       {
         title: "零花钱一下就没了",
@@ -417,50 +417,50 @@ const trackProjectChoices: Record<
     ]
   },
   "campus-community": {
-    pageTitle: "校园社区：想学、想换、想请同学做作品",
-    intro: "校园社区先看同学之间真实会发生的小交换：想学、想换、想请人做。",
+    pageTitle: "家庭社区：帮身边的人少卡一步",
+    intro: "家庭社区先看爸妈、爷爷奶奶、宠物和家人回忆里的真实麻烦。",
     projects: [
       {
-        title: "我想学一个小本领",
-        user: "想找同学教自己 10 分钟的同学",
-        image: classroomPath("courseware/day1-track-project-comics/images/10-peer-skill.jpg"),
-        imageAlt: "四格连环画：沐沐看见同学快速转魔方，想学却赶上下节课，后来发现班里很多人会小本领，最后思考谁能教她十分钟。",
-        story: "沐沐想学魔方，可每次遇到会的人都没时间；班里其实有很多小本领，只是想学的人找不到会教的人。",
+        title: "周末安排总是挤在一起",
+        user: "周末活动一多就容易漏安排的家庭",
+        image: classroomPath("courseware/day1-track-project-comics/images/10-weekend-plan.svg"),
+        imageAlt: "四格连环画：妈妈看见周末日历里塞满活动，餐桌上摆着要带的物品，车开到半路发现预约码没准备，孩子思考出门卡。",
+        story: "周五晚上，妈妈要安排篮球课、去爷爷家和科学展。每件事都不难，可时间、地点和要带的东西散在不同消息里。",
         frames: [
-          { caption: "这个我也想学！", text: "她真的想学一个小本领。" },
-          { caption: "现在没时间。", text: "想学和能教的人遇上了，时间不对。" },
-          { caption: "原来大家会这么多。", text: "小本领就在班里，只是看不见。" },
-          { caption: "谁能教我 10 分钟？", text: "还差一个把两边连起来的办法。" }
+          { caption: "周六有好多事。", text: "周末安排很满。" },
+          { caption: "每件事都要带东西。", text: "活动多，物品也多。" },
+          { caption: "预约码在哪？", text: "漏掉一个小东西，整件事就卡住。" },
+          { caption: "出门前先看哪张卡？", text: "还差一个全家都能看的出门卡。" }
         ],
-        question: "想学一个小本领时，怎么找到愿意教你 10 分钟的人？"
+        question: "如果做一张周末出门卡，最该让家里人一眼看到什么？"
       },
       {
-        title: "闲置文具想换出去",
-        user: "抽屉里有闲置小东西的同学",
-        image: classroomPath("courseware/day1-track-project-comics/images/11-stationery-swap.jpg"),
-        imageAlt: "四格连环画：阿泽抽屉里有重复贴纸和荧光笔，同学正好需要，课间一个个问很乱，最后思考谁想跟他换。",
-        story: "阿泽有重复贴纸和荧光笔，同学正好想要，可大家互相不知道，课间一个个问也很难换成。",
+        title: "宠物照顾交接不清楚",
+        user: "多人一起照顾宠物的家庭",
+        image: classroomPath("courseware/day1-track-project-comics/images/11-pet-care-handoff.svg"),
+        imageAlt: "四格连环画：全家出门前没人确定小狗是否吃饭，晚上发现漏喂，第二天又重复喂，孩子思考宠物照顾交接卡。",
+        story: "家里的小狗豆豆要喂饭、换水、散步。家人都想照顾它，可一忙起来，谁做过、下一步谁做，很容易说不清。",
         frames: [
-          { caption: "这些我很少用了。", text: "抽屉里有闲置小东西。" },
-          { caption: "有人正好想要。", text: "同学之间有真实交换需求。" },
-          { caption: "一个个问，好乱。", text: "临时问一圈，很容易错过。" },
-          { caption: "谁想跟我换？", text: "还差一个看见闲置和想要的办法。" }
+          { caption: "豆豆吃饭了吗？", text: "宠物每天都要照顾。" },
+          { caption: "我以为你喂了。", text: "家里多人照顾时容易记混。" },
+          { caption: "少一次、多一次都不行。", text: "交接不清会让宠物不舒服。" },
+          { caption: "下一步谁来做？", text: "还差一张全家都能看见的照顾卡。" }
         ],
-        question: "怎么让大家看见：我有什么、我想换什么、谁想要？"
+        question: "照顾宠物时，哪几件事最需要让全家看见？"
       },
       {
-        title: "想要一张专属小作品",
-        user: "想请同学做一张特别小作品的同学",
-        image: classroomPath("courseware/day1-track-project-comics/images/12-custom-work.jpg"),
-        imageAlt: "四格连环画：然然想要橙色小狐狸桌牌，找小禾帮忙却没说清尺寸颜色文字和时间，第二天拿到蓝色小猫桌牌，最后两人看着需求卡思考。",
-        story: "然然想要橙色小狐狸桌牌，却只说“可爱一点”，小禾画成蓝色小猫后，两个人都尴尬了。",
+        title: "照片太多没人整理",
+        user: "想留下孩子成长故事的家庭",
+        image: classroomPath("courseware/day1-track-project-comics/images/12-family-photo-story.svg"),
+        imageAlt: "四格连环画：爸爸打开密密麻麻的手机相册，妹妹想找骑车照片，外婆看不懂家族群里的照片，孩子思考怎样挑照片讲故事。",
+        story: "爸爸想给外婆看妹妹这一年的变化，可相册里有几千张照片。照片不是没有，是太多太散，外婆看不出每张背后的故事。",
         frames: [
-          { caption: "我想要特别一点。", text: "她真的想要一张专属小作品。" },
-          { caption: "要多大？什么颜色？", text: "会做的人需要清楚要求。" },
-          { caption: "不是我想的那样。", text: "话没说清，作品就会跑偏。" },
-          { caption: "要先说哪几件事？", text: "还差一张小卡，把想要的样子讲清楚。" }
+          { caption: "照片太多了。", text: "家里有很多照片，但找起来很乱。" },
+          { caption: "我想讲这一次。", text: "孩子心里有想讲的故事。" },
+          { caption: "这张是什么故事？", text: "只发照片，别人不一定看懂。" },
+          { caption: "哪几张最值得留下？", text: "还差一个把照片变成故事的办法。" }
         ],
-        question: "想请同学做小作品时，要先告诉他哪些事？"
+        question: "如果把 4 张照片做成成长故事，最该留下哪几个时刻？"
       }
     ]
   }
@@ -723,6 +723,8 @@ type LessonArtifactKind =
   | "route-map"
   | "product-browser"
   | "testing-board"
+  | "business-loop"
+  | "differentiation-canvas"
   | "demo-strip"
   | "pricing-ticket"
   | "roadshow-pack"
@@ -764,6 +766,8 @@ const aiCoursewareImages = {
 const aiSketchnoteBasePath = classroomPath(
   "courseware/baoyu-ai-knowledge-sketchnote/slide-deck/day1-ai-basics-sketchnote"
 );
+
+const businessModelSketchnoteBasePath = classroomPath("courseware/day2-business-model-canvas-sketchnote");
 
 const entrepreneurshipDefinitionSlide = {
   src: classroomPath("courseware/day1-entrepreneurship-definition-sketchnote/01-entrepreneurship-definition.webp"),
@@ -860,6 +864,98 @@ const aiJudgementSketchnoteSlides: Array<{
     image: "11-slide-workbuddy-draw.webp",
     alt: "手绘课件：孩子打开自己的 WorkBuddy，把画面描述发出去，生成第一张图，再说清一处想修改的细节",
     chips: ["打开 WorkBuddy", "发出任务", "生成图片", "继续修改"]
+  }
+];
+
+const businessModelSketchnoteSlides: Array<{
+  page_no: number;
+  title: string;
+  page_type: LessonPage["page_type"];
+  content_summary: string;
+  image: string;
+  alt: string;
+  chips?: string[];
+}> = [
+  {
+    page_no: 1,
+    title: "这些算产品吗？",
+    page_type: "story",
+    content_summary: "先看高德地图、微信、Teams、水杯、台灯和单词游戏，判断哪些算产品。",
+    image: "01-slide-product-or-not.webp",
+    alt: "手绘课件：六个熟悉例子让孩子判断哪些算产品",
+    chips: ["产品", "例子", "判断"]
+  },
+  {
+    page_no: 2,
+    title: "谁最需要它？",
+    page_type: "story",
+    content_summary: "把产品和真正会用它的人连起来，理解用户不是所有人。",
+    image: "02-slide-who-uses-it.webp",
+    alt: "手绘课件：把高德地图、Teams 和单词游戏分别连到赶路的人、上课的人和背单词的人",
+    chips: ["用户", "连线", "具体的人"]
+  },
+  {
+    page_no: 3,
+    title: "为什么愿意交换？",
+    page_type: "story",
+    content_summary: "用水杯、单词游戏和安全提醒理解商业是有用的帮助加公平交换。",
+    image: "03-slide-what-is-business.webp",
+    alt: "手绘课件：有用的帮助和公平交换组成商业",
+    chips: ["商业", "帮助", "交换"]
+  },
+  {
+    page_no: 4,
+    title: "小怪兽第一天很火",
+    page_type: "story",
+    content_summary: "用单词小怪兽故事看见，一个好产品刚出现时为什么会受欢迎。",
+    image: "04-slide-word-monster-story.webp",
+    alt: "手绘课件：单词小怪兽游戏第一天很多孩子围着玩",
+    chips: ["故事", "新鲜", "有人用"]
+  },
+  {
+    page_no: 5,
+    title: "第三天，没人来了",
+    page_type: "story",
+    content_summary: "同一个游戏第三天没人继续玩，引出商业模式要让帮助可持续。",
+    image: "05-slide-why-no-one-returns.webp",
+    alt: "手绘课件：第三天单词小怪兽摊位前没人，孩子在想原因",
+    chips: ["追问", "为什么", "可持续"]
+  },
+  {
+    page_no: 6,
+    title: "商业模式的 6 个问题",
+    page_type: "demo",
+    content_summary: "老师用 6 个简单问题演示怎么把一个产品想清楚。",
+    image: "06-slide-six-questions.webp",
+    alt: "手绘课件：商业模式画布被简化成六个孩子能回答的问题",
+    chips: ["六个问题", "想清楚", "画布"]
+  },
+  {
+    page_no: 7,
+    title: "AI 会帮你问清楚",
+    page_type: "demo",
+    content_summary: "老师演示 AI 商业教练怎么继续追问用户、场景、价值和收费方式。",
+    image: "07-slide-ai-coach-demo.webp",
+    alt: "手绘课件：AI 商业教练围绕单词小怪兽追问用户、场景、价值和收费方式",
+    chips: ["AI 教练", "追问", "补完整"]
+  },
+  {
+    page_no: 8,
+    title: "轮到你们的产品",
+    page_type: "experiment",
+    content_summary: "团队把自己的项目放进 6 个问题里，用 AI 帮忙追问和补充。",
+    image: "08-slide-team-experiment.webp",
+    alt: "手绘课件：孩子团队把自己的产品想法放进六个问题中讨论",
+    chips: ["小组讨论", "问 AI", "补想法"]
+  },
+  {
+    page_no: 9,
+    title: "先帮一个具体的人",
+    page_type: "demo",
+    content_summary: "最后记住：先帮一个具体的人，再想怎么让这个帮助可持续。",
+    image: "09-slide-takeaway.webp",
+    alt: "手绘课件：从一个具体的人出发，想清楚帮助和公平交换",
+    chips: ["一个人", "一个麻烦", "可持续"]
   }
 ];
 
@@ -1088,25 +1184,25 @@ const moduleDesigns: Record<
   "team-formation": {
     icon: UsersRound,
     accent: "blue",
-    chips: ["小麻烦", "产品", "价值交换"],
-    steps: ["先看真实麻烦", "再看产品怎么帮", "最后写自己的帮忙卡"],
+    chips: ["身边的人", "真实需要", "AI 帮设计"],
+    steps: ["先从家里和身边观察", "找到不方便或不安全的一步", "用 AI 试设计、宣传和画布分析"],
     cards: [
       { title: "用户", text: "你想帮助的那个人" },
-      { title: "需求", text: "他反复遇到的小麻烦" },
-      { title: "产品", text: "能帮他完成一步的办法" },
-      { title: "价格", text: "别人觉得值得换多少" }
+      { title: "需求", text: "他做一件事时卡住的一步" },
+      { title: "产品", text: "能让这一步更安全或更省心的办法" },
+      { title: "AI", text: "帮你画设计图、写宣传语、分析商业画布" }
     ]
   },
   "team-building": {
     icon: UsersRound,
     accent: "mint",
-    chips: ["找队友", "起队名", "亮个相"],
-    steps: ["找到今天的队友", "坐到同一张桌子", "给团队起一个名字"],
+    chips: ["找队友", "起队名", "想队呼"],
+    steps: ["找到今天的队友", "起一个队名", "想一句队呼"],
     cards: [
       { title: "队友", text: "今天一起做项目的人" },
       { title: "桌号", text: "找到自己的团队桌" },
       { title: "团队名", text: "短一点，好记一点" },
-      { title: "亮相", text: "让大家知道你们来了" }
+      { title: "队呼", text: "一句能一起喊出来的话" }
     ]
   },
   "problem-wall": {
@@ -1157,18 +1253,18 @@ const moduleDesigns: Record<
   "track-cases": {
     icon: Route,
     accent: "sun",
-    chips: ["看故事", "选方向", "找想帮的人"],
-    steps: ["先看 12 个小故事", "选最想帮的一个", "写清要问谁、问什么"],
+    chips: ["家里", "学校", "社区"],
+    steps: ["先看身边的人怎么做事", "圈出最想帮的一个人", "写下第一句要问的话"],
     cards: [
-      { title: "方向", text: "生活、学习、创意或校园" },
-      { title: "故事", text: "一个真实会发生的小麻烦" },
-      { title: "想帮的人", text: "一个能找到、能问到的人" },
-      { title: "问题", text: "先留下要问的问题，办法由小组发明" }
+      { title: "先看人", text: "家人、同学、邻居，谁在做事时卡住" },
+      { title: "再看需要", text: "这件事是不是经常发生，能不能变安全或省心" },
+      { title: "圈一个", text: "选你们最想继续问的人" },
+      { title: "AI 能帮什么", text: "先做设计图、宣传语、商业画布分析" }
     ],
     flow: [
-      { title: "看见", text: "他在什么时候卡住" },
-      { title: "选择", text: "我们最想帮哪一个" },
-      { title: "提问", text: "下午带着问题去问真人" }
+      { title: "看见", text: "谁在什么地方卡住了" },
+      { title: "选择", text: "我们最想帮哪一个人" },
+      { title: "提问", text: "先问一句真人会回答的话" }
     ]
   },
   "ai-superpowers": {
@@ -1302,12 +1398,14 @@ const moduleDesigns: Record<
   "demo-check": {
     icon: Monitor,
     accent: "ink",
-    chips: ["打开作品", "演示 2 分钟", "准备发布"],
-    steps: ["只演示核心动作", "让大家看到用户怎么用", "记下明天还要补什么"],
+    chips: ["跑通一圈", "不一样一点", "愿意再来"],
+    steps: ["把用户、麻烦、作品、结果连成一圈", "找出和原来办法不一样的地方", "用 2 分钟演示这一圈"],
     cards: [
-      { title: "产品链接", text: "能顺利打开" },
-      { title: "演示顺序", text: "先用户，再动作，再结果" },
-      { title: "备用截图", text: "现场也能讲清楚" }
+      { title: "用户", text: "谁遇到这个麻烦" },
+      { title: "入口", text: "他从哪里打开作品" },
+      { title: "结果", text: "作品帮他少烦了什么" },
+      { title: "差异化", text: "比原来的办法更省心、更好玩或更容易坚持" },
+      { title: "交换", text: "他愿意用时间、星星币或推荐来换" }
     ]
   },
   "roadshow-rehearsal": {
@@ -1346,12 +1444,13 @@ const moduleDesigns: Record<
   "brand-story": {
     icon: Megaphone,
     accent: "green",
-    chips: ["追问卡", "证据三明治", "下一步"],
-    steps: ["看观察员举手问什么", "老师用 DeepSeek 模拟追问", "小组抽 2 张追问卡并回答"],
+    chips: ["黄金圈", "为什么", "梦想"],
+    steps: ["先讲为什么想做", "再演示怎么帮助别人", "最后说出做出了什么和下一步梦想"],
     cards: [
-      { title: "故事", text: "有人问：你怎么知道真的有人需要" },
-      { title: "Demo", text: "结论、证据、下一步，像三明治一样夹起来" },
-      { title: "实验", text: "用两个真实追问练一次回答" }
+      { title: "为什么", text: "我们为什么想帮这个人" },
+      { title: "怎么做", text: "我们用什么办法让他少一点麻烦" },
+      { title: "做出了什么", text: "现场打开作品，让大家看到结果" },
+      { title: "梦想", text: "如果继续做，我们希望它帮到更多谁" }
     ]
   },
   "rehearsal": {
@@ -1392,8 +1491,8 @@ const moduleDesigns: Record<
 const fallbackLessonPages: Record<string, LessonPageSeed[]> = {
   "team-building": [
     { page_no: 1, title: "找到今天的队友", page_type: "teamwork", content_summary: "看见今天一起做项目的伙伴，先坐到同一张桌子。" },
-    { page_no: 2, title: "给团队起一个名字", page_type: "teamwork", content_summary: "名字短一点、好记一点，大家都愿意喊。" },
-    { page_no: 3, title: "团队亮个相", page_type: "experiment", content_summary: "说出团队名和成员，让全班记住你们。" }
+    { page_no: 2, title: "起队名，再想一句队呼", page_type: "teamwork", content_summary: "队名短一点，队呼要能一起喊出来。" },
+    { page_no: 3, title: "团队亮个相", page_type: "experiment", content_summary: "说出团队名和队呼，让全班记住你们。" }
   ],
   "workbuddy-webpage": [
     { page_no: 1, title: "一句话让小游戏跑起来", page_type: "story", content_summary: "输入一句话，浏览器里出现一个能玩的俄罗斯方块页面" },
@@ -1403,23 +1502,24 @@ const fallbackLessonPages: Record<string, LessonPageSeed[]> = {
     { page_no: 5, title: "第一版页面长什么样", page_type: "showcase", content_summary: "看见输入区、按钮和结果区怎样组成一个可试玩页面" }
   ],
   "team-formation": [
-    { page_no: 1, title: "创业是什么？", page_type: "story", content_summary: "创业就是帮助别人解决问题，产生价值交换" },
-    { page_no: 2, title: "生活帮手：上学前 3 分钟检查台", page_type: "story", content_summary: "早上出门前想不全，清单先帮同学少漏带一样东西" },
-    { page_no: 3, title: "学习工具：长应用题第一步", page_type: "story", content_summary: "长应用题一大段，先拆成能下手的几块" },
-    { page_no: 4, title: "创意工坊：我的作文想变成漫画", page_type: "story", content_summary: "作文写了很多，先挑出 4 个关键画面" },
-    { page_no: 5, title: "校园社区：我想学一个小本领", page_type: "story", content_summary: "想学一个本领，先找到愿意教 10 分钟的同学" },
-    { page_no: 6, title: "老师拆一遍：这个产品帮了谁", page_type: "demo", content_summary: "看清谁遇到麻烦，产品先帮了哪一步，结果变好了什么" },
-    { page_no: 7, title: "轮到你：写帮忙卡", page_type: "experiment", content_summary: "写下想帮谁、卡在哪、先帮哪一步、少掉什么麻烦" }
-	  ],
-	  "track-cases": [
-	    { page_no: 1, title: "四条方向，先看想帮谁", page_type: "story", content_summary: "生活、学习、创意、校园，先听 12 个小故事，再选你们想继续问的人" },
-	    { page_no: 2, title: trackProjectChoices["life-helper"].pageTitle, page_type: "story", content_summary: "看 3 个每天都会出现的生活小麻烦，先选想帮助的人" },
-	    { page_no: 3, title: trackProjectChoices["learning-tool"].pageTitle, page_type: "story", content_summary: "看 3 个学习里卡住的时刻，先找第一步从哪里开始" },
-	    { page_no: 4, title: trackProjectChoices["creative-studio"].pageTitle, page_type: "story", content_summary: "看 3 个创作卡住的时刻，办法等你们来想" },
-	    { page_no: 5, title: trackProjectChoices["campus-community"].pageTitle, page_type: "story", content_summary: "看 3 个校园里的小麻烦，找到你们想继续问的人" },
-	    { page_no: 6, title: "小组时间：选一个最想帮的小麻烦", page_type: "teamwork", content_summary: "从 12 个故事或自己的发现里选一个，说清想帮谁、麻烦在哪里发生" },
-	    { page_no: 7, title: "留下方向和一个问题", page_type: "experiment", content_summary: "今天先写下想帮谁、事情发生在哪里、你们最想问的一句话" }
-	  ],
+    { page_no: 1, title: "创业是什么？", page_type: "story", content_summary: "创业就是看见真实需要，做出办法帮助别人，并产生价值交换" },
+    { page_no: 2, title: "先从家里找到需要", page_type: "story", content_summary: "爷爷看不懂手机消息，错过重要提醒，这就是一个可以观察的真实需要" },
+    { page_no: 3, title: "生活帮手：爷爷看不懂手机消息", page_type: "story", content_summary: "先观察长辈看手机消息时卡在哪，再想怎样把消息讲清楚" },
+    { page_no: 4, title: "学习工具：长应用题第一步", page_type: "story", content_summary: "长应用题一大段，先拆成能下手的几块" },
+    { page_no: 5, title: "创意工坊：我的作文想变成漫画", page_type: "story", content_summary: "作文写了很多，先挑出 4 个关键画面" },
+    { page_no: 6, title: "家庭社区：周末安排总是挤在一起", page_type: "story", content_summary: "周末事情一多，先看全家谁要去哪里、带什么、谁负责" },
+    { page_no: 7, title: "AI 可以帮哪几步", page_type: "demo", content_summary: "AI 可以帮你画产品设计图、写宣传语，也可以用商业画布分析谁会用、哪里不一样、为什么值得" },
+    { page_no: 8, title: "轮到你：写帮忙卡", page_type: "experiment", content_summary: "写下想帮谁、卡在哪、先帮哪一步、AI 可以帮哪一步" }
+  ],
+  "track-cases": [
+    { page_no: 1, title: "从家里和身边找真实需要", page_type: "story", content_summary: "先看家人、同学、邻居做事时哪里不方便、不安全，圈出一个你最想帮的人。" },
+    { page_no: 2, title: trackProjectChoices["life-helper"].pageTitle, page_type: "story", content_summary: "看 3 个家里和身边会发生的小麻烦，想想你最想帮谁" },
+    { page_no: 3, title: trackProjectChoices["learning-tool"].pageTitle, page_type: "story", content_summary: "看 3 个学习里卡住的时刻，先找最想问清楚的一步" },
+    { page_no: 4, title: trackProjectChoices["creative-studio"].pageTitle, page_type: "story", content_summary: "看 3 个想法做不出来的时刻，先别急着给答案" },
+    { page_no: 5, title: trackProjectChoices["campus-community"].pageTitle, page_type: "story", content_summary: "看 3 个家庭里会反复发生的小麻烦，找到你们想继续问的人" },
+    { page_no: 6, title: "小组时间：选一个最想帮的小麻烦", page_type: "teamwork", content_summary: "从 12 个故事或自己的发现里选一个，说清想帮谁、麻烦在哪里发生" },
+    { page_no: 7, title: "留下方向和一个问题", page_type: "experiment", content_summary: "今天先写下想帮谁、事情发生在哪里、你们最想问的一句话" }
+  ],
   "project-launch": [
     { page_no: 1, title: "团队讨论：定下今天要做的项目", page_type: "teamwork", content_summary: "从刚才的故事和真实发现里，选一个最想继续做的小麻烦。" },
     { page_no: 2, title: "写清想帮的人", page_type: "teamwork", content_summary: "这个人是谁？什么时候会卡住？最烦的是哪一步？" },
@@ -1451,11 +1551,21 @@ const fallbackLessonPages: Record<string, LessonPageSeed[]> = {
     { page_no: 5, title: "轮到你：写一张 AI 任务单", page_type: "experiment", content_summary: "把自己小组的项目写成五句话，让 AI 交出一段马上能用的材料" }
   ],
   "brand-story": [
-    { page_no: 1, title: "观察员举手了", page_type: "story", content_summary: "观察员开始追问四个项目：你怎么知道真的有人需要？证据在哪里？" },
-    { page_no: 2, title: "老师演示：DeepSeek 扮演观察员", page_type: "demo", content_summary: "让 DeepSeek 先追问四个项目，团队再准备自己的真实回答" },
-    { page_no: 3, title: "好回答像三明治", page_type: "demo", content_summary: "四个项目都用同一招：先答结论，中间夹证据，最后说下一步" },
-    { page_no: 4, title: "轮到你：抽出 2 张追问卡", page_type: "teamwork", content_summary: "选出最可能被问到的两个问题，准备 30 秒证据回答" },
-    { page_no: 5, title: "用证据回答", page_type: "experiment", content_summary: "用采访原话、试玩反馈或现场演示，让回答听起来有根" }
+    { page_no: 1, title: "上台先讲为什么", page_type: "story", content_summary: "观众先想知道：你为什么要帮这个人，为什么这件事值得做" },
+    { page_no: 2, title: "黄金圈：为什么、怎么做、做出了什么", page_type: "demo", content_summary: "先讲为什么，再讲怎么帮，最后展示做出了什么" },
+    { page_no: 3, title: "老师演示：把作品讲成黄金圈", page_type: "demo", content_summary: "用一个项目示范：从一句信念开始，再演示作品，最后说证据和下一步" },
+    { page_no: 4, title: "讲出我们的信念和梦想", page_type: "teamwork", content_summary: "用孩子自己的话写一句：我们相信什么，我们希望帮到谁" },
+    { page_no: 5, title: "轮到你：写黄金圈路演稿", page_type: "experiment", content_summary: "写下为什么想做、看见谁、怎么帮、做出了什么和最后邀请", activity_buttons: ["发布任务", "启动计时"] },
+    { page_no: 6, title: "路演问答：听懂问题再回答", page_type: "teamwork", content_summary: "听清观众问的是什么，再用作品、证据和下一步回答" }
+  ],
+  "demo-check": [
+    { page_no: 1, title: "一圈才算跑通", page_type: "story", content_summary: "用户不是看一眼就结束。要看他从遇到麻烦，到打开作品、得到结果、愿意再来，能不能连成一圈" },
+    { page_no: 2, title: "老师演示：商业闭环小地图", page_type: "demo", content_summary: "用一个项目画一圈：谁卡住、怎么打开、先做哪一步、看到什么结果、愿意拿什么来换" },
+    { page_no: 3, title: "乔布斯式差异化画布", page_type: "demo", content_summary: "不只是功能多，而是让用户记住一个不一样的体验：更省心、更好玩，或者更容易坚持" },
+    { page_no: 4, title: "轮到你：把作品连成一圈", page_type: "teamwork", content_summary: "把自己作品的用户、麻烦、入口、动作、结果、交换和一个不一样的点写清楚", activity_buttons: ["发布任务", "启动计时"] },
+    { page_no: 5, title: "2 分钟 Demo：照着这一圈讲", page_type: "showcase", content_summary: "演示时按这一圈走：用户进来，作品帮上忙，结果出现，最后说出哪里不一样", activity_buttons: ["全屏演示"] },
+    { page_no: 6, title: "AI 跑偏怎么改回来", page_type: "experiment", content_summary: "写下一次让 AI 改得更清楚的方法", activity_buttons: ["发布任务"] },
+    { page_no: 7, title: "明天发布会要带什么", page_type: "teamwork", content_summary: "准备链接、截图、商业闭环小地图、差异化亮点和分工", activity_buttons: ["发布任务"] }
   ],
   "roadshow-rehearsal": [
     { page_no: 1, title: "发布盒子里乱成一团", page_type: "story", content_summary: "作品链接、截图、采访原话和分工纸条都在桌上，先排出上台顺序" },
@@ -1596,7 +1706,7 @@ function normalizeCourseModules(modules: CourseModule[]) {
           day: 1,
           sequence: 2,
           title: "组建团队",
-          subtitle: "找到队友，起一个团队名",
+          subtitle: "找到队友，起队名和队呼",
           time_range: "09:40-10:00",
           pages: pagesFromSeeds(module.id, fallbackLessonPages["team-building"])
         };
@@ -1623,7 +1733,7 @@ function normalizeCourseModules(modules: CourseModule[]) {
           ...module,
           sequence: 5,
           title: "从一个小麻烦开始",
-          subtitle: "先看真实麻烦，再看产品怎样帮别人",
+          subtitle: "先从家里和身边看见真实需要",
           time_range: "11:00-11:50",
           pages: pagesFromSeeds(module.id, fallbackLessonPages["team-formation"])
         };
@@ -1634,7 +1744,7 @@ function normalizeCourseModules(modules: CourseModule[]) {
           ...module,
           sequence: 6,
           title: "选方向，找想帮的人",
-          subtitle: "先听故事，再决定要问谁",
+          subtitle: "从家里、学校、社区找想帮的人",
           time_range: "13:30-14:20",
           pages: pagesFromSeeds(module.id, fallbackLessonPages["track-cases"])
         };
@@ -1651,6 +1761,15 @@ function normalizeCourseModules(modules: CourseModule[]) {
         };
       }
 
+      if (module.id === "demo-check") {
+        return {
+          ...module,
+          title: "商业模式画布",
+          subtitle: "用 AI 商业教练，把产品、用户和交换想清楚",
+          time_range: "17:00-17:30"
+        };
+      }
+
       return module;
     });
 
@@ -1661,7 +1780,7 @@ function normalizeCourseModules(modules: CourseModule[]) {
         1,
         2,
         "组建团队",
-        "找到队友，起一个团队名",
+        "找到队友，起队名和队呼",
         "09:40-10:00"
       )
     );
@@ -1770,6 +1889,38 @@ function aiSketchnoteLessonPages(module: CourseModule, base: LessonPage): Design
   }));
 }
 
+function businessModelLessonPages(module: CourseModule, base: LessonPage): DesignedLessonPage[] {
+  const design = moduleDesigns[module.id];
+  return businessModelSketchnoteSlides.map((slide) => ({
+    ...base,
+    id: `business-model-sketchnote-${slide.page_no}`,
+    page_no: slide.page_no,
+    title: slide.title,
+    page_type: slide.page_type,
+    activity_buttons: slide.page_type === "experiment" ? ["发布任务", "全屏演示"] : ["全屏演示"],
+    content_summary: slide.content_summary,
+    kicker: `${module.time_range || `D${module.day}`} · ${
+      slide.page_no <= 3
+        ? "开头互动"
+        : slide.page_type === "experiment"
+          ? "轮到你实验"
+          : slide.page_type === "demo"
+            ? "老师演示"
+            : "故事开场"
+    }`,
+    chips: slide.chips ?? ["看画面", "想一想", "说出来"],
+    visual: visualForPage({ ...base, page_type: slide.page_type }),
+    accent: design?.accent ?? "amber",
+    cards: design?.cards,
+    steps: design?.steps,
+    flow: design?.flow,
+    slide_image: {
+      src: `${businessModelSketchnoteBasePath}/${slide.image}`,
+      alt: slide.alt
+    }
+  }));
+}
+
 function coursewarePages(module: CourseModule | null | undefined): DesignedLessonPage[] {
   if (!module) return [];
   const modulePages = module.pages.length ? module.pages : fallbackPagesFor(module);
@@ -1783,6 +1934,17 @@ function coursewarePages(module: CourseModule | null | undefined): DesignedLesso
       activity_buttons: []
     };
     return aiSketchnoteLessonPages(module, base);
+  }
+  if (module.id === "demo-check") {
+    const base = modulePages[0] ?? {
+      id: "demo-check-page",
+      module_id: module.id,
+      page_no: 1,
+      title: module.title,
+      page_type: "story",
+      activity_buttons: []
+    };
+    return businessModelLessonPages(module, base);
   }
   if (module.id !== "future-photo-studio") {
     return modulePages.map((page) => decorateLessonPage(module, page));
@@ -1999,7 +2161,7 @@ function taskTypeForAction(action: string, page: DesignedLessonPage) {
   if (page.title.includes("下一次我怎么指挥 AI")) return "growth_reflection";
   if (/带走一个 AI 判断方法|AI 判断方法|AI 跑偏|改回来|问出第一条好问题|问 DeepSeek 一句清楚问题|留下能用的一句|给 DeepSeek 一张任务单|AI 的回答怎么用|你想画什么|打开 WorkBuddy|画一张自己的图/.test(page.title)) return "learning_reflection";
   if (/给贡献一个名字|五力证书|个人贡献|贡献卡|贡献被看见/.test(page.title)) return "contribution_card";
-  if (/团队名片|团队名称和方向|团队名和方向卡|帮忙卡|给团队起名|找到你的桌号|找到队友|名字和方向|团队方向亮相/.test(page.title)) return "team_card";
+  if (/团队名片|团队名称和方向|团队名和方向卡|帮忙卡|给团队起名|起队名|队呼|找到你的桌号|找到队友|名字和方向|团队方向亮相/.test(page.title)) return "team_card";
   if (/AI 给答案，先看证据|AI 留下一句可疑答案|证据追踪|真假侦探实验|证据比声音更有力/.test(page.title)) return "ai_validation";
   if (/问题改写卡|把候选问题改清楚|AI 市场侦察卡|竞品观察三格/.test(page.title)) return "market_scout";
   if (/五句提示词卡|给自己的产品写五句提示词|写一张 AI 任务单|AI 任务单|改一版再试|对 AI 说：不对，再改/.test(page.title)) return "prompt_card";
@@ -2009,9 +2171,9 @@ function taskTypeForAction(action: string, page: DesignedLessonPage) {
   if (/生成可打开的? V1|让 V1 打开一次|秒哒生成应用原型|一句话变成可打开页面|V1 保留下来|明天发布会要带什么/.test(page.title)) return "product_link";
   if (/给别组一条反馈/.test(page.title)) return "product_feedback";
   if (/反馈进作品|改出 V2|试玩互测|团队互测|反馈怎么进作品|V2 先改/.test(page.title)) return "iteration_plan";
-  if (/帮别人少烦了什么|价值交换榜|定价三问|别人愿意交换|价值小票|星星币|为什么愿意换/.test(page.title)) return "value_card";
+  if (/帮别人少烦了什么|价值交换榜|定价三问|别人愿意交换|价值小票|星星币|为什么愿意换|商业闭环|作品连成一圈|愿意再来/.test(page.title)) return "value_card";
   if (/产品包装|产品海报|海报不是装饰|海报是在帮别人看懂|一张好产品卡|换一张让人看懂的卡|摆好自己的作品摊位|产品摊位预览|给产品一个名字|标语|卖点/.test(page.title)) return "product_packaging";
-  if (/把作品讲成一个小故事|故事发布五步卡|故事发布五步|问答预演|结论、证据、下一步|用证据回答|追问卡|三明治|观察员举手/.test(page.title)) return "story_pitch";
+  if (/把作品讲成一个小故事|故事发布五步卡|故事发布五步|问答预演|结论、证据、下一步|用证据回答|追问卡|三明治|观察员举手|黄金圈|为什么想做|信念和梦想|路演稿|商业路演/.test(page.title)) return "story_pitch";
   if (/产品方案一句话|需求三问|选择创业方向|产品摊位开张|需求收集计划|方向和行动计划|团队方向卡|补齐行动计划|团队讨论：我们想帮谁|提交方向和行动计划|接下来要问什么|明天先帮哪一步|写一句网页任务|网页任务/.test(page.title)) return "product_definition";
   if (/作品发布|发布材料|发布盒子|作品秀|每组 5 分钟发布|每组 5 分钟作品发布|最终展示/.test(page.title)) return "final_showcase";
   if (page.page_type === "showcase") return "showcase";
@@ -2032,7 +2194,7 @@ function isTeamCardTask(camp: Camp | null) {
     payloadType === "team_card" ||
     moduleId === "team-building" ||
     moduleId === "team-formation" ||
-    /团队名片|团队名称和方向|团队名和方向卡|帮忙卡|给团队起名|找到你的桌号|找到队友|名字和方向/.test(title)
+    /团队名片|团队名称和方向|团队名和方向卡|帮忙卡|给团队起名|起队名|队呼|找到你的桌号|找到队友|名字和方向/.test(title)
   );
 }
 
@@ -2183,7 +2345,7 @@ function isValueCardTask(camp: Camp | null) {
     activityType === "value_card" ||
     payloadType === "value_card" ||
     (moduleId === "value-experiment" && /帮别人少烦了什么|价值交换|定价三问|价值小票|别人愿意交换|星星币|为什么愿意换/.test(title)) ||
-    /价值卡|价值交换|价值小票|星星币|愿意交换|为什么愿意换|帮别人少烦了什么/.test(title)
+    /价值卡|价值交换|价值小票|星星币|愿意交换|为什么愿意换|帮别人少烦了什么|商业闭环|作品连成一圈|愿意再来/.test(title)
   );
 }
 
@@ -2208,8 +2370,8 @@ function isStoryPitchTask(camp: Camp | null) {
   return (
     activityType === "story_pitch" ||
     payloadType === "story_pitch" ||
-    (moduleId === "brand-story" && /故事发布五步卡|故事发布五步|把作品讲成一个小故事|问答预演|故事结构|用证据回答|最可能被问到|追问卡|三明治|观察员举手/.test(title)) ||
-    /故事发布五步卡|故事发布五步|故事结构|故事稿|把作品讲成一个小故事|结论、证据、下一步|用证据回答|观察员会追问|观察员举手|模拟追问|最可能被问到|追问卡|三明治/.test(title)
+    (moduleId === "brand-story" && /故事发布五步卡|故事发布五步|把作品讲成一个小故事|问答预演|故事结构|用证据回答|最可能被问到|追问卡|三明治|观察员举手|黄金圈|为什么想做|信念和梦想|路演稿|商业路演/.test(title)) ||
+    /故事发布五步卡|故事发布五步|故事结构|故事稿|把作品讲成一个小故事|结论、证据、下一步|用证据回答|观察员会追问|观察员举手|模拟追问|最可能被问到|追问卡|三明治|黄金圈|为什么想做|信念和梦想|路演稿|商业路演/.test(title)
   );
 }
 
@@ -3566,8 +3728,10 @@ function journeyCopy(item: WallArtifact) {
     return [
       ["团队", asText(item.payload.team_name) || item.team_name || ""],
       ["成员", asText(item.payload.team_members)],
+      ["队呼", asText(item.payload.team_chant)],
       ["方向", asText(item.payload.product_direction) || asText(item.payload.direction)],
       ["少烦了", asText(item.payload.less_trouble)],
+      ["AI 帮哪步", asText(item.payload.ai_help_step)],
       ["愿意换", asText(item.payload.exchange_guess)],
       ["亮相", asText(item.payload.launch_line)]
     ];
@@ -3685,6 +3849,16 @@ function journeyCopy(item: WallArtifact) {
     ];
   }
   if (item.task_type === "story_pitch") {
+    if (item.payload.golden_circle) {
+      return [
+        ["为什么", asText(item.payload.why_belief) || asText(item.payload.story_hook)],
+        ["看见谁", asText(item.payload.who_problem) || asText(item.payload.user_scene)],
+        ["怎么帮", asText(item.payload.how_help) || asText(item.payload.product_demo)],
+        ["做出了什么", asText(item.payload.what_result) || asText(item.payload.proof_line)],
+        ["邀请", asText(item.payload.dream_line) || asText(item.payload.invite_line)],
+        ["问答预演", storyQaSummary(item.payload)]
+      ];
+    }
     return [
       ["开头", asText(item.payload.story_hook)],
       ["人物", asText(item.payload.user_scene)],
@@ -5003,6 +5177,7 @@ function StudentTeamPanel({ workspace }: { workspace: StudentWorkspace }) {
   const teamDirection =
     asText(latestTeamCard?.payload.product_direction) ||
     asText(latestTeamCard?.payload.direction);
+  const teamChant = asText(latestTeamCard?.payload.team_chant);
   const launchLine = asText(latestTeamCard?.payload.launch_line);
   const memberNames = workspace.team_members.map((member) => member.nickname).filter(Boolean).join("、");
   const latestMaterials = studentVisibleTeamMaterials(workspace, 5);
@@ -5038,6 +5213,10 @@ function StudentTeamPanel({ workspace }: { workspace: StudentWorkspace }) {
           <span>
             <b>方向</b>
             {teamDirection || "还在讨论"}
+          </span>
+          <span>
+            <b>队呼</b>
+            {teamChant || "还在准备"}
           </span>
           <span>
             <b>亮相</b>
@@ -5198,7 +5377,7 @@ function nextSupportAction(
   }
   const firstMissing = milestoneStates.find((milestone) => !milestone.done);
   if (!firstMissing) return "可以安排彩排或进入作品秀顺序。";
-  if (firstMissing.key === "team_card") return "请小组先补一张团队名片：团队名、产品方向和一句亮相。";
+  if (firstMissing.key === "team_card") return "请小组先补一张团队名片：团队名和队呼。";
   if (firstMissing.key === "product_definition") return "请小组补齐方向和行动计划：帮谁、收集什么需求、明天先做哪一步。";
   if (!team.selected_problem_id && ["problem_card", "market_scout", "user_voice"].includes(firstMissing.key)) return "请小组先选出要继续调查的问题。";
   if (firstMissing.key === "market_scout") return "先补一张侦察卡：AI 改写、用户声音、已有方案、继续验证。";
@@ -5207,7 +5386,7 @@ function nextSupportAction(
   if (firstMissing.key === "iteration_plan") return "请小组把反馈分成必须改、建议改、暂不改，再定 V2 先改哪一处。";
   if (firstMissing.key === "value_card") return "请小组补一张价值卡：帮谁少烦了什么，别人愿意用什么交换。";
   if (firstMissing.key === "product_packaging") return "请小组补一张产品海报卡：产品名、标语、三个卖点、展示图。";
-  if (firstMissing.key === "story_pitch") return "请小组补一张故事发布五步卡：人物、麻烦、作品、证据、邀请。";
+  if (firstMissing.key === "story_pitch") return "请小组补一张黄金圈路演稿：为什么想做、怎么帮、做出了什么和邀请。";
   if (firstMissing.key === "product_link") return "先确认作品链接能打开，再准备上台展示。";
   if (firstMissing.key === "final_showcase") return "请小组把最终展示卡补齐。";
   if (firstMissing.key === "product_definition") return "先把方向和行动计划写清楚：帮谁、收集什么需求、明天先做哪一步。";
@@ -5540,13 +5719,15 @@ function TeacherD1Artifacts() {
       <div className="team-problem-picker">
         <div className="team-problem-picker-title">
           <strong>团队方向观察</strong>
-          <span>成员名单由老师指定；团队名和产品方向由孩子提交团队名片后带入。</span>
+          <span>成员名单由老师指定；队名和队呼由孩子提交团队名片后带入。</span>
         </div>
         <div className="team-problem-grid">
           {teams.map((team) => {
             const latestTeamCard = latestTeamCardFor(team);
             const latestDirectionPlan = latestDirectionFor(team);
             const childTeamName = asText(latestTeamCard?.payload.team_name);
+            const teamChant = asText(latestTeamCard?.payload.team_chant);
+            const aiHelpStep = asText(latestTeamCard?.payload.ai_help_step);
             const productDirection =
               asText(latestDirectionPlan?.payload.direction) ||
               asText(latestTeamCard?.payload.product_direction) ||
@@ -5565,7 +5746,9 @@ function TeacherD1Artifacts() {
                   <small>{latestDirectionPlan ? "已提交方向和计划" : childTeamName ? "已提交团队名片" : "等孩子提交团队名片"}</small>
                 </div>
                 <p><b>孩子定的团队名</b>{childTeamName || "还没提交"}</p>
+                <p><b>队呼</b>{teamChant || "还没提交"}</p>
                 <p><b>产品方向</b>{productDirection || "还在讨论"}</p>
+                <p><b>AI 先帮哪步</b>{aiHelpStep || "还在讨论"}</p>
                 <p><b>接下来要收集</b>{demandPlan || "还在准备"}</p>
                 <p><b>明天先做</b>{firstStep || "还在准备"}</p>
                 <p><b>亮相一句话</b>{launchLine || "还在准备"}</p>
@@ -5580,11 +5763,14 @@ function TeacherD1Artifacts() {
       <div className="d1-artifact-list">
         {items.map((item) => {
           const isProduct = item.task_type === "product_definition";
+          const isTeam = item.task_type === "team_card";
           const isProblem = item.task_type === "problem_card";
           const isScout = item.task_type === "market_scout";
           const isValidation = item.task_type === "ai_validation";
           const title = isProduct
             ? asText(item.payload.direction) || asText(item.payload.product_name) || "团队方向"
+            : isTeam
+            ? asText(item.payload.team_name) || item.team_name || "团队名片"
             : isProblem
             ? asText(item.payload.problem_scene) || asText(item.payload.trouble) || "未命名问题"
             : isScout
@@ -5597,16 +5783,17 @@ function TeacherD1Artifacts() {
               className={[
                 "d1-artifact-card",
                 isProduct ? "product" : "",
+                isTeam ? "team-card" : "",
                 isScout ? "scout" : "",
                 isValidation ? "validation" : "",
-                !isProduct && !isProblem && !isScout && !isValidation ? "voice" : "",
+                !isProduct && !isTeam && !isProblem && !isScout && !isValidation ? "voice" : "",
                 item.status === "ON_WALL" ? "on-wall" : ""
               ].filter(Boolean).join(" ")}
               key={item.id}
             >
               <header>
                 <div>
-                  <span>{isProduct ? "方向和行动计划" : isProblem ? "问题卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : "用户声音"}</span>
+                  <span>{isProduct ? "方向和行动计划" : isTeam ? "团队名片" : isProblem ? "问题卡" : isScout ? "侦察卡" : isValidation ? "验证卡" : "用户声音"}</span>
                   <strong>{title}</strong>
                   <small>{item.team_name || item.student_name || "学生提交"}</small>
                 </div>
@@ -5624,6 +5811,14 @@ function TeacherD1Artifacts() {
                   <p><strong>明天带回：</strong>{asText(item.payload.day2_materials) || "可选"}</p>
                   <p><strong>明天先做：</strong>{asText(item.payload.day2_first_step) || asText(item.payload.core_action) || asText(item.payload.solution) || "还没写"}</p>
                   <p><strong>一句话：</strong>{asText(item.payload.one_liner) || "还在打磨"}</p>
+                </div>
+              ) : isTeam ? (
+                <div className="artifact-lines">
+                  <p><strong>团队名：</strong>{asText(item.payload.team_name) || "还没写"}</p>
+                  <p><strong>成员：</strong>{asText(item.payload.team_members) || "还在集合"}</p>
+                  <p><strong>队呼：</strong>{asText(item.payload.team_chant) || "还没写"}</p>
+                  {asText(item.payload.ai_help_step) && <p><strong>AI 帮哪步：</strong>{asText(item.payload.ai_help_step)}</p>}
+                  <p><strong>亮相：</strong>{asText(item.payload.launch_line) || "还在准备"}</p>
                 </div>
               ) : isProblem ? (
                 <div className="artifact-lines">
@@ -6811,7 +7006,7 @@ function TeacherStoryPitches() {
             >
               <header>
                 <div>
-                  <span>故事发布五步卡</span>
+                  <span>{item.payload.golden_circle ? "黄金圈路演稿" : "故事发布五步卡"}</span>
                   <strong>{asText(item.payload.product_name) || "未命名作品"}</strong>
                   <small>{item.team_name || item.student_name || "学生提交"}</small>
                 </div>
@@ -6820,11 +7015,11 @@ function TeacherStoryPitches() {
                 </button>
               </header>
               <div className="artifact-lines">
-                <p><strong>开头：</strong>{asText(item.payload.story_hook) || "还没写"}</p>
-                <p><strong>人物：</strong>{asText(item.payload.user_scene) || "还没写"}</p>
-                <p><strong>作品：</strong>{asText(item.payload.product_demo) || "还没写"}</p>
-                <p><strong>证据：</strong>{asText(item.payload.proof_line) || "还没写"}</p>
-                <p><strong>邀请：</strong>{asText(item.payload.invite_line) || "还没写"}</p>
+                <p><strong>{item.payload.golden_circle ? "为什么：" : "开头："}</strong>{asText(item.payload.why_belief) || asText(item.payload.story_hook) || "还没写"}</p>
+                <p><strong>{item.payload.golden_circle ? "看见谁：" : "人物："}</strong>{asText(item.payload.who_problem) || asText(item.payload.user_scene) || "还没写"}</p>
+                <p><strong>{item.payload.golden_circle ? "怎么帮：" : "作品："}</strong>{asText(item.payload.how_help) || asText(item.payload.product_demo) || "还没写"}</p>
+                <p><strong>{item.payload.golden_circle ? "做出了什么：" : "证据："}</strong>{asText(item.payload.what_result) || asText(item.payload.proof_line) || "还没写"}</p>
+                <p><strong>邀请：</strong>{asText(item.payload.dream_line) || asText(item.payload.invite_line) || "还没写"}</p>
               </div>
               <div className="story-qa-review">
                 <strong>问答预演</strong>
@@ -8667,7 +8862,7 @@ function artifactKindForPage(module: CourseModule, page: DesignedLessonPage): Le
 	  if (module.id === "workbuddy-webpage") return "product-browser";
 	  if (module.id === "track-cases") {
 	    if (trackProjectForPage(page)) return "track-projects";
-	    if (/四条方向/.test(page.title)) return "track-map";
+	    if (/12 个小麻烦|家里和身边/.test(page.title)) return "track-map";
 	    return "direction-question";
 	  }
   if (module.id === "problem-wall") return "problem-wall";
@@ -8696,6 +8891,8 @@ function artifactKindForPage(module: CourseModule, page: DesignedLessonPage): Le
   if (module.id === "build-sprint") return "product-browser";
   if (module.id === "roadshow-rehearsal") return "roadshow-pack";
   if (module.id === "user-testing") return "testing-board";
+  if (module.id === "demo-check" && /差异化|不一样/.test(page.title)) return "differentiation-canvas";
+  if (module.id === "demo-check" && /一圈才算跑通|商业闭环|作品连成一圈/.test(page.title)) return "business-loop";
   if (module.id === "demo-check" || module.id === "rehearsal") return "demo-strip";
   if (module.id === "value-experiment") return "pricing-ticket";
   if (module.id === "product-packaging") return page.title.includes("清单") ? "launch-checklist" : "product-browser";
@@ -8815,18 +9012,22 @@ function specialChipsForPage(page: DesignedLessonPage) {
     "第一版页面长什么样": ["输入区", "按钮", "结果区"],
     "AI 市场侦察卡": ["用户声音", "已有方案", "继续验证"],
     "竞品观察三格": ["谁在用", "怎么解决", "哪里不同"],
+    "先从家里找到需要": ["家人", "不安全", "真实需要"],
+    "生活帮手：爷爷看不懂手机消息": ["手机消息", "讲成大白话", "下一步"],
     "生活帮手：上学前 3 分钟检查台": ["课表和通知", "出门清单", "少漏带"],
     "学习工具：长应用题第一步": ["长题卡住", "拆成四块", "先下手"],
     "创意工坊：我的作文想变成漫画": ["作文画面", "四格分镜", "自己改"],
-    "校园社区：我想学一个小本领": ["想学什么", "谁会教", "约 10 分钟"],
-	    "四条方向，先看想帮谁": ["生活帮手", "学习工具", "创意工坊", "校园社区"],
-	    "生活帮手：每天都会发生的小麻烦": ["出门", "喝水", "零花钱"],
-	    "学习工具：卡住时先看哪一步": ["长题", "错题", "口语"],
-	    "创意工坊：有想法但做不出来": ["开头", "小游戏", "作文漫画"],
-	    "校园社区：想学、想换、想请同学做作品": ["小课", "交换", "小作品"],
-	    "小组时间：选一个最想帮的小麻烦": ["选故事", "想帮谁", "问细节"],
+    "家庭社区：周末安排总是挤在一起": ["去哪", "带什么", "谁负责"],
+    "AI 可以帮哪几步": ["设计图", "宣传语", "商业画布"],
+    "从家里和身边找真实需要": ["家里", "学校", "社区"],
+    "12 个小麻烦，圈出你想帮的人": ["看谁卡住", "圈一个人", "带问题去问"],
+    "生活帮手：先从家里找需要": ["老人手机消息", "出门怕漏带", "钱一下没了"],
+    "学习工具：卡住时先看哪一步": ["长题看不懂", "错题找原因", "英语接不上"],
+    "创意工坊：有想法但做不出来": ["作文开不了头", "规则说不清", "作文变漫画"],
+    "家庭社区：帮身边的人少卡一步": ["周末安排", "宠物交接", "照片故事"],
+    "小组时间：选一个最想帮的小麻烦": ["选故事", "想帮谁", "问细节"],
 	    "留下方向和一个问题": ["选方向", "想帮谁", "先问什么"],
-	    "12 个真实创业方向": ["生活帮手", "学习工具", "创意工坊", "校园社区"],
+	    "12 个真实创业方向": ["生活帮手", "学习工具", "创意工坊", "家庭社区"],
     "作品可以有很多样子": ["浏览器打开", "作品卡片", "点击体验"],
     "真产品检查": ["能打开", "能完成动作", "能分享"],
     "定价三问": ["谁会用", "付出什么", "为什么值得"],
@@ -8853,6 +9054,12 @@ function specialChipsForPage(page: DesignedLessonPage) {
     "老师演示：把步骤排成小轨道": ["收集", "判断", "输出"],
     "老师演示：把一句话变成可打开页面": ["用户", "核心动作", "第一屏"],
     "轮到你：让 V1 打开一次": ["输入一句话", "打开预览", "改一处"],
+    "一圈才算跑通": ["用户进来", "作品帮忙", "愿意再来"],
+    "老师演示：商业闭环小地图": ["谁卡住", "怎么用", "换什么"],
+    "乔布斯式差异化画布": ["原来办法", "不一样一点", "愿意再来"],
+    "轮到你：把作品连成一圈": ["用户", "入口", "不一样"],
+    "2 分钟 Demo：照着这一圈讲": ["用户进来", "作品帮忙", "哪里不一样"],
+    "明天发布会要带什么": ["作品链接", "截图", "闭环小地图", "差异化亮点"],
     "发布盒子里乱成一团": ["链接", "截图", "证据", "分工"],
     "老师演示：WorkBuddy 整理发布盒子": ["材料", "顺序", "缩短"],
     "一页只讲一件事": ["用户", "问题", "作品", "证据", "下一步"],
@@ -8865,6 +9072,12 @@ function specialChipsForPage(page: DesignedLessonPage) {
     "老师演示：DeepSeek 扮演观察员": ["用户", "作品", "证据", "下一步"],
     "好回答像三明治": ["结论", "证据", "下一步"],
     "轮到你：抽出 2 张追问卡": ["用户问题", "作品问题", "下一步问题"],
+    "上台先讲为什么": ["为什么", "想帮谁", "值得做"],
+    "黄金圈：为什么、怎么做、做出了什么": ["为什么", "怎么做", "做出了什么"],
+    "老师演示：把作品讲成黄金圈": ["信念", "作品", "证据"],
+    "讲出我们的信念和梦想": ["我们相信", "我们希望", "下一步"],
+    "轮到你：写黄金圈路演稿": ["为什么", "怎么帮", "邀请"],
+    "路演问答：听懂问题再回答": ["听懂问题", "拿出证据", "说下一步"],
     "带走自己的作品故事": ["作品", "贡献", "下一次"]
   };
   return chips[page.title];
@@ -8872,17 +9085,21 @@ function specialChipsForPage(page: DesignedLessonPage) {
 
 function childFacingSummaryForPage(module: CourseModule, page: DesignedLessonPage) {
   const summaries: Record<string, string> = {
-    "创业是什么？": "创业就是看见别人遇到的真实麻烦，用产品或服务帮他解决，并产生价值交换。",
+    "创业是什么？": "创业就是看见别人遇到的真实需要，用产品或服务帮他解决，并产生价值交换。",
     "创业从帮助开始": "创业不是先做一个很大的东西，而是先帮一个真实的人少一点麻烦。",
+    "先从家里找到需要": "真实需要不一定在远方。爷爷看不懂手机消息、爸爸周末找预约码、家里照顾宠物，都可能藏着可以发明的机会。",
+    "生活帮手：爷爷看不懂手机消息": "先别急着说答案。看清爷爷卡在哪里：看不清、怕点错、不知道急不急，还是不知道下一步做什么。",
+    "AI 可以帮哪几步": "AI 不只会聊天。它可以帮你画产品设计草图、写宣传语，也可以用商业画布检查谁会用、哪里不一样、为什么值得。",
     "故事：上学出门检查台": "乐乐早上想不全。一个小清单，帮他把东西带齐，出门不慌。",
     "老师演示：上学出门检查台": "把早上怕漏带这件事拆开，看它怎样变成一个能每天打开的小产品。",
     "别人为什么愿意换": "如果作品真的帮上忙，别人可能愿意试玩、推荐，甚至拿星星币来换。",
     "轮到你：写帮忙卡": "用几句话写清：你们想帮谁，他卡在哪，先帮哪一步，帮完少烦什么。",
-    "四条方向，先看想帮谁": "今天先看 12 个小故事，选一个你们最想继续问的人。",
-    "生活帮手：每天都会发生的小麻烦": "生活帮手先看每天反复发生的小麻烦：出门检查、喝水、零花钱，谁卡住了？",
-    "学习工具：卡住时先看哪一步": "学习工具先看同学卡在哪一步：是看不懂长题，还是找不到错因，还是口语接不上。",
-    "创意工坊：有想法但做不出来": "创意工坊先看创作卡住的地方：作文开头、小游戏规则、作文变漫画。",
-    "校园社区：想学、想换、想请同学做作品": "校园社区先看同学之间的小需求：想学一个本领、想换一个东西、想请同学做一张小作品。",
+    "从家里和身边找真实需要": "先看家人、同学、邻居做事时哪里不方便、不安全。哪个人让你想说“我想帮他”，就把他圈出来。",
+    "12 个小麻烦，圈出你想帮的人": "先看 12 个小故事。哪个人让你想说“我也遇到过”，就把他圈出来。办法先不急，下午去问清楚。",
+    "生活帮手：先从家里找需要": "爷爷看不懂手机消息、同学出门怕漏带、零花钱一下花光。先看这些麻烦是不是你也见过。",
+    "学习工具：卡住时先看哪一步": "有人被长题绕晕，有人订正完还是会错，有人英语一被追问就接不上。先找最想问清楚的一步。",
+    "创意工坊：有想法但做不出来": "脑子里有画面，手上却做不出来。作文、小游戏、漫画都可能卡在“第一步怎么说”。",
+    "家庭社区：帮身边的人少卡一步": "爸妈周末安排很多，宠物照顾容易记混，家里照片也常常没人整理。先看谁最需要被帮一把。",
     "小组时间：选一个最想帮的小麻烦": "从 12 个故事里选一个，也可以写你们自己发现的麻烦。先说清你们想帮谁。",
     "留下方向和一个问题": "今天先留下想帮谁、事情发生在哪里、你们最想问的一句话。",
 	    "四个项目都收到空话": "四个方向各派一个项目来问 AI，结果都卡在同一个地方：任务单没说清楚。",
@@ -8895,6 +9112,12 @@ function childFacingSummaryForPage(module: CourseModule, page: DesignedLessonPag
     "这就是 MVP：先试最小一版": "四个项目的 MVP 都很小，但每一个都能让别人试到结果。",
     "轮到你：把功能倒在桌面上": "先把想做的功能都摊开，再找最先能动的那一块。",
     "圈出第一个能被试玩的动作": "圈出 30 秒能看懂、能操作、能看到结果的第一个动作。",
+    "一圈才算跑通": "商业闭环就是一圈：有人遇到麻烦，打开你的作品，完成一步，真的变轻松，愿意再用或推荐。",
+    "老师演示：商业闭环小地图": "用一个项目画一圈：谁来、怎么打开、先做哪一步、看到什么结果、愿意拿什么来换。",
+    "乔布斯式差异化画布": "乔布斯做产品时，不是堆很多功能，而是让人记住一个不一样的体验。今天你们也找一个最值得被记住的点。",
+    "轮到你：把作品连成一圈": "把自己作品也画成一圈，再圈出一个不一样的点。哪一段说不清，明天就先补哪一段。",
+    "2 分钟 Demo：照着这一圈讲": "别从功能清单开始。先让大家看见用户怎么进来，作品怎么帮忙，最后说出哪里不一样。",
+    "明天发布会要带什么": "带上能打开的作品、核心截图、商业闭环小地图、差异化亮点和每个人要讲的一段。",
     "发布盒子里乱成一团": "作品链接、截图、采访原话和分工纸条都在桌上，先排出上台顺序。",
     "老师演示：WorkBuddy 整理发布盒子": "把材料交给 WorkBuddy 分堆，再由团队删掉不真实、太长、没用的句子。",
     "一页只讲一件事": "发布 PPT 不塞满，一页只帮观察员看懂一件事。",
@@ -8911,7 +9134,13 @@ function childFacingSummaryForPage(module: CourseModule, page: DesignedLessonPag
     "老师演示：DeepSeek 扮演观察员": "让 DeepSeek 先追问四个项目，团队再准备自己的真实回答。",
     "好回答像三明治": "四个项目都用同一招：先答结论，中间夹证据，最后说下一步。",
     "轮到你：抽出 2 张追问卡": "选出最可能被问到的两个问题，准备 30 秒证据回答。",
-    "用证据回答": "用采访原话、试玩反馈或现场演示，让回答听起来有根。"
+    "用证据回答": "用采访原话、试玩反馈或现场演示，让回答听起来有根。",
+    "上台先讲为什么": "路演不是一上来念功能。先告诉大家：你们为什么想帮这个人，为什么这件事值得做。",
+    "黄金圈：为什么、怎么做、做出了什么": "黄金圈就是三句话顺序：为什么想做，怎么帮助别人，最后展示做出了什么。",
+    "老师演示：把作品讲成黄金圈": "同一个作品，先用一句“我们相信”开头，再演示作品，最后拿出证据和下一步。",
+    "讲出我们的信念和梦想": "信念不是大口号。可以很简单：我们希望爷爷看懂重要消息，我们希望同学遇到长题也敢开始。",
+    "轮到你：写黄金圈路演稿": "写下你们为什么想做、看见谁的麻烦、作品怎么帮、做出了什么、最后邀请大家做什么。",
+    "路演问答：听懂问题再回答": "先听清观众问的是用户、作品、证据还是下一步，再用真实材料回答。"
   };
   return summaries[page.title] ?? page.content_summary ?? module.subtitle;
 }
@@ -9035,6 +9264,24 @@ function specialCardsForPage(page: DesignedLessonPage): LessonCard[] | null {
       { title: "怎么解决", text: "它让用户完成什么动作" },
       { title: "哪里不同", text: "我们可以做出一个新角度" }
     ],
+    "先从家里找到需要": [
+      { title: "看见人", text: "爷爷、爸爸、弟弟、邻居，谁做事时不方便" },
+      { title: "看见动作", text: "看消息、找预约码、拿东西、走路，哪一步卡住" },
+      { title: "看见风险", text: "点错、漏带、忘记、够不到，哪里不安全或不省心" },
+      { title: "留下问题", text: "怎样让这一步更安全、更省力、更容易完成" }
+    ],
+    "生活帮手：爷爷看不懂手机消息": [
+      { title: "需求", text: "手机消息字小又复杂，爷爷不知道这条消息急不急" },
+      { title: "产品", text: "消息大白话卡：这是什么、急不急、下一步做什么" },
+      { title: "AI 怎么帮", text: "把复杂消息改写成 3 句家人能看懂的话" },
+      { title: "价值", text: "让长辈少怕点错，也让家人少临时解释" }
+    ],
+    "AI 可以帮哪几步": [
+      { title: "产品设计", text: "让 AI 画 3 个外形草图，再挑最安全的一版" },
+      { title: "宣传", text: "让 AI 写一句家人一听就懂的宣传语" },
+      { title: "商业画布", text: "让 AI 帮你检查用户、需求、差异化和交换理由" },
+      { title: "人来判断", text: "最后由小组决定哪一版真的适合用户" }
+    ],
     "生活帮手：上学前 3 分钟检查台": [
       { title: "需求", text: "课表和通知分散，早上怕漏带关键东西" },
       { title: "产品", text: "上学前 3 分钟检查台：课表和通知变成三栏出门清单" },
@@ -9053,11 +9300,11 @@ function specialCardsForPage(page: DesignedLessonPage): LessonCard[] | null {
       { title: "AI 怎么帮", text: "整理画面、动作、对白和旁白草稿" },
       { title: "价值", text: "孩子愿意重读自己的作文，再把它改成漫画小作品" }
     ],
-    "校园社区：我想学一个小本领": [
-      { title: "需求", text: "想学一个小本领，却不知道谁愿意教 10 分钟" },
-      { title: "产品", text: "同伴小课卡片墙：我想学、谁会教、什么时候有空" },
-      { title: "AI 怎么帮", text: "把想学的事写成同学看得懂的小课卡" },
-      { title: "价值", text: "想学和会教的人互相看见，小本领流动起来" }
+    "家庭社区：周末安排总是挤在一起": [
+      { title: "需求", text: "周末活动多，时间、地点、要带的东西散在不同消息里" },
+      { title: "产品", text: "周末出门卡：去哪、几点、带什么、谁负责" },
+      { title: "AI 怎么帮", text: "把一堆安排整理成全家能看的四栏卡片" },
+      { title: "价值", text: "爸妈少翻消息，孩子也知道自己能负责哪一步" }
     ],
     "我们看见了谁的麻烦？": [
       { title: "真实的人", text: "不是“所有人”，先写一个会遇到这件事的人" },
@@ -9330,6 +9577,36 @@ function specialCardsForPage(page: DesignedLessonPage): LessonCard[] | null {
       { title: "我卡在", text: "写下停顿或看不懂的地方" },
       { title: "我建议", text: "给出下一版可以改的一处" }
     ],
+    "一圈才算跑通": [
+      { title: "麻烦", text: "有人真的会遇到" },
+      { title: "作品", text: "打开后能帮一步" },
+      { title: "结果", text: "少烦一点，看得见" },
+      { title: "交换", text: "愿意再用、推荐或付星星币" }
+    ],
+    "老师演示：商业闭环小地图": [
+      ...trackExampleCards((example) => ({
+        title: example.productName,
+        text: `${example.user}先完成一个动作，看到结果后愿意继续试。`
+      }))
+    ],
+    "乔布斯式差异化画布": [
+      { title: "原来办法", text: "用户现在怎么凑合解决" },
+      { title: "不一样一点", text: "你的作品更省心、更好玩或更容易坚持" },
+      { title: "惊喜瞬间", text: "哪一秒让用户觉得有用" },
+      { title: "交换理由", text: "为什么愿意再用、推荐或付星星币" }
+    ],
+    "轮到你：把作品连成一圈": [
+      { title: "谁来", text: "一个真实的人" },
+      { title: "怎么进来", text: "打开链接、扫码或同学推荐" },
+      { title: "做哪一步", text: "先完成最小动作" },
+      { title: "哪里不一样", text: "比原来的办法更值得记住" }
+    ],
+    "2 分钟 Demo：照着这一圈讲": [
+      { title: "用户进来", text: "先说谁遇到麻烦" },
+      { title: "作品帮忙", text: "现场打开完成一步" },
+      { title: "结果出现", text: "展示少烦了什么" },
+      { title: "不一样一点", text: "说出为什么值得再来" }
+    ],
     "2 分钟 Demo": [
       { title: "只讲核心动作", text: "不讲所有想法" },
       { title: "让作品自己说话", text: "现场打开完成一步" },
@@ -9343,7 +9620,8 @@ function specialCardsForPage(page: DesignedLessonPage): LessonCard[] | null {
     "明天发布会要带什么": [
       { title: "链接", text: "能打开作品" },
       { title: "截图", text: "看得见核心画面" },
-      { title: "故事线索", text: "用户、问题、结果和分工" }
+      { title: "闭环小地图", text: "用户、作品、结果和交换" },
+      { title: "差异化亮点", text: "一句话说清哪里不一样" }
     ],
     "发布会前，材料铺满桌面": [
       { title: "作品链接", text: "能打开" },
@@ -9513,11 +9791,42 @@ function specialCardsForPage(page: DesignedLessonPage): LessonCard[] | null {
         text: `先答：我们看到需要。再放证据：${example.evidence} 最后说：${example.nextStep}`
       }))
     ],
+    "上台先讲为什么": [
+      { title: "先别念功能", text: "先让大家听见：你们为什么想帮这个人。" },
+      { title: "让观众看见人", text: "他在哪里卡住？这件事为什么值得被解决？" },
+      { title: "一句孩子话", text: "我们相信，小麻烦也值得被认真解决。" }
+    ],
+    "黄金圈：为什么、怎么做、做出了什么": [
+      { title: "为什么", text: "我们为什么想帮这个人" },
+      { title: "怎么做", text: "我们用什么办法帮他少一点麻烦" },
+      { title: "做出了什么", text: "现场打开作品，让大家看到结果" }
+    ],
+    "老师演示：把作品讲成黄金圈": [
+      ...trackExampleCards((example) => ({
+        title: `${example.track}｜${example.productName}`,
+        text: `为什么：想帮${example.user}。怎么做：${example.mvpAction}。做出了什么：${example.stallCard}`
+      }))
+    ],
+    "讲出我们的信念和梦想": [
+      { title: "我们相信", text: "用一句真心话开头，不喊空口号。" },
+      { title: "我们希望", text: "说出继续做下去，最想帮到谁。" },
+      { title: "下一步梦想", text: "不是吹很大，而是说下一版想让它更有用。" }
+    ],
+    "轮到你：写黄金圈路演稿": [
+      { title: "为什么", text: "我们看见了谁的麻烦" },
+      { title: "怎么帮", text: "作品先帮他完成哪一步" },
+      { title: "邀请", text: "请大家试玩、提问或给建议" }
+    ],
+    "路演问答：听懂问题再回答": [
+      { title: "先听懂", text: "观众在问用户、作品、证据还是下一步？" },
+      { title: "再回答", text: "用作品截图、试玩反馈或采访原话回答。" },
+      { title: "说下一步", text: "最后说你们准备先改哪一处。" }
+    ],
     "12 个真实创业方向": [
       { title: "生活帮手", text: "课表和通知太散，出门检查台帮你早上勾一遍。" },
       { title: "学习工具", text: "应用题不知道从哪开始，拆题板先帮你找到第一步。" },
       { title: "创意工坊", text: "故事点子排不成四格，分镜台先给你一张草稿。" },
-      { title: "校园社区", text: "活动凑不齐同伴，组队板帮想参加的人更快遇见。" }
+      { title: "家庭社区", text: "周末安排太散，出门卡帮全家看清去哪、带什么、谁负责。" }
     ],
     "产品摊位开张": [
       { title: "想帮的人", text: "谁会用这个产品" },
@@ -9649,6 +9958,9 @@ function specialStepsForPage(page: DesignedLessonPage) {
     "AI 的回答怎么用？": ["能帮我们往前走，就留下", "还不确定，就问同学或用户", "太大太远，就先放下"],
     "创业是什么？": ["看见真实麻烦", "做出帮忙办法", "产生价值交换"],
     "创业从帮助开始": ["看见用户", "发现需求", "做出产品"],
+    "先从家里找到需要": ["看见一个身边的人", "看清他卡在哪一步", "留下一个真实问题"],
+    "生活帮手：爷爷看不懂手机消息": ["看见手机消息", "讲成大白话", "说清下一步"],
+    "AI 可以帮哪几步": ["画产品设计图", "写一句宣传语", "分析商业画布"],
     "故事：上学出门检查台": ["看乐乐哪里慌", "看清单怎么帮", "说出少了哪个麻烦"],
     "老师演示：上学出门检查台": ["谁卡住", "先帮哪一步", "少掉什么麻烦"],
     "别人为什么愿意换": ["愿意试玩", "愿意推荐", "愿意付星星币"],
@@ -9658,12 +9970,13 @@ function specialStepsForPage(page: DesignedLessonPage) {
     "出门检查台跑一遍": ["粘贴课表和通知", "点击生成", "得到出门清单"],
     "给网页一句清楚任务": ["给谁用", "完成什么动作", "看到什么结果"],
     "第一版页面长什么样": ["输入区", "按钮", "结果区"],
-	    "四条方向，先看想帮谁": ["先看四条路", "再听 12 个故事", "最后选想继续问的人"],
-	    "生活帮手：每天都会发生的小麻烦": ["看出门检查", "看喝水记录", "看零花钱选择"],
-	    "学习工具：卡住时先看哪一步": ["看长题卡住", "看错题原因", "看口语接不上"],
-	    "创意工坊：有想法但做不出来": ["看作文开头", "看小游戏规则", "看作文漫画"],
-	    "校园社区：想学、想换、想请同学做作品": ["看同伴小课", "看闲置交换", "看专属小作品"],
-	    "小组时间：选一个最想帮的小麻烦": ["选一个故事", "说出想帮谁", "写下要问的问题"],
+    "从家里和身边找真实需要": ["看家里", "看学校", "看社区"],
+    "12 个小麻烦，圈出你想帮的人": ["看 12 个故事", "圈出一个人", "写下一句问题"],
+    "生活帮手：先从家里找需要": ["看手机消息", "看出门漏带", "看钱怎么花没"],
+    "学习工具：卡住时先看哪一步": ["看长题卡住", "看错题原因", "看英语接不上"],
+    "创意工坊：有想法但做不出来": ["看作文开头", "看小游戏规则", "看作文漫画"],
+    "家庭社区：帮身边的人少卡一步": ["看周末安排", "看宠物交接", "看照片故事"],
+    "小组时间：选一个最想帮的小麻烦": ["选一个故事", "说出想帮谁", "写下要问的问题"],
 	    "留下方向和一个问题": ["写方向", "写想帮谁", "写下一步要问谁"],
     "问题改写卡": ["选一个原始烦恼", "让豆包改成 3 个问题", "团队选一个今天继续追"],
     "AI 市场侦察卡": ["找一条用户声音", "找一个已有方案", "写下还要验证的问题"],
@@ -9671,7 +9984,7 @@ function specialStepsForPage(page: DesignedLessonPage) {
     "生活帮手：上学前 3 分钟检查台": ["看见早上怕漏带", "做出出门清单", "说清为什么每天有用"],
     "学习工具：长应用题第一步": ["看见长题卡住", "拆出题目结构", "说清为什么先能下手"],
     "创意工坊：我的作文想变成漫画": ["看见作文没画面", "做出四格分镜", "说清哪一格最精彩"],
-    "校园社区：我想学一个小本领": ["看见想学的人", "做出小课卡", "说清为什么同学愿意回应"],
+    "家庭社区：周末安排总是挤在一起": ["看见全家安排", "做出出门卡", "说清为什么爸妈愿意用"],
     "选一个方向，找到想帮的人": ["选定一个方向", "写出想帮的人", "准备问他三个问题"],
     "把线索变成产品一句话": ["谁遇到麻烦", "麻烦发生在哪里", "我们用什么帮他"],
     "老师演示：豆包先出三版": ["输入五句提示词", "得到 3 个版本", "挑出最清楚的一版"],
@@ -9680,6 +9993,12 @@ function specialStepsForPage(page: DesignedLessonPage) {
     "工作流：把步骤排清楚": ["收集信息", "补充条件", "判断顺序", "输出 3 步"],
     "老师演示：秒哒生成应用原型": ["写清用户和场景", "写清核心动作", "预览第一版"],
     "生成可打开的 V1": ["生成第一版", "打开预览", "写一条修改指令"],
+    "一圈才算跑通": ["看见真实麻烦", "打开作品完成一步", "结果让人愿意再来"],
+    "老师演示：商业闭环小地图": ["谁会来", "先做哪一步", "为什么愿意交换"],
+    "乔布斯式差异化画布": ["看原来办法", "找不一样一点", "说出惊喜瞬间"],
+    "轮到你：把作品连成一圈": ["写用户和麻烦", "写入口和动作", "写结果、交换和不一样的点"],
+    "2 分钟 Demo：照着这一圈讲": ["用户进来", "作品帮忙", "结果出现", "说出哪里不一样"],
+    "明天发布会要带什么": ["作品能打开", "截图看得懂", "闭环小地图和差异化亮点说得清"],
     "团队讨论：选择创业方向": ["看采访证据", "选一个创业方向", "说出为什么继续做"],
     "需求三问：用户、场景、动作": ["谁会遇到", "在哪里发生", "希望哪个动作变简单"],
     "产品方案一句话": ["帮谁", "解决什么", "用什么动作帮他"],
@@ -9687,6 +10006,12 @@ function specialStepsForPage(page: DesignedLessonPage) {
     "老师演示：WorkBuddy 整理材料包": ["粘贴已有材料", "生成发布顺序", "缩短到孩子能讲"],
     "作品链接和发布 PPT": ["填作品链接", "上传发布 PPT", "确认上台分工"],
     "结论、证据、下一步": ["选 2 个追问", "先答结论", "补证据和下一步"],
+    "上台先讲为什么": ["先说想帮谁", "说为什么值得做", "再进入作品"],
+    "黄金圈：为什么、怎么做、做出了什么": ["为什么想做", "怎么帮助别人", "做出了什么"],
+    "老师演示：把作品讲成黄金圈": ["写一句信念", "演示作品动作", "拿出证据和下一步"],
+    "讲出我们的信念和梦想": ["我们相信什么", "我们希望帮谁", "下一版想做到什么"],
+    "轮到你：写黄金圈路演稿": ["写为什么", "写怎么帮", "写做出了什么和邀请"],
+    "路演问答：听懂问题再回答": ["听懂问题", "拿出证据", "说下一步"],
     "作品页上线清单": ["产品名和一句话", "可打开链接", "截图或演示画面", "用户故事和下一步"],
     "下一次我怎么指挥 AI": ["先说清目标", "用证据检查结果", "继续改到更适合用户"]
   };
@@ -9695,8 +10020,8 @@ function specialStepsForPage(page: DesignedLessonPage) {
 
 function expectedOutputForLesson(module: CourseModule, page: DesignedLessonPage) {
   const outputs: Record<string, string> = {
-    "team-building": "提交一张团队名片：团队名、成员和一句亮相",
-    "team-formation": "提交一张帮忙卡：想帮谁、卡在哪、先帮哪一步、少掉什么麻烦",
+    "team-building": "提交一张团队名片：团队名、成员和队呼",
+    "team-formation": "提交一张帮忙卡：想帮谁、卡在哪、先帮哪一步、AI 可以帮哪一步",
     "problem-wall": "提交一张问题卡：谁、在哪里、遇到什么麻烦",
     "ai-judgement": "提交一张 WorkBuddy 出图卡：画面描述、想修改的细节和下一步",
     "workbuddy-webpage": "提交一句网页任务：给谁用、完成什么动作、看到什么结果",
@@ -9712,11 +10037,11 @@ function expectedOutputForLesson(module: CourseModule, page: DesignedLessonPage)
     "tool-demo": "完成一个最小智能体规则或可打开 V1 原型",
     "build-sprint": "作品能打开，别人能完成一个核心动作",
     "user-testing": "收到一条同伴反馈，并写进下一版改动",
-    "demo-check": "留下产品链接、截图和一个 AI 修正方法",
+    "demo-check": "画出商业闭环小地图，并确认 2 分钟演示能跑通",
     "roadshow-rehearsal": "提交作品链接和发布 PPT，排好上台顺序",
     "value-experiment": "完成价值卡：产品帮别人少烦了什么，别人愿意交换什么",
     "product-packaging": "完成产品海报卡：名字、标语、截图和三条亮点",
-    "brand-story": "准备 2 个观察员追问回答：结论、证据、下一步",
+    "brand-story": "完成黄金圈路演稿：为什么想做、怎么帮、做出了什么和最后邀请",
     "rehearsal": "完成一轮作品发布彩排，保留最清楚的展示动作",
     "final-showcase": "完成一次作品发布：用户、作品、结果和下一步",
     "awards-reflection": "写下一条自己的真实贡献和下一次 AI 使用方法"
@@ -9872,7 +10197,7 @@ function TrackProjectArtifact({ page }: { page: DesignedLessonPage }) {
     <div className="timeline-artifact artifact-track-projects">
       <header>
         <small>{track.label}</small>
-        <strong>选一个最想帮的小麻烦</strong>
+        <strong>选一个最想帮的人</strong>
         <span>{choice.intro}</span>
       </header>
       {choice.projects.map((project, index) => (
@@ -9906,7 +10231,7 @@ function TrackProjectArtifact({ page }: { page: DesignedLessonPage }) {
           <em>{project.question}</em>
         </article>
       ))}
-      <footer>你们想先问谁？最想问清哪件小事？</footer>
+      <footer>先选一个身边的人，再问清他哪一步最不方便。</footer>
 
       {activeProject && viewerIndex !== null && (
         <section className="track-comic-viewer" role="dialog" aria-modal="true" aria-label="放大看故事">
@@ -9969,7 +10294,7 @@ function LessonArtifact({
       ["成员", "老师分好的小组", "看见今天一起出发的人"],
       ["桌号", "找到团队桌", "先坐到一起"],
       ["名称", "给团队起名", "起一个能被记住的名字"],
-      ["亮相", "一句话出场", "让大家记住你们"]
+      ["队呼", "一起喊出来", "一句能把大家叫到一起的话"]
     ];
     return (
       <div className="timeline-artifact artifact-roles">
@@ -10120,8 +10445,8 @@ function LessonArtifact({
 	    return (
 	      <div className="timeline-artifact artifact-track-map">
 	        <header>
-	          <strong>先看人，再选路</strong>
-	          <span>每条方向都有 3 个小故事，办法留给你们来发明。</span>
+	          <strong>先从身边找真实需要</strong>
+	          <span>家里、学校、社区都有可以观察的人。先看谁做事时不方便，办法等会儿再发明。</span>
 	        </header>
 	        {productTrackOptions.map((track, index) => (
 	          <article key={track.value}>
@@ -10371,6 +10696,57 @@ function LessonArtifact({
     );
   }
 
+  if (kind === "business-loop") {
+    const loop = [
+      ["用户", "谁会来"],
+      ["麻烦", "他卡在哪里"],
+      ["入口", "从哪里打开"],
+      ["动作", "先完成哪一步"],
+      ["结果", "少烦了什么"],
+      ["交换", "愿意拿什么来换"],
+      ["再来", "为什么下次还会用"]
+    ];
+    return (
+      <div className="timeline-artifact artifact-business-loop">
+        {loop.map(([label, text], index) => (
+          <React.Fragment key={label}>
+            <article>
+              <small>{String(index + 1).padStart(2, "0")}</small>
+              <strong>{label}</strong>
+              <span>{text}</span>
+            </article>
+            {index < loop.length - 1 && <em>→</em>}
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  }
+
+  if (kind === "differentiation-canvas") {
+    const fields = [
+      ["谁会用", "一个真实用户"],
+      ["原来办法", "他现在怎么凑合"],
+      ["不一样一点", "更省心、更好玩或更容易坚持"],
+      ["惊喜瞬间", "哪一秒让他想继续用"],
+      ["交换理由", "为什么愿意再来或推荐"]
+    ];
+    return (
+      <div className="timeline-artifact artifact-differentiation">
+        <header>
+          <strong>差异化画布</strong>
+          <span>不是功能更多，是一个体验更值得被记住。</span>
+        </header>
+        {fields.map(([title, text], index) => (
+          <article key={title}>
+            <small>{String(index + 1).padStart(2, "0")}</small>
+            <strong>{title}</strong>
+            <span>{text}</span>
+          </article>
+        ))}
+      </div>
+    );
+  }
+
   if (kind === "demo-strip") {
     return (
       <div className="timeline-artifact artifact-demo">
@@ -10436,9 +10812,12 @@ function LessonArtifact({
   }
 
   if (kind === "story-spine") {
+    const items = /黄金圈|为什么|信念|梦想|路演/.test(page.title)
+      ? ["为什么", "怎么帮", "做出了什么", "证据", "邀请"]
+      : ["人物", "麻烦", "办法", "证据", "邀请"];
     return (
       <div className="timeline-artifact artifact-story">
-        {["人物", "麻烦", "办法", "证据", "邀请"].map((item) => (
+        {items.map((item) => (
           <article key={item}>
             <strong>{item}</strong>
           </article>
@@ -11086,10 +11465,19 @@ function DesignedLessonSlide({ module, page }: { module: CourseModule; page: Des
   const childSummary = childFacingSummaryForPage(module, page);
   const artifactKind = artifactKindForPage(module, page);
   const isTrackComicPage = artifactKind === "track-projects";
+  const isTrackCasesModule = module.id === "track-cases";
   const isAiPrincipleModule = module.id === "ai-judgement";
   const beat = lessonBeatForPage(module, page);
-  const isKnowledgePage = isKnowledgeInputPage(module, page) || module.id === "future-photo-studio";
+  const isKnowledgePage = (!isTrackCasesModule && isKnowledgeInputPage(module, page)) || module.id === "future-photo-studio";
   const pblStep = pblStepForPage(page);
+  const trackCaseStep = page.page_no >= 7 ? "question" : page.page_no >= 6 ? "choose" : "story";
+  const visualLabel = isTrackCasesModule
+    ? artifactKind === "track-map" || artifactKind === "track-projects"
+      ? "小故事"
+      : page.page_type === "teamwork"
+      ? "小组选择"
+      : "去问真人"
+    : pageTypeLabel(page.page_type);
   const visibleCards = cards.slice(0, cardLimitForPage(page, cards));
   const gridClass = [
     page.visual === "showcase" ? "timeline-showcase" : "timeline-card-grid",
@@ -11112,7 +11500,13 @@ function DesignedLessonSlide({ module, page }: { module: CourseModule; page: Des
           ))}
         </div>
         <div className="lesson-beat-strip" aria-label="教学节奏">
-          {isKnowledgePage ? (
+          {isTrackCasesModule ? (
+            <>
+              <span className={trackCaseStep === "story" ? "active" : ""}>看小故事</span>
+              <span className={trackCaseStep === "choose" ? "active" : ""}>圈想帮的人</span>
+              <span className={trackCaseStep === "question" ? "active" : ""}>带问题去问</span>
+            </>
+          ) : isKnowledgePage ? (
             <>
               <span className={beat === "story" ? "active" : ""}>故事开场</span>
               <span className={beat === "demo" ? "active" : ""}>老师演示</span>
@@ -11133,7 +11527,7 @@ function DesignedLessonSlide({ module, page }: { module: CourseModule; page: Des
         <div className="timeline-visual-head">
           <span>
             <Icon size={24} />
-            {pageTypeLabel(page.page_type)}
+            {visualLabel}
           </span>
           <strong>{String(page.page_no).padStart(2, "0")}</strong>
         </div>
@@ -12409,19 +12803,21 @@ function StudentTeamCardTask({
   onLogout: () => void;
 }) {
   const [teamName, setTeamName] = useState(() => (isClassGroupPlaceholder(student.team_name) ? "" : student.team_name || ""));
+  const [teamChant, setTeamChant] = useState("");
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
   const [targetUser, setTargetUser] = useState("");
   const [stuckPoint, setStuckPoint] = useState("");
   const [otherUsers, setOtherUsers] = useState("");
   const [firstStep, setFirstStep] = useState("");
   const [lessTrouble, setLessTrouble] = useState("");
+  const [aiHelpStep, setAiHelpStep] = useState("");
   const [exchangeGuess, setExchangeGuess] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
   const activeTaskTitle = taskTitle || camp?.active_task?.title || "";
   const isTeamNameOnly =
     camp?.active_task?.module_id === "team-building" ||
-    /组建团队|找到今天的队友|给团队起一个名字|团队亮个相/.test(activeTaskTitle);
+    /组建团队|找到今天的队友|给团队起一个名字|起队名|队呼|团队亮个相/.test(activeTaskTitle);
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
@@ -12444,6 +12840,7 @@ function StudentTeamCardTask({
           savedTeamName ||
           reusableAssignedTeamName
         );
+        setTeamChant((current) => current.trim() || asText(latestTeamCard?.payload.team_chant).trim());
         setTargetUser((current) =>
           current.trim() ||
           asText(latestTeamCard?.payload.target_user).trim() ||
@@ -12454,6 +12851,7 @@ function StudentTeamCardTask({
         setOtherUsers((current) => current.trim() || asText(latestTeamCard?.payload.other_users).trim());
         setFirstStep((current) => current.trim() || asText(latestTeamCard?.payload.first_step).trim());
         setLessTrouble((current) => current.trim() || asText(latestTeamCard?.payload.less_trouble).trim());
+        setAiHelpStep((current) => current.trim() || asText(latestTeamCard?.payload.ai_help_step).trim());
         setExchangeGuess((current) => current.trim() || asText(latestTeamCard?.payload.exchange_guess).trim());
       })
       .catch(() => undefined);
@@ -12464,7 +12862,11 @@ function StudentTeamCardTask({
 
   const submit = async () => {
     if (!teamName.trim()) {
-      showMessage("error", "先给团队起一个能被记住的名字。");
+      showMessage("error", "先起一个能被记住的队名。");
+      return;
+    }
+    if (isTeamNameOnly && !teamChant.trim()) {
+      showMessage("error", "再想一句全队能一起喊出来的队呼。");
       return;
     }
     if (!isTeamNameOnly && !targetUser.trim()) {
@@ -12483,12 +12885,13 @@ function StudentTeamCardTask({
       showMessage("error", "写清帮完以后少掉什么麻烦。");
       return;
     }
+    const aiHelpLine = aiHelpStep.trim() ? `，AI 可以先帮${aiHelpStep.trim()}` : "";
     const productDirection = isTeamNameOnly
       ? ""
-      : `帮${targetUser.trim()}，先做${firstStep.trim()}，让他少掉${lessTrouble.trim()}`;
+      : `帮${targetUser.trim()}，先做${firstStep.trim()}，让他少掉${lessTrouble.trim()}${aiHelpLine}`;
     const launchLine = isTeamNameOnly
-      ? `我们是${teamName.trim()}。`
-      : `我们是${teamName.trim()}，想帮${targetUser.trim()}。他卡在${stuckPoint.trim()}，第一版先做${firstStep.trim()}，让他少掉${lessTrouble.trim()}。`;
+      ? `我们是${teamName.trim()}。${teamChant.trim()}`
+      : `我们是${teamName.trim()}，想帮${targetUser.trim()}。他卡在${stuckPoint.trim()}，第一版先做${firstStep.trim()}，让他少掉${lessTrouble.trim()}${aiHelpLine}。`;
     setSubmitting(true);
     setMessage(null);
     try {
@@ -12497,12 +12900,14 @@ function StudentTeamCardTask({
         title: taskTitle,
         payload: {
           team_name: teamName.trim(),
+          team_chant: teamChant.trim(),
           team_members: teamMembers.join("、") || student.nickname,
           target_user: targetUser.trim(),
           stuck_point: stuckPoint.trim(),
           other_users: otherUsers.trim(),
           first_step: firstStep.trim(),
           less_trouble: lessTrouble.trim(),
+          ai_help_step: aiHelpStep.trim(),
           exchange_guess: exchangeGuess.trim(),
           product_direction: productDirection,
           launch_line: launchLine,
@@ -12510,7 +12915,7 @@ function StudentTeamCardTask({
           class_team_name: student.team_name || ""
         }
       });
-      showMessage("success", isTeamNameOnly ? "收到。你们的团队名已经准备亮相。" : "收到。你们的帮忙卡已经上墙准备亮相。");
+      showMessage("success", isTeamNameOnly ? "收到。你们的队名和队呼已经准备亮相。" : "收到。你们的帮忙卡已经上墙准备亮相。");
       await refresh();
     } catch (err) {
       showMessage("error", err instanceof Error ? err.message : "提交没成功，请举手找老师帮忙。");
@@ -12523,12 +12928,12 @@ function StudentTeamCardTask({
     <main className="student-page">
       <section className="student-shell">
         <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
-        <h1>{taskTitle || (isTeamNameOnly ? "给团队起一个名字" : "写第一张帮忙卡")}</h1>
-        <p>{isTeamNameOnly ? "老师已经分好成员。你们先给团队起一个名字。" : "老师已经分好成员。你们来决定团队名和第一张帮忙卡。"}</p>
+        <h1>{taskTitle || (isTeamNameOnly ? "起队名和队呼" : "写第一张帮忙卡")}</h1>
+        <p>{isTeamNameOnly ? "老师已经分好成员。你们先起队名，再想一句队呼。" : "老师已经分好成员。你们来决定团队名和第一张帮忙卡。"}</p>
         <div className="student-card d1-task-card team-card-form">
           <div className="student-current">
             <div>
-              <span>{teamName ? "团队名" : "分组"}</span>
+              <span>{teamName ? "队名" : "分组"}</span>
               <strong>{teamName || student.team_name || "还在分组"}</strong>
               <small>{teamMembers.length ? teamMembers.join("、") : student.username}</small>
             </div>
@@ -12536,10 +12941,10 @@ function StudentTeamCardTask({
           </div>
           <label>
             <span className="field-helper-row">
-              <span>团队名</span>
+              <span>队名</span>
               <FieldVoiceButton
                 fieldKey="team-name"
-                label="说团队名"
+                label="说队名"
                 listeningKey={listeningKey}
                 onStart={() => startVoiceInput("team-name", setTeamName)}
               />
@@ -12551,6 +12956,25 @@ function StudentTeamCardTask({
               inputMode="text"
             />
           </label>
+          {isTeamNameOnly && (
+            <label>
+              <span className="field-helper-row">
+                <span>队呼</span>
+                <FieldVoiceButton
+                  fieldKey="team-chant"
+                  label="说队呼"
+                  listeningKey={listeningKey}
+                  onStart={() => startVoiceInput("team-chant", setTeamChant)}
+                />
+              </span>
+              <input
+                value={teamChant}
+                onChange={(event) => setTeamChant(event.target.value)}
+                placeholder="例如：闪电闪电，马上开工！"
+                inputMode="text"
+              />
+            </label>
+          )}
           {teamMembers.length > 0 && (
             <div className="team-member-chips" aria-label="团队成员">
               {teamMembers.map((member) => (
@@ -12647,6 +13071,23 @@ function StudentTeamCardTask({
               </label>
               <label>
                 <span className="field-helper-row">
+                  <span>AI 可以先帮哪一步（可选）</span>
+                  <FieldVoiceButton
+                    fieldKey="ai-help-step"
+                    label="说出 AI 先帮哪一步"
+                    listeningKey={listeningKey}
+                    onStart={() => startVoiceInput("ai-help-step", setAiHelpStep)}
+                  />
+                </span>
+                <textarea
+                  value={aiHelpStep}
+                  onChange={(event) => setAiHelpStep(event.target.value)}
+                  placeholder="例如：画 3 个隔热工具草图，或者写一句宣传语"
+                  rows={2}
+                />
+              </label>
+              <label>
+                <span className="field-helper-row">
                   <span>他可能愿意拿什么来换（可选）</span>
                   <FieldVoiceButton
                     fieldKey="exchange-guess"
@@ -12670,13 +13111,17 @@ function StudentTeamCardTask({
             <div>
               <p><b>成员</b>{teamMembers.join("、") || student.nickname}</p>
               {isTeamNameOnly ? (
-                <p><b>亮相</b>{teamName.trim() ? `我们是${teamName.trim()}` : "起好名字后亮相"}</p>
+                <>
+                  <p><b>队呼</b>{teamChant.trim() || "想一句能一起喊出来的话"}</p>
+                  <p><b>亮相</b>{teamName.trim() ? `我们是${teamName.trim()}` : "起好名字后亮相"}</p>
+                </>
               ) : (
                 <>
                   <p><b>想帮谁</b>{targetUser.trim() || "写一个真实的人"}</p>
                   <p><b>卡在哪</b>{stuckPoint.trim() || "写清最烦的一步"}</p>
                   <p><b>先帮哪一步</b>{firstStep.trim() || "写一个能先试的小动作"}</p>
                   <p><b>少掉麻烦</b>{lessTrouble.trim() || "写帮完以后轻松了哪里"}</p>
+                  <p><b>AI 帮哪步</b>{aiHelpStep.trim() || "可以写设计图、宣传语或商业画布"}</p>
                   <p><b>愿意换</b>{exchangeGuess.trim() || "可以先空着，等试玩后再改"}</p>
                 </>
               )}
@@ -12687,7 +13132,7 @@ function StudentTeamCardTask({
             {submitting ? <Loader2 className="spin" size={18} /> : <UsersRound size={18} />}
             提交
           </button>
-          <p className="hint">{isTeamNameOnly ? "现在只起团队名，项目方向等下午再定。" : "每格只写一句就够，也可以直接说出来。"}</p>
+          <p className="hint">{isTeamNameOnly ? "现在只起队名和队呼，项目方向等下午再定。" : "每格只写一句就够，也可以直接说出来。"}</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -12910,7 +13355,7 @@ function StudentProblemCardTask({
             <input
               value={problemScene}
               onChange={(event) => setProblemScene(event.target.value)}
-              placeholder="例如：水杯带了，一天还是满的"
+              placeholder="例如：爷爷看不懂手机里的医院提醒"
               inputMode="text"
             />
           </label>
@@ -12919,7 +13364,7 @@ function StudentProblemCardTask({
             <input
               value={targetUser}
               onChange={(event) => setTargetUser(event.target.value)}
-              placeholder="例如：带了水杯却总忘喝的同学"
+              placeholder="例如：收到手机消息却怕点错的爷爷"
               inputMode="text"
             />
           </label>
@@ -14605,7 +15050,7 @@ function StudentLearningReflectionTask({
   onLogout: () => void;
 }) {
   const title = taskTitle || "带走一个 AI 判断方法";
-  const isAiFix = /AI 跑偏|改回来|修正/.test(title) || camp?.active_task?.module_id === "demo-check";
+  const isAiFix = /AI 跑偏|改回来|修正/.test(title);
   const isWorkBuddyDraw = camp?.active_task?.module_id === "ai-judgement";
   const isAiDialog = isWorkBuddyDraw || /DeepSeek|任务单|问真人|问同学|回答怎么用/.test(title);
   const [moment, setMoment] = useState("");
@@ -15793,6 +16238,7 @@ function StudentValueCardTask({
   const [message, setMessage] = useState<StudentMessage | null>(null);
   const exchangeLabel = valueExchangeLabel(exchangeChoice);
   const exchangePreview = [exchangeLabel, exchangeAmount.trim()].filter(Boolean).join(" ");
+  const isBusinessLoopTask = /商业闭环|作品连成一圈|差异化|不一样/.test(taskTitle);
 
   const showMessage = (tone: StudentMessage["tone"], text: string) => {
     setMessage({ tone, text });
@@ -15839,7 +16285,7 @@ function StudentValueCardTask({
           team_name: student.team_name || ""
         }
       });
-      showMessage("success", "收到啦。现在你们能说清作品为什么值得交换。");
+      showMessage("success", isBusinessLoopTask ? "收到啦。你们的闭环和不一样的点都更清楚了。" : "收到啦。现在你们能说清作品为什么值得交换。");
       setProductName("");
       setTargetUser("");
       setValueChange("");
@@ -15861,7 +16307,7 @@ function StudentValueCardTask({
       <section className="student-shell">
         <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
         <h1>{taskTitle || "价值交换卡"}</h1>
-        <p>说清你的作品帮别人少烦了什么，再看看别人愿意用什么交换。</p>
+        <p>{isBusinessLoopTask ? "把用户怎么进来、作品怎么帮忙、哪里不一样、为什么值得说清楚。" : "说清你的作品帮别人少烦了什么，再看看别人愿意用什么交换。"}</p>
         <div className="student-card value-card-form">
           <div className="student-current">
             <div>
@@ -15921,11 +16367,11 @@ function StudentValueCardTask({
             />
           </label>
           <label>
-            为什么值得
+            {isBusinessLoopTask ? "哪里不一样，为什么值得" : "为什么值得"}
             <textarea
               value={whyWorth}
               onChange={(event) => setWhyWorth(event.target.value)}
-              placeholder="例如：它把家长提醒变成孩子自己能勾选的清单"
+              placeholder={isBusinessLoopTask ? "例如：不用翻很多聊天记录，打开就能看到今天必带三件事" : "例如：它把家长提醒变成孩子自己能勾选的清单"}
               rows={3}
             />
           </label>
@@ -15934,20 +16380,20 @@ function StudentValueCardTask({
             <strong>{valueChange.trim() || "帮别人少烦了什么"}</strong>
           </div>
           <label>
-            你看到的证据（可选）
+            {isBusinessLoopTask ? "用户从哪里打开作品（可选）" : "你看到的证据（可选）"}
             <input
               value={evidence}
               onChange={(event) => setEvidence(event.target.value)}
-              placeholder="例如：第 2 组试用后说愿意再用一次"
+              placeholder={isBusinessLoopTask ? "例如：扫码打开、同学发链接、从作品街点开" : "例如：第 2 组试用后说愿意再用一次"}
               inputMode="text"
             />
           </label>
           <label>
-            下一次再验证什么（可选）
+            {isBusinessLoopTask ? "为什么下次还会回来（可选）" : "下一次再验证什么（可选）"}
             <input
               value={nextProof}
               onChange={(event) => setNextProof(event.target.value)}
-              placeholder="例如：让 3 位没见过作品的同学试一次"
+              placeholder={isBusinessLoopTask ? "例如：每次放学前都能生成新清单" : "例如：让 3 位没见过作品的同学试一次"}
               inputMode="text"
               enterKeyHint="done"
             />
@@ -15956,7 +16402,7 @@ function StudentValueCardTask({
             {submitting ? <Loader2 className="spin" size={18} /> : <Coins size={18} />}
             提交
           </button>
-          <p className="hint">真正有价值的产品，会让别人愿意付出一点东西来换。</p>
+          <p className="hint">{isBusinessLoopTask ? "一圈能跑通，明天发布时就更容易讲清楚。" : "真正有价值的产品，会让别人愿意付出一点东西来换。"}</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -16178,6 +16624,7 @@ function StudentStoryPitchTask({
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<StudentMessage | null>(null);
   const isRehearsalMode = /问答预演|预演问题|追问/.test(taskTitle);
+  const isGoldenCircleMode = /黄金圈|为什么想做|信念|梦想|路演稿|商业路演/.test(taskTitle);
   const filledRehearsalQa = useMemo(
     () => rehearsalQa
       .map((item) => ({ question: item.question.trim(), answer: item.answer.trim() }))
@@ -16201,23 +16648,23 @@ function StudentStoryPitchTask({
       return;
     }
     if (!storyHook.trim()) {
-      showMessage("error", "先写一句开头，让大家想继续听。");
+      showMessage("error", isGoldenCircleMode ? "先写你们为什么想做这个作品。" : "先写一句开头，让大家想继续听。");
       return;
     }
     if (!userScene.trim()) {
-      showMessage("error", "写清楚故事里的那个人遇到了什么。");
+      showMessage("error", isGoldenCircleMode ? "写清你们看见了谁的麻烦。" : "写清楚故事里的那个人遇到了什么。");
       return;
     }
     if (!productDemo.trim()) {
-      showMessage("error", "写清楚上台时先演示作品哪一步。");
+      showMessage("error", isGoldenCircleMode ? "写清你们怎么帮他。" : "写清楚上台时先演示作品哪一步。");
       return;
     }
     if (!proofLine.trim()) {
-      showMessage("error", "加上一条证据，让别人相信它真的有用。");
+      showMessage("error", isGoldenCircleMode ? "写清做出了什么，或者拿出一条证据。" : "加上一条证据，让别人相信它真的有用。");
       return;
     }
     if (!inviteLine.trim()) {
-      showMessage("error", "最后写一句邀请大家做什么。");
+      showMessage("error", isGoldenCircleMode ? "最后写一句邀请，或者说出下一步梦想。" : "最后写一句邀请大家做什么。");
       return;
     }
     if (filledRehearsalQa.some((item) => !item.question || !item.answer)) {
@@ -16241,6 +16688,12 @@ function StudentStoryPitchTask({
           product_demo: productDemo.trim(),
           proof_line: proofLine.trim(),
           invite_line: inviteLine.trim(),
+          golden_circle: isGoldenCircleMode,
+          why_belief: isGoldenCircleMode ? storyHook.trim() : "",
+          who_problem: userScene.trim(),
+          how_help: isGoldenCircleMode ? productDemo.trim() : "",
+          what_result: isGoldenCircleMode ? proofLine.trim() : "",
+          dream_line: isGoldenCircleMode ? inviteLine.trim() : "",
           rehearsal_question: filledRehearsalQa[0]?.question || "",
           rehearsal_answer: filledRehearsalQa[0]?.answer || "",
           rehearsal_qa: filledRehearsalQa,
@@ -16249,7 +16702,7 @@ function StudentStoryPitchTask({
           team_name: student.team_name || ""
         }
       });
-      showMessage("success", "收到啦。你们的作品故事已经有清楚的上台顺序。");
+      showMessage("success", isGoldenCircleMode ? "收到啦。你们的黄金圈路演稿已经有清楚顺序。" : "收到啦。你们的作品故事已经有清楚的上台顺序。");
       setProductName("");
       setStoryHook("");
       setUserScene("");
@@ -16273,8 +16726,8 @@ function StudentStoryPitchTask({
     <main className="student-page">
       <section className="student-shell">
         <span className="eyebrow">{camp?.name || "少年CEO AI 创业营"}</span>
-        <h1>{taskTitle || "故事发布五步卡"}</h1>
-        <p>把作品讲成一个故事：先让大家看见一个人，再让作品上场。</p>
+        <h1>{taskTitle || (isGoldenCircleMode ? "黄金圈路演稿" : "故事发布五步卡")}</h1>
+        <p>{isGoldenCircleMode ? "先讲为什么想做，再让大家看见作品怎样帮忙。" : "把作品讲成一个故事：先让大家看见一个人，再让作品上场。"}</p>
         <div className="student-card story-pitch-form">
           <div className="student-current">
             <div>
@@ -16295,47 +16748,47 @@ function StudentStoryPitchTask({
           </label>
           <div className="story-step-grid">
             <label>
-              1. 一句开头
+              {isGoldenCircleMode ? "1. 为什么想做" : "1. 一句开头"}
               <textarea
                 value={storyHook}
                 onChange={(event) => setStoryHook(event.target.value)}
-                placeholder="例如：你有没有故事点子，却不知道四格怎么排？"
+                placeholder={isGoldenCircleMode ? "例如：我们相信，写完作文的同学也应该看见自己的故事画面。" : "例如：你有没有故事点子，却不知道四格怎么排？"}
                 rows={3}
               />
             </label>
             <label>
-              2. 人物和麻烦
+              {isGoldenCircleMode ? "2. 我们看见了谁" : "2. 人物和麻烦"}
               <textarea
                 value={userScene}
                 onChange={(event) => setUserScene(event.target.value)}
-                placeholder="例如：小宇想好了月球便利店，可不知道四格怎么开头和收尾。"
+                placeholder={isGoldenCircleMode ? "例如：小宇作文写了很多，可不知道哪 4 个画面最精彩。" : "例如：小宇想好了月球便利店，可不知道四格怎么开头和收尾。"}
                 rows={3}
               />
             </label>
             <label>
-              3. 作品怎么帮他
+              {isGoldenCircleMode ? "3. 我们怎么帮" : "3. 作品怎么帮他"}
               <textarea
                 value={productDemo}
                 onChange={(event) => setProductDemo(event.target.value)}
-                placeholder="例如：打开作品，输入主角、地点和麻烦，它会生成 4 格开头草稿。"
+                placeholder={isGoldenCircleMode ? "例如：打开作品，粘贴作文，它会先挑出 4 个关键画面。" : "例如：打开作品，输入主角、地点和麻烦，它会生成 4 格开头草稿。"}
                 rows={3}
               />
             </label>
             <label>
-              4. 一条证据
+              {isGoldenCircleMode ? "4. 做出了什么" : "4. 一条证据"}
               <textarea
                 value={proofLine}
                 onChange={(event) => setProofLine(event.target.value)}
-                placeholder="例如：3 位同学试用后，有 2 位说愿意明天再用。"
+                placeholder={isGoldenCircleMode ? "例如：我们已经做出第一版，3 位同学试过，有 2 位说愿意再用。" : "例如：3 位同学试用后，有 2 位说愿意明天再用。"}
                 rows={3}
               />
             </label>
             <label>
-              5. 最后邀请
+              {isGoldenCircleMode ? "5. 邀请和下一步梦想" : "5. 最后邀请"}
               <textarea
                 value={inviteLine}
                 onChange={(event) => setInviteLine(event.target.value)}
-                placeholder="例如：欢迎大家课间点开试一次，看看它会推荐什么。"
+                placeholder={isGoldenCircleMode ? "例如：欢迎大家课间试一次。下一版，我们想让更多同学把作文变成漫画。" : "例如：欢迎大家课间点开试一次，看看它会推荐什么。"}
                 rows={3}
               />
             </label>
@@ -16363,15 +16816,15 @@ function StudentStoryPitchTask({
             </label>
           </div>
           <div className="story-pitch-preview" aria-label="故事发布预览">
-            <span>上台顺序</span>
-            <strong>{storyHook.trim() || "一句开头"}</strong>
-            <small>人物 → 作品 → 证据 → 邀请</small>
+            <span>{isGoldenCircleMode ? "黄金圈顺序" : "上台顺序"}</span>
+            <strong>{storyHook.trim() || (isGoldenCircleMode ? "为什么想做" : "一句开头")}</strong>
+            <small>{isGoldenCircleMode ? "为什么 → 怎么帮 → 做出了什么 → 邀请" : "人物 → 作品 → 证据 → 邀请"}</small>
           </div>
           <button className="submit-button" disabled={submitting} onClick={submit}>
             {submitting ? <Loader2 className="spin" size={18} /> : <Megaphone size={18} />}
             提交
           </button>
-          <p className="hint">好的故事发布，会让别人先看见问题，再看懂作品怎么帮忙。</p>
+          <p className="hint">{isGoldenCircleMode ? "好的路演，会让别人先听见你们的相信，再看见作品真的帮上忙。" : "好的故事发布，会让别人先看见问题，再看懂作品怎么帮忙。"}</p>
           {message && <p className={`student-message ${message.tone}`}>{message.text}</p>}
         </div>
       </section>
@@ -16891,7 +17344,7 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
     <section className="wall-artifacts">
       <div className="wall-section-title">
         <span className="eyebrow">{hasDirectionPlan ? "方向墙" : hasProduct ? "产品卡片" : hasPackaging ? "产品海报" : hasStory ? "故事发布" : hasValue ? "价值交换" : hasIteration ? "迭代清单" : hasTech ? "路线流程" : hasFeature ? "核心动作" : hasPrompt ? "提示词卡" : hasValidation ? "AI 验证" : hasScout ? "市场侦察" : hasTeam ? "团队名片" : "真实线索"}</span>
-        <h2>{hasDirectionPlan ? "每队明天先做什么" : hasProduct ? "从问题到产品" : hasPackaging ? "一眼看懂作品" : hasStory ? "让大家听懂作品" : hasValue ? "作品为什么值得" : hasIteration ? "把反馈改成下一版" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : hasTeam ? "团队名称和方向" : "问题和用户声音"}</h2>
+        <h2>{hasDirectionPlan ? "每队明天先做什么" : hasProduct ? "从问题到产品" : hasPackaging ? "一眼看懂作品" : hasStory ? "让大家听懂作品" : hasValue ? "作品为什么值得" : hasIteration ? "把反馈改成下一版" : hasTech ? "30 秒看懂怎么用" : hasFeature ? "先跑通最关键一步" : hasPrompt ? "让 AI 更听得懂" : hasValidation ? "用证据改答案" : hasScout ? "把问题查得更清楚" : hasTeam ? "团队名和队呼" : "问题和用户声音"}</h2>
       </div>
       <div className="wall-artifact-grid">
         {artifacts.map((item) => {
@@ -17009,10 +17462,11 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
               ) : isStory ? (
                 <>
                   <p><b>产品</b>{asText(item.payload.product_name) || "还没写"}</p>
-                  <p><b>人物</b>{asText(item.payload.user_scene) || "还没写"}</p>
-                  <p><b>作品</b>{asText(item.payload.product_demo) || "还没写"}</p>
-                  <p><b>证据</b>{asText(item.payload.proof_line) || "还没写"}</p>
-                  <p><b>邀请</b>{asText(item.payload.invite_line) || "还没写"}</p>
+                  <p><b>{item.payload.golden_circle ? "为什么" : "人物"}</b>{asText(item.payload.why_belief) || asText(item.payload.story_hook) || asText(item.payload.user_scene) || "还没写"}</p>
+                  {item.payload.golden_circle && <p><b>看见谁</b>{asText(item.payload.who_problem) || asText(item.payload.user_scene) || "还没写"}</p>}
+                  <p><b>{item.payload.golden_circle ? "怎么帮" : "作品"}</b>{asText(item.payload.how_help) || asText(item.payload.product_demo) || "还没写"}</p>
+                  <p><b>{item.payload.golden_circle ? "做出了什么" : "证据"}</b>{asText(item.payload.what_result) || asText(item.payload.proof_line) || "还没写"}</p>
+                  <p><b>邀请</b>{asText(item.payload.dream_line) || asText(item.payload.invite_line) || "还没写"}</p>
                   {qaPairs.length > 0 && (
                     <p><b>问答预演</b>{storyQaSummary(item.payload)}</p>
                   )}
@@ -17083,9 +17537,11 @@ function ClassroomArtifactsWall({ artifacts }: { artifacts: WallArtifact[] }) {
               ) : isTeam ? (
                 <>
                   <p><b>成员</b>{asText(item.payload.team_members) || item.team_name || "还在集合"}</p>
-                  <p><b>方向</b>{asText(item.payload.product_direction) || asText(item.payload.direction) || "还在讨论"}</p>
-                  <p><b>少烦了</b>{asText(item.payload.less_trouble) || "还在打磨"}</p>
-                  <p><b>愿意换</b>{asText(item.payload.exchange_guess) || "可以继续问"}</p>
+                  <p><b>队呼</b>{asText(item.payload.team_chant) || "还在准备"}</p>
+                  {asText(item.payload.product_direction) && <p><b>方向</b>{asText(item.payload.product_direction)}</p>}
+                  {asText(item.payload.less_trouble) && <p><b>少烦了</b>{asText(item.payload.less_trouble)}</p>}
+                  {asText(item.payload.ai_help_step) && <p><b>AI 帮哪步</b>{asText(item.payload.ai_help_step)}</p>}
+                  {asText(item.payload.exchange_guess) && <p><b>愿意换</b>{asText(item.payload.exchange_guess)}</p>}
                   <p><b>亮相</b>{asText(item.payload.launch_line) || "还在准备"}</p>
                 </>
               ) : (

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="840" viewBox="0 0 1200 840" role="img" aria-label="Four panel comic about busy weekend family plans">
+  <defs>
+    <style>
+      .bg{fill:#fff7df}.panel{fill:#fffdf5;stroke:#263238;stroke-width:5;rx:26}.ink{stroke:#263238;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;fill:none}.skin{fill:#f5c7a9}.dark{fill:#263238}.hair{fill:#3b2d2b}.soft{fill:#ffd36a}.blue{fill:#9fd3ff}.green{fill:#b8e986}.pink{fill:#ffb7c5}.muted{fill:#e8e1cf}.car{fill:#8bc6ff}
+    </style>
+  </defs>
+  <rect width="1200" height="840" class="bg"/>
+  <g transform="translate(40 40)">
+    <rect width="535" height="360" class="panel"/><rect x="625" width="535" height="360" class="panel"/><rect y="420" width="535" height="360" class="panel"/><rect x="625" y="420" width="535" height="360" class="panel"/>
+  </g>
+  <g transform="translate(40 40)">
+    <circle cx="130" cy="170" r="48" class="skin"/><path d="M91 155c12-48 78-54 96-5" class="hair"/><circle cx="116" cy="170" r="5" class="dark"/><circle cx="148" cy="170" r="5" class="dark"/><path d="M114 198q30 18 62 0" class="ink"/>
+    <rect x="225" y="70" width="245" height="230" rx="22" class="muted"/><path d="M225 120h245M285 70v230M345 70v230M405 70v230" class="ink"/>
+    <circle cx="260" cy="150" r="16" class="soft"/><circle cx="320" cy="205" r="16" class="blue"/><circle cx="405" cy="260" r="16" class="pink"/><path d="M100 238q68 54 160 20" class="ink"/>
+  </g>
+  <g transform="translate(665 40)">
+    <rect x="60" y="185" width="380" height="100" rx="22" class="muted"/>
+    <circle cx="105" cy="165" r="35" class="blue"/><rect x="160" y="122" width="55" height="80" rx="12" class="green"/><rect x="245" y="130" width="70" height="64" rx="12" class="soft"/><rect x="350" y="120" width="56" height="86" rx="12" class="pink"/>
+    <circle cx="475" cy="236" r="34" class="skin"/><path d="M448 225c10-34 54-35 66 0" class="dark"/><path d="M80 300q210 45 420 0" class="ink"/>
+  </g>
+  <g transform="translate(40 460)">
+    <rect x="65" y="155" width="420" height="130" rx="40" class="car"/><circle cx="155" cy="295" r="36" class="dark"/><circle cx="395" cy="295" r="36" class="dark"/><rect x="155" y="105" width="215" height="80" rx="28" class="car"/>
+    <circle cx="175" cy="160" r="28" class="skin"/><circle cx="275" cy="160" r="28" class="skin"/><circle cx="370" cy="160" r="28" class="skin"/>
+    <path d="M430 90l36-36M455 132h52M430 174l36 36" class="ink"/>
+  </g>
+  <g transform="translate(665 460)">
+    <circle cx="135" cy="220" r="52" class="skin"/><path d="M93 202c12-45 78-54 98-8" class="hair"/><circle cx="120" cy="220" r="6" class="dark"/><circle cx="158" cy="220" r="6" class="dark"/><path d="M118 250q34 20 70 0" class="ink"/>
+    <rect x="250" y="80" width="220" height="72" rx="18" class="blue"/><rect x="250" y="182" width="220" height="72" rx="18" class="soft"/><rect x="250" y="284" width="220" height="72" rx="18" class="green"/>
+    <path d="M185 185q48-76 100-66M190 245q44 4 92-20M185 300q50 50 105 28" class="ink"/>
+  </g>
+</svg>

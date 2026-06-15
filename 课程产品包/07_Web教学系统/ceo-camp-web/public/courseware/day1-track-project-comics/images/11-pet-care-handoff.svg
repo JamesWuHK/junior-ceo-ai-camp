@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="840" viewBox="0 0 1200 840" role="img" aria-label="Four panel comic about pet care handoff">
+  <defs>
+    <style>
+      .bg{fill:#fff7df}.panel{fill:#fffdf5;stroke:#263238;stroke-width:5;rx:26}.ink{stroke:#263238;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;fill:none}.skin{fill:#f5c7a9}.dark{fill:#263238}.hair{fill:#3b2d2b}.soft{fill:#ffd36a}.blue{fill:#9fd3ff}.green{fill:#b8e986}.pink{fill:#ffb7c5}.bowl{fill:#ff8a65}.dog{fill:#d59a62}.muted{fill:#e8e1cf}
+    </style>
+  </defs>
+  <rect width="1200" height="840" class="bg"/>
+  <g transform="translate(40 40)">
+    <rect width="535" height="360" class="panel"/><rect x="625" width="535" height="360" class="panel"/><rect y="420" width="535" height="360" class="panel"/><rect x="625" y="420" width="535" height="360" class="panel"/>
+  </g>
+  <g transform="translate(40 40)">
+    <ellipse cx="310" cy="260" rx="75" ry="44" class="dog"/><circle cx="245" cy="226" r="44" class="dog"/><path d="M218 195l-30-35M270 195l30-35" class="ink"/><circle cx="232" cy="225" r="5" class="dark"/><circle cx="258" cy="225" r="5" class="dark"/><path d="M238 246q20 18 42 0" class="ink"/><path d="M380 250q65-45 95 0" class="ink"/>
+    <path d="M90 120h95M90 170h95M90 220h95" class="ink"/><ellipse cx="410" cy="300" rx="56" ry="22" class="bowl"/><path d="M365 298q45 34 90 0" class="ink"/>
+  </g>
+  <g transform="translate(665 40)">
+    <circle cx="110" cy="170" r="40" class="skin"/><circle cx="235" cy="170" r="40" class="skin"/><circle cx="365" cy="170" r="40" class="skin"/><path d="M78 156c16-38 55-38 69 0M205 156c16-38 55-38 69 0M334 156c16-38 55-38 69 0" class="hair"/><path d="M145 240q45 40 95 0M275 240q45 40 95 0" class="ink"/>
+    <ellipse cx="240" cy="295" rx="64" ry="25" class="bowl"/>
+  </g>
+  <g transform="translate(40 460)">
+    <ellipse cx="210" cy="255" rx="75" ry="44" class="dog"/><circle cx="145" cy="220" r="44" class="dog"/><path d="M118 190l-30-35M172 190l30-35" class="ink"/><path d="M134 250q22-12 46 0" class="ink"/>
+    <ellipse cx="355" cy="275" rx="58" ry="22" class="bowl"/><circle cx="430" cy="165" r="44" class="soft"/><path d="M405 165h50M430 140v50" class="ink"/><circle cx="440" cy="275" r="44" class="pink"/><path d="M420 260l40 30M460 260l-40 30" class="ink"/>
+  </g>
+  <g transform="translate(665 460)">
+    <circle cx="125" cy="215" r="52" class="skin"/><path d="M83 197c12-45 78-54 98-8" class="hair"/><circle cx="110" cy="215" r="6" class="dark"/><circle cx="148" cy="215" r="6" class="dark"/><path d="M108 245q34 20 70 0" class="ink"/>
+    <rect x="250" y="72" width="220" height="76" rx="18" class="soft"/><rect x="250" y="172" width="220" height="76" rx="18" class="blue"/><rect x="250" y="272" width="220" height="76" rx="18" class="green"/><path d="M282 110l22 22 45-50M282 210l22 22 45-50M282 310l22 22 45-50" class="ink"/>
+    <path d="M180 180q55-75 120-55M185 255q45-12 95-38M185 315q46 35 95 18" class="ink"/>
+  </g>
+</svg>

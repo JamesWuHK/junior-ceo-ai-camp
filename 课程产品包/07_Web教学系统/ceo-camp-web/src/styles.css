@@ -2777,6 +2777,62 @@ button:disabled {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.artifact-business-loop {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.artifact-business-loop em {
+  display: none;
+}
+
+.artifact-business-loop article {
+  position: relative;
+  min-height: clamp(118px, 11vw, 160px);
+  text-align: center;
+}
+
+.artifact-business-loop article::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -14px;
+  width: 28px;
+  height: 2px;
+  background: rgba(23, 32, 24, 0.26);
+}
+
+.artifact-business-loop article:last-of-type::after {
+  display: none;
+}
+
+.artifact-differentiation {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.artifact-differentiation header {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 6px;
+  background: #172018;
+  color: #fffdf6;
+}
+
+.artifact-differentiation header strong {
+  color: #fffdf6;
+  font-size: clamp(20px, 2.1vw, 30px);
+}
+
+.artifact-differentiation header span {
+  color: rgba(255, 253, 246, 0.82);
+}
+
+.artifact-differentiation article {
+  min-height: clamp(122px, 12vw, 170px);
+  text-align: center;
+}
+
 .artifact-demo,
 .artifact-story,
 .artifact-showcase-run {
@@ -10635,6 +10691,8 @@ button:disabled {
   .artifact-browser main,
   .artifact-app-prototype main,
   .artifact-testing,
+  .artifact-business-loop,
+  .artifact-differentiation,
   .artifact-ticket,
   .artifact-checklist,
   .artifact-observer,
@@ -10691,6 +10749,10 @@ button:disabled {
 
   .artifact-table {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .artifact-business-loop article::after {
+    display: none;
   }
 
   .artifact-route,

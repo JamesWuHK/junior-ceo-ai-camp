@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="840" viewBox="0 0 1200 840" role="img" aria-label="Four panel comic about a grandpa who cannot understand phone messages">
+  <defs>
+    <style>
+      .bg{fill:#fff7df}.panel{fill:#fffdf5;stroke:#263238;stroke-width:5;rx:26}.ink{stroke:#263238;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;fill:none}.soft{fill:#ffd36a}.blue{fill:#9fd3ff}.green{fill:#b8e986}.pink{fill:#ffb7c5}.skin{fill:#f5c7a9}.hair{fill:#e7e1d4}.dark{fill:#263238}.muted{fill:#e8e1cf}.phone{fill:#333b44}.screen{fill:#d8f1ff}.warn{fill:#ff8a65}
+    </style>
+  </defs>
+  <rect width="1200" height="840" class="bg"/>
+  <g transform="translate(40 40)">
+    <rect width="535" height="360" class="panel"/>
+    <rect x="625" width="535" height="360" class="panel"/>
+    <rect y="420" width="535" height="360" class="panel"/>
+    <rect x="625" y="420" width="535" height="360" class="panel"/>
+  </g>
+  <g transform="translate(40 40)">
+    <circle cx="160" cy="170" r="55" class="skin"/><path d="M112 155c18-55 90-55 108 0" class="hair"/><path d="M132 186q28 24 58 0" class="ink"/><circle cx="142" cy="166" r="6" class="dark"/><circle cx="185" cy="166" r="6" class="dark"/>
+    <rect x="285" y="75" width="125" height="210" rx="22" class="phone"/><rect x="300" y="98" width="95" height="150" rx="12" class="screen"/>
+    <rect x="315" y="112" width="64" height="18" rx="9" class="soft"/><rect x="315" y="146" width="54" height="18" rx="9" class="pink"/><rect x="315" y="180" width="72" height="18" rx="9" class="green"/><path d="M435 90l32-32M453 135h48M435 180l32 32" class="ink"/>
+    <path d="M110 230q60 50 135 8" class="ink"/>
+  </g>
+  <g transform="translate(665 40)">
+    <circle cx="145" cy="176" r="54" class="skin"/><path d="M98 160c18-55 90-55 108 0" class="hair"/><circle cx="126" cy="174" r="6" class="dark"/><circle cx="170" cy="174" r="6" class="dark"/><path d="M128 205q20-16 43 0" class="ink"/>
+    <rect x="230" y="80" width="115" height="198" rx="20" class="phone"/><rect x="244" y="102" width="87" height="142" rx="12" class="screen"/><path d="M105 155q-36 0-58 32M195 156q35-5 62 24" class="ink"/>
+    <circle cx="420" cy="190" r="40" class="skin"/><path d="M388 178c14-38 60-38 75 0" class="dark"/><circle cx="407" cy="190" r="5" class="dark"/><circle cx="438" cy="190" r="5" class="dark"/><path d="M397 222q34 20 68 0" class="ink"/>
+    <path d="M365 245q42 42 103 0" class="ink"/>
+  </g>
+  <g transform="translate(40 460)">
+    <rect x="80" y="85" width="370" height="210" rx="22" class="muted"/>
+    <rect x="125" y="125" width="280" height="26" rx="13" class="warn"/><rect x="125" y="172" width="230" height="22" rx="11" class="soft"/><rect x="125" y="218" width="180" height="22" rx="11" class="blue"/>
+    <circle cx="430" cy="112" r="38" class="pink"/><path d="M410 93l40 40M450 93l-40 40" class="ink"/>
+    <circle cx="90" cy="315" r="20" class="soft"/><path d="M64 332q120 40 230 0" class="ink"/>
+  </g>
+  <g transform="translate(665 460)">
+    <circle cx="120" cy="185" r="52" class="skin"/><path d="M76 168c18-50 82-50 99 0" class="dark"/><circle cx="104" cy="185" r="6" class="dark"/><circle cx="140" cy="185" r="6" class="dark"/><path d="M102 215q28 22 65 0" class="ink"/>
+    <rect x="235" y="90" width="220" height="70" rx="18" class="blue"/><rect x="235" y="185" width="220" height="70" rx="18" class="green"/><rect x="235" y="280" width="220" height="70" rx="18" class="soft"/>
+    <path d="M165 250q50 70 125 40M165 120q55-50 128-10" class="ink"/>
+  </g>
+</svg>
