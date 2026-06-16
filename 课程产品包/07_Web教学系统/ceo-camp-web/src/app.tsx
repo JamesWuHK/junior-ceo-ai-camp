@@ -767,6 +767,8 @@ const aiSketchnoteBasePath = classroomPath(
   "courseware/baoyu-ai-knowledge-sketchnote/slide-deck/day1-ai-basics-sketchnote"
 );
 
+const BUSINESS_MODEL_MODULE_ID = "business-model-canvas";
+
 const businessModelSketchnoteBasePath = classroomPath("courseware/day2-business-model-canvas-sketchnote");
 
 const entrepreneurshipDefinitionSlide = {
@@ -1395,6 +1397,17 @@ const moduleDesigns: Record<
       { title: "以后改", text: "现在先记录下来" }
     ]
   },
+  [BUSINESS_MODEL_MODULE_ID]: {
+    icon: Coins,
+    accent: "sun",
+    chips: ["产品", "用户", "交换"],
+    steps: ["先判断什么是产品", "用故事看懂商业模式", "让 AI 商业教练追问一轮"],
+    cards: [
+      { title: "产品", text: "能帮人完成一件事的东西或服务" },
+      { title: "用户", text: "真正会用它、需要它的人" },
+      { title: "交换", text: "别人觉得有用，愿意拿时间、推荐或钱来换" }
+    ]
+  },
   "demo-check": {
     icon: Monitor,
     accent: "ink",
@@ -1761,12 +1774,23 @@ function normalizeCourseModules(modules: CourseModule[]) {
         };
       }
 
-      if (module.id === "demo-check") {
+      if (module.id === "tech-route") {
         return {
           ...module,
+          sequence: 4,
+          time_range: "11:40-12:00"
+        };
+      }
+
+      if (module.id === BUSINESS_MODEL_MODULE_ID) {
+        return {
+          ...module,
+          day: 2,
+          sequence: 3.5,
           title: "商业模式画布",
           subtitle: "用 AI 商业教练，把产品、用户和交换想清楚",
-          time_range: "17:00-17:30"
+          time_range: "11:10-11:40",
+          pages: pagesFromSeeds(module.id, fallbackLessonPages[BUSINESS_MODEL_MODULE_ID] ?? [])
         };
       }
 
@@ -1795,6 +1819,19 @@ function normalizeCourseModules(modules: CourseModule[]) {
         "WorkBuddy 变网页",
         "看一句话怎样变成能点开的页面",
         "10:35-11:00"
+      )
+    );
+  }
+
+  if (!normalized.some((module) => module.id === BUSINESS_MODEL_MODULE_ID)) {
+    normalized.push(
+      fallbackCourseModule(
+        BUSINESS_MODEL_MODULE_ID,
+        2,
+        3.5,
+        "商业模式画布",
+        "用 AI 商业教练，把产品、用户和交换想清楚",
+        "11:10-11:40"
       )
     );
   }
@@ -1935,9 +1972,9 @@ function coursewarePages(module: CourseModule | null | undefined): DesignedLesso
     };
     return aiSketchnoteLessonPages(module, base);
   }
-  if (module.id === "demo-check") {
+  if (module.id === BUSINESS_MODEL_MODULE_ID) {
     const base = modulePages[0] ?? {
-      id: "demo-check-page",
+      id: "business-model-canvas-page",
       module_id: module.id,
       page_no: 1,
       title: module.title,
@@ -4628,6 +4665,7 @@ const moduleProgressFocus: Record<string, Exclude<ProgressFocusKey, "current" | 
   "ai-lab": "d2",
   "feature-scope": "d2",
   "product-prototype": "d2",
+  [BUSINESS_MODEL_MODULE_ID]: "d2",
   "tech-route": "d2",
   "tool-demo": "d2",
   "build-sprint": "d2",
@@ -8802,6 +8840,7 @@ const knowledgeInputModules = new Set([
   "ai-judgement",
   "workbuddy-webpage",
   "team-formation",
+  BUSINESS_MODEL_MODULE_ID,
   "ai-superpowers",
   "ai-lab",
   "tool-demo",
@@ -10033,6 +10072,7 @@ function expectedOutputForLesson(module: CourseModule, page: DesignedLessonPage)
     "day2-kickoff": "圈出今天必须先跑通的一个核心动作",
     "ai-lab": "完成一张五句提示词卡，并用 DeepSeek 检查一次",
     "product-prototype": "提交核心动作卡：功能清单、第一版范围和最小结果",
+    [BUSINESS_MODEL_MODULE_ID]: "用 6 个问题说清产品、用户、帮助和交换",
     "tech-route": "提交路线流程卡：路线选择和 3 到 5 步使用流程",
     "tool-demo": "完成一个最小智能体规则或可打开 V1 原型",
     "build-sprint": "作品能打开，别人能完成一个核心动作",
