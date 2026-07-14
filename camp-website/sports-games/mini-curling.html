@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Curling</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: radial-gradient(circle at 50% 0%, #1e3a5f, #0b1622 70%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', system-ui, Arial, sans-serif;
+    color: #e8f0f8;
+    padding: 16px;
+    user-select: none;
+  }
+  h1 {
+    font-size: 30px;
+    margin-bottom: 4px;
+    letter-spacing: 3px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #ffd54a, #ff8a65);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subtitle { color: #7a93ad; font-size: 13px; margin-bottom: 14px; letter-spacing: 1px; }
+  .game-wrap {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 25px 70px rgba(0,0,0,0.65), 0 0 0 2px rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  canvas {
+    display: block;
+    background: #e8f4f8;
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .hud {
+    display: flex;
+    gap: 14px;
+    margin-top: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .stat {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 9px 18px;
+    border-radius: 11px;
+    text-align: center;
+    min-width: 78px;
+    backdrop-filter: blur(6px);
+  }
+  .stat .label { font-size: 10px; color: #7a93ad; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 2px; }
+  .stat .value { font-size: 22px; font-weight: 800; color: #ffd54a; line-height: 1; }
+  button {
+    background: linear-gradient(135deg, #4a90d9, #2a6db5);
+    color: white;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 11px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.2s;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  button:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(74,144,217,0.45); }
+  button:active { transform: translateY(0); }
+  .instructions {
+    margin-top: 14px;
+    font-size: 12px;
+    color: #7a93ad;
+    text-align: center;
+    max-width: 520px;
+    line-height: 1.7;
+  }
+  .instructions b { color: #b8cfe6; }
+  .toast {
+    position: absolute;
+    top: 42%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.4);
+    background: rgba(8,16,26,0.88);
+    color: #ffd54a;
+    padding: 18px 38px;
+    border-radius: 14px;
+    font-size: 30px;
+    font-weight: 800;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 2px solid rgba(255,213,74,0.25);
+    letter-spacing: 2px;
+    white-space: nowrap;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+</style>
+</head>
+<body>
+  <h1>🥌 MINI CURLING</h1>
+  <div class="subtitle">Slide the stone — land it in the rings</div>
+  <div class="game-wrap">
+    <canvas id="game" width="500" height="700"></canvas>
+    <div class="toast" id="toast"></div>
+  </div>
+  <div class="hud">
+    <div class="stat"><div class="label">Level</div><div class="value" id="level">1</div></div>
+    <div class="stat"><div class="label">Score</div><div class="value" id="score">0</div></div>
+    <div class="stat"><div class="label">Stones</div><div class="value" id="stones">5</div></div>
+    <div class="stat"><div class="label">Best</div><div class="value" id="best">0</div></div>
+    <button id="reset">New Game</button>
+  </div>
+  <div class="instructions">
+    <b>Click &amp; drag</b> from the stone — pull back like a slingshot, then release to slide. Longer pull = more power.
+    Land in the <b>center button for 5 pts</b>. Outer rings give 1–3. <b>3 levels</b>, each harder — dodge the barriers!
+  </div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+// --- Config ---
+const house = { x: W / 2, y: 135 };
+const rings = [
+  { r: 112, color: '#3a7bd5', edge: '#2a5fa8', points: 1 },
+  { r: 82,  color: '#f5fbff', edge: '#c4d6e4', points: 2 },
+  { r: 52,  color: '#e74c3c', edge: '#b8362a', points: 3 },
+  { r: 24,  color: '#f5fbff', edge: '#c4d6e4', points: 5 },
+];
+const STONE_R = 16;
+const FRICTION = 0.987;
+const STOP_THRESHOLD = 0.09;
+const MAX_PULL = 150;
+const STONES_PER_LEVEL = 5;
+const MAX_LEVEL = 3;
+const SPAWN_DELAY_FRAMES = 57;
+const SCORE_TOAST_FRAMES = 95;
+const LEVEL_TRANSITION_FRAMES = 215;
+const GAME_COMPLETE_FRAMES = 255;
+
+// --- Level obstacle layouts ---
+// Each obstacle: { x, y, w, h } — rectangle, top-left origin
+function getObstaclesForLevel(level) {
+  if (level === 1) return [];
+  if (level === 2) {
+    // Horizontal wall with a narrow gap in the center
+    return [
+      { x: 30,  y: 375, w: 190, h: 22 },
+      { x: 280, y: 375, w: 190, h: 22 },
+    ];
+  }
+  // Level 3 — gentle zigzag: pass right, bounce off wall, pass left, reach house.
+  // Wide gaps (~190px, ~6x stone width) make it challenging but achievable.
+  return [
+    { x: 30,  y: 475, w: 250, h: 22 }, // lower barrier — wide gap on the right
+    { x: 220, y: 315, w: 250, h: 22 }, // upper barrier — wide gap on the left
+  ];
+}
+
+// --- Pre-render ice background ---
+const iceCanvas = document.createElement('canvas');
+iceCanvas.width = W; iceCanvas.height = H;
+const ictx = iceCanvas.getContext('2d');
+(function renderIce() {
+  const g = ictx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#cfe2ee');
+  g.addColorStop(0.4, '#e6f2f8');
+  g.addColorStop(0.7, '#eef6fa');
+  g.addColorStop(1, '#d6e7f0');
+  ictx.fillStyle = g;
+  ictx.fillRect(0, 0, W, H);
+  ictx.strokeStyle = 'rgba(255,255,255,0.55)';
+  ictx.lineWidth = 1;
+  for (let i = 0; i < 90; i++) {
+    ictx.beginPath();
+    const y = Math.random() * H;
+    const x = Math.random() * W;
+    const len = 20 + Math.random() * 60;
+    ictx.moveTo(x, y);
+    ictx.lineTo(x + len, y + (Math.random() - 0.5) * 3);
+    ictx.stroke();
+  }
+  ictx.strokeStyle = 'rgba(120,160,200,0.18)';
+  ictx.lineWidth = 1;
+  for (let i = 0; i < 60; i++) {
+    ictx.beginPath();
+    const y = Math.random() * H;
+    const x = Math.random() * W;
+    ictx.moveTo(x, y);
+    ictx.lineTo(x + (Math.random() - 0.5) * 40, y + (Math.random() - 0.5) * 40);
+    ictx.stroke();
+  }
+  ictx.strokeStyle = 'rgba(90,130,170,0.28)';
+  ictx.lineWidth = 2;
+  ictx.beginPath(); ictx.moveTo(0, house.y); ictx.lineTo(W, house.y); ictx.stroke();
+  ictx.setLineDash([10, 8]);
+  ictx.beginPath(); ictx.moveTo(0, H - 150); ictx.lineTo(W, H - 150); ictx.stroke();
+  ictx.setLineDash([]);
+  ictx.beginPath(); ictx.moveTo(W / 2, 0); ictx.lineTo(W / 2, H); ictx.stroke();
+})();
+
+// ============================================================
+// STATE MACHINE
+// phase: 'ready'           → stone at launch position, waiting for aim
+//        'aiming'          → user is dragging to aim
+//        'sliding'         → stone(s) in motion
+//        'delay'           → stone landed, counting frames
+//        'leveltransition' → level complete, counting frames before next level
+//        'gameover'        → all levels done
+// ============================================================
+let state = {
+  phase: 'ready',
+  stone: null,
+  placed: [],
+  obstacles: [],
+  aiming: false,
+  aimStart: null,
+  aimCur: null,
+  score: 0,
+  level: 1,
+  stonesLeft: STONES_PER_LEVEL,
+  best: parseInt(localStorage.getItem('curlingBest') || '0'),
+  delayFrames: 0,
+  toastUntil: 0,
+};
+document.getElementById('best').textContent = state.best;
+
+function newStone() {
+  return { x: W / 2, y: H - 55, vx: 0, vy: 0, moving: false, trail: [], scored: null };
+}
+
+function updateHUD() {
+  document.getElementById('score').textContent = state.score;
+  document.getElementById('stones').textContent = state.stonesLeft;
+  document.getElementById('level').textContent = state.level + ' / ' + MAX_LEVEL;
+}
+
+function showToast(text, color) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.style.color = color || '#ffd54a';
+  t.classList.add('show');
+  state.toastUntil = Date.now() + 2000;
+}
+
+function hideToastIfExpired() {
+  if (state.toastUntil && Date.now() > state.toastUntil) {
+    document.getElementById('toast').classList.remove('show');
+    state.toastUntil = 0;
+  }
+}
+
+// --- Init ---
+state.obstacles = getObstaclesForLevel(1);
+state.stone = newStone();
+updateHUD();
+
+// ============================================================
+// INPUT
+// ============================================================
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const sx = W / r.width, sy = H / r.height;
+  const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+  const cy = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+  return { x: cx * sx, y: cy * sy };
+}
+
+function onDown(e) {
+  e.preventDefault();
+  if (state.phase !== 'ready') return;
+  state.phase = 'aiming';
+  state.aiming = true;
+  const p = getPos(e);
+  state.aimStart = p;
+  state.aimCur = p;
+}
+
+function onMove(e) {
+  if (!state.aiming) return;
+  e.preventDefault();
+  state.aimCur = getPos(e);
+}
+
+function onUp(e) {
+  if (!state.aiming) return;
+  state.aiming = false;
+  const dx = state.aimStart.x - state.aimCur.x;
+  const dy = state.aimStart.y - state.aimCur.y;
+  const d = Math.hypot(dx, dy);
+  if (d < 10) {
+    state.phase = 'ready';
+    state.aimStart = null;
+    return;
+  }
+  const power = Math.min(d / MAX_PULL, 1) * 21;
+  const angle = Math.atan2(dy, dx);
+  state.stone.vx = Math.cos(angle) * power;
+  state.stone.vy = Math.sin(angle) * power;
+  state.stone.moving = true;
+  state.phase = 'sliding';
+  state.aimStart = null;
+}
+
+canvas.addEventListener('mousedown', onDown);
+window.addEventListener('mousemove', onMove);
+window.addEventListener('mouseup', onUp);
+canvas.addEventListener('touchstart', onDown, { passive: false });
+canvas.addEventListener('touchmove', onMove, { passive: false });
+canvas.addEventListener('touchend', onUp, { passive: false });
+document.getElementById('reset').addEventListener('click', resetGame);
+
+// ============================================================
+// RESET — fully synchronous
+// ============================================================
+function resetGame() {
+  state.phase = 'ready';
+  state.level = 1;
+  state.stone = newStone();
+  state.placed = [];
+  state.obstacles = getObstaclesForLevel(1);
+  state.aiming = false;
+  state.aimStart = null;
+  state.aimCur = null;
+  state.score = 0;
+  state.stonesLeft = STONES_PER_LEVEL;
+  state.delayFrames = 0;
+  state.toastUntil = 0;
+  document.getElementById('toast').classList.remove('show');
+  updateHUD();
+}
+
+// ============================================================
+// PHYSICS
+// ============================================================
+function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+
+function collide(a, b) {
+  const d = dist(a, b);
+  const minD = STONE_R * 2;
+  if (d < minD && d > 0.0001) {
+    const nx = (a.x - b.x) / d, ny = (a.y - b.y) / d;
+    const overlap = minD - d;
+    a.x += nx * overlap / 2; a.y += ny * overlap / 2;
+    b.x -= nx * overlap / 2; b.y -= ny * overlap / 2;
+    const dvx = a.vx - b.vx, dvy = a.vy - b.vy;
+    const dot = dvx * nx + dvy * ny;
+    if (dot < 0) {
+      a.vx -= dot * nx; a.vy -= dot * ny;
+      b.vx += dot * nx; b.vy += dot * ny;
+      b.moving = true;
+    }
+  }
+}
+
+// Circle (stone) vs rectangle (obstacle) collision — obstacle is immovable
+function collideObstacle(s, obs) {
+  const closestX = Math.max(obs.x, Math.min(s.x, obs.x + obs.w));
+  const closestY = Math.max(obs.y, Math.min(s.y, obs.y + obs.h));
+  const dx = s.x - closestX;
+  const dy = s.y - closestY;
+  const d2 = dx * dx + dy * dy;
+  if (d2 < STONE_R * STONE_R && d2 > 0.0001) {
+    const d = Math.sqrt(d2);
+    const nx = dx / d, ny = dy / d;
+    const overlap = STONE_R - d;
+    s.x += nx * overlap;
+    s.y += ny * overlap;
+    const dot = s.vx * nx + s.vy * ny;
+    if (dot < 0) {
+      s.vx -= 2 * dot * nx;
+      s.vy -= 2 * dot * ny;
+      s.vx *= 0.90; // gentle energy loss on barrier hit — keeps the shot alive
+      s.vy *= 0.90;
+    }
+  } else if (d2 <= 0.0001) {
+    // Stone center is inside the obstacle — push out vertically (rare edge case)
+    s.y = obs.y - STONE_R;
+    s.vy = -Math.abs(s.vy) * 0.5;
+  }
+}
+
+function boundsStone(s) {
+  if (s.x < STONE_R) { s.x = STONE_R; s.vx *= -0.55; }
+  if (s.x > W - STONE_R) { s.x = W - STONE_R; s.vx *= -0.55; }
+  if (s.y < STONE_R) { s.y = STONE_R; s.vy *= -0.55; }
+  if (s.y > H - STONE_R) { s.y = H - STONE_R; s.vy *= -0.55; }
+}
+
+function stepStone(s) {
+  if (!s.moving) return;
+  s.trail.push({ x: s.x, y: s.y });
+  if (s.trail.length > 28) s.trail.shift();
+  s.x += s.vx; s.y += s.vy;
+  s.vx *= FRICTION; s.vy *= FRICTION;
+  boundsStone(s);
+  // Obstacle collisions
+  for (const obs of state.obstacles) collideObstacle(s, obs);
+  if (Math.hypot(s.vx, s.vy) < STOP_THRESHOLD) {
+    s.moving = false; s.vx = 0; s.vy = 0;
+  }
+}
+
+function finalizeStone() {
+  const s = state.stone;
+  const d = dist(s, house);
+  let pts = 0;
+  for (let i = rings.length - 1; i >= 0; i--) {
+    if (d <= rings[i].r) { pts = rings[i].points; break; }
+  }
+  s.scored = pts;
+  let label, color;
+  if (pts === 5) { label = 'BULLSEYE! +5'; color = '#ff6b6b'; }
+  else if (pts === 3) { label = '+3'; color = '#ffd54a'; }
+  else if (pts === 2) { label = '+2'; color = '#a8e6cf'; }
+  else if (pts === 1) { label = '+1'; color = '#8aa0b8'; }
+  else { label = 'MISS!'; color = '#e74c3c'; }
+
+  state.score += pts;
+  state.stonesLeft--;
+  state.placed.push(s);
+  if (state.score > state.best) {
+    state.best = state.score;
+    localStorage.setItem('curlingBest', state.best);
+    document.getElementById('best').textContent = state.best;
+  }
+  updateHUD();
+  showToast(label, color);
+
+  state.stone = null;
+  state.phase = 'delay';
+  state.delayFrames = 0;
+}
+
+// ============================================================
+// UPDATE
+// ============================================================
+function update() {
+  hideToastIfExpired();
+
+  if (state.phase === 'sliding') {
+    if (state.stone) {
+      stepStone(state.stone);
+      if (state.stone.moving) {
+        for (const p of state.placed) collide(state.stone, p);
+      }
+    }
+    for (const p of state.placed) {
+      stepStone(p);
+      if (p.moving) {
+        for (const q of state.placed) if (q !== p) collide(p, q);
+        if (state.stone) collide(p, state.stone);
+      }
+    }
+    const activeStopped = !state.stone || !state.stone.moving;
+    const placedStopped = state.placed.every(p => !p.moving);
+    if (activeStopped && placedStopped) {
+      if (state.stone) {
+        finalizeStone();
+      } else {
+        state.phase = 'delay';
+        state.delayFrames = 0;
+      }
+    }
+  }
+
+  if (state.phase === 'delay') {
+    state.delayFrames++;
+    if (state.stonesLeft > 0) {
+      // Next stone in same level
+      if (state.delayFrames >= SPAWN_DELAY_FRAMES) {
+        state.stone = newStone();
+        state.phase = 'ready';
+      }
+    } else if (state.level < MAX_LEVEL) {
+      // Level complete — let scoring toast finish, then announce, then advance
+      if (state.delayFrames === SCORE_TOAST_FRAMES) {
+        showToast('LEVEL ' + state.level + ' COMPLETE!', '#4a90d9');
+      }
+      if (state.delayFrames >= LEVEL_TRANSITION_FRAMES) {
+        state.level++;
+        state.stonesLeft = STONES_PER_LEVEL;
+        state.obstacles = getObstaclesForLevel(state.level);
+        state.placed = [];
+        state.stone = newStone();
+        state.phase = 'ready';
+        state.delayFrames = 0;
+        updateHUD();
+        showToast('LEVEL ' + state.level, '#ffd54a');
+      }
+    } else {
+      // Game complete (final level done)
+      if (state.delayFrames === SCORE_TOAST_FRAMES) {
+        showToast('GAME COMPLETE!  ' + state.score + ' PTS', '#ffd54a');
+      }
+      if (state.delayFrames >= GAME_COMPLETE_FRAMES) {
+        state.phase = 'gameover';
+      }
+    }
+  }
+}
+
+// ============================================================
+// DRAWING
+// ============================================================
+function drawHouse() {
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.18)';
+  ctx.shadowBlur = 18;
+  ctx.shadowOffsetY = 4;
+  for (let i = 0; i < rings.length; i++) {
+    const ring = rings[i];
+    ctx.beginPath();
+    ctx.arc(house.x, house.y, ring.r, 0, Math.PI * 2);
+    ctx.fillStyle = ring.color;
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+  }
+  ctx.restore();
+  for (const ring of rings) {
+    ctx.beginPath();
+    ctx.arc(house.x, house.y, ring.r, 0, Math.PI * 2);
+    ctx.strokeStyle = ring.edge;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.arc(house.x, house.y, 3, 0, Math.PI * 2);
+  ctx.fillStyle = '#e74c3c';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(90,130,170,0.4)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(house.x - 130, house.y); ctx.lineTo(house.x + 130, house.y);
+  ctx.stroke();
+}
+
+function drawObstacles() {
+  for (const obs of state.obstacles) {
+    // shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillRect(obs.x + 2, obs.y + 5, obs.w, obs.h);
+    // body gradient
+    const g = ctx.createLinearGradient(obs.x, obs.y, obs.x, obs.y + obs.h);
+    g.addColorStop(0, '#6ba0c8');
+    g.addColorStop(0.5, '#4a7da5');
+    g.addColorStop(1, '#2d5a7a');
+    ctx.fillStyle = g;
+    ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+    // glossy top highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fillRect(obs.x, obs.y, obs.w, 3);
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    ctx.fillRect(obs.x, obs.y + 3, obs.w, 2);
+    // hazard stripes
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(obs.x, obs.y, obs.w, obs.h);
+    ctx.clip();
+    ctx.strokeStyle = 'rgba(255,213,74,0.35)';
+    ctx.lineWidth = 5;
+    for (let i = -obs.h; i < obs.w + obs.h; i += 18) {
+      ctx.beginPath();
+      ctx.moveTo(obs.x + i, obs.y + obs.h);
+      ctx.lineTo(obs.x + i + obs.h, obs.y);
+      ctx.stroke();
+    }
+    ctx.restore();
+    // border
+    ctx.strokeStyle = 'rgba(15,35,55,0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
+  }
+}
+
+function drawStone(s, active) {
+  if (s.trail && s.trail.length > 1) {
+    ctx.beginPath();
+    ctx.moveTo(s.trail[0].x, s.trail[0].y);
+    for (const t of s.trail) ctx.lineTo(t.x, t.y);
+    ctx.strokeStyle = active ? 'rgba(74,144,217,0.25)' : 'rgba(120,120,120,0.18)';
+    ctx.lineWidth = STONE_R * 1.3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.ellipse(s.x + 2, s.y + 4, STONE_R, STONE_R * 0.85, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.22)';
+  ctx.fill();
+  const g = ctx.createRadialGradient(s.x - 5, s.y - 6, 2, s.x, s.y, STONE_R);
+  g.addColorStop(0, active ? '#5d6b7a' : '#3a4754');
+  g.addColorStop(0.6, active ? '#2e3742' : '#222a33');
+  g.addColorStop(1, active ? '#161c23' : '#0e1318');
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, STONE_R, 0, Math.PI * 2);
+  ctx.fillStyle = g;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, STONE_R * 0.7, 0, Math.PI * 2);
+  ctx.strokeStyle = active ? 'rgba(120,150,180,0.7)' : 'rgba(100,115,130,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = active ? '#e74c3c' : '#b03020';
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, STONE_R * 0.42, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = active ? '#ff8a7a' : '#d04535';
+  ctx.beginPath();
+  ctx.arc(s.x - 2, s.y - 2, STONE_R * 0.18, 0, Math.PI * 2);
+  ctx.fill();
+  if (!active && s.scored >= 5) {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, STONE_R + 4, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,213,74,0.7)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+
+function drawAim() {
+  if (!state.aiming || !state.stone) return;
+  const s = state.stone;
+  const dx = state.aimStart.x - state.aimCur.x;
+  const dy = state.aimStart.y - state.aimCur.y;
+  const pull = Math.hypot(dx, dy);
+  if (pull < 4) return;
+  const power = Math.min(pull / MAX_PULL, 1);
+  const angle = Math.atan2(dy, dx);
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.moveTo(s.x, s.y);
+  ctx.lineTo(s.x - dx, s.y - dy);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  const steps = 60;
+  const v0 = power * 21;
+  let px = s.x, py = s.y, vx = Math.cos(angle) * v0, vy = Math.sin(angle) * v0;
+  ctx.beginPath();
+  ctx.moveTo(px, py);
+  for (let i = 0; i < steps; i++) {
+    px += vx; py += vy;
+    vx *= FRICTION; vy *= FRICTION;
+    if (px < STONE_R || px > W - STONE_R || py < STONE_R || py > H - STONE_R) break;
+    ctx.lineTo(px, py);
+    if (Math.hypot(vx, vy) < STOP_THRESHOLD) break;
+  }
+  const aimColor = power > 0.75 ? '#ff6b6b' : power > 0.45 ? '#ffd54a' : '#a8e6cf';
+  ctx.strokeStyle = aimColor;
+  ctx.lineWidth = 3;
+  ctx.setLineDash([8, 6]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, STONE_R + 8, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * power);
+  ctx.strokeStyle = aimColor;
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+}
+
+function drawLauncher() {
+  if (!state.stone || state.stone.moving) return;
+  const s = state.stone;
+  const t = (Date.now() % 1400) / 1400;
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, STONE_R + 6 + t * 10, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(74,144,217,' + (0.5 * (1 - t)) + ')';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function render() {
+  ctx.drawImage(iceCanvas, 0, 0);
+  drawHouse();
+  drawObstacles();
+  for (const p of state.placed) drawStone(p, false);
+  if (state.stone) {
+    drawLauncher();
+    drawStone(state.stone, true);
+  }
+  drawAim();
+}
+
+function loop() {
+  update();
+  render();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>

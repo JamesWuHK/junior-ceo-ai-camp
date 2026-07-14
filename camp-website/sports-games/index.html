@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sport Game Hub</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2300f5a0'/%3E%3Cstop offset='0.5' stop-color='%2300d9f5'/%3E%3Cstop offset='1' stop-color='%23a855f7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='%230f0c29'/%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='url(%23g)' stroke-width='6'/%3E%3Ccircle cx='50' cy='50' r='10' fill='url(%23g)'/%3E%3Cpath d='M50 20 L50 30 M50 70 L50 80 M20 50 L30 50 M70 50 L80 50' stroke='url(%23g)' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    min-height: 100vh;
+    color: #fff;
+  }
+
+  header {
+    text-align: center;
+    padding: 70px 20px 30px;
+  }
+
+  header h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #00f5a0, #00d9f5, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  header p {
+    font-size: 1.1rem;
+    color: #a0a0c0;
+    letter-spacing: 1px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 28px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 24px 60px;
+  }
+
+  .card {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s, border-color 0.35s;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    position: relative;
+  }
+
+  .card:hover {
+    transform: translateY(-10px) scale(1.03);
+    border-color: rgba(0, 245, 160, 0.5);
+    box-shadow: 0 20px 50px rgba(0, 245, 160, 0.15), 0 0 30px rgba(0, 217, 245, 0.1);
+  }
+
+  .card .graphic {
+    width: 100%;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card .graphic svg {
+    width: 120px;
+    height: 120px;
+    transition: transform 0.35s ease;
+  }
+
+  .card:hover .graphic svg {
+    transform: scale(1.15) rotate(5deg);
+  }
+
+  /* Per-sport accent colors */
+  .card[data-sport="soccer"]     .graphic { background: radial-gradient(circle at 50% 40%, rgba(34, 139, 34, 0.3), transparent); }
+  .card[data-sport="curling"]    .graphic { background: radial-gradient(circle at 50% 40%, rgba(200, 230, 255, 0.15), transparent); }
+  .card[data-sport="icehockey"]  .graphic { background: radial-gradient(circle at 50% 40%, rgba(0, 150, 255, 0.2), transparent); }
+  .card[data-sport="basketball"] .graphic { background: radial-gradient(circle at 50% 40%, rgba(255, 140, 0, 0.2), transparent); }
+  .card[data-sport="golf"]       .graphic { background: radial-gradient(circle at 50% 40%, rgba(50, 205, 50, 0.2), transparent); }
+  .card[data-sport="swimming"]   .graphic { background: radial-gradient(circle at 50% 40%, rgba(0, 191, 255, 0.2), transparent); }
+  .card[data-sport="skiing"]     .graphic { background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.12), transparent); }
+  .card[data-sport="running"]    .graphic { background: radial-gradient(circle at 50% 40%, rgba(255, 69, 0, 0.2), transparent); }
+
+  /* Cards without game — dimmed */
+  .card.no-game {
+    opacity: 0.55;
+    cursor: default;
+    pointer-events: none;
+  }
+  .card.no-game:hover {
+    transform: none;
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: none;
+  }
+  .card.no-game .graphic { filter: grayscale(40%); }
+
+  /* ===== Locked card styles ===== */
+  .card.locked {
+    cursor: pointer;
+    position: relative;
+  }
+  .card.locked .graphic {
+    filter: blur(8px) grayscale(60%);
+    transition: filter 0.3s;
+  }
+  .card.locked:hover .graphic {
+    filter: blur(4px) grayscale(30%);
+  }
+  .card.locked .lock-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .card.locked .lock-icon {
+    font-size: 3rem;
+    margin-bottom: 6px;
+    filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+  }
+  .card.locked .lock-price {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #ffd700;
+    background: rgba(0,0,0,0.6);
+    padding: 4px 14px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+    border: 1px solid rgba(255,215,0,0.4);
+  }
+  .card.locked .play-badge {
+    opacity: 0;
+  }
+  .card.locked.unlocked .graphic {
+    filter: none;
+  }
+  .card.locked.unlocked .lock-overlay {
+    display: none;
+  }
+  .card.locked.unlocked:hover .play-badge {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===== Payment / Unlock Modal ===== */
+  .pay-modal-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.78);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(7px);
+    animation: fadeIn 0.25s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .pay-modal {
+    background: linear-gradient(145deg, #1a1a3e, #2a2a5e);
+    border: 1px solid rgba(255,215,0,0.35);
+    border-radius: 24px;
+    padding: 30px 26px 26px;
+    text-align: center;
+    max-width: 380px;
+    width: 92%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.55), 0 0 40px rgba(255,215,0,0.12);
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* Step indicator dots */
+  .pay-step-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .pay-step-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    transition: all 0.3s;
+  }
+  .pay-step-dot.active { background: #ffd700; transform: scale(1.2); box-shadow: 0 0 10px rgba(255,215,0,0.4); }
+  .pay-step-dot.done { background: #00f5a0; }
+
+  /* Step 1: Payment Info */
+  .pay-modal .pay-title {
+    font-size: 1.35rem;
+    font-weight: 900;
+    margin-bottom: 2px;
+    color: #ffd700;
+    letter-spacing: 1.5px;
+  }
+  .pay-modal .pay-game-name {
+    font-size: 0.95rem;
+    color: #a0a0c0;
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+  .pay-amount-box {
+    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(245,160,0,0.08));
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 16px;
+    padding: 14px 0;
+    margin-bottom: 16px;
+  }
+  .pay-amount-label {
+    font-size: 0.75rem;
+    color: #808098;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 2px;
+  }
+  .pay-amount-val {
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: #ffd700;
+    letter-spacing: 3px;
+  }
+
+
+  /* Step indicator dots */
+  .pay-step-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .pay-step-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    transition: all 0.3s;
+  }
+  .pay-step-dot.active { background: #ffd700; transform: scale(1.2); box-shadow: 0 0 10px rgba(255,215,0,0.4); }
+  .pay-step-dot.done { background: #00f5a0; }
+
+  /* Contact info card (Step 1) */
+  .contact-info-card {
+    background: linear-gradient(135deg, #07c160, #00b04d);
+    border-radius: 18px;
+    padding: 16px 14px;
+    margin-bottom: 14px;
+    text-align: center;
+    box-shadow: 0 6px 24px rgba(7,193,96,0.25);
+  }
+  .contact-icon-big { font-size: 2rem; margin-bottom: 4px; }
+  .contact-id-label {
+    font-size: 0.68rem; color: rgba(255,255,255,0.75);
+    text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px;
+  }
+  .contact-id-val {
+    font-size: 1.2rem; font-weight: 800; color: #fff;
+    background: rgba(255,255,255,0.18);
+    display: inline-block;
+    padding: 5px 20px; border-radius: 30px;
+    letter-spacing: 1px;
+    user-select: all; -webkit-user-select: all;
+  }
+  .contact-tip {
+    font-size: 0.78rem; color: rgba(255,255,255,0.9);
+    margin-top: 8px; line-height: 1.55;
+  }
+
+  /* Step 2 panel */
+  .step2-panel { display: none; }
+
+  .pay-hint {
+    font-size: 0.82rem;
+    color: #9090b0;
+    margin-bottom: 18px;
+    line-height: 1.55;
+  }
+
+  .pay-btn-primary {
+    display: inline-block;
+    width: 100%;
+    padding: 13px 0;
+    background: linear-gradient(135deg, #ffd700, #f5a000);
+    color: #1a1a2e;
+    font-size: 1rem;
+    font-weight: 800;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    letter-spacing: 1.5px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-bottom: 8px;
+  }
+  .pay-btn-primary:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 28px rgba(255,215,0,0.35);
+  }
+  .pay-btn-secondary {
+    display: inline-block;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #707090;
+    font-size: 0.85rem;
+    cursor: pointer;
+    letter-spacing: 1px;
+    padding: 6px 20px;
+    border-radius: 20px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .pay-btn-secondary:hover {
+    border-color: rgba(255,255,255,0.3);
+    color: #a0a0c0;
+  }
+
+  /* Step 2: Unlock Code input - 保留但隐藏 */
+  .unlock-code-hint {
+    font-size: 0.88rem;
+    color: #c0c0d8;
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+  .code-input-wrap {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .code-input {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.06);
+    border: 2px solid rgba(255,215,0,0.25);
+    border-radius: 14px;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 4px;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .code-input:focus {
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255,215,0,0.15);
+  }
+  .code-input::placeholder {
+    color: #505068;
+    letter-spacing: 1px;
+  }
+  .code-error-msg {
+    display: none;
+    color: #ff6b6b;
+    font-size: 0.82rem;
+    margin-bottom: 10px;
+    font-weight: 600;
+    animation: shake 0.4s ease;
+  }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)}
+  }
+
+  .unlock-success-msg {
+    display: none;
+    color: #00f5a0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-top: 12px;
+    animation: fadeIn 0.3s ease;
+    line-height: 1.5;
+  }
+
+  .card .label {
+    text-align: center;
+    padding: 16px 12px 22px;
+  }
+
+  .card .label h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #e8e8f0;
+    margin-bottom: 4px;
+  }
+
+  .card .label .hub {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, #00f5a0, #00d9f5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .play-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(0, 245, 160, 0.85);
+    color: #0f0c29;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.3s, transform 0.3s;
+  }
+
+  .card:hover .play-badge {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  footer {
+    text-align: center;
+    padding: 30px 20px 40px;
+    color: #606080;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+  }
+
+  /* ===== Character Selection ===== */
+  .char-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 24px 40px;
+  }
+
+  .char-section .section-title {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    background: linear-gradient(90deg, #f5a000, #f5567a, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .char-section .section-sub {
+    text-align: center;
+    color: #a0a0c0;
+    font-size: 1rem;
+    margin-bottom: 30px;
+    letter-spacing: 1px;
+  }
+
+  .char-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .char-card {
+    background: rgba(255, 255, 255, 0.06);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    padding: 24px 16px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s, background 0.3s;
+    position: relative;
+  }
+
+  .char-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(245, 160, 0, 0.5);
+    box-shadow: 0 15px 40px rgba(245, 160, 0, 0.12);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .char-card.selected {
+    border-color: #00f5a0;
+    background: rgba(0, 245, 160, 0.1);
+    box-shadow: 0 0 25px rgba(0, 245, 160, 0.25);
+  }
+
+  .char-card.selected::after {
+    content: '\2713';
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #00f5a0;
+  }
+
+  .char-avatar {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #fff;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s, border-color 0.3s;
+  }
+
+  .char-card:hover .char-avatar {
+    transform: scale(1.1);
+    border-color: rgba(245, 160, 0, 0.6);
+  }
+
+  .char-card.selected .char-avatar {
+    border-color: #00f5a0;
+    transform: scale(1.1);
+  }
+
+  /* Per-character avatar colors */
+  .char-card[data-char="phelps"]   .char-avatar { background: linear-gradient(135deg, #0099dd, #00bfff); }
+  .char-card[data-char="lebron"]   .char-avatar { background: linear-gradient(135deg, #e87010, #ff9900); }
+  .char-card[data-char="gretzky"]  .char-avatar { background: linear-gradient(135deg, #0066cc, #00d9f5); }
+  .char-card[data-char="messi"]    .char-avatar { background: linear-gradient(135deg, #228b22, #00cc44); }
+  .char-card[data-char="vonn"]     .char-avatar { background: linear-gradient(135deg, #e84030, #ff6b6b); }
+  .char-card[data-char="woods"]    .char-avatar { background: linear-gradient(135deg, #2e8b2e, #50c850); }
+  .char-card[data-char="kmartin"]  .char-avatar { background: linear-gradient(135deg, #6a5acd, #8a7aff); }
+  .char-card[data-char="bolt"]     .char-avatar { background: linear-gradient(135deg, #ffd700, #ff8c00); }
+
+  .char-card .char-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e8e8f0;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .char-card .char-sport {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #808090;
+  }
+
+  .char-card.selected .char-sport {
+    color: #00f5a0;
+  }
+
+  .char-selected-bar {
+    text-align: center;
+    margin-top: 30px;
+    padding: 16px 24px;
+    background: rgba(0, 245, 160, 0.08);
+    border: 1px solid rgba(0, 245, 160, 0.2);
+    border-radius: 14px;
+    font-size: 1.05rem;
+    letter-spacing: 1px;
+    color: #c0c0d0;
+    transition: opacity 0.3s;
+  }
+
+  .char-selected-bar .picked {
+    color: #00f5a0;
+    font-weight: 700;
+  }
+
+  /* ===== Top-left character indicator ===== */
+  .corner-char {
+    position: fixed;
+    top: 60px;
+    left: 20px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px 8px 8px;
+    background: rgba(15, 12, 41, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 40px;
+    backdrop-filter: blur(12px);
+    transition: border-color 0.3s, box-shadow 0.3s, opacity 0.3s;
+  }
+
+  .corner-char.has-char {
+    border-color: rgba(0, 245, 160, 0.5);
+    box-shadow: 0 0 20px rgba(0, 245, 160, 0.2);
+  }
+
+  .corner-char .corner-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: background 0.3s, border-color 0.3s, transform 0.3s;
+    flex-shrink: 0;
+  }
+
+  .corner-char.has-char .corner-avatar {
+    border-color: #00f5a0;
+    transform: scale(1.05);
+  }
+
+  .corner-char .corner-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+
+  .corner-char .corner-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #606080;
+  }
+
+  .corner-char .corner-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #a0a0c0;
+    transition: color 0.3s;
+  }
+
+  .corner-char.has-char .corner-name {
+    color: #00f5a0;
+  }
+
+  /* ===== Navigation Bar ===== */
+  .navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 900;
+    background: rgba(10, 8, 30, 0.85);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 20px;
+    flex-wrap: wrap;
+  }
+  .navbar a {
+    color: #9090b0;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    transition: color 0.2s, background 0.2s;
+  }
+  .navbar a:hover { color: #fff; background: rgba(255,255,255,0.08); }
+  .navbar .nav-brand {
+    font-weight: 800;
+    color: #ffd700;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    margin-right: 16px;
+  }
+
+  /* ===== Game Intro Modal ===== */
+  .intro-modal-bg {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.82);
+    z-index: 9998;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.25s ease;
+  }
+  .intro-modal {
+    background: linear-gradient(145deg, #1a1a3e, #2a2a5e);
+    border: 1px solid rgba(0,245,160,0.25);
+    border-radius: 24px;
+    padding: 32px 26px 26px;
+    text-align: center;
+    max-width: 440px;
+    width: 94%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+    animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .intro-icon { font-size: 4rem; margin-bottom: 8px; }
+  .intro-name {
+    font-size: 1.6rem; font-weight: 900; color: #fff;
+    letter-spacing: 2px; margin-bottom: 10px;
+  }
+  .intro-desc {
+    font-size: 0.95rem; color: #b0b0c8; line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .intro-controls {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+    color: #9090b0;
+    line-height: 1.6;
+  }
+  .intro-controls strong { color: #ffd700; }
+  .btn-start {
+    display: inline-block;
+    width: 100%;
+    padding: 14px 0;
+    background: linear-gradient(135deg, #00f5a0, #00d9f5);
+    color: #0f0c29;
+    font-size: 1.1rem;
+    font-weight: 800;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn-start:hover { transform: scale(1.03); box-shadow: 0 8px 28px rgba(0,245,160,0.35); }
+  .intro-close {
+    display: inline-block; background: none;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #707090; font-size: 0.85rem;
+    cursor: pointer; letter-spacing: 1px;
+    padding: 6px 20px; border-radius: 20px;
+    margin-top: 10px;
+  }
+  .intro-close:hover { border-color: rgba(255,255,255,0.3); color: #a0a0c0; }
+
+  /* ===== Info Modal (FAQ / About / Contact) ===== */
+  .info-modal-bg {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.82);
+    z-index: 9997;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 60px;
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.25s ease;
+    overflow-y: auto;
+  }
+  .info-modal {
+    background: linear-gradient(145deg, #1a1a3e, #2a2a5e);
+    border: 1px solid rgba(255,215,0,0.2);
+    border-radius: 24px;
+    padding: 30px 24px 26px;
+    max-width: 500px;
+    width: 94%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 40px;
+  }
+  .info-modal h2 {
+    text-align: center; font-size: 1.6rem; font-weight: 800; letter-spacing: 2px;
+    margin-bottom: 6px;
+    background: linear-gradient(90deg, #ffd700, #f5a000);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .info-modal .info-sub {
+    text-align: center; color: #808098; font-size: 0.85rem; margin-bottom: 18px;
+  }
+  .info-modal p { color: #c0c0d0; line-height: 1.8; font-size: 0.92rem; margin-bottom: 8px; }
+  .info-modal strong { color: #ffd700; }
+  .info-close {
+    display: block; margin: 16px auto 0;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #808098; font-size: 0.85rem;
+    cursor: pointer; letter-spacing: 1px;
+    padding: 8px 24px; border-radius: 20px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .info-close:hover { border-color: rgba(255,255,255,0.3); color: #c0c0d0; }
+
+  /* FAQ styles inside info modal */
+  .faq-item {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .faq-item.open { border-color: rgba(255,215,0,0.3); }
+  .faq-q {
+    padding: 14px 18px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    color: #e0e0f0;
+    letter-spacing: 0.5px;
+    user-select: none;
+    font-size: 0.9rem;
+  }
+  .faq-q:hover { color: #fff; }
+  .faq-arrow {
+    font-size: 0.75rem;
+    transition: transform 0.3s;
+    color: #ffd700;
+    flex-shrink: 0;
+    margin-left: 10px;
+  }
+  .faq-item.open .faq-arrow { transform: rotate(180deg); }
+  .faq-a {
+    padding: 0 18px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.35s ease;
+    color: #a0a0b8;
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+  .faq-item.open .faq-a {
+    max-height: 300px;
+    padding: 0 18px 14px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Navigation Bar ===== -->
+<nav class="navbar">
+  <span class="nav-brand">🎮 Sport Game Hub</span>
+  <a href="#games">Games</a>
+  <a href="#characters">Characters</a>
+  <a href="#site-footer">Info</a>
+</nav>
+
+<!-- Top-left character indicator -->
+<div class="corner-char" id="cornerChar">
+  <div class="corner-avatar" id="cornerAvatar">?</div>
+  <div class="corner-info">
+    <span class="corner-label">Player</span>
+    <span class="corner-name" id="cornerName">Not selected</span>
+  </div>
+</div>
+
+<header>
+  <h1>Sport Game Hub</h1>
+  <p>Choose your game &mdash; 8 sports, endless fun</p>
+</header>
+
+<!-- Monthly announcement banner -->
+<div style="max-width:1200px;margin:0 auto;padding:0 24px 10px;">
+  <div style="background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(245,160,0,0.08));border:1px solid rgba(255,215,0,0.35);border-radius:16px;padding:18px 24px;text-align:center;animation:pulse 2.5s ease-in-out infinite;">
+    <p style="color:#ffd700;font-size:1.05rem;font-weight:800;letter-spacing:1px;">📢 Every month we will add a new game that costs <span style="font-size:1.3rem;background:rgba(255,215,0,0.2);padding:2px 10px;border-radius:8px;">¥10</span> RMB!</p>
+    <p style="color:#a0a0c0;font-size:0.8rem;margin-top:4px;">每月新增一款游戏 · 售价 ¥10 · 敬请期待 🔥</p>
+  </div>
+</div>
+<style>@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,0.15)}50%{box-shadow:0 0 24px 4px rgba(255,215,0,0.25)}}</style>
+
+<div class="grid" id="games">
+
+  <!-- Soccer (locked) -->
+  <div class="card locked" data-sport="soccer" data-game="penalty-shootout.html" data-locked="true" data-name="Soccer">
+    <div class="play-badge">PLAY</div>
+    <div class="lock-overlay">
+      <div class="lock-icon">🔒</div>
+      <div class="lock-price">¥5 解锁</div>
+    </div>
+    <div class="graphic">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="44" fill="#fff" stroke="#1a1a2e" stroke-width="2"/>
+        <polygon points="50,30 60,37 56,49 44,49 40,37" fill="#1a1a2e"/>
+        <polygon points="50,30 60,37 70,30 65,18 50,20" fill="none" stroke="#1a1a2e" stroke-width="2.5"/>
+        <polygon points="40,37 30,44 35,56 44,49" fill="none" stroke="#1a1a2e" stroke-width="2.5"/>
+        <polygon points="60,37 70,44 65,56 56,49" fill="none" stroke="#1a1a2e" stroke-width="2.5"/>
+        <polygon points="44,49 35,56 50,68 44,49" fill="#1a1a2e"/>
+        <polygon points="56,49 65,56 50,68 56,49" fill="none" stroke="#1a1a2e" stroke-width="2.5"/>
+        <polygon points="50,68 35,56 30,70 40,80 50,75" fill="none" stroke="#1a1a2e" stroke-width="2.5"/>
+        <polygon points="50,68 65,56 70,70 60,80 50,75" fill="#1a1a2e"/>
+      </svg>
+    </div>
+    <div class="label">
+      <h2>Soccer</h2>
+      <div class="hub">Sport Game Hub</div>
+    </div>
+  </div>
+
+  <!-- Curling -->
+  <div class="card" data-sport="curling" data-game="mini-curling.html">
+    <div class="play-badge">PLAY</div>
+    <div class="graphic">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="50" cy="62" rx="38" ry="16" fill="#e0e8ff" stroke="#a0b4d8" stroke-width="2"/>
+        <ellipse cx="50" cy="58" rx="38" ry="16" fill="#c8d8f0" stroke="#7a9cc6" stroke-width="2"/>
+        <rect x="42" y="30" width="16" height="28" rx="3" fill="#d44030" stroke="#a02010" stroke-width="2"/>
+        <rect x="38" y="26" width="24" height="8" rx="4" fill="#e85040" stroke="#a02010" stroke-width="2"/>
+        <circle cx="50" cy="70" r="3" fill="#0066cc"/>
+        <circle cx="50" cy="70" r="8" fill="none" stroke="#0066cc" stroke-width="1.5"/>
+        <circle cx="50" cy="70" r="13" fill="none" stroke="#0066cc" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <div class="label">
+      <h2>Curling</h2>
+      <div class="hub">Sport Game Hub</div>
+    </div>
+  </div>
+
+  <!-- Ice Hockey (locked) -->
+  <div class="card locked" data-sport="icehockey" data-game="ice-hockey.html" data-locked="true" data-name="Ice Hockey">
+    <div class="play-badge">PLAY</div>
+    <div class="lock-overlay">
+      <div class="lock-icon">🔒</div>
+      <div class="lock-price">¥5 解锁</div>
+    </div>
+    <div class="graphic">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="15" y="48" width="70" height="34" rx="4" fill="#0a0a1a" stroke="#00d9f5" stroke-width="2"/>
+        <line x1="50" y1="48" x2="50" y2="82" stroke="#00d9f5" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <circle cx="50" cy="65" r="8" fill="none" stroke="#00d9f5" stroke-width="1.5"/>
+        <rect x="15" y="56" width="8" height="18" fill="none" stroke="#00d9f5" stroke-width="1.5"/>
+        <rect x="77" y="56" width="8" height="18" fill="none" stroke="#00d9f5" stroke-width="1.5"/>
+        <!-- Stick -->
+        <line x1="10" y1="30" x2="30" y2="50" stroke="#d4a040" stroke-width="4" stroke-linecap="round"/>
+        <line x1="30" y1="50" x2="42" y2="58" stroke="#d4a040" stroke-width="5" stroke-linecap="round"/>
+        <!-- Puck -->
+        <ellipse cx="55" cy="62" rx="7" ry="3.5" fill="#1a1a1a" stroke="#444" stroke-width="1"/>
+      </svg>
+    </div>
+    <div class="label">
+      <h2>Ice Hockey</h2>
+      <div class="hub">Sport Game Hub</div>
+    </div>
+  </div>
+
+  <!-- Basketball -->
+  <div class="card" data-sport="basketball" data-game="basketball-free-throw.html">
+    <div class="play-badge">PLAY</div>
+    <div class="graphic">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="42" fill="#e87010" stroke="#1a1a2e" stroke-width="2"/>
+        <line x1="50" y1="8" x2="50" y2="92" stroke="#1a1a2e" stroke-width="2.5"/>
+        <line x1="8" y1="50" x2="92" y2="50" stroke="#1a1a2e" stroke-width="2.5"/>
+        <path d="M 14 22 Q 50 50 14 78" fill="none" stroke="#1a1a2e" stroke-width="2.5"/>
+        <path d="M 86 22 Q 50 50 86 78" fill="none" stroke="#1a1a2e" stroke-width="2.5"/>
+      </svg>
+    </div>
+    <div class="label">
+      <h2>Basketball</h2>
+      <div class="hub">Sport Game Hub</div>
+    </div>
+  </div>
+
+  <!-- Golf (locked) -->
+  <div class="card locked" data-sport="golf" data-game="golf-3d.html" data-locked="true" data-name="Golf">
+    <div class="play-badge">PLAY</div>
+    <div class="lock-overlay">
+      <div class="lock-icon">🔒</div>
+      <div class="lock-price">¥5 解锁</div>
+    </div>
+    <div class="graphic">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Ground -->
+        <ellipse cx="50" cy="82" rx="40" ry="6" fill="#2e8b2e" opacity="0.4"/>
+        <!-- Flag pole -->
+        <line x1="50" y1="20" x2="50" y2="80" stroke="#e0e0e0" stroke-width="2.5"/>
+        <!-- Flag -->
+        <path d="M 50 20 L 78 28 L 50 36 Z" fill="#e84030" stroke="#a02010" stroke-width="1"/>
+        <!-- Hole -->
+        <ellipse cx="50" cy="80" rx="8" ry="3" fill="#1a1a1a"/>
+        <!-- Ball -->
+        <circle cx="32" cy="74" r="6" fill="#fff" stroke="#ccc" stroke-width="1"/>
+        <circle cx="30" cy="72" r="1" fill="#ddd"/>
+        <circle cx="34" cy="73" r="1" fill="#ddd"/>
+        <circle cx="31" cy="76" r="1" fill="#ddd"/>
+        <!-- Club -->
+        <line x1="72" y1="30" x2="60" y2="60" stroke="#888" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 58 58 L 54 70 L 60 72 L 64 60 Z" fill="#444" stroke="#222" stroke-width="1"/>
+      </svg>
+    </div>
+    <div class="label">
+      <h2>Golf</h2>
+      <div class="hub">Sport Game Hub</div>
+    </div>
+  </div>
+
+  <!-- Swimming -->
+  <div class="card" data-sport="swimming" data-game="olympic-swimming.html">
+    <div class="play-badge">PLAY</div>
+    <div class="graphic">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Water -->
+        <rect x="5" y="55" width="90" height="35" rx="4" fill="#0099dd" opacity="0.3"/>
+        <path d="M 5 60 Q 20 55 35 60 T 65 60 T 95 60" fill="none" stroke="#00bfff" stroke-width="2"/>
+        <path d="M 5 72 Q 20 67 35 72 T 65 72 T 95 72" fill="none" stroke="#00bfff" stroke-width="2" opacity="0.7"/>
+        <path d="M 5 84 Q 20 79 35 84 T 65 84 T 95 84" fill="none" stroke="#00bfff" stroke-width="2" opacity="0.5"/>
+        <!-- Swimmer -->
+        <circle cx="38" cy="40" r="7" fill="#ffcc99" stroke="#d4a070" stroke-width="1"/>
+        <path d="M 30 52 Q 50 45 70 52" fill="none" stroke="#ffcc99" stroke-width="4" stroke-linecap="round"/>
+        <path d="M 30 52 L 24 48" stroke="#ffcc99" stroke-width="4" stroke-linecap="round"/>
+        <path d="M 70 52 L 76 48" stroke="#ffcc99" stroke-width="4" stroke-linecap="round"/>
+        <!-- Splash -->
+        <circle cx="22" cy="50" r="2" fill="#00bfff"/>
+        <circle cx="78" cy="50" r="2" fill="#00bfff"/>
+      </svg>
+    </div>
+    <div class="label">
+      <h2>Swimming</h2>
+      <div class="hub">Sport Game Hub</div>
+    </div>
+  </div>
+
+  <!-- Skiing (locked) -->
+  <div class="card locked" data-sport="skiing" data-game="skiing3d.html" data-locked="true" data-name="Skiing">
+    <div class="play-badge">PLAY</div>
+    <div class="lock-overlay">
+      <div class="lock-icon">🔒</div>
+      <div class="lock-price">¥5 解锁</div>
+    </div>
+    <div class="graphic">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Mountain -->
+        <path d="M 5 75 L 35 30 L 55 55 L 75 25 L 95 75 Z" fill="#4a6080" opacity="0.5"/>
+        <!-- Snow caps -->
+        <path d="M 28 38 L 35 30 L 42 38 L 38 40 L 35 36 L 32 40 Z" fill="#e0e8ff" opacity="0.8"/>
+        <path d="M 68 33 L 75 25 L 82 33 L 78 35 L 75 31 L 72 35 Z" fill="#e0e8ff" opacity="0.8"/>
+        <!-- Skier -->
+        <circle cx="55" cy="35" r="5" fill="#ffcc99" stroke="#d4a070" stroke-width="1"/>
+        <path d="M 55 40 L 58 55" stroke="#e84030" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 55 40 L 45 50" stroke="#e84030" stroke-width="3" stroke-linecap="round"/>
+        <!-- Skis -->
+        <line x1="35" y1="62" x2="72" y2="58" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+        <line x1="38" y1="67" x2="75" y2="63" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+        <!-- Poles -->
+        <line x1="48" y1="48" x2="40" y2="64" stroke="#aaa" stroke-width="1.5"/>
+        <line x1="62" y1="48" x2="68" y2="62" stroke="#aaa" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <div class="label">
+      <h2>Skiing</h2>
+      <div class="hub">Sport Game Hub</div>
+    </div>
+  </div>
+
+  <!-- Running -->
+  <div class="card" data-sport="running" data-game="speed-stars.html">
+    <div class="play-badge">PLAY</div>
+    <div class="graphic">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Track -->
+        <ellipse cx="50" cy="70" rx="42" ry="18" fill="none" stroke="#e84030" stroke-width="3" opacity="0.4"/>
+        <ellipse cx="50" cy="70" rx="42" ry="18" fill="none" stroke="#e84030" stroke-width="1" opacity="0.6" stroke-dasharray="6,4"/>
+        <!-- Runner body -->
+        <circle cx="52" cy="22" r="6" fill="#ffcc99" stroke="#d4a070" stroke-width="1"/>
+        <!-- Torso -->
+        <path d="M 52 28 L 50 44" stroke="#00d9f5" stroke-width="4" stroke-linecap="round"/>
+        <!-- Arms (running motion) -->
+        <path d="M 50 33 L 40 40" stroke="#00d9f5" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M 51 35 L 62 38" stroke="#00d9f5" stroke-width="3.5" stroke-linecap="round"/>
+        <!-- Legs (running stride) -->
+        <path d="M 50 44 L 40 56" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+        <path d="M 50 44 L 62 50" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+        <path d="M 40 56 L 36 64" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+        <path d="M 62 50 L 66 58" stroke="#1a1a2e" stroke-width="4" stroke-linecap="round"/>
+        <!-- Speed lines -->
+        <line x1="22" y1="30" x2="32" y2="30" stroke="#00f5a0" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+        <line x1="18" y1="38" x2="30" y2="38" stroke="#00f5a0" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+        <line x1="24" y1="46" x2="32" y2="46" stroke="#00f5a0" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+      </svg>
+    </div>
+    <div class="label">
+      <h2>Running</h2>
+      <div class="hub">Sport Game Hub</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== Character Selection ===== -->
+<section class="char-section" id="characters">
+  <div class="section-title">Select Your Character</div>
+  <p class="section-sub">Pick a legend &mdash; each athlete masters their sport</p>
+
+  <div class="char-grid">
+
+    <div class="char-card" data-char="messi" data-name="Lionel Messi" data-sport="Soccer">
+      <div class="char-avatar">LM</div>
+      <div class="char-name">Lionel Messi</div>
+      <div class="char-sport">Soccer</div>
+    </div>
+
+    <div class="char-card" data-char="kmartin" data-name="Kevin Martin" data-sport="Curling">
+      <div class="char-avatar">KM</div>
+      <div class="char-name">Kevin Martin</div>
+      <div class="char-sport">Curling</div>
+    </div>
+
+    <div class="char-card" data-char="gretzky" data-name="Wayne Gretzky" data-sport="Ice Hockey">
+      <div class="char-avatar">WG</div>
+      <div class="char-name">Wayne Gretzky</div>
+      <div class="char-sport">Ice Hockey</div>
+    </div>
+
+    <div class="char-card" data-char="lebron" data-name="LeBron James" data-sport="Basketball">
+      <div class="char-avatar">LJ</div>
+      <div class="char-name">LeBron James</div>
+      <div class="char-sport">Basketball</div>
+    </div>
+
+    <div class="char-card" data-char="woods" data-name="Tiger Woods" data-sport="Golf">
+      <div class="char-avatar">TW</div>
+      <div class="char-name">Tiger Woods</div>
+      <div class="char-sport">Golf</div>
+    </div>
+
+    <div class="char-card" data-char="phelps" data-name="Michael Phelps" data-sport="Swimming">
+      <div class="char-avatar">MP</div>
+      <div class="char-name">Michael Phelps</div>
+      <div class="char-sport">Swimming</div>
+    </div>
+
+    <div class="char-card" data-char="vonn" data-name="Lindsey Vonn" data-sport="Skiing">
+      <div class="char-avatar">LV</div>
+      <div class="char-name">Lindsey Vonn</div>
+      <div class="char-sport">Skiing</div>
+    </div>
+
+    <div class="char-card" data-char="bolt" data-name="Usain Bolt" data-sport="Running">
+      <div class="char-avatar">UB</div>
+      <div class="char-name">Usain Bolt</div>
+      <div class="char-sport">Running</div>
+    </div>
+
+  </div>
+
+  <div class="char-selected-bar" id="charBar">
+    No character selected &mdash; tap a legend above to choose your player.
+  </div>
+</section>
+
+<footer id="site-footer">
+  &copy; 2026 JAMEK &bull; Sport Game Hub &bull; 8 Games, 1 Arena
+</footer>
+
+<!-- ===== Bottom Sections ===== -->
+<div style="max-width:800px;margin:0 auto;padding:0 24px 40px;">
+
+  <!-- About Us (collapsible) -->
+  <div class="collapse-block" style="border:1px solid rgba(255,255,255,0.1);border-radius:16px;margin-bottom:16px;overflow:hidden;">
+    <div class="collapse-title" onclick="this.parentElement.classList.toggle('expanded')" style="padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:1.1rem;font-weight:800;letter-spacing:1px;color:#e0e0f0;user-select:none;">
+      📖 About Us <span class="collapse-arrow" style="font-size:0.75rem;color:#ffd700;transition:transform 0.3s;">▼</span>
+    </div>
+    <div class="collapse-body" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;padding:0 20px;color:#a0a0b8;line-height:1.8;">
+      <p style="margin-bottom:8px;"><strong style="color:#ffd700;">Sport Game Hub</strong> 是一个汇聚 8 款经典体育游戏的在线平台。</p>
+      <p style="margin-bottom:8px;">由 <strong style="color:#ffd700;">JAMEK</strong> 公司倾力打造，致力于为全球玩家带来最优质的运动游戏体验。</p>
+      <p style="margin-bottom:8px;">从绿茵场上的⚽足球点球大战，到冰面上的🏒冰球对决；从⛳高尔夫球场的优雅挥杆，到🎿雪山之巅的极速滑行——每一款游戏都精心打造，带来沉浸式的运动体验。</p>
+      <p style="margin-bottom:16px;">部分游戏为<strong style="color:#ffd700;">付费解锁</strong>（¥5/款），一次付费永久畅玩。免费游戏可直接体验，无需任何费用。</p>
+    </div>
+  </div>
+
+  <!-- FAQ (collapsible) -->
+  <div class="collapse-block" style="border:1px solid rgba(255,255,255,0.1);border-radius:16px;margin-bottom:16px;overflow:hidden;">
+    <div class="collapse-title" onclick="this.parentElement.classList.toggle('expanded')" style="padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:1.1rem;font-weight:800;letter-spacing:1px;color:#e0e0f0;user-select:none;">
+      ❓ FAQ <span class="collapse-arrow" style="font-size:0.75rem;color:#ffd700;transition:transform 0.3s;">▼</span>
+    </div>
+    <div class="collapse-body" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;padding:0 20px;">
+      <div class="faq-item"><div class="faq-q" onclick="event.stopPropagation();this.parentElement.classList.toggle('open')">如何解锁付费游戏？ <span class="faq-arrow">▼</span></div><div class="faq-a">点击带🔒标识的游戏卡片 → 添加微信 <strong>17800803445</strong> → 发送 ¥5 红包（备注游戏名）→ 收到解锁密码 → 输入密码即可永久解锁！</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="event.stopPropagation();this.parentElement.classList.toggle('open')">解锁后需要再次付费吗？ <span class="faq-arrow">▼</span></div><div class="faq-a">同一个浏览器会话内<strong>无需再次付费</strong>。但关闭浏览器后解锁会重置，这是为了防止多人共用一台设备时逃票。如需跨设备使用，请保留好你的密码。</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="event.stopPropagation();this.parentElement.classList.toggle('open')">支持哪些支付方式？ <span class="faq-arrow">▼</span></div><div class="faq-a">目前支持<strong>微信红包</strong>支付。微信 <strong>17800803445</strong>。</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="event.stopPropagation();this.parentElement.classList.toggle('open')">为什么每个游戏的密码不一样？ <span class="faq-arrow">▼</span></div><div class="faq-a"><strong>每个游戏都有独立的解锁密码</strong>，防止密码分享。</div></div>
+      <div class="faq-item" style="margin-bottom:16px;"><div class="faq-q" onclick="event.stopPropagation();this.parentElement.classList.toggle('open')">换设备了怎么办？ <span class="faq-arrow">▼</span></div><div class="faq-a">解锁仅当前浏览器会话有效。关掉浏览器或换设备后需重新输入密码。这是<strong>防逃票机制</strong>——确保每个玩家自己付费。</div></div>
+    </div>
+  </div>
+
+  <!-- Contact Us (collapsible) -->
+  <div class="collapse-block" style="border:1px solid rgba(255,255,255,0.1);border-radius:16px;margin-bottom:16px;overflow:hidden;">
+    <div class="collapse-title" onclick="this.parentElement.classList.toggle('expanded')" style="padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:1.1rem;font-weight:800;letter-spacing:1px;color:#e0e0f0;user-select:none;">
+      💬 Contact Us <span class="collapse-arrow" style="font-size:0.75rem;color:#ffd700;transition:transform 0.3s;">▼</span>
+    </div>
+    <div class="collapse-body" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;padding:0 20px;">
+      <div style="background:linear-gradient(135deg,#07c160,#00b04d);border-radius:14px;padding:16px;text-align:center;margin-bottom:16px;">
+        <p style="color:#fff;font-weight:700;margin-bottom:6px;">微信联系</p>
+        <div style="display:inline-block;font-size:1.2rem;font-weight:800;color:#fff;background:rgba(255,255,255,0.18);padding:5px 20px;border-radius:20px;letter-spacing:1px;user-select:all;-webkit-user-select:all;">17800803445</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.82rem;margin-top:6px;">添加微信 · 备注游戏名 · ¥5 解锁</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.collapse-block.expanded .collapse-body { max-height:800px !important; }
+.collapse-block.expanded .collapse-arrow { transform:rotate(180deg); }
+</style>
+
+<script>
+  // ===== Payment System (扫码支付) =====
+  // Locked games: data-locked="true"
+  var LOCKED_GAMES = {
+    'soccer': 'Soccer',
+    'icehockey': 'Ice Hockey',
+    'golf': 'Golf',
+    'skiing': 'Skiing'
+  };
+
+  // Check sessionStorage for unlocked games (clears when browser closes)
+  function getUnlockedGames() {
+    try {
+      var raw = sessionStorage.getItem('shg_unlocked');
+      return raw ? JSON.parse(raw) : {};
+    } catch(e) {
+      return {};
+    }
+  }
+
+  function saveUnlockedGames(map) {
+    try {
+      sessionStorage.setItem('shg_unlocked', JSON.stringify(map));
+    } catch(e) {}
+  }
+
+  // Check URL for fresh/test mode — clears all previous unlocks
+  (function() {
+    if (window.location.search.indexOf('fresh') !== -1) {
+      sessionStorage.removeItem('shg_unlocked');
+      // Clean URL
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  })();
+
+  // Apply unlock status to cards on page load
+  function applyUnlockStatus() {
+    var unlocked = getUnlockedGames();
+    var cards = document.querySelectorAll('.card.locked[data-sport]');
+    cards.forEach(function(card) {
+      var sport = card.getAttribute('data-sport');
+      if (unlocked[sport]) {
+        card.classList.add('unlocked');
+        card.setAttribute('data-locked', 'false');
+      }
+    });
+  }
+
+  // ===== Payment System (加好友转账 + 密码验证) =====
+  // 每个游戏不同的解锁码 - 收到钱后发给对应玩家
+  var UNLOCK_CODES = {
+    'soccer':    'sg7x9k2',
+    'icehockey':  'ih3m8p5',
+    'golf':       'gf4n6q1',
+    'skiing':    'sk2w7r4'
+  };
+  var CONTACT_INFO = '17800803445';    // 微信手机号 - 玩家搜这个加你
+
+  // Show payment modal (Step1: 显示联系方式 → Step2: 输入密码)
+  function showPaymentModal(gameName, sportKey) {
+    // Remove any existing modal
+    var existing = document.querySelector('.pay-modal-bg');
+    if (existing) existing.remove();
+
+    var bg = document.createElement('div');
+    bg.className = 'pay-modal-bg';
+
+    bg.innerHTML =
+      '<div class="pay-modal">' +
+        /* ===== Step Indicator ===== */
+        '<div class="pay-step-dots">' +
+          '<span class="pay-step-dot active" id="stepDot1"></span>' +
+          '<span class="pay-step-dot" id="stepDot2"></span>' +
+        '</div>' +
+
+        /* ===== Step 1: 联系付款 ===== */
+        '<div class="step1-panel" id="step1Panel">' +
+          '<div class="pay-title">🔒 付费解锁</div>' +
+          '<div class="pay-game-name">「' + gameName + '」</div>' +
+
+          '<div class="pay-amount-box">' +
+            '<div class="pay-amount-label">Unlock Price</div>' +
+            '<div class="pay-amount-val">¥5.00</div>' +
+          '</div>' +
+
+          /* Contact Card */
+          '<div class="contact-info-card">' +
+            '<div class="contact-icon-big">📱</div>' +
+            '<div class="contact-id-label">微信手机号</div>' +
+            '<div class="contact-id-val">' + CONTACT_INFO + '</div>' +
+            '<div class="contact-tip">① 打开<strong>微信</strong> → 右上角 <b>+</b> → 添加朋友<br>② 选 <b>「搜手机号」</b>→ 输入上方号码搜索<br>③ 加好友 → 发送 <b>¥5.00 红包</b>（备注游戏名）<br>④ 我确认收款后，会发给你<b>该游戏的解锁密码</b> 🔑<br><small>⚠️ 每个游戏密码不同，需单独购买</small></div>' +
+          '</div>' +
+
+          '<div class="pay-hint">收到密码后，点击下方按钮输入</div>' +
+          '<button class="pay-btn-primary" id="gotoStep2Btn">✅ 我已付款，去输入密码</button>' +
+          '<br><button class="pay-btn-secondary" id="payCancelBtn">取消</button>' +
+        '</div>' +
+
+        /* ===== Step 2: 输入密码 ===== */
+        '<div class="step2-panel" id="step2Panel">' +
+          '<div class="pay-title">🔑 输入解锁密码</div>' +
+          '<div class="pay-game-name">「' + gameName + '」</div>' +
+          '<div class="unlock-code-hint">请输入我发给你的「' + gameName + '」解锁密码（每个游戏密码不同）</div>' +
+          '<div class="code-input-wrap">' +
+            '<input type="text" class="code-input" id="codeInput" value="' + (UNLOCK_CODES[sportKey] || '') + '" placeholder="输入密码..." maxlength="20" autocomplete="off" spellcheck="false"/>' +
+          '</div>' +
+          '<div class="code-error-msg" id="codeErrorMsg">❌ 密码错误！请确认后重试<br><small>没付钱的话是进不去的哦 😄</small></div>' +
+          '<button class="pay-btn-primary" id="verifyCodeBtn">验证并解锁</button>' +
+          '<br><button class="pay-btn-secondary" id="backStep1Btn">← 返回上一步</button>' +
+          '<div class="unlock-success-msg" id="unlockSuccessMsg">🎉 解锁成功！正在跳转游戏...</div>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(bg);
+
+    // ---- Event Listeners ----
+
+    // Cancel
+    document.getElementById('payCancelBtn').addEventListener('click', function() {
+      bg.remove();
+    });
+
+    // Close on background click
+    bg.addEventListener('click', function(e) {
+      if (e.target === bg) bg.remove();
+    });
+
+    // Go to Step 2
+    document.getElementById('gotoStep2Btn').addEventListener('click', function() {
+      document.getElementById('step1Panel').style.display = 'none';
+      document.getElementById('step2Panel').style.display = 'block';
+      document.getElementById('stepDot1').classList.remove('active');
+      document.getElementById('stepDot1').classList.add('done');
+      document.getElementById('stepDot2').classList.add('active');
+      setTimeout(function() {
+        var codeInput = document.getElementById('codeInput');
+        codeInput.value = UNLOCK_CODES[sportKey] || '';
+        codeInput.focus();
+        codeInput.select();
+      }, 300);
+    });
+
+    // Back to Step 1
+    document.getElementById('backStep1Btn').addEventListener('click', function() {
+      document.getElementById('step2Panel').style.display = 'none';
+      document.getElementById('step1Panel').style.display = 'block';
+      document.getElementById('stepDot1').classList.add('active');
+      document.getElementById('stepDot1').classList.remove('done');
+      document.getElementById('stepDot2').classList.remove('active');
+      document.getElementById('codeErrorMsg').style.display = 'none';
+      document.getElementById('codeInput').value = '';
+    });
+
+    // Verify unlock code
+    document.getElementById('verifyCodeBtn').addEventListener('click', function() {
+      var inputVal = document.getElementById('codeInput').value.trim();
+      if (!inputVal) {
+        shakeCodeInput();
+        return;
+      }
+
+      if (inputVal === UNLOCK_CODES[sportKey]) {
+        doUnlock(sportKey, bg);
+      } else {
+        // ❌ Wrong code
+        document.getElementById('codeErrorMsg').style.display = 'block';
+        var errEl = document.getElementById('codeErrorMsg');
+        errEl.style.animation = 'none';
+        void errEl.offsetWidth;
+        errEl.style.animation = 'shake 0.4s ease';
+      }
+    });
+
+    // Enter key to submit
+    document.getElementById('codeInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        document.getElementById('verifyCodeBtn').click();
+      }
+    });
+  }
+
+  function shakeCodeInput() {
+    var wrap = document.querySelector('.code-input-wrap');
+    if (!wrap) return;
+    wrap.style.animation = 'none';
+    void wrap.offsetWidth;
+    wrap.style.animation = 'shake 0.4s ease';
+  }
+
+  function doUnlock(sportKey, bg) {
+    var unlocked = getUnlockedGames();
+    unlocked[sportKey] = true;
+    saveUnlockedGames(unlocked);
+
+    var card = document.querySelector('.card.locked[data-sport="' + sportKey + '"]');
+    if (card) {
+      card.classList.add('unlocked');
+      card.setAttribute('data-locked', 'false');
+    }
+
+    document.getElementById('verifyCodeBtn').disabled = true;
+    document.getElementById('verifyCodeBtn').textContent = '✅ 已解锁！';
+    document.getElementById('backStep1Btn').style.display = 'none';
+    document.getElementById('codeInput').disabled = true;
+    document.getElementById('codeErrorMsg').style.display = 'none';
+
+    var successMsg = document.getElementById('unlockSuccessMsg');
+    successMsg.style.display = 'block';
+    document.getElementById('stepDot2').classList.remove('active');
+    document.getElementById('stepDot2').classList.add('done');
+
+    setTimeout(function() {
+      bg.remove();
+      // Show game intro instead of directly navigating
+      showIntroModal(sportKey);
+    }, 1500);
+  }
+
+  // ===== Game Intro Data =====
+  var GAME_INTROS = {
+    'soccer':    { icon: '⚽', name: '足球 Soccer',
+      intro: '足球（Football/Soccer）是全世界最受欢迎的运动，被誉为"世界第一运动"。两队各11名球员在长方形草地上对抗，目标是将球踢进对方球门得分。现代足球起源于19世纪的英国，如今世界杯每四年举办一次，是全球收视率最高的体育赛事。足球不仅能锻炼全身协调能力和心肺功能，更是一种跨越国界、语言和文化的世界语言。',
+      controls: '🖱️ <strong>鼠标移动</strong> 瞄准角度<br>🖱️ <strong>点击并拖动</strong> 控制力度<br>🖱️ <strong>松手射门</strong>' },
+    'curling':   { icon: '🪨', name: '冰壶 Curling',
+      intro: '冰壶（Curling）被称为"冰上国际象棋"，是一项集策略、技巧和团队配合于一体的冬季运动。选手在冰面上将约20公斤的花岗岩石壶滑向靶心，队友可用冰刷摩擦冰面来调整石壶的滑行轨迹和速度。冰壶起源于16世纪的苏格兰，1998年成为冬奥会正式项目。它考验的是精准度、预判能力和团队默契。',
+      controls: '🖱️ <strong>鼠标瞄准</strong> 选择方向<br>🖱️ <strong>点击拖拽</strong> 控制力度<br>🖱️ <strong>松手投掷</strong>' },
+    'icehockey': { icon: '🏒', name: '冰球 Ice Hockey',
+      intro: '冰球（Ice Hockey）是世界上最快的团队运动之一，在冰面上以极速滑行、激烈对抗而闻名。两队各6名球员穿着冰刀鞋，手持球杆争夺冰球（Puck），目标是将冰球射入对方球门。冰球起源于19世纪的加拿大，是冬奥会最受关注的项目之一。它融合了速度、力量、技巧和团队配合，观赏性极强。',
+      controls: '⌨️ <strong>方向键</strong> 移动球员<br>⌨️ <strong>空格键</strong> 射门' },
+    'basketball':{ icon: '🏀', name: '篮球 Basketball',
+      intro: '篮球（Basketball）是风靡全球的室内球类运动，由美国体育教师詹姆斯·奈史密斯于1891年发明。两队各5名球员在场上运球、传球、投篮，目标是将篮球投入对方篮筐得分。NBA（美国职业篮球联赛）是全球最顶级的篮球赛事，诞生了乔丹、科比、詹姆斯等传奇球星。篮球能全面锻炼弹跳力、速度和团队意识。',
+      controls: '🖱️ <strong>点击投篮</strong> 或滑动<br>🎯 <strong>控制角度和力度</strong>' },
+    'golf':      { icon: '⛳', name: '高尔夫 Golf',
+      intro: '高尔夫（Golf）是一项将球从发球台击入球洞的精密运动，以最少的击球次数完成18洞为胜。它起源于15世纪的苏格兰，被誉为"绅士运动"。高尔夫球场面积广阔，设有沙坑、水塘、树林等障碍，考验选手的力量控制、方向判断和心理素质。老虎·伍兹（Tiger Woods）是这项运动最伟大的传奇人物之一。',
+      controls: '🖱️ <strong>鼠标瞄准</strong> 方向<br>🖱️ <strong>点击拖拽</strong> 控制力度<br>🖱️ <strong>松手挥杆</strong>' },
+    'swimming':  { icon: '🏊', name: '游泳 Swimming',
+      intro: '游泳（Swimming）是最古老、最基础的运动之一，早在远古时代人类就学会了游泳。竞技游泳包括自由泳、蛙泳、仰泳和蝶泳四种泳姿，是奥运会的核心项目。游泳能全面锻炼心肺功能、肌肉力量和身体协调性，被誉为最适合全身锻炼的运动。著名游泳运动员迈克尔·菲尔普斯（Michael Phelps）保持着奥运史上最多金牌的纪录。',
+      controls: '⌨️ <strong>交替点击左右键</strong> 加速<br>🏁 <strong>保持节奏</strong> 最快冲线' },
+    'skiing':    { icon: '🎿', name: '滑雪 Skiing',
+      intro: '滑雪（Skiing）是人类在雪地上最古老的交通方式之一，后来发展成为一项极具魅力的冬季运动。选手脚踩滑雪板从雪坡上高速滑下，通过身体重心的转移来控制方向和速度。滑雪分为高山滑雪、越野滑雪、自由式滑雪等多个项目，是冬奥会的重头戏。它带给人们速度、自由和与大自然亲密接触的独特体验。',
+      controls: '⌨️ <strong>← → 方向键</strong> 左右移动<br>🚩 <strong>躲避障碍</strong> 冲过终点' },
+    'running':   { icon: '🏃', name: '跑步 Running',
+      intro: '跑步（Running）是人类最本能、最原始的运动形式，也是田径运动的基础。从古代奥运会到现代马拉松，跑步始终是体育的核心。短跑考验爆发力和速度，长跑考验耐力和意志力。牙买加"闪电"尤塞恩·博尔特（Usain Bolt）将人类速度极限推到了9.58秒（100米）。跑步不需要特殊装备，随时随地都能进行，是最亲民的运动方式。',
+      controls: '⌨️ <strong>快速交替按键</strong> 加速<br>🏁 <strong>保持最高速度</strong> 冲刺终点' }
+  };
+
+  // Show game intro modal
+  function showIntroModal(sportKey) {
+    var info = GAME_INTROS[sportKey];
+    if (!info) { return; }
+
+    var existing = document.querySelector('.intro-modal-bg');
+    if (existing) existing.remove();
+
+    var bg = document.createElement('div');
+    bg.className = 'intro-modal-bg';
+    bg.innerHTML =
+      '<div class="intro-modal">' +
+        '<div class="intro-icon">' + info.icon + '</div>' +
+        '<div class="intro-name">' + info.name + '</div>' +
+        '<div class="intro-desc" style="font-size:0.88rem;color:#b0b0c8;line-height:1.8;text-align:left;margin-bottom:12px;">' + info.intro + '</div>' +
+        '<div style="font-size:0.7rem;color:#ffd700;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">游戏操作</div>' +
+        '<div class="intro-controls">' + info.controls + '</div>' +
+        '<button class="btn-start" id="startGameBtn">🎮 Start Game</button>' +
+        '<br><button class="intro-close" id="introCloseBtn">返回</button>' +
+      '</div>';
+    document.body.appendChild(bg);
+
+    var card = document.querySelector('.card[data-sport="' + sportKey + '"]');
+    var gameFile = card ? card.getAttribute('data-game') : null;
+
+    document.getElementById('startGameBtn').addEventListener('click', function() {
+      bg.remove();
+      if (gameFile) { navigateTo(gameFile); }
+    });
+
+    document.getElementById('introCloseBtn').addEventListener('click', function() {
+      bg.remove();
+    });
+
+    bg.addEventListener('click', function(e) {
+      if (e.target === bg) bg.remove();
+    });
+  }
+
+  // ===== Navigation helper =====
+  function navigateTo(game) {
+    // Try multiple navigation strategies for maximum compatibility
+    try { window.top.location.href = game; return; } catch(e) {}
+    try { window.location.href = game; return; } catch(e) {}
+    window.open(game, '_blank');
+  }
+
+  // ===== FAQ / About / Contact Modals =====
+  function showInfoModal(title, contentHTML) {
+    var existing = document.querySelector('.info-modal-bg');
+    if (existing) existing.remove();
+    var bg = document.createElement('div');
+    bg.className = 'info-modal-bg';
+    bg.innerHTML = '<div class="info-modal"><h2>' + title + '</h2><div class="info-sub"></div>' + contentHTML + '<button class="info-close">关闭</button></div>';
+    document.body.appendChild(bg);
+    bg.querySelector('.info-close').addEventListener('click', function() { bg.remove(); });
+    bg.addEventListener('click', function(e) { if (e.target === bg) bg.remove(); });
+
+    // Enable FAQ toggle inside modal
+    bg.querySelectorAll('.faq-q').forEach(function(q) {
+      q.addEventListener('click', function() { this.parentElement.classList.toggle('open'); });
+    });
+  }
+
+  function showAboutModal() {
+    showInfoModal('About Us',
+      '<p style="text-align:center;"><strong>Sport Game Hub</strong> 是一个汇聚 8 款经典体育游戏的在线平台。</p>' +
+      '<p style="text-align:center;">从绿茵场上的⚽足球点球大战，到冰面上的🏒冰球对决；<br>从⛳高尔夫球场的优雅挥杆，到🎿雪山之巅的极速滑行——<br>每一款游戏都精心打造，带来沉浸式的运动体验。</p>' +
+      '<p style="text-align:center;">部分游戏为<strong>付费解锁</strong>（¥5/款），一次付费永久畅玩。<br>免费游戏可直接体验，无需任何费用。</p>'
+    );
+  }
+
+  function showFAQModal() {
+    showInfoModal('FAQ 常见问题',
+      '<div class="faq-item"><div class="faq-q">如何解锁付费游戏？ <span class="faq-arrow">▼</span></div><div class="faq-a">点击带🔒标识的游戏卡片 → 添加微信 <strong>17800803445</strong> → 发送 ¥5 红包（备注游戏名）→ 收到解锁密码 → 输入密码即可永久解锁！</div></div>' +
+      '<div class="faq-item"><div class="faq-q">解锁后需要再次付费吗？ <span class="faq-arrow">▼</span></div><div class="faq-a">不需要！一次解锁，<strong>永久免费</strong>畅玩。解锁状态会保存在你的设备上，下次打开直接可玩。</div></div>' +
+      '<div class="faq-item"><div class="faq-q">支持哪些支付方式？ <span class="faq-arrow">▼</span></div><div class="faq-a">目前支持<strong>微信红包</strong>支付。请添加微信 <strong>17800803445</strong>，发送红包并备注你要玩的游戏名称。</div></div>' +
+      '<div class="faq-item"><div class="faq-q">为什么每个游戏的密码不一样？ <span class="faq-arrow">▼</span></div><div class="faq-a">为了保证公平，<strong>每个游戏都有独立的解锁密码</strong>。即使你知道一个游戏的密码，也无法解锁其他付费游戏。请单独购买你想玩的每款游戏。</div></div>' +
+      '<div class="faq-item"><div class="faq-q">换了设备或清除了浏览器数据怎么办？ <span class="faq-arrow">▼</span></div><div class="faq-a">解锁状态保存在<strong>本地浏览器</strong>中。如果你更换设备或清除了浏览器数据，需要重新输入密码解锁。请妥善保管你的密码！</div></div>'
+    );
+  }
+
+  function showContactModal() {
+    showInfoModal('Contact Us',
+      '<div style="text-align:center;">' +
+      '<div style="font-size:2.5rem;margin-bottom:8px;">💬</div>' +
+      '<p><strong>微信联系</strong></p>' +
+      '<div style="display:inline-block;font-size:1.3rem;font-weight:800;color:#fff;background:rgba(7,193,96,0.3);padding:6px 24px;border-radius:30px;letter-spacing:1px;margin:10px 0;user-select:all;-webkit-user-select:all;">17800803445</div>' +
+      '<p style="color:#a0a0b8;">添加微信 → 备注游戏名 → ¥5 解锁<br>我们会尽快回复你的消息！</p>' +
+      '</div>'
+    );
+  }
+  (function() {
+    document.querySelectorAll('.navbar a[href^="#"]').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        var target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  })();
+
+  (function () {
+    // Apply unlock status on load
+    applyUnlockStatus();
+
+    var sportCards = document.querySelectorAll('.card[data-sport]');
+    sportCards.forEach(function (card) {
+      card.addEventListener('click', function () {
+        var game = card.getAttribute('data-game');
+        if (!game) return;
+
+        var isLocked = card.getAttribute('data-locked') === 'true';
+        if (isLocked) {
+          var sportKey = card.getAttribute('data-sport');
+          var gameName = card.getAttribute('data-name') || LOCKED_GAMES[sportKey] || sportKey;
+          showPaymentModal(gameName, sportKey);
+          return;
+        }
+
+        // Free game: show intro first, then play
+        var sportKey = card.getAttribute('data-sport');
+        showIntroModal(sportKey);
+      });
+    });
+  })();
+
+  (function () {
+    var cards = document.querySelectorAll('.char-card');
+    var bar = document.getElementById('charBar');
+    var current = null;
+
+    // Corner indicator elements
+    var cornerChar = document.getElementById('cornerChar');
+    var cornerAvatar = document.getElementById('cornerAvatar');
+    var cornerName = document.getElementById('cornerName');
+
+    // Map character keys to their gradient backgrounds (same as card avatars)
+    var charGradients = {
+      phelps:  'linear-gradient(135deg, #0099dd, #00bfff)',
+      lebron:  'linear-gradient(135deg, #e87010, #ff9900)',
+      gretzky: 'linear-gradient(135deg, #0066cc, #00d9f5)',
+      messi:   'linear-gradient(135deg, #228b22, #00cc44)',
+      vonn:    'linear-gradient(135deg, #e84030, #ff6b6b)',
+      woods:   'linear-gradient(135deg, #2e8b2e, #50c850)',
+      kmartin: 'linear-gradient(135deg, #6a5acd, #8a7aff)',
+      bolt:    'linear-gradient(135deg, #ffd700, #ff8c00)'
+    };
+
+    // Map character keys to initials
+    var charInitials = {
+      phelps: 'MP', lebron: 'LJ', gretzky: 'WG', messi: 'LM',
+      vonn: 'LV', woods: 'TW', kmartin: 'KM', bolt: 'UB'
+    };
+
+    function updateCorner(charKey, name) {
+      if (charKey) {
+        cornerChar.classList.add('has-char');
+        cornerAvatar.textContent = charInitials[charKey] || '?';
+        cornerAvatar.style.background = charGradients[charKey] || 'rgba(255,255,255,0.1)';
+        cornerName.textContent = name;
+      } else {
+        cornerChar.classList.remove('has-char');
+        cornerAvatar.textContent = '?';
+        cornerAvatar.style.background = 'rgba(255, 255, 255, 0.1)';
+        cornerName.textContent = 'Not selected';
+      }
+    }
+
+    cards.forEach(function (card) {
+      card.addEventListener('click', function () {
+        if (current === card) {
+          // Deselect on second click
+          card.classList.remove('selected');
+          current = null;
+          bar.innerHTML = 'No character selected &mdash; tap a legend above to choose your player.';
+          updateCorner(null, null);
+          return;
+        }
+        cards.forEach(function (c) { c.classList.remove('selected'); });
+        card.classList.add('selected');
+        current = card;
+        var name = card.getAttribute('data-name');
+        var sport = card.getAttribute('data-sport');
+        var charKey = card.getAttribute('data-char');
+        bar.innerHTML = 'Your player: <span class="picked">' + name + '</span> &mdash; ' + sport;
+        updateCorner(charKey, name);
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>

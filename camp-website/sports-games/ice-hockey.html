@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICE HOCKEY RUMBLE — Arcade Showdown</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a1a;
+  display: flex; justify-content: center; align-items: center;
+  height: 100vh; overflow: hidden;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  user-select: none;
+  cursor: none;
+}
+canvas { display: block; border-radius: 12px; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+// ---- AUDIO ENGINE ----
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audio, masterGain;
+function initAudio() {
+  if (audio) return;
+  audio = new AudioCtx();
+  masterGain = audio.createGain();
+  masterGain.gain.value = 0.3;
+  masterGain.connect(audio.destination);
+}
+function playTone(freq, dur, type='square', vol=0.15) {
+  if (!audio) return;
+  const t = audio.currentTime;
+  const osc = audio.createOscillator();
+  const gain = audio.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.connect(gain); gain.connect(masterGain);
+  osc.start(t); osc.stop(t + dur);
+}
+function sfxHit() { playTone(220, 0.08, 'square', 0.2); }
+function sfxWall() { playTone(100, 0.06, 'triangle', 0.15); }
+function sfxGoal() {
+  playTone(440, 0.12, 'square', 0.25);
+  setTimeout(() => playTone(660, 0.12, 'square', 0.25), 120);
+  setTimeout(() => playTone(880, 0.25, 'square', 0.3), 240);
+}
+function sfxPowerup() { playTone(600, 0.1, 'sine', 0.2); playTone(900, 0.1, 'sine', 0.15); }
+function sfxShield() { playTone(300, 0.15, 'sawtooth', 0.12); }
+function sfxFreeze() { playTone(150, 0.2, 'sine', 0.15); playTone(100, 0.3, 'sine', 0.1); }
+function sfxCombo(n) {
+  const base = 400 + n * 60;
+  playTone(base, 0.1, 'square', 0.18);
+  setTimeout(() => playTone(base * 1.25, 0.1, 'square', 0.18), 80);
+  setTimeout(() => playTone(base * 1.5, 0.15, 'square', 0.2), 160);
+}
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+// Responsive sizing
+const W = Math.min(window.innerWidth - 20, 900);
+const H = Math.min(window.innerHeight - 20, 600);
+canvas.width = W; canvas.height = H;
+
+// Rink bounds (top-down view)
+const RINK = { x: 60, y: 40, w: W - 120, h: H - 80 };
+// Goals (left and right sides)
+const GOAL = { 
+  w: 14, h: 120,
+  left:  { x: RINK.x - 10, y: H/2 - 60 },
+  right: { x: RINK.x + RINK.w - 4, y: H/2 - 60 }
+};
+
+// ---- GAME STATE ----
+let state = 'title'; // title | playing | goal | over
+let score = { player: 0, ai: 0 };
+let combo = { count: 0, timer: 0 };
+let goalTarget = 7;
+let goalFlash = 0;
+let goalTeam = null;
+
+// ---- PUCK ----
+let puck = { x: W/2, y: H/2, vx: 0, vy: 0, r: 10, trail: [] };
+
+// ---- PADDLES (players in air hockey style) ----
+const PADDLE_R = 28;
+let player = { x: W/2, y: H * 0.75, vx: 0, vy: 0, r: PADDLE_R };
+let ai = { x: W/2, y: H * 0.25, vx: 0, vy: 0, r: PADDLE_R };
+
+// ---- POWER-UPS ----
+const POWER_TYPES = [
+  { id: 'speed',    name: 'SPEED',    emoji: '⚡', color: '#ffdd00', desc: '2x speed' },
+  { id: 'bigpuck',  name: 'BIG PUCK', emoji: '💥', color: '#ff4444', desc: 'Massive puck' },
+  { id: 'magnet',   name: 'MAGNET',   emoji: '🧲', color: '#ff44ff', desc: 'Puck homes to goal' },
+  { id: 'freeze',   name: 'FREEZE',   emoji: '❄️', color: '#44ddff', desc: 'Freeze opponent' },
+  { id: 'shield',   name: 'SHIELD',   emoji: '🛡️', color: '#44ff44', desc: 'Block next goal' },
+  { id: 'multipuck', name: 'MULTI',   emoji: '🔄', color: '#ff8800', desc: '3 pucks!' },
+];
+let powerups = [];
+let powerupSpawnTimer = 0;
+let activePower = { player: null, ai: null, playerTimer: 0, aiTimer: 0 };
+let playerSpeed = 5;
+let aiSpeed = 3.5;
+let puckScale = 1;
+let shieldActive = { player: false, ai: false };
+let extraPucks = [];
+
+// ---- PARTICLES ----
+let particles = [];
+
+function spawnParticles(x, y, count, color, speed=3) {
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const s = Math.random() * speed + 1;
+    particles.push({
+      x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+      life: 1, decay: 0.015 + Math.random() * 0.03,
+      color, size: 2 + Math.random() * 4
+    });
+  }
+}
+
+// ---- SCREEN SHAKE ----
+let shakeAmount = 0;
+let shakeX = 0, shakeY = 0;
+
+// ---- MOUSE ----
+let mouse = { x: W/2, y: H/2, down: false };
+
+// ---- AI STATE ----
+let aiState = 'chase'; // chase | retreat | shoot
+let aiTarget = { x: W/2, y: H/2 };
+let aiShootCharge = 0;
+
+// ---- PUCK TRAIL ----
+function updatePuckTrail() {
+  puck.trail.push({ x: puck.x, y: puck.y, life: 1 });
+  if (puck.trail.length > 20) puck.trail.shift();
+  for (let t of puck.trail) t.life -= 0.05;
+  puck.trail = puck.trail.filter(t => t.life > 0);
+}
+
+// ---- PHYSICS ----
+function resetPuck(toward) {
+  puck.x = W/2; puck.y = H/2;
+  puck.vx = (Math.random() - 0.5) * 8;
+  puck.vy = toward === 'ai' ? -6 : 6;
+  puck.trail = [];
+  puckScale = 1;
+  extraPucks = [];
+}
+
+function movePuck() {
+  const force = (puckScale > 1 ? puckScale : 1);
+  
+  // Apply magnet effect
+  if (activePower.player === 'magnet') {
+    const aiGoalX = GOAL.right.x + GOAL.w/2;
+    const aiGoalY = GOAL.right.y + GOAL.h/2;
+    const dx = aiGoalX - puck.x;
+    const dy = aiGoalY - puck.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist > 0) {
+      puck.vx += (dx / dist) * 0.6;
+      puck.vy += (dy / dist) * 0.6;
+    }
+  }
+  if (activePower.ai === 'magnet') {
+    const pGoalX = GOAL.left.x + GOAL.w/2;
+    const pGoalY = GOAL.left.y + GOAL.h/2;
+    const dx = pGoalX - puck.x;
+    const dy = pGoalY - puck.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist > 0) {
+      puck.vx += (dx / dist) * 0.6;
+      puck.vy += (dy / dist) * 0.6;
+    }
+  }
+  
+  puck.x += puck.vx * force * 0.7;
+  puck.y += puck.vy * force * 0.7;
+  puck.vx *= 0.995;
+  puck.vy *= 0.995;
+  
+  // Extra pucks
+  for (let ep of extraPucks) {
+    ep.x += ep.vx * 0.7;
+    ep.y += ep.vy * 0.7;
+    ep.vx *= 0.995;
+    ep.vy *= 0.995;
+    // Wall bounces
+    if (ep.x - puck.r < RINK.x) { ep.x = RINK.x + puck.r; ep.vx *= -0.7; }
+    if (ep.x + puck.r > RINK.x + RINK.w) { ep.x = RINK.x + RINK.w - puck.r; ep.vx *= -0.7; }
+    if (ep.y - puck.r < RINK.y) { ep.y = RINK.y + puck.r; ep.vy *= -0.7; }
+    if (ep.y + puck.r > RINK.y + RINK.h) { ep.y = RINK.y + RINK.h - puck.r; ep.vy *= -0.7; }
+  }
+  
+  // Bounce off walls
+  if (puck.x - puck.r * puckScale < RINK.x) { 
+    puck.x = RINK.x + puck.r * puckScale; puck.vx *= -0.7; sfxWall(); 
+  }
+  if (puck.x + puck.r * puckScale > RINK.x + RINK.w) { 
+    puck.x = RINK.x + RINK.w - puck.r * puckScale; puck.vx *= -0.7; sfxWall(); 
+  }
+  if (puck.y - puck.r * puckScale < RINK.y) { 
+    puck.y = RINK.y + puck.r * puckScale; puck.vy *= -0.7; sfxWall(); 
+  }
+  if (puck.y + puck.r * puckScale > RINK.y + RINK.h) { 
+    puck.y = RINK.y + RINK.h - puck.r * puckScale; puck.vy *= -0.7; sfxWall(); 
+  }
+  
+  // Paddle collisions
+  checkPaddleCollision(player, 'player');
+  checkPaddleCollision(ai, 'ai');
+  
+  // AI left goal (player scores → right side)
+  if (puck.x + puck.r * puckScale > GOAL.right.x && 
+      puck.y > GOAL.right.y && puck.y < GOAL.right.y + GOAL.h) {
+    scoreGoal('player');
+  }
+  // Player left goal (AI scores → left side)
+  if (puck.x - puck.r * puckScale < GOAL.left.x + GOAL.w && 
+      puck.y > GOAL.left.y && puck.y < GOAL.left.y + GOAL.h) {
+    scoreGoal('ai');
+  }
+  
+  // Extra puck goals
+  for (let i = extraPucks.length - 1; i >= 0; i--) {
+    const ep = extraPucks[i];
+    if (ep.x + puck.r > GOAL.right.x && ep.y > GOAL.right.y && ep.y < GOAL.right.y + GOAL.h) {
+      scoreGoal('player');
+      extraPucks.splice(i, 1);
+    }
+    if (ep.x - puck.r < GOAL.left.x + GOAL.w && ep.y > GOAL.left.y && ep.y < GOAL.left.y + GOAL.h) {
+      scoreGoal('ai');
+      extraPucks.splice(i, 1);
+    }
+  }
+}
+
+function checkPaddleCollision(paddle, who) {
+  const speed = who === 'player' ? playerSpeed : aiSpeed;
+  const frozen = (who === 'player' && activePower.ai === 'freeze') || 
+                 (who === 'ai' && activePower.player === 'freeze');
+  
+  // Only collides if not frozen
+  const px = paddle.x, py = paddle.y;
+  const pr = paddle.r;
+  
+  for (let pk of [puck, ...extraPucks]) {
+    const dx = pk.x - px;
+    const dy = pk.y - py;
+    const dist = Math.hypot(dx, dy);
+    const minDist = pr + pk.r * puckScale;
+    
+    if (dist < minDist && dist > 0) {
+      // Push out
+      const nx = dx / dist, ny = dy / dist;
+      pk.x = px + nx * minDist;
+      pk.y = py + ny * minDist;
+      
+      // Reflect with paddle velocity
+      const pvx = paddle.vx, pvy = paddle.vy;
+      const relVx = pk.vx - pvx;
+      const relVy = pk.vy - pvy;
+      const dot = relVx * nx + relVy * ny;
+      
+      pk.vx -= 2 * dot * nx;
+      pk.vy -= 2 * dot * ny;
+      
+      // Add paddle momentum
+      pk.vx += pvx * 0.5;
+      pk.vy += pvy * 0.5;
+      
+      // Speed boost on hit
+      const maxSpeed = 18;
+      const currentSpeed = Math.hypot(pk.vx, pk.vy);
+      if (currentSpeed < maxSpeed) {
+        const boost = 1.5 + Math.random();
+        pk.vx = Math.min(maxSpeed, Math.abs(pk.vx) * boost) * Math.sign(pk.vx);
+        pk.vy = Math.min(maxSpeed, Math.abs(pk.vy) * boost) * Math.sign(pk.vy);
+      }
+      
+      sfxHit();
+      spawnParticles(pk.x, pk.y, 8, '#ffffff', 2);
+    }
+  }
+}
+
+function scoreGoal(who) {
+  if (who === 'player' && shieldActive.ai) {
+    shieldActive.ai = false;
+    sfxShield();
+    spawnParticles(GOAL.right.x + GOAL.w, puck.y, 30, '#44ff44', 4);
+    resetPuck('player');
+    return;
+  }
+  if (who === 'ai' && shieldActive.player) {
+    shieldActive.player = false;
+    sfxShield();
+    spawnParticles(GOAL.left.x, puck.y, 30, '#44ff44', 4);
+    resetPuck('ai');
+    return;
+  }
+  
+  goalTeam = who;
+  goalFlash = 60;
+  shakeAmount = 12;
+  sfxGoal();
+  
+  if (who === 'player') {
+    score.player++;
+    combo.count++;
+    combo.timer = 120;
+    spawnParticles(GOAL.right.x + GOAL.w, puck.y, 60, '#ff6600', 6);
+    spawnParticles(GOAL.right.x + GOAL.w, puck.y, 30, '#ffff00', 4);
+    if (combo.count > 1) sfxCombo(combo.count);
+    state = 'goal';
+    setTimeout(() => { state = 'playing'; goalTeam = null; resetPuck('ai'); }, 1500);
+  } else {
+    score.ai++;
+    combo.count = 0;
+    combo.timer = 0;
+    spawnParticles(GOAL.left.x, puck.y, 60, '#4488ff', 6);
+    state = 'goal';
+    setTimeout(() => { state = 'playing'; goalTeam = null; resetPuck('player'); }, 1500);
+  }
+  
+  // Check win
+  if (score.player >= goalTarget || score.ai >= goalTarget) {
+    setTimeout(() => { state = 'over'; }, 1800);
+  }
+}
+
+// ---- PLAYER MOVEMENT ----
+function movePlayer() {
+  const speed = (activePower.ai === 'freeze') ? 1.5 : (activePower.player === 'speed' ? 10 : 5);
+  playerSpeed = speed;
+  
+  // Mouse-based movement: paddle follows mouse within rink bounds
+  let tx = mouse.x, ty = mouse.y;
+  
+  // Clamp to rink bounds
+  tx = Math.max(RINK.x + player.r, Math.min(RINK.x + RINK.w - player.r, tx));
+  // For player, stay in bottom half
+  ty = Math.max(RINK.y + RINK.h/2 + player.r, Math.min(RINK.y + RINK.h - player.r, ty));
+  
+  // Smooth movement
+  player.vx = (tx - player.x) * 0.3;
+  player.vy = (ty - player.y) * 0.3;
+  player.x += player.vx;
+  player.y += player.vy;
+  
+  player.x = Math.max(RINK.x + player.r, Math.min(RINK.x + RINK.w - player.r, player.x));
+  player.y = Math.max(RINK.y + RINK.h/2 + player.r, Math.min(RINK.y + RINK.h - player.r, player.y));
+}
+
+// ---- AI MOVEMENT ----
+function moveAI() {
+  const speed = (activePower.player === 'freeze') ? 1.5 : (activePower.ai === 'speed' ? 7 : 3.5);
+  aiSpeed = speed;
+  
+  let tx, ty;
+  
+  if (activePower.ai === 'magnet') {
+    // Chase puck aggressively
+    tx = puck.x; ty = puck.y;
+  } else {
+    // Smart positioning
+    const puckMovingTowardAI = puck.vy < 0;
+    const puckInAIHalf = puck.y < RINK.y + RINK.h/2;
+    
+    if (puckMovingTowardAI || puckInAIHalf) {
+      // Intercept
+      const distToPuck = Math.hypot(ai.x - puck.x, ai.y - puck.y);
+      if (distToPuck < 100) {
+        // Close — hit it!
+        tx = puck.x + puck.vx * 5;
+        ty = puck.y + puck.vy * 5;
+      } else {
+        // Chase
+        tx = puck.x; ty = puck.y;
+      }
+    } else {
+      // Defensive — guard the goal
+      tx = W/2 + puck.vx * 10;
+      ty = RINK.y + RINK.h * 0.2;
+    }
+  }
+  
+  // Clamp
+  tx = Math.max(RINK.x + ai.r, Math.min(RINK.x + RINK.w - ai.r, tx));
+  ty = Math.max(RINK.y + ai.r, Math.min(RINK.y + RINK.h/2 - ai.r, ty));
+  
+  const dx = tx - ai.x;
+  const dy = ty - ai.y;
+  const dist = Math.hypot(dx, dy);
+  
+  if (dist > 1) {
+    ai.vx = (dx / dist) * Math.min(speed, dist * 0.3);
+    ai.vy = (dy / dist) * Math.min(speed, dist * 0.3);
+  } else {
+    ai.vx *= 0.8; ai.vy *= 0.8;
+  }
+  
+  ai.x += ai.vx;
+  ai.y += ai.vy;
+  
+  ai.x = Math.max(RINK.x + ai.r, Math.min(RINK.x + RINK.w - ai.r, ai.x));
+  ai.y = Math.max(RINK.y + ai.r, Math.min(RINK.y + RINK.h/2 - ai.r, ai.y));
+}
+
+// ---- POWER-UP SYSTEM ----
+function spawnPowerup() {
+  const type = POWER_TYPES[Math.floor(Math.random() * POWER_TYPES.length)];
+  const x = RINK.x + 60 + Math.random() * (RINK.w - 120);
+  const y = RINK.y + 40 + Math.random() * (RINK.h - 80);
+  powerups.push({ ...type, x, y, life: 300, pulse: 0 });
+}
+
+function updatePowerups() {
+  powerupSpawnTimer--;
+  if (powerupSpawnTimer <= 0 && powerups.length < 4) {
+    spawnPowerup();
+    powerupSpawnTimer = 180 + Math.floor(Math.random() * 180);
+  }
+  
+  for (let p of powerups) p.pulse += 0.05;
+  
+  // Player collects
+  for (let i = powerups.length - 1; i >= 0; i--) {
+    const p = powerups[i];
+    const pDist = Math.hypot(player.x - p.x, player.y - p.y);
+    const aiDist = Math.hypot(ai.x - p.x, ai.y - p.y);
+    
+    if (pDist < player.r + 18) {
+      activatePowerup(p, 'player');
+      powerups.splice(i, 1);
+      continue;
+    }
+    if (aiDist < ai.r + 18) {
+      activatePowerup(p, 'ai');
+      powerups.splice(i, 1);
+      continue;
+    }
+    
+    p.life--;
+    if (p.life <= 0) powerups.splice(i, 1);
+  }
+}
+
+function activatePowerup(pw, who) {
+  sfxPowerup();
+  spawnParticles(pw.x, pw.y, 20, pw.color, 3);
+  
+  if (who === 'player') {
+    activePower.player = pw.id;
+    activePower.playerTimer = 300; // 5 seconds
+    
+    if (pw.id === 'bigpuck') puckScale = 2.0;
+    if (pw.id === 'shield') shieldActive.player = true;
+    if (pw.id === 'multipuck') {
+      for (let i = 0; i < 2; i++) {
+        extraPucks.push({
+          x: puck.x + (Math.random() - 0.5) * 40,
+          y: puck.y + (Math.random() - 0.5) * 40,
+          vx: (Math.random() - 0.5) * 10,
+          vy: (Math.random() - 0.5) * 10,
+        });
+      }
+    }
+  } else {
+    activePower.ai = pw.id;
+    activePower.aiTimer = 300;
+    
+    if (pw.id === 'bigpuck') puckScale = 2.0;
+    if (pw.id === 'shield') shieldActive.ai = true;
+    if (pw.id === 'multipuck') {
+      for (let i = 0; i < 2; i++) {
+        extraPucks.push({
+          x: puck.x + (Math.random() - 0.5) * 40,
+          y: puck.y + (Math.random() - 0.5) * 40,
+          vx: (Math.random() - 0.5) * 10,
+          vy: (Math.random() - 0.5) * 10,
+        });
+      }
+    }
+  }
+}
+
+function updateActivePowers() {
+  if (activePower.player) {
+    activePower.playerTimer--;
+    if (activePower.playerTimer <= 0) {
+      if (activePower.player === 'bigpuck') puckScale = 1;
+      activePower.player = null;
+      activePower.playerTimer = 0;
+    }
+  }
+  if (activePower.ai) {
+    activePower.aiTimer--;
+    if (activePower.aiTimer <= 0) {
+      if (activePower.ai === 'bigpuck') puckScale = 1;
+      activePower.ai = null;
+      activePower.aiTimer = 0;
+    }
+  }
+}
+
+// ---- COMBO ----
+function updateCombo() {
+  if (combo.timer > 0) {
+    combo.timer--;
+    if (combo.timer <= 0) combo.count = 0;
+  }
+}
+
+// ---- UPDATE ----
+function update() {
+  if (state === 'playing') {
+    movePlayer();
+    moveAI();
+    movePuck();
+    updatePuckTrail();
+    updatePowerups();
+    updateActivePowers();
+    updateCombo();
+  }
+  
+  // Particles
+  for (let p of particles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life -= p.decay;
+    p.vx *= 0.98;
+    p.vy *= 0.98;
+  }
+  particles = particles.filter(p => p.life > 0);
+  
+  // Screen shake
+  if (shakeAmount > 0) {
+    shakeX = (Math.random() - 0.5) * shakeAmount * 2;
+    shakeY = (Math.random() - 0.5) * shakeAmount * 2;
+    shakeAmount *= 0.85;
+    if (shakeAmount < 0.5) shakeAmount = 0;
+  } else {
+    shakeX = shakeY = 0;
+  }
+  
+  // Goal flash
+  if (goalFlash > 0) goalFlash--;
+}
+
+// ---- DRAWING ----
+function drawRink() {
+  // Ice surface with subtle gradient
+  const iceGrad = ctx.createLinearGradient(RINK.x, RINK.y, RINK.x, RINK.y + RINK.h);
+  iceGrad.addColorStop(0, '#e8f4f8');
+  iceGrad.addColorStop(0.5, '#dceef5');
+  iceGrad.addColorStop(1, '#e8f4f8');
+  ctx.fillStyle = iceGrad;
+  ctx.strokeStyle = '#1a3a5c';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.roundRect(RINK.x, RINK.y, RINK.w, RINK.h, 8);
+  ctx.fill();
+  ctx.stroke();
+  
+  // Center line
+  ctx.strokeStyle = '#cc2222';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([15, 10]);
+  ctx.beginPath();
+  ctx.moveTo(RINK.x, RINK.y + RINK.h/2);
+  ctx.lineTo(RINK.x + RINK.w, RINK.y + RINK.h/2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Center circle
+  ctx.strokeStyle = '#3366aa';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(W/2, H/2, 50, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(W/2, H/2, 10, 0, Math.PI * 2);
+  ctx.fillStyle = '#3366aa';
+  ctx.fill();
+  
+  // Blue lines
+  ctx.strokeStyle = '#3366aa';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([8, 6]);
+  ctx.beginPath();
+  ctx.moveTo(RINK.x, RINK.y + RINK.h * 0.25);
+  ctx.lineTo(RINK.x + RINK.w, RINK.y + RINK.h * 0.25);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(RINK.x, RINK.y + RINK.h * 0.75);
+  ctx.lineTo(RINK.x + RINK.w, RINK.y + RINK.h * 0.75);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Goals
+  ctx.fillStyle = '#cc2222';
+  ctx.fillRect(GOAL.left.x, GOAL.left.y, GOAL.w, GOAL.h);
+  ctx.fillStyle = '#3366aa';
+  ctx.fillRect(GOAL.right.x, GOAL.right.y, GOAL.w, GOAL.h);
+  
+  // Goal glow
+  if (goalTeam === 'player') {
+    ctx.fillStyle = 'rgba(51,102,170,0.3)';
+    ctx.fillRect(GOAL.right.x - 10, GOAL.right.y - 10, GOAL.w + 20, GOAL.h + 20);
+  }
+  if (goalTeam === 'ai') {
+    ctx.fillStyle = 'rgba(204,34,34,0.3)';
+    ctx.fillRect(GOAL.left.x - 10, GOAL.left.y - 10, GOAL.w + 20, GOAL.h + 20);
+  }
+  
+  // Goal nets
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1;
+  for (let y = GOAL.left.y + 10; y < GOAL.left.y + GOAL.h; y += 15) {
+    ctx.beginPath();
+    ctx.moveTo(GOAL.left.x + 2, y);
+    ctx.lineTo(GOAL.left.x + GOAL.w - 2, y);
+    ctx.stroke();
+  }
+  for (let y = GOAL.right.y + 10; y < GOAL.right.y + GOAL.h; y += 15) {
+    ctx.beginPath();
+    ctx.moveTo(GOAL.right.x + 2, y);
+    ctx.lineTo(GOAL.right.x + GOAL.w - 2, y);
+    ctx.stroke();
+  }
+}
+
+function drawPlayerPaddle(p, who) {
+  const frozen = (who === 'player' && activePower.ai === 'freeze') || 
+                 (who === 'ai' && activePower.player === 'freeze');
+  const color = who === 'player' ? '#ff6600' : '#4488ff';
+  const glow = who === 'player' ? '#ff9944' : '#66aaff';
+  
+  ctx.save();
+  
+  // Glow
+  const glowGrad = ctx.createRadialGradient(p.x, p.y, p.r * 0.6, p.x, p.y, p.r * 1.4);
+  glowGrad.addColorStop(0, glow);
+  glowGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = glowGrad;
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, p.r * 1.4, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Paddle body
+  const grad = ctx.createRadialGradient(p.x - 5, p.y - 5, p.r * 0.2, p.x, p.y, p.r);
+  grad.addColorStop(0, '#ffffff');
+  grad.addColorStop(0.5, color);
+  grad.addColorStop(1, '#000000');
+  ctx.fillStyle = frozen ? '#88ccff' : grad;
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Border
+  ctx.strokeStyle = frozen ? '#aaddff' : '#fff';
+  ctx.lineWidth = frozen ? 3 : 2;
+  ctx.stroke();
+  
+  // Frozen effect
+  if (frozen) {
+    ctx.fillStyle = 'rgba(136, 204, 255, 0.4)';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r + 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    for (let i = 0; i < 4; i++) {
+      const angle = Date.now() * 0.003 + i * Math.PI/2;
+      const iceX = p.x + Math.cos(angle) * (p.r + 6);
+      const iceY = p.y + Math.sin(angle) * (p.r + 6);
+      ctx.fillStyle = '#aaddff';
+      ctx.beginPath();
+      ctx.moveTo(iceX, iceY);
+      ctx.lineTo(iceX + 6, iceY + 8);
+      ctx.lineTo(iceX - 2, iceY + 10);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+  
+  // Shield indicator
+  const hasShield = (who === 'player' && shieldActive.player) || (who === 'ai' && shieldActive.ai);
+  if (hasShield) {
+    ctx.strokeStyle = '#44ff44';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([8, 4]);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r + 8, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  
+  // Speed trail
+  if ((who === 'player' && activePower.player === 'speed') || 
+      (who === 'ai' && activePower.ai === 'speed')) {
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = `rgba(255, 221, 0, ${0.3 - i * 0.1})`;
+      ctx.beginPath();
+      ctx.arc(p.x - p.vx * (i+1) * 2, p.y - p.vy * (i+1) * 2, p.r * (0.6 - i * 0.15), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  
+  ctx.restore();
+}
+
+function drawPuck() {
+  // Trail
+  for (let t of puck.trail) {
+    const alpha = t.life * 0.3;
+    ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, puck.r * puckScale * t.life, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Extra pucks
+  for (let ep of extraPucks) {
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.arc(ep.x, ep.y, puck.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ff8800';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+  
+  // Main puck
+  ctx.save();
+  const puckGrad = ctx.createRadialGradient(puck.x - 2, puck.y - 2, puck.r * 0.1 * puckScale, puck.x, puck.y, puck.r * puckScale);
+  puckGrad.addColorStop(0, '#444');
+  puckGrad.addColorStop(0.6, '#111');
+  puckGrad.addColorStop(1, '#000');
+  ctx.fillStyle = puckGrad;
+  ctx.beginPath();
+  ctx.arc(puck.x, puck.y, puck.r * puckScale, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Glow when powered up
+  if (puckScale > 1) {
+    ctx.strokeStyle = '#ff4444';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = '#ff4444';
+    ctx.shadowBlur = 15;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+  
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawPowerups() {
+  for (let p of powerups) {
+    const scale = 1 + Math.sin(p.pulse) * 0.15;
+    const alpha = p.life < 60 ? p.life / 60 : 1;
+    
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(p.x, p.y);
+    ctx.scale(scale, scale);
+    
+    // Glow
+    const glowGrad = ctx.createRadialGradient(0, 0, 5, 0, 0, 22);
+    glowGrad.addColorStop(0, p.color);
+    glowGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = glowGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 22, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Icon background
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.roundRect(-14, -14, 28, 28, 6);
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Emoji
+    ctx.fillStyle = '#fff';
+    ctx.font = '16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.emoji, 0, 0);
+    
+    ctx.restore();
+  }
+}
+
+function drawParticles() {
+  for (let p of particles) {
+    ctx.fillStyle = p.color.replace(')', `,${p.life})`).replace('rgb', 'rgba');
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawHUD() {
+  // Scoreboard at top
+  const sbW = 280, sbH = 50, sbX = W/2 - sbW/2, sbY = 8;
+  
+  // Background
+  ctx.fillStyle = 'rgba(10,10,30,0.85)';
+  ctx.beginPath();
+  ctx.roundRect(sbX, sbY, sbW, sbH, 8);
+  ctx.fill();
+  ctx.strokeStyle = '#334';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  
+  // Player score
+  ctx.fillStyle = '#ff6600';
+  ctx.font = 'bold 28px system-ui';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(score.player, sbX + 60, sbY + sbH/2);
+  
+  // Label
+  ctx.fillStyle = '#888';
+  ctx.font = '12px system-ui';
+  ctx.fillText(`FIRST TO ${goalTarget}`, W/2, sbY + sbH/2 - 8);
+  ctx.fillText('YOU  vs  BOT', W/2, sbY + sbH/2 + 12);
+  
+  // AI score
+  ctx.fillStyle = '#4488ff';
+  ctx.font = 'bold 28px system-ui';
+  ctx.fillText(score.ai, sbX + sbW - 60, sbY + sbH/2);
+  
+  // VS
+  ctx.fillStyle = '#aaa';
+  ctx.font = 'bold 16px system-ui';
+  ctx.fillText('VS', W/2, sbY + sbH/3);
+  
+  // Combo
+  if (combo.count > 1) {
+    const comboAlpha = Math.min(1, combo.timer / 30);
+    ctx.fillStyle = `rgba(255, 136, 0, ${comboAlpha})`;
+    ctx.font = `bold 20px system-ui`;
+    ctx.textAlign = 'right';
+    ctx.fillText(`${combo.count}x COMBO! 🔥`, W - 20, sbY + sbH/2);
+  }
+  
+  // Active power indicators
+  let indicatorY = sbY + sbH + 12;
+  
+  if (activePower.player) {
+    const pw = POWER_TYPES.find(pt => pt.id === activePower.player);
+    const timeLeft = (activePower.playerTimer / 60).toFixed(1);
+    ctx.fillStyle = pw.color;
+    ctx.font = 'bold 12px system-ui';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${pw.emoji} ${pw.name} ${timeLeft}s`, W - 20, indicatorY);
+    indicatorY += 18;
+  }
+  if (shieldActive.player) {
+    ctx.fillStyle = '#44ff44';
+    ctx.font = 'bold 12px system-ui';
+    ctx.textAlign = 'right';
+    ctx.fillText('🛡️ SHIELD ACTIVE', W - 20, indicatorY);
+    indicatorY += 18;
+  }
+  
+  indicatorY = sbY + sbH + 12;
+  if (activePower.ai) {
+    const pw = POWER_TYPES.find(pt => pt.id === activePower.ai);
+    const timeLeft = (activePower.aiTimer / 60).toFixed(1);
+    ctx.fillStyle = pw.color;
+    ctx.font = 'bold 12px system-ui';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${pw.emoji} ${pw.name} ${timeLeft}s`, 20, indicatorY);
+    indicatorY += 18;
+  }
+  if (shieldActive.ai) {
+    ctx.fillStyle = '#44ff44';
+    ctx.font = 'bold 12px system-ui';
+    ctx.textAlign = 'left';
+    ctx.fillText('🛡️ SHIELD ACTIVE', 20, indicatorY);
+  }
+}
+
+function drawAimLine() {
+  if (state !== 'playing') return;
+  
+  // Draw line from puck to mouse
+  const dx = mouse.x - puck.x;
+  const dy = mouse.y - puck.y;
+  const dist = Math.hypot(dx, dy);
+  
+  if (dist < 20) return;
+  
+  const nx = dx / dist;
+  const ny = dy / dist;
+  
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 8]);
+  ctx.beginPath();
+  ctx.moveTo(puck.x, puck.y);
+  ctx.lineTo(puck.x + nx * Math.min(dist, 200), puck.y + ny * Math.min(dist, 200));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Power indicator at cursor
+  const power = Math.min(1, dist / 300);
+  ctx.strokeStyle = `rgba(255,200,50,${0.4 + power * 0.6})`;
+  ctx.lineWidth = 2 + power * 3;
+  ctx.beginPath();
+  ctx.arc(mouse.x, mouse.y, 6 + power * 8, 0, Math.PI * 2);
+  ctx.stroke();
+  
+  ctx.fillStyle = '#fff';
+  ctx.font = '10px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${Math.round(power * 100)}%`, mouse.x, mouse.y - 14);
+  
+  ctx.restore();
+}
+
+function drawTitle() {
+  // Dark overlay
+  ctx.fillStyle = 'rgba(5,5,25,0.7)';
+  ctx.fillRect(0, 0, W, H);
+  
+  // Title
+  ctx.fillStyle = '#ff6600';
+  ctx.font = 'bold 52px system-ui';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('ICE HOCKEY', W/2, H/2 - 80);
+  
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 28px system-ui';
+  ctx.fillText('RUMBLE', W/2, H/2 - 36);
+  
+  // Subtitle
+  ctx.fillStyle = '#aaa';
+  ctx.font = '16px system-ui';
+  ctx.fillText('Arcade Showdown — First to 7 Wins', W/2, H/2 + 20);
+  
+  // Controls
+  ctx.fillStyle = '#888';
+  ctx.font = '14px system-ui';
+  ctx.fillText('🖱️ Move mouse to control paddle', W/2, H/2 + 60);
+  ctx.fillText('🖱️ Click near the puck to SHOOT', W/2, H/2 + 80);
+  ctx.fillText('⚡ Collect power-ups for crazy advantages', W/2, H/2 + 100);
+  
+  // Start button
+  const btnY = H/2 + 140;
+  const pulse = Math.sin(Date.now() * 0.004) * 0.3 + 0.7;
+  ctx.fillStyle = `rgba(255,102,0,${0.15 + pulse * 0.2})`;
+  ctx.beginPath();
+  ctx.roundRect(W/2 - 100, btnY - 20, 200, 40, 20);
+  ctx.fill();
+  
+  ctx.fillStyle = '#ff6600';
+  ctx.font = 'bold 18px system-ui';
+  ctx.fillText('PRESS SPACE OR CLICK TO PLAY', W/2, btnY);
+}
+
+function drawGameOver() {
+  ctx.fillStyle = 'rgba(0,0,0,0.75)';
+  ctx.fillRect(0, 0, W, H);
+  
+  const winner = score.player >= goalTarget ? 'YOU WIN!' : 'BOT WINS!';
+  const color = score.player >= goalTarget ? '#ff6600' : '#4488ff';
+  
+  ctx.fillStyle = color;
+  ctx.font = 'bold 52px system-ui';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(winner, W/2, H/2 - 40);
+  
+  ctx.fillStyle = '#fff';
+  ctx.font = '24px system-ui';
+  ctx.fillText(`${score.player} - ${score.ai}`, W/2, H/2 + 30);
+  
+  ctx.fillStyle = '#888';
+  ctx.font = '16px system-ui';
+  ctx.fillText('PRESS SPACE TO PLAY AGAIN', W/2, H/2 + 80);
+}
+
+function drawGoalOverlay() {
+  if (!goalTeam) return;
+  
+  const alpha = goalFlash > 0 ? Math.min(1, goalFlash / 40) : 0.8;
+  const color = goalTeam === 'player' ? '#ff6600' : '#4488ff';
+  
+  // Flash overlay
+  ctx.fillStyle = `${color}44`;
+  ctx.fillRect(0, 0, W, H);
+  
+  // Text
+  const textY = H/2 - 30;
+  const scale = 1 + (60 - goalFlash) * 0.01;
+  
+  ctx.save();
+  ctx.translate(W/2, textY);
+  ctx.scale(scale, scale);
+  
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 48px system-ui';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  
+  if (goalTeam === 'player') {
+    ctx.fillText('🔥 GOAL!', 0, 0);
+    if (combo.count > 1) {
+      ctx.fillStyle = '#ffdd00';
+      ctx.font = 'bold 24px system-ui';
+      ctx.fillText(`${combo.count}x COMBO!`, 0, 40);
+    }
+  } else {
+    ctx.fillText('💀 GOAL', 0, 0);
+  }
+  
+  ctx.restore();
+}
+
+// ---- MAIN RENDER ----
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  
+  ctx.save();
+  ctx.translate(shakeX, shakeY);
+  
+  // Background
+  const bgGrad = ctx.createRadialGradient(W/2, H/2, 100, W/2, H/2, Math.max(W, H));
+  bgGrad.addColorStop(0, '#1a1a3a');
+  bgGrad.addColorStop(1, '#0a0a1a');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(-20, -20, W + 40, H + 40);
+  
+  drawRink();
+  drawPowerups();
+  drawPuck();
+  drawPlayerPaddle(player, 'player');
+  drawPlayerPaddle(ai, 'ai');
+  drawParticles();
+  drawAimLine();
+  
+  ctx.restore();
+  
+  drawHUD();
+  
+  if (goalTeam) drawGoalOverlay();
+  if (state === 'title') drawTitle();
+  if (state === 'over') drawGameOver();
+  
+  // Cursor dot (for aim feedback)
+  if (state === 'playing') {
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.beginPath();
+    ctx.arc(mouse.x, mouse.y, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// ---- GAME LOOP ----
+function tick() {
+  update();
+  render();
+  requestAnimationFrame(tick);
+}
+
+// ---- INPUT ----
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  mouse.x = (e.clientX - rect.left) * (W / rect.width);
+  mouse.y = (e.clientY - rect.top) * (H / rect.height);
+});
+
+canvas.addEventListener('mousedown', (e) => {
+  initAudio();
+  mouse.down = true;
+  
+  if (state === 'title') { startGame(); return; }
+  if (state === 'over') { resetGame(); return; }
+  
+  if (state === 'playing') {
+    // Shoot — add velocity toward mouse
+    const dx = mouse.x - puck.x;
+    const dy = mouse.y - puck.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist > 10) {
+      const power = Math.min(1, dist / 300);
+      const shootSpeed = 8 + power * 14;
+      puck.vx = (dx / dist) * shootSpeed;
+      puck.vy = (dy / dist) * shootSpeed;
+      spawnParticles(puck.x, puck.y, 15, '#ffff00', shootSpeed * 0.3);
+      playTone(180, 0.1, 'square', 0.3);
+    }
+  }
+});
+
+canvas.addEventListener('mouseup', () => { mouse.down = false; });
+
+document.addEventListener('keydown', (e) => {
+  initAudio();
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (state === 'title') startGame();
+    else if (state === 'over') resetGame();
+  }
+});
+
+function startGame() {
+  initAudio();
+  state = 'playing';
+  score = { player: 0, ai: 0 };
+  combo = { count: 0, timer: 0 };
+  powerups = [];
+  activePower = { player: null, ai: null, playerTimer: 0, aiTimer: 0 };
+  shieldActive = { player: false, ai: false };
+  extraPucks = [];
+  puckScale = 1;
+  particles = [];
+  powerupSpawnTimer = 120;
+  resetPuck(Math.random() > 0.5 ? 'player' : 'ai');
+}
+
+function resetGame() { startGame(); }
+
+// RoundRect polyfill
+if (!ctx.roundRect) {
+  ctx.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = { tl: r, tr: r, br: r, bl: r };
+    ctx.beginPath();
+    ctx.moveTo(x + r.tl, y);
+    ctx.lineTo(x + w - r.tr, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+    ctx.lineTo(x + w, y + h - r.br);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+    ctx.lineTo(x + r.bl, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+    ctx.lineTo(x, y + r.tl);
+    ctx.quadraticCurveTo(x, y, x + r.tl, y);
+    ctx.closePath();
+  };
+}
+
+// ---- START ----
+tick();
+</script>
+</body>
+</html>

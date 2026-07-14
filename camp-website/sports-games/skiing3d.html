@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>3D 高山滑雪</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a2e; color: #fff; font-family: monospace; overflow: hidden; }
+#hud {
+  position: absolute; top: 16px; left: 0; right: 0;
+  display: flex; justify-content: center; gap: 14px;
+  font-size: 14px; pointer-events: none; z-index: 10;
+}
+#hud span {
+  background: rgba(255,255,255,0.25); backdrop-filter: blur(8px);
+  padding: 6px 18px; border-radius: 20px;
+  border: 1px solid rgba(100,150,200,0.3);
+  text-shadow: 0 0 4px rgba(0,0,0,0.3);
+  color: #1a2a4a;
+}
+#hud b { color: #0066cc; }
+#speedbar {
+  position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
+  width: 300px; height: 6px; background: rgba(255,255,255,0.1);
+  border-radius: 3px; z-index: 10; overflow: hidden;
+  border: 1px solid rgba(0,255,200,0.2);
+}
+#speedbar-fill {
+  height: 100%; width: 0%; border-radius: 3px;
+  background: linear-gradient(90deg, #44aa44, #2266cc, #cc4422);
+  transition: width 0.1s; box-shadow: 0 0 6px rgba(50,100,200,0.4);
+}
+#overlay {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 16px;
+  background: rgba(200,220,240,0.85); z-index: 20;
+  backdrop-filter: blur(4px);
+}
+#overlay h1 {
+  font-size: 52px; letter-spacing: 8px; color: #1a3a6a;
+  text-shadow: 2px 2px 0 #fff, 0 0 20px rgba(100,150,200,0.5);
+}
+#overlay p { font-size: 14px; color: #335; text-align: center; line-height: 2; }
+#overlay button {
+  margin-top: 8px; padding: 14px 50px; font-size: 16px; font-family: monospace;
+  background: linear-gradient(135deg, #2a6ad8, #4488dd); color: #fff;
+  border: none; border-radius: 30px; cursor: pointer;
+  letter-spacing: 4px; font-weight: bold;
+  box-shadow: 0 4px 12px rgba(50,100,180,0.4);
+  transition: all 0.2s;
+}
+#overlay button:hover { box-shadow: 0 6px 20px rgba(50,100,180,0.6); transform: scale(1.05); }
+#controls {
+  position: absolute; bottom: 16px; left: 0; right: 0;
+  display: flex; justify-content: center; gap: 8px; z-index: 10;
+}
+#controls button {
+  padding: 12px 22px; font-size: 13px; font-family: monospace;
+  background: rgba(255,255,255,0.4); color: #1a2a4a;
+  border: 1px solid rgba(100,150,200,0.4); border-radius: 8px; cursor: pointer;
+  user-select: none; -webkit-user-select: none;
+  backdrop-filter: blur(4px);
+}
+#controls button:active { background: rgba(100,150,200,0.3); border-color: #2266cc; }
+canvas { display: block; }
+#speedlines {
+  position: absolute; inset: 0; pointer-events: none; z-index: 5;
+  opacity: 0; transition: opacity 0.3s;
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(255,255,255,0.15) 70%, transparent 100%);
+}
+#combo {
+  position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+  font-size: 28px; font-weight: bold; color: #FF6600;
+  text-shadow: 2px 2px 0 #fff;
+  z-index: 10; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+}
+#progress-wrap {
+  position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
+  width: 360px; z-index: 10; pointer-events: none;
+}
+#progress-label {
+  font-size: 11px; color: #aac; text-align: center; margin-bottom: 4px;
+  letter-spacing: 2px;
+}
+#progress-bar {
+  width: 100%; height: 8px; background: rgba(255,255,255,0.1);
+  border-radius: 4px; overflow: hidden;
+  border: 1px solid rgba(0,255,200,0.2);
+}
+#progress-fill {
+  height: 100%; width: 0%; border-radius: 4px;
+  background: linear-gradient(90deg, #44aa44, #2266cc, #cc8822);
+  transition: width 0.2s; box-shadow: 0 0 6px rgba(50,100,200,0.4);
+}
+#progress-finish {
+  display: inline-block; margin-left: 6px; color: #FFD700;
+}
+#victory-screen {
+  position: absolute; inset: 0; display: none;
+  flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+  background: rgba(200,220,240,0.9); z-index: 25;
+  backdrop-filter: blur(6px);
+}
+#victory-screen h1 {
+  font-size: 56px; letter-spacing: 6px; color: #cc6600;
+  text-shadow: 2px 2px 0 #fff, 0 0 20px rgba(200,150,50,0.4);
+}
+#victory-screen .stats {
+  display: flex; gap: 30px; margin: 12px 0;
+}
+#victory-screen .stat-box {
+  text-align: center; background: rgba(255,255,255,0.5);
+  padding: 14px 28px; border-radius: 16px;
+  border: 1px solid rgba(100,150,200,0.3);
+}
+#victory-screen .stat-val { font-size: 32px; color: #2266cc; font-weight: bold; }
+#victory-screen .stat-lbl { font-size: 12px; color: #668; margin-top: 4px; letter-spacing: 2px; }
+#victory-screen button {
+  padding: 14px 50px; font-size: 16px; font-family: monospace;
+  background: linear-gradient(135deg, #cc8822, #FFaa44); color: #fff;
+  border: none; border-radius: 30px; cursor: pointer;
+  letter-spacing: 4px; font-weight: bold;
+  box-shadow: 0 4px 12px rgba(200,150,50,0.4);
+  transition: all 0.2s;
+}
+#victory-screen button:hover { box-shadow: 0 6px 20px rgba(200,150,50,0.6); transform: scale(1.05); }
+</style>
+</head>
+<body>
+<div id="hud">
+  <span>距离 <b id="sc">0</b>/<b style="color:#FFD700">1500</b>m</span>
+  <span>得分 <b id="hi">0</b></span>
+  <span>速度 <b id="sp">0</b>km/h</span>
+  <span>旗帜 <b id="fg">0</b></span>
+  <span>生命 <b id="lv">***</b></span>
+</div>
+<div id="combo"></div>
+<div id="speedlines"></div>
+<div id="speedbar"><div id="speedbar-fill"></div></div>
+<div id="progress-wrap">
+  <div id="progress-label">距终点 <b id="progress-dist">1500</b>m <span id="progress-finish">🏁</span></div>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+</div>
+<div id="victory-screen">
+  <h1>🏁 到达终点！🏁</h1>
+  <div class="stats">
+    <div class="stat-box"><div class="stat-val" id="v-time">00:00</div><div class="stat-lbl">用时</div></div>
+    <div class="stat-box"><div class="stat-val" id="v-score">0</div><div class="stat-lbl">得分</div></div>
+    <div class="stat-box"><div class="stat-val" id="v-flags">0</div><div class="stat-lbl">旗帜</div></div>
+    <div class="stat-box"><div class="stat-val" id="v-combo">0x</div><div class="stat-lbl">最佳连击</div></div>
+  </div>
+  <button id="replayBtn">再来一局</button>
+</div>
+<div id="overlay">
+  <h1>3D 高山滑雪</h1>
+  <p style="color:#4488cc;font-size:13px;letter-spacing:3px">🏔️ 高山速降 🏔️</p>
+  <div style="background:rgba(100,150,200,0.1);border:1px solid rgba(100,150,200,0.3);border-radius:12px;padding:12px 18px;margin:8px 0;max-width:420px;font-size:13px;line-height:1.7;color:#446;">
+    🏔️ 从雪山之巅一路飞驰而下，穿越阳光照耀的险峻赛道！<br>
+    躲避树木和巨石，跳上雪坡飞跃半空，踩中绿色加速带获得速度提升。<br>
+    连续穿过红色旗帜可触发连击加分，速度越快得分越高。<br>
+    全程 1500 米，3 条生命，冲过终点线完成挑战！
+  </div>
+  <details style="max-width:420px;width:100%;margin:4px 0;">
+    <summary style="cursor:pointer;font-size:11px;color:#2266cc;text-align:center;user-select:none;padding:4px;">📖 滑雪知识小百科（点击展开）</summary>
+    <div style="background:rgba(255,255,255,0.4);border:1px solid rgba(100,150,200,0.2);border-radius:8px;padding:8px 12px;margin-top:4px;font-size:10px;line-height:1.6;color:#446;max-height:200px;overflow-y:auto;">
+      <b style="color:#FFD700;">🏔️ 起源</b><br>
+      滑雪起源于约 <b style="color:#00FFD0;">5000年前</b>的斯堪的纳维亚半岛（挪威、瑞典一带）。最早的滑雪板在瑞典发现，距今约5200年。古代北欧人用滑雪板在雪地里<b>狩猎和出行</b>，是生存必备技能。<br><br>
+      <b style="color:#FFD700;">🏅 成为比赛</b><br>
+      1868年，挪威举办了<b>第一场滑雪比赛</b>。1936年，<b>高山滑雪</b>正式成为冬奥会项目。如今冬奥会滑雪分为速降、回转、大回转、超级大回转等多个项目。<br><br>
+      <b style="color:#FFD700;">⚡ 极限速度</b><br>
+      速降滑雪运动员的最高速度可达 <b style="color:#00FF66;">160 km/h</b>！比高速公路上的汽车还快！世界杯比赛中，选手平均速度约 <b>110-130 km/h</b>。<br><br>
+      <b style="color:#FFD700;">🎿 小知识</b><br>
+      • 滑雪板最早是用<b>木头</b>做的，现在用碳纤维等高科技材料<br>
+      • 旗门（你游戏里穿过的旗子）是回转比赛的标志杆，高约1.8米<br>
+      • 运动员穿着<b> aerodynamic（流线型）</b>滑雪服减少风阻<br>
+      • 中国的滑雪运动在<b>东北和新疆</b>发展迅速，2022年北京冬奥会在崇礼举办了雪上项目<br>
+      • 滑雪时身体前倾（像游戏里蹲下加速）能减少空气阻力，速度更快！
+    </div>
+  </details>
+  <p>
+    A / D 或 左/右 &mdash; 转向<br>
+    空格 &mdash; 蹲下（加速）<br>
+    W / 上 &mdash; 跳跃<br>
+    S / 下 &mdash; 刹车<br><br>
+    <span style="color:#44AA44">绿色加速带 = 速度提升！</span><br>
+    <span style="color:#FF2222">连续过旗 = 连击加分！</span><br>
+    <span style="color:#FFD700">🏁 冲向终点 &mdash; 1500米！</span><br>
+    躲开树木和石头，跳上斜坡飞起来！
+  </p>
+  <button id="startBtn">开始游戏</button>
+</div>
+<div id="controls">
+  <button id="btnL">◀</button>
+  <button id="btnJump">跳跃</button>
+  <button id="btnCrouch">蹲下</button>
+  <button id="btnSlow">刹车</button>
+  <button id="btnR">▶</button>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const W = window.innerWidth, H = window.innerHeight;
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(W, H);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+// Sunset gradient sky
+scene.background = new THREE.Color(0x87CEEB);
+scene.fog = new THREE.Fog(0xC8DCE8, 80, 250);
+
+// Sky gradient mesh (dome) — realistic blue sky
+const skyGeo = new THREE.SphereGeometry(250, 16, 12);
+const skyMat = new THREE.ShaderMaterial({
+  uniforms: { topColor: { value: new THREE.Color(0x2a6ad8) }, midColor: { value: new THREE.Color(0x6ab0f0) }, botColor: { value: new THREE.Color(0xc8e0f5) } },
+  vertexShader: 'varying vec3 vPos; void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+  fragmentShader: 'varying vec3 vPos; uniform vec3 topColor; uniform vec3 midColor; uniform vec3 botColor; void main(){ float h = normalize(vPos).y; vec3 c = h > 0.3 ? mix(midColor, topColor, smoothstep(0.3,1.0,h)) : mix(botColor, midColor, smoothstep(-0.2,0.3,h)); gl_FragColor = vec4(c,1.0); }',
+  side: THREE.BackSide
+});
+const skyDome = new THREE.Mesh(skyGeo, skyMat);
+scene.add(skyDome);
+
+// Distant mountains — realistic rocky with snow caps
+function makeMountains() {
+  const g = new THREE.Group();
+  const mtnMat = new THREE.MeshPhongMaterial({ color: 0x8a7a6a, shininess: 5 });
+  const snowMat3 = new THREE.MeshPhongMaterial({ color: 0xF0F8FF, shininess: 15 });
+  for (let i = 0; i < 15; i++) {
+    const h = 15 + Math.random() * 25;
+    const r = 8 + Math.random() * 8;
+    const mtn = new THREE.Mesh(new THREE.ConeGeometry(r, h, 5), mtnMat);
+    mtn.position.set((i - 7) * 18 + (Math.random() - 0.5) * 10, h / 2 - 2, -120 - Math.random() * 30);
+    mtn.rotation.y = Math.random() * Math.PI;
+    g.add(mtn);
+    // Snow cap
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(r * 0.4, h * 0.35, 5), snowMat3);
+    cap.position.set(mtn.position.x, h - h * 0.18, mtn.position.z);
+    cap.rotation.y = mtn.rotation.y;
+    g.add(cap);
+  }
+  return g;
+}
+scene.add(makeMountains());
+
+const camera = new THREE.PerspectiveCamera(65, W / H, 0.1, 300);
+camera.position.set(0, 5, 10);
+camera.lookAt(0, 0, -5);
+
+// Lighting — realistic bright daylight
+const ambLight = new THREE.AmbientLight(0xb0c8e0, 0.6);
+scene.add(ambLight);
+const sunLight = new THREE.DirectionalLight(0xffffee, 1.5);
+sunLight.position.set(10, 25, -5);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.set(2048, 2048);
+sunLight.shadow.camera.near = 0.5;
+sunLight.shadow.camera.far = 80;
+sunLight.shadow.camera.left = -25;
+sunLight.shadow.camera.right = 25;
+sunLight.shadow.camera.top = 25;
+sunLight.shadow.camera.bottom = -25;
+scene.add(sunLight);
+const fillLight = new THREE.DirectionalLight(0x88aacc, 0.4);
+fillLight.position.set(-6, 8, 5);
+scene.add(fillLight);
+const hemiLight = new THREE.HemisphereLight(0x88bbff, 0xeeeeee, 0.3);
+scene.add(hemiLight);
+
+// Snow particles (falling) — denser with neon tint
+const snowCount = 3000;
+const snowGeo = new THREE.BufferGeometry();
+const snowPos = new Float32Array(snowCount * 3);
+const snowVel = [];
+const snowCol = new Float32Array(snowCount * 3);
+for (let i = 0; i < snowCount; i++) {
+  snowPos[i*3]   = (Math.random() - 0.5) * 200;
+  snowPos[i*3+1] = Math.random() * 60;
+  snowPos[i*3+2] = (Math.random() - 0.5) * 200;
+  snowVel.push({ x: (Math.random()-0.5)*0.05, y: 0.15 + Math.random()*0.1, z: 0.3 + Math.random()*0.2 });
+  // All white snow
+  snowCol[i*3]=1; snowCol[i*3+1]=1; snowCol[i*3+2]=1;
+}
+snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
+snowGeo.setAttribute('color', new THREE.BufferAttribute(snowCol, 3));
+const snowMat = new THREE.PointsMaterial({ size: 0.4, transparent: true, opacity: 0.85, vertexColors: true });
+const snowPoints = new THREE.Points(snowGeo, snowMat);
+scene.add(snowPoints);
+
+// === SKIER CHARACTER ===
+const playerGroup = new THREE.Group();
+scene.add(playerGroup);
+
+const skinMat  = new THREE.MeshPhongMaterial({ color: 0xF5C5A3, shininess: 30 });
+const jacketMat = new THREE.MeshPhongMaterial({ color: 0xD0021B, shininess: 40 });
+const pantsMat = new THREE.MeshPhongMaterial({ color: 0x1a2a4a, shininess: 30 });
+const goggleMat = new THREE.MeshPhongMaterial({ color: 0x1a1a2e, shininess: 100, transparent: true, opacity: 0.85 });
+const goggleLensMat = new THREE.MeshPhongMaterial({ color: 0x333344, shininess: 200, specular: 0x888899 });
+const helmetMat = new THREE.MeshPhongMaterial({ color: 0xD0021B, shininess: 60 });
+const skiMat = new THREE.MeshPhongMaterial({ color: 0x222222, shininess: 80 });
+const poleMat = new THREE.MeshPhongMaterial({ color: 0x888888, shininess: 80 });
+const bootMat = new THREE.MeshPhongMaterial({ color: 0x111122, shininess: 50 });
+const gloveMat = new THREE.MeshPhongMaterial({ color: 0x1a1a1a, shininess: 30 });
+
+// Head with helmet
+const headGroup = new THREE.Group();
+headGroup.position.y = 1.55;
+playerGroup.add(headGroup);
+
+const face = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), skinMat);
+face.scale.set(1, 1.1, 0.95);
+face.castShadow = true;
+headGroup.add(face);
+
+// Helmet
+const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 12, 0, Math.PI*2, 0, Math.PI*0.65), helmetMat);
+helmet.position.y = 0.06;
+helmet.castShadow = true;
+headGroup.add(helmet);
+
+// Goggles
+const goggles = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.12, 0.1), goggleMat);
+goggles.position.set(0, 0.03, 0.2);
+headGroup.add(goggles);
+const lensL = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), goggleLensMat);
+lensL.position.set(-0.1, 0.03, 0.23);
+lensL.scale.set(1, 0.8, 0.4);
+headGroup.add(lensL);
+const lensR = lensL.clone();
+lensR.position.x = 0.1;
+headGroup.add(lensR);
+
+// Neck
+const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.12, 8), skinMat);
+neck.position.y = 1.38;
+neck.castShadow = true;
+playerGroup.add(neck);
+
+// Torso (jacket)
+const torsoGroup = new THREE.Group();
+torsoGroup.position.y = 0.95;
+playerGroup.add(torsoGroup);
+
+const chest = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.6, 0.35), jacketMat);
+chest.position.y = 0.1;
+chest.castShadow = true;
+torsoGroup.add(chest);
+
+// Shoulders
+const shoulderL = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), jacketMat);
+shoulderL.position.set(-0.32, 0.32, 0);
+torsoGroup.add(shoulderL);
+const shoulderR = shoulderL.clone();
+shoulderR.position.x = 0.32;
+torsoGroup.add(shoulderR);
+
+// Waist
+const waist = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.24, 0.18, 10), pantsMat);
+waist.position.y = -0.18;
+torsoGroup.add(waist);
+
+// Arms
+const armUL = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.3, 8), jacketMat);
+armUL.position.set(-0.38, 0.18, 0);
+armUL.rotation.z = 0.2;
+armUL.castShadow = true;
+torsoGroup.add(armUL);
+
+const armLL = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.25, 8), jacketMat);
+armLL.position.set(-0.46, -0.05, 0.1);
+armLL.rotation.x = -0.3;
+armLL.castShadow = true;
+torsoGroup.add(armLL);
+
+const gloveL = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), gloveMat);
+gloveL.position.set(-0.48, -0.18, 0.18);
+torsoGroup.add(gloveL);
+
+const armUR = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.3, 8), jacketMat);
+armUR.position.set(0.38, 0.18, 0);
+armUR.rotation.z = -0.2;
+armUR.castShadow = true;
+torsoGroup.add(armUR);
+
+const armLR = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.25, 8), jacketMat);
+armLR.position.set(0.46, -0.05, 0.1);
+armLR.rotation.x = -0.3;
+armLR.castShadow = true;
+torsoGroup.add(armLR);
+
+const gloveR = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), gloveMat);
+gloveR.position.set(0.48, -0.18, 0.18);
+torsoGroup.add(gloveR);
+
+// Ski poles
+const poleL = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.9, 6), poleMat);
+poleL.position.set(-0.52, -0.35, 0.25);
+poleL.rotation.x = -0.15;
+torsoGroup.add(poleL);
+const poleR = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.9, 6), poleMat);
+poleR.position.set(0.52, -0.35, 0.25);
+poleR.rotation.x = -0.15;
+torsoGroup.add(poleR);
+
+// Legs
+const hipGroup = new THREE.Group();
+hipGroup.position.y = 0.5;
+playerGroup.add(hipGroup);
+
+const legUL = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.09, 0.35, 8), pantsMat);
+legUL.position.set(-0.12, -0.18, 0);
+legUL.castShadow = true;
+hipGroup.add(legUL);
+const legLL = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.3, 8), pantsMat);
+legLL.position.set(-0.12, -0.45, 0);
+legLL.castShadow = true;
+hipGroup.add(legLL);
+
+const legUR = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.09, 0.35, 8), pantsMat);
+legUR.position.set(0.12, -0.18, 0);
+legUR.castShadow = true;
+hipGroup.add(legUR);
+const legLR = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.3, 8), pantsMat);
+legLR.position.set(0.12, -0.45, 0);
+legLR.castShadow = true;
+hipGroup.add(legLR);
+
+// Boots
+const bootL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.2), bootMat);
+bootL.position.set(-0.12, -0.62, 0.03);
+hipGroup.add(bootL);
+const bootR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.2), bootMat);
+bootR.position.set(0.12, -0.62, 0.03);
+hipGroup.add(bootR);
+
+// Skis
+const skiL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.04, 1.4), skiMat);
+skiL.position.set(-0.12, -0.71, 0);
+skiL.castShadow = true;
+hipGroup.add(skiL);
+const skiR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.04, 1.4), skiMat);
+skiR.position.set(0.12, -0.71, 0);
+skiR.castShadow = true;
+hipGroup.add(skiR);
+
+// Ski tips (curved up at front)
+const tipL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.04, 0.2), skiMat);
+tipL.position.set(-0.12, -0.66, -0.7);
+tipL.rotation.x = -0.5;
+hipGroup.add(tipL);
+const tipR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.04, 0.2), skiMat);
+tipR.position.set(0.12, -0.66, -0.7);
+tipR.rotation.x = -0.5;
+hipGroup.add(tipR);
+
+playerGroup.position.set(0, 0, 0);
+playerGroup.rotation.y = Math.PI;
+
+// Snow ground — infinite scrolling tiles
+const GROUND_W = 30, TILE_LEN = 10, TILE_COUNT = 20;
+const groundSnowMat = new THREE.MeshPhongMaterial({ color: 0xF0F8FF, shininess: 25 });
+const slopeMat = new THREE.MeshPhongMaterial({ color: 0xD0DCE8, shininess: 15 });
+
+const groundTiles = [];
+function makeGroundTile(z) {
+  const g = new THREE.Group();
+  // Main snow surface
+  const snow = new THREE.Mesh(new THREE.PlaneGeometry(GROUND_W, TILE_LEN), groundSnowMat);
+  snow.rotation.x = -Math.PI / 2;
+  snow.receiveShadow = true;
+  g.add(snow);
+  // Side snow banks
+  const bankL = new THREE.Mesh(new THREE.BoxGeometry(2, 0.4, TILE_LEN), slopeMat);
+  bankL.position.set(-GROUND_W/2 + 1, 0.2, 0);
+  bankL.receiveShadow = true;
+  g.add(bankL);
+  const bankR = new THREE.Mesh(new THREE.BoxGeometry(2, 0.4, TILE_LEN), slopeMat);
+  bankR.position.set(GROUND_W/2 - 1, 0.2, 0);
+  bankR.receiveShadow = true;
+  g.add(bankR);
+  // Natural snow mounds on sides instead of neon strips
+  for (let s = -1; s <= 1; s += 2) {
+    for (let i = 0; i < 3; i++) {
+      const mound = new THREE.Mesh(new THREE.SphereGeometry(0.4 + Math.random()*0.3, 6, 4), slopeMat);
+      mound.position.set(s * (GROUND_W/2 - 1.5 + Math.random()*0.5), 0.2, (Math.random()-0.5) * (TILE_LEN-2));
+      mound.scale.y = 0.4;
+      mound.receiveShadow = true;
+      g.add(mound);
+    }
+  }
+  // Random snow bumps
+  for (let i = 0; i < 3; i++) {
+    const bump = new THREE.Mesh(new THREE.SphereGeometry(0.3 + Math.random()*0.3, 6, 4), slopeMat);
+    bump.position.set((Math.random() - 0.5) * (GROUND_W - 6), 0.1, (Math.random() - 0.5) * (TILE_LEN - 2));
+    bump.scale.y = 0.3;
+    bump.receiveShadow = true;
+    g.add(bump);
+  }
+  g.position.z = z;
+  scene.add(g);
+  return g;
+}
+for (let i = 0; i < TILE_COUNT; i++) groundTiles.push(makeGroundTile(-i * TILE_LEN));
+
+// Tree models
+function makeTree() {
+  const g = new THREE.Group();
+  const trunkMat = new THREE.MeshPhongMaterial({ color: 0x5A3A1A, shininess: 5 });
+  const leafMat1 = new THREE.MeshPhongMaterial({ color: 0x1a5c2f, shininess: 5 });
+  const leafMat2 = new THREE.MeshPhongMaterial({ color: 0x2a7038, shininess: 5 });
+  const snowCapMat = new THREE.MeshPhongMaterial({ color: 0xF0F8FF, shininess: 20 });
+
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.25, 1.0, 8), trunkMat);
+  trunk.position.y = 0.5;
+  trunk.castShadow = true;
+  g.add(trunk);
+
+  const layers = [
+    { y: 1.2, r: 0.9, h: 1.2, mat: leafMat1 },
+    { y: 2.0, r: 0.7, h: 1.1, mat: leafMat2 },
+    { y: 2.7, r: 0.5, h: 1.0, mat: leafMat1 },
+  ];
+  layers.forEach(l => {
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(l.r, l.h, 10), l.mat);
+    cone.position.y = l.y;
+    cone.castShadow = true;
+    g.add(cone);
+    // Snow cap on top
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(l.r * 0.5, l.h * 0.3, 10), snowCapMat);
+    cap.position.y = l.y + l.h * 0.35;
+    g.add(cap);
+  });
+  return g;
+}
+
+// Rock model
+function makeRock() {
+  const g = new THREE.Group();
+  const rockMat = new THREE.MeshPhongMaterial({ color: 0x6b6b6b, shininess: 5 });
+  const snowMat2 = new THREE.MeshPhongMaterial({ color: 0xF0F8FF, shininess: 20 });
+
+  const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.6 + Math.random() * 0.4, 0), rockMat);
+  rock.position.y = 0.3;
+  rock.rotation.set(Math.random(), Math.random(), Math.random());
+  rock.castShadow = true;
+  g.add(rock);
+  // Snow on top
+  const snowTop = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6, 0, Math.PI*2, 0, Math.PI*0.5), snowMat2);
+  snowTop.position.y = 0.6;
+  snowTop.scale.set(1.2, 0.5, 1.2);
+  g.add(snowTop);
+  return g;
+}
+
+// Ramp/jump
+function makeRamp() {
+  const g = new THREE.Group();
+  const rampMat = new THREE.MeshPhongMaterial({ color: 0xE8EEF5, shininess: 20 });
+  const stripeMat = new THREE.MeshPhongMaterial({ color: 0xFF6600, shininess: 30 });
+
+  const ramp = new THREE.Mesh(new THREE.BoxGeometry(4, 0.8, 2.5), rampMat);
+  ramp.position.y = 0.4;
+  ramp.rotation.x = -0.3;
+  ramp.castShadow = true;
+  g.add(ramp);
+  // Neon stripes
+  for (let i = -1; i <= 1; i++) {
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.82, 2.4), stripeMat);
+    stripe.position.set(i * 1.2, 0.7 + i * 0.05, 0);
+    stripe.rotation.x = -0.3;
+    g.add(stripe);
+  }
+  return g;
+}
+
+// Boost pad — glowing arrow on the ground
+function makeBoostPad() {
+  const g = new THREE.Group();
+  const padMat = new THREE.MeshPhongMaterial({ color: 0x44DD44, shininess: 30, transparent: true, opacity: 0.75 });
+  const arrowMat = new THREE.MeshPhongMaterial({ color: 0xFFFFFF, shininess: 20 });
+
+  const pad = new THREE.Mesh(new THREE.PlaneGeometry(3, 4), padMat);
+  pad.rotation.x = -Math.PI / 2;
+  pad.position.y = 0.02;
+  g.add(pad);
+  // Arrow shape
+  const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.8, 1.5, 3), arrowMat);
+  arrow.rotation.x = -Math.PI / 2;
+  arrow.rotation.z = Math.PI;
+  arrow.position.y = 0.05;
+  g.add(arrow);
+  return g;
+}
+
+// Flag (gate) — neon glowing poles with a banner
+function makeFlag(lane) {
+  const g = new THREE.Group();
+  const poleMat = new THREE.MeshPhongMaterial({ color: 0x3333aa, shininess: 30 });
+  const flagMat = new THREE.MeshPhongMaterial({ color: 0xFF2222, shininess: 20, side: THREE.DoubleSide });
+
+  // Left pole
+  const poleL = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.8, 6), poleMat);
+  poleL.position.set(-1.5, 0.9, 0);
+  poleL.castShadow = true;
+  g.add(poleL);
+  // Right pole
+  const poleR = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.8, 6), poleMat);
+  poleR.position.set(1.5, 0.9, 0);
+  poleR.castShadow = true;
+  g.add(poleR);
+  // Banner (square flag between poles)
+  const banner = new THREE.Mesh(new THREE.PlaneGeometry(3, 0.5), flagMat);
+  banner.position.set(0, 1.3, 0);
+  g.add(banner);
+  return g;
+}
+
+// Obstacles array
+const obstacles = [];
+const obstacleMats = {};
+
+function spawnObstacle(z) {
+  const r = Math.random();
+  let mesh, data;
+  const lane = (Math.floor(Math.random() * 5) - 2) * 2.5;
+
+  if (r < 0.25) {
+    // Tree
+    mesh = makeTree();
+    mesh.position.set(lane, 0, z);
+    mesh.rotation.y = Math.random() * Math.PI * 2;
+    const scale = 0.8 + Math.random() * 0.5;
+    mesh.scale.set(scale, scale, scale);
+    data = { type: 'tree', lane };
+  } else if (r < 0.42) {
+    // Rock
+    mesh = makeRock();
+    mesh.position.set(lane, 0, z);
+    data = { type: 'rock', lane };
+  } else if (r < 0.55) {
+    // Ramp (jump)
+    mesh = makeRamp();
+    mesh.position.set(0, 0, z);
+    data = { type: 'ramp', lane: 0 };
+  } else if (r < 0.68) {
+    // Boost pad
+    mesh = makeBoostPad();
+    mesh.position.set(lane, 0, z);
+    data = { type: 'boost', lane };
+  } else if (r < 0.85) {
+    // Flag gate
+    mesh = makeFlag(lane);
+    mesh.position.set(lane, 0, z);
+    data = { type: 'flag', lane, passed: false };
+  } else {
+    // Tree cluster
+    const g = new THREE.Group();
+    const n = 2 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < n; i++) {
+      const tree = makeTree();
+      tree.position.set((Math.random() - 0.5) * 5, 0, (Math.random() - 0.5) * 4);
+      tree.rotation.y = Math.random() * Math.PI * 2;
+      g.add(tree);
+    }
+    g.position.set(0, 0, z);
+    mesh = g;
+    data = { type: 'treecluster', lane: 0 };
+  }
+
+  scene.add(mesh);
+  obstacles.push({ mesh, ...data, z });
+}
+
+// ===== Finish Line Gate =====
+function makeFinishLine() {
+  const g = new THREE.Group();
+
+  // Checkered pattern texture
+  const cv = document.createElement('canvas');
+  cv.width = 256; cv.height = 64;
+  const cx = cv.getContext('2d');
+  const sq = 32;
+  for (let row = 0; row < 2; row++) {
+    for (let col = 0; col < 8; col++) {
+      cx.fillStyle = (row + col) % 2 === 0 ? '#000' : '#fff';
+      cx.fillRect(col * sq, row * sq, sq, sq);
+    }
+  }
+  const checkerTex = new THREE.CanvasTexture(cv);
+  const checkerMat = new THREE.MeshPhongMaterial({ map: checkerTex, shininess: 50 });
+
+  // Arch top (checkered banner)
+  const banner = new THREE.Mesh(new THREE.BoxGeometry(GROUND_W, 1.2, 0.3), checkerMat);
+  banner.position.set(0, 5, 0);
+  banner.castShadow = true;
+  g.add(banner);
+
+  // Left pillar
+  const pillarMat = new THREE.MeshPhongMaterial({ color: 0x888888, shininess: 30 });
+  const pillarL = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 5.5, 12), pillarMat);
+  pillarL.position.set(-GROUND_W/2 + 1, 2.75, 0);
+  pillarL.castShadow = true;
+  g.add(pillarL);
+  // Right pillar
+  const pillarR = pillarL.clone();
+  pillarR.position.x = GROUND_W/2 - 1;
+  g.add(pillarR);
+
+  // "FINISH" text
+  const textCv = document.createElement('canvas');
+  textCv.width = 512; textCv.height = 128;
+  const tcx = textCv.getContext('2d');
+  tcx.fillStyle = 'rgba(0,0,0,0.7)';
+  tcx.fillRect(0, 0, 512, 128);
+  tcx.font = 'bold 80px Arial';
+  tcx.fillStyle = '#FFD700';
+  tcx.textAlign = 'center';
+  tcx.textBaseline = 'middle';
+  tcx.fillText('终点', 256, 64);
+  const textTex = new THREE.CanvasTexture(textCv);
+  const textMat = new THREE.MeshBasicMaterial({ map: textTex, transparent: true, side: THREE.DoubleSide });
+  const textMesh = new THREE.Mesh(new THREE.PlaneGeometry(6, 1.5), textMat);
+  textMesh.position.set(0, 5, 0.2);
+  g.add(textMesh);
+
+  // Glow strips on pillars removed for realism
+
+  // Checkered ground line
+  const groundBanner = new THREE.Mesh(new THREE.PlaneGeometry(GROUND_W, 1), checkerMat);
+  groundBanner.rotation.x = -Math.PI / 2;
+  groundBanner.position.y = 0.03;
+  g.add(groundBanner);
+
+  // Flags on top of pillars
+  const flagGeo = new THREE.PlaneGeometry(1.2, 0.8);
+  const flagMatA = new THREE.MeshPhongMaterial({ color: 0xFF2222, side: THREE.DoubleSide });
+  const flagMatB = new THREE.MeshPhongMaterial({ color: 0x2222CC, side: THREE.DoubleSide });
+  const flagL = new THREE.Mesh(flagGeo, flagMatA);
+  flagL.position.set(-GROUND_W/2 + 1, 6, 0.5);
+  g.add(flagL);
+  const flagR = new THREE.Mesh(flagGeo, flagMatB);
+  flagR.position.set(GROUND_W/2 - 1, 6, 0.5);
+  g.add(flagR);
+
+  return g;
+}
+
+// Particles
+const particles = [];
+function burst(pos, color, n = 12) {
+  for (let i = 0; i < n; i++) {
+    const m = new THREE.Mesh(
+      new THREE.SphereGeometry(0.08 + Math.random() * 0.06, 4, 3),
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9 })
+    );
+    m.position.copy(pos);
+    const v = new THREE.Vector3(
+      (Math.random() - 0.5) * 0.4,
+      Math.random() * 0.3 + 0.05,
+      (Math.random() - 0.5) * 0.4
+    );
+    scene.add(m);
+    particles.push({ mesh: m, v, life: 25 + Math.random() * 20 | 0, maxLife: 45 });
+  }
+}
+
+// Snow spray (ski trail)
+const sprayParticles = [];
+function snowSpray(pos) {
+  for (let i = 0; i < 2; i++) {
+    const m = new THREE.Mesh(
+      new THREE.SphereGeometry(0.1 + Math.random() * 0.08, 4, 3),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 })
+    );
+    m.position.copy(pos);
+    m.position.x += (Math.random() - 0.5) * 0.4;
+    m.position.z += 0.3 + Math.random() * 0.3;
+    const v = new THREE.Vector3(
+      (Math.random() - 0.5) * 0.15,
+      0.05 + Math.random() * 0.1,
+      0.1 + Math.random() * 0.15
+    );
+    scene.add(m);
+    sprayParticles.push({ mesh: m, v, life: 20 + Math.random() * 15 | 0 });
+  }
+}
+
+// Game state
+let state = 'idle', score = 0, hi = 0, lives = 3, frame = 0;
+let speed = 0.35, nextObs = -30, invincible = 0;
+let px = 0, pvy = 0, onGround = true, crouching = false;
+let camShake = 0;
+let flags = 0;
+let leanAngle = 0; // body lean for turning
+let airTime = 0;
+let combo = 0, comboTimer = 0, bestCombo = 0;
+let boostTimer = 0;
+let speedLineOpacity = 0;
+
+// Finish line
+const FINISH_DIST = 1500; // meters to finish
+let distance = 0; // actual distance traveled
+let raceTime = 0; // race timer
+let finishSpawned = false;
+let finished = false;
+let finishLineMesh = null;
+let flagScore = 0; // accumulated flag bonus points
+
+const keys = {};
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (e.key === ' ') {
+    e.preventDefault();
+    if (state === 'idle') { startGame(); return; }
+    crouching = true;
+  }
+  if ((e.key === 's' || e.key === 'ArrowDown') && state === 'play') {
+    keys['slow'] = true;
+  }
+  if ((e.key === 'w' || e.key === 'ArrowUp') && state === 'play') {
+    e.preventDefault();
+    doJump();
+  }
+});
+document.addEventListener('keyup', e => {
+  keys[e.key] = false;
+  if (e.key === ' ') crouching = false;
+  if (e.key === 's' || e.key === 'ArrowDown') keys['slow'] = false;
+});
+
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('replayBtn').addEventListener('click', startGame);
+document.getElementById('btnJump').addEventListener('click', doJump);
+document.getElementById('btnCrouch').addEventListener('mousedown', () => crouching = true);
+document.getElementById('btnCrouch').addEventListener('mouseup', () => crouching = false);
+document.getElementById('btnCrouch').addEventListener('touchstart', e => { crouching = true; e.preventDefault(); }, { passive: false });
+document.getElementById('btnCrouch').addEventListener('touchend', () => crouching = false);
+document.getElementById('btnSlow').addEventListener('mousedown', () => keys['slow'] = true);
+document.getElementById('btnSlow').addEventListener('mouseup', () => keys['slow'] = false);
+document.getElementById('btnL').addEventListener('mousedown', () => keys['ArrowLeft'] = true);
+document.getElementById('btnL').addEventListener('mouseup', () => keys['ArrowLeft'] = false);
+document.getElementById('btnR').addEventListener('mousedown', () => keys['ArrowRight'] = true);
+document.getElementById('btnR').addEventListener('mouseup', () => keys['ArrowRight'] = false);
+
+function doJump() {
+  if (state !== 'play') return;
+  if (onGround) { pvy = 0.42; onGround = false; airTime = 0; }
+}
+
+function startGame() {
+  score = 0; frame = 0; lives = 3; speed = 0.35; nextObs = -30;
+  px = 0; pvy = 0; onGround = true; crouching = false; invincible = 0;
+  flags = 0; leanAngle = 0; airTime = 0; camShake = 0;
+  combo = 0; comboTimer = 0; bestCombo = 0; boostTimer = 0; speedLineOpacity = 0;
+  distance = 0; raceTime = 0; finishSpawned = false; finished = false; flagScore = 0;
+  if (finishLineMesh) { scene.remove(finishLineMesh); finishLineMesh = null; }
+  playerGroup.position.set(0, 0, 0);
+  playerGroup.rotation.y = Math.PI;
+  playerGroup.rotation.z = 0;
+  torsoGroup.rotation.x = 0;
+  headGroup.rotation.x = 0;
+  obstacles.forEach(o => scene.remove(o.mesh));
+  obstacles.length = 0;
+  particles.forEach(p => scene.remove(p.mesh));
+  particles.length = 0;
+  sprayParticles.forEach(p => scene.remove(p.mesh));
+  sprayParticles.length = 0;
+  document.getElementById('overlay').style.display = 'none';
+  document.getElementById('victory-screen').style.display = 'none';
+  document.getElementById('lv').textContent = '***';
+  state = 'play';
+}
+
+function endGame() {
+  state = 'idle';
+  if (score > hi) hi = score;
+  document.getElementById('speedlines').style.opacity = '0';
+  const ov = document.getElementById('overlay');
+  ov.style.display = 'flex';
+  ov.querySelector('h1').textContent = '摔倒啦！';
+  ov.querySelector('h1').style.color = '#cc3333';
+  ov.querySelector('h1').style.textShadow = '2px 2px 0 #fff';
+  ov.querySelector('p').innerHTML = `距离: <b style="color:#2266cc">${Math.floor(distance)}m</b> / ${FINISH_DIST}m &nbsp; 旗帜: <b style="color:#FF2222">${flags}</b> &nbsp; 最佳连击: <b style="color:#FF6600">${bestCombo}x</b><br>最高分: <b style="color:#2266cc">${hi}</b><br><br>A/D &mdash; 转向 &nbsp; 空格 &mdash; 蹲下 &nbsp; W &mdash; 跳跃 &nbsp; S &mdash; 刹车<br><span style="color:#44AA44">绿色加速带 = 速度提升！</span>`;
+}
+
+function finishRace() {
+  state = 'finished';
+  if (score > hi) hi = score;
+  document.getElementById('speedlines').style.opacity = '0';
+
+  // Celebration burst!
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => {
+      burst(new THREE.Vector3(
+        playerGroup.position.x + (Math.random()-0.5)*4,
+        1 + Math.random()*2,
+        playerGroup.position.z
+      ), [0xFFD700, 0x00FFD0, 0xFF00FF, 0x00FF66][i % 4], 30);
+    }, i * 200);
+  }
+
+  // Show victory screen
+  const vs = document.getElementById('victory-screen');
+  const m = Math.floor(raceTime / 60);
+  const s = Math.floor(raceTime % 60);
+  const ms = Math.floor((raceTime % 1) * 10);
+  document.getElementById('v-time').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${ms}`;
+  document.getElementById('v-score').textContent = score;
+  document.getElementById('v-flags').textContent = flags;
+  document.getElementById('v-combo').textContent = bestCombo + 'x';
+  setTimeout(() => { vs.style.display = 'flex'; }, 800);
+}
+
+let tileZ = -(TILE_COUNT - 1) * TILE_LEN;
+
+function loop() {
+  requestAnimationFrame(loop);
+  if (state !== 'play' && state !== 'finished') { renderer.render(scene, camera); return; }
+
+  if (state === 'finished') {
+    // Still animate particles and snow for victory screen
+    frame++;
+    particles.forEach(p => {
+      p.mesh.position.add(p.v);
+      p.v.y -= 0.008;
+      p.life--;
+      p.mesh.material.opacity = p.life / p.maxLife * 0.9;
+    });
+    for (let i = particles.length - 1; i >= 0; i--) {
+      if (particles[i].life <= 0) { scene.remove(particles[i].mesh); particles.splice(i, 1); }
+    }
+    // Animate snow
+    const sp2 = snowPoints.geometry.attributes.position.array;
+    for (let i = 0; i < snowCount; i++) {
+      sp2[i*3+1] -= snowVel[i].y;
+      sp2[i*3+2] += snowVel[i].z * 0.3;
+      if (sp2[i*3+1] < 0) sp2[i*3+1] = 60;
+      if (sp2[i*3+2] > 100) sp2[i*3+2] = -100;
+    }
+    snowPoints.geometry.attributes.position.needsUpdate = true;
+    renderer.render(scene, camera);
+    return;
+  }
+
+  frame++;
+  raceTime += 1/60;
+
+  // Speed management — friction-based system with higher top speed
+  let targetSpeed = 0.35 + Math.min(frame / 1500, 0.55); // higher base, faster ramp
+  if (crouching) targetSpeed *= 1.8;   // crouch = bigger speed boost
+  if (keys['slow']) targetSpeed *= 0.35; // stronger braking
+  if (boostTimer > 0) targetSpeed *= 2.2; // boost pad = super speed
+  
+  // Friction: steering causes drag (turning slows you down)
+  const isTurning = (keys['ArrowLeft'] || keys['a'] || keys['ArrowRight'] || keys['d']) && onGround;
+  if (isTurning) targetSpeed *= 0.9;
+  
+  // Natural friction when not actively boosting
+  if (!crouching && !keys['slow'] && !isTurning && boostTimer <= 0) {
+    targetSpeed *= 0.95; // lighter passive friction so speed stays higher
+  }
+  
+  // Apply speed change — slightly more responsive
+  speed += (targetSpeed - speed) * 0.06;
+  
+  // Hard friction floor — can't go below minimum
+  speed = Math.max(speed, 0.15);
+  
+  // Track actual distance traveled
+  distance += speed * 0.5;
+  score = Math.floor(distance) + flagScore;
+  if (score > hi) hi = score;
+  
+  // Boost timer countdown
+  if (boostTimer > 0) boostTimer--;
+  
+  // Combo timer countdown
+  if (comboTimer > 0) { comboTimer--; if (comboTimer === 0) combo = 0; }
+  
+  // Speed lines effect — opacity based on speed
+  const speedPct = Math.min((speed - 0.35) / 0.9, 1);
+  speedLineOpacity += ((boostTimer > 0 ? 1 : speedPct * 0.5) - speedLineOpacity) * 0.1;
+  document.getElementById('speedlines').style.opacity = speedLineOpacity;
+  document.getElementById('speedbar-fill').style.width = (speedPct * 100) + '%';
+  
+  // FOV widens with speed for sense of velocity
+  const targetFOV = 65 + speedPct * 20 + (boostTimer > 0 ? 10 : 0);
+  camera.fov += (targetFOV - camera.fov) * 0.08;
+  camera.updateProjectionMatrix();
+
+  // Fog adjusts with speed
+  scene.fog.far = Math.max(70, 160 - (speed - 0.35) * 100);
+
+  // Move ground tiles
+  groundTiles.forEach(t => {
+    t.position.z += speed;
+    if (t.position.z > TILE_LEN) t.position.z -= TILE_COUNT * TILE_LEN;
+  });
+
+  // Spawn obstacles (stop spawning near finish line)
+  if (!finished && distance < FINISH_DIST - 80) {
+    nextObs += speed;
+    if (nextObs > 0) {
+      spawnObstacle(tileZ);
+      nextObs = -(8 + Math.random() * 8);
+      tileZ -= 8 + Math.random() * 8;
+    }
+  }
+
+  // Spawn finish line when close enough
+  if (!finishSpawned && distance >= FINISH_DIST - 60) {
+    finishSpawned = true;
+    finishLineMesh = makeFinishLine();
+    // Place it ahead at the right distance
+    finishLineMesh.position.z = -((FINISH_DIST - distance) * 2);
+    scene.add(finishLineMesh);
+  }
+
+  // Move finish line with ground
+  if (finishLineMesh) {
+    finishLineMesh.position.z += speed;
+    // Check if player crossed the finish line
+    if (!finished && finishLineMesh.position.z >= 0) {
+      finished = true;
+      finishRace();
+    }
+  }
+
+  // Move obstacles
+  obstacles.forEach(o => {
+    o.mesh.position.z += speed;
+  });
+  // Remove far obstacles
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    if (obstacles[i].mesh.position.z > 15) {
+      scene.remove(obstacles[i].mesh);
+      obstacles.splice(i, 1);
+    }
+  }
+
+  // Player steering
+  const steerSpeed = 0.08;
+  if (keys['ArrowLeft'] || keys['a']) {
+    px = Math.max(px - steerSpeed, -GROUND_W / 2 + 2);
+    leanAngle += (-0.4 - leanAngle) * 0.15;
+  } else if (keys['ArrowRight'] || keys['d']) {
+    px = Math.min(px + steerSpeed, GROUND_W / 2 - 2);
+    leanAngle += (0.4 - leanAngle) * 0.15;
+  } else {
+    leanAngle += (0 - leanAngle) * 0.1;
+  }
+
+  // Jump / gravity — stronger gravity for realistic feel
+  if (!onGround) {
+    pvy -= 0.026;
+    playerGroup.position.y += pvy;
+    airTime++;
+    if (playerGroup.position.y <= 0) {
+      playerGroup.position.y = 0;
+      onGround = true; pvy = 0;
+      // Landing burst — harder landing = more spray
+      burst(new THREE.Vector3(playerGroup.position.x, 0.1, playerGroup.position.z), 0xffffff, 14);
+      camShake = 12;
+      // Friction penalty on landing — you lose some speed
+      speed *= 0.85;
+    }
+  }
+
+  // Lateral movement
+  playerGroup.position.x += (px - playerGroup.position.x) * 0.2;
+
+  // Body lean (tilt into turns)
+  playerGroup.rotation.z = leanAngle;
+
+  // Crouch animation
+  const crouchBlend = crouching ? 1 : 0;
+  torsoGroup.rotation.x += (crouchBlend * 0.35 - torsoGroup.rotation.x) * 0.2;
+  headGroup.rotation.x += (crouchBlend * 0.2 - headGroup.rotation.x) * 0.2;
+  torsoGroup.scale.y += (1 - crouchBlend * 0.2 - torsoGroup.scale.y) * 0.15;
+
+  // Ski tilt follows lean
+  hipGroup.rotation.z = leanAngle * 0.5;
+
+  // Arm animation — poles planting
+  if (onGround) {
+    const armCycle = Math.sin(frame * 0.15);
+    armUL.rotation.x = -0.3 + armCycle * 0.15;
+    armUR.rotation.x = -0.3 - armCycle * 0.15;
+    armLL.rotation.x = -0.1 + armCycle * 0.1;
+    armLR.rotation.x = -0.1 - armCycle * 0.1;
+  } else {
+    // Arms up in the air during jump
+    armUL.rotation.x += (-1.2 - armUL.rotation.x) * 0.1;
+    armUR.rotation.x += (-1.2 - armUR.rotation.x) * 0.1;
+  }
+
+  // Snow spray trail — more intense with boost
+  if (onGround && frame % 2 === 0) {
+    snowSpray(new THREE.Vector3(playerGroup.position.x, 0.05, playerGroup.position.z));
+  }
+  // Boost trail — green glowing particles
+  if (boostTimer > 0 && frame % 1 === 0) {
+    burst(new THREE.Vector3(playerGroup.position.x, 0.3, playerGroup.position.z + 0.5), 0x00FF66, 3);
+  }
+
+  // Collision detection
+  if (invincible <= 0) {
+    const py_bot = playerGroup.position.y;
+    const py_top = py_bot + (crouching ? 1.0 : 1.7);
+    const px_c = playerGroup.position.x;
+    const pz_c = playerGroup.position.z;
+
+    for (const o of obstacles) {
+      const ox = o.mesh.position.x, oz = o.mesh.position.z;
+      const dz = Math.abs(oz - pz_c), dx = Math.abs(ox - px_c);
+
+      if (o.type === 'tree') {
+        if (dz < 0.8 && dx < 0.7 && py_bot < 1.5) { hit(); combo = 0; break; }
+      } else if (o.type === 'rock') {
+        if (dz < 0.8 && dx < 0.8 && py_bot < 0.8) { hit(); combo = 0; break; }
+      } else if (o.type === 'treecluster') {
+        if (dz < 2 && dx < 3 && py_bot < 1.5) { hit(); combo = 0; break; }
+      } else if (o.type === 'flag' && !o.passed) {
+        if (dz < 1.0 && dx < 2.0) {
+          o.passed = true;
+          flags++;
+          combo++;
+          if (combo > bestCombo) bestCombo = combo;
+          comboTimer = 180;
+          const pts = 50 + combo * 10;
+          flagScore += pts;
+          burst(new THREE.Vector3(px_c, 1.0, oz), 0xFF00FF, 20);
+          // Change flag to green
+          o.mesh.children.forEach(c => { if (c.material) c.material.color.setHex(0x00FF00); });
+          // Show combo
+          if (combo >= 2) {
+            const cb = document.getElementById('combo');
+            cb.textContent = combo + 'x 连击！ +' + pts;
+            cb.style.opacity = '1';
+            clearTimeout(window._comboTO);
+            window._comboTO = setTimeout(() => cb.style.opacity = '0', 1500);
+          }
+        }
+      } else if (o.type === 'ramp') {
+        if (dz < 1.5 && dx < 2.5 && onGround) {
+          pvy = 0.55;
+          onGround = false;
+          airTime = 0;
+          burst(new THREE.Vector3(px_c, 0.3, oz), 0x00BFFF, 15);
+        }
+      } else if (o.type === 'boost') {
+        if (dz < 1.5 && dx < 2.0 && onGround) {
+          boostTimer = 120;
+          burst(new THREE.Vector3(px_c, 0.2, oz), 0x00FF00, 25);
+          scene.remove(o.mesh);
+          obstacles.splice(obstacles.indexOf(o), 1);
+        }
+      }
+    }
+  }
+
+  // Invincibility flash
+  invincible--;
+  if (invincible > 0) {
+    playerGroup.visible = Math.floor(frame / 4) % 2 === 0;
+  } else {
+    playerGroup.visible = true;
+  }
+
+  // Camera follow — zooms out during boost for speed sensation
+  const camZ = 8 + (boostTimer > 0 ? 2.5 : 0) + speedPct * 1.5;
+  if (camShake > 0) {
+    camera.position.x = playerGroup.position.x * 0.3 + (Math.random() - 0.5) * 0.3;
+    camera.position.y = 5 + (Math.random() - 0.5) * 0.2;
+    camShake--;
+  } else {
+    camera.position.x += (playerGroup.position.x * 0.3 - camera.position.x) * 0.1;
+    camera.position.y += (5 - camera.position.y) * 0.05;
+  }
+  camera.position.z += (camZ - camera.position.z) * 0.1;
+  camera.lookAt(playerGroup.position.x * 0.2, 1.5, playerGroup.position.z - 5);
+
+  // Player glow during boost (visual feedback)
+  if (boostTimer > 0) {
+    jacketMat.emissive = new THREE.Color(0x004400);
+    skiMat.emissive = new THREE.Color(0x006600);
+  } else {
+    jacketMat.emissive = new THREE.Color(0x000000);
+    skiMat.emissive = new THREE.Color(0x000000);
+  }
+
+  // Snow particles
+  const sp = snowPoints.geometry.attributes.position.array;
+  for (let i = 0; i < snowCount; i++) {
+    sp[i*3]   += snowVel[i].x;
+    sp[i*3+1] -= snowVel[i].y;
+    sp[i*3+2] += snowVel[i].z * speed * 0.5;
+    if (sp[i*3+1] < 0) sp[i*3+1] = 60;
+    if (sp[i*3+2] > 100) sp[i*3+2] = -100;
+    if (sp[i*3] > 100) sp[i*3] = -100;
+    if (sp[i*3] < -100) sp[i*3] = 100;
+  }
+  snowPoints.geometry.attributes.position.needsUpdate = true;
+
+  // Update particles
+  particles.forEach(p => {
+    p.mesh.position.add(p.v);
+    p.v.y -= 0.008;
+    p.life--;
+    p.mesh.material.opacity = p.life / p.maxLife * 0.9;
+  });
+  for (let i = particles.length - 1; i >= 0; i--) {
+    if (particles[i].life <= 0) { scene.remove(particles[i].mesh); particles.splice(i, 1); }
+  }
+
+  // Update snow spray
+  sprayParticles.forEach(p => {
+    p.mesh.position.add(p.v);
+    p.v.y -= 0.005;
+    p.life--;
+    p.mesh.material.opacity = p.life / 35 * 0.7;
+    p.mesh.scale.multiplyScalar(0.97);
+  });
+  for (let i = sprayParticles.length - 1; i >= 0; i--) {
+    if (sprayParticles[i].life <= 0) { scene.remove(sprayParticles[i].mesh); sprayParticles.splice(i, 1); }
+  }
+
+  // HUD
+  document.getElementById('sc').textContent = Math.floor(distance);
+  document.getElementById('hi').textContent = score;
+  document.getElementById('sp').textContent = Math.floor(speed * 180);
+  document.getElementById('fg').textContent = flags;
+
+  // Progress bar
+  const remaining = Math.max(0, FINISH_DIST - Math.floor(distance));
+  document.getElementById('progress-dist').textContent = remaining;
+  const pct = Math.min(100, (distance / FINISH_DIST) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  renderer.render(scene, camera);
+}
+
+function hit() {
+  lives--;
+  invincible = 70;
+  camShake = 25;
+  combo = 0;
+  burst(playerGroup.position.clone(), 0xFF0066, 30);
+  burst(playerGroup.position.clone(), 0x00FFD0, 15);
+  document.getElementById('lv').textContent = '*'.repeat(Math.max(0, lives));
+  if (lives <= 0) endGame();
+}
+
+loop();
+</script>
+</body>
+</html>

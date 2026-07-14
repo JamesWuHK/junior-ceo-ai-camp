@@ -1,0 +1,2790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚽ Penalty Showdown - 3D Football Game</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #000; }
+        #gameCanvas { display: block; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; }
+        #gameCanvas.active { pointer-events: auto; }
+        #start-screen { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: 
+                radial-gradient(ellipse at 50% 30%, rgba(0,200,83,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(255,215,0,0.06) 0%, transparent 45%),
+                radial-gradient(ellipse at 80% 80%, rgba(255,80,50,0.05) 0%, transparent 45%),
+                radial-gradient(ellipse at 50% 50%, rgba(10,10,40,0.97) 0%, rgba(5,5,20,0.99) 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            z-index: 9999; overflow: hidden;
+        }
+        /* Decorative floating footballs */
+        #start-screen::before {
+            content: '⚽'; position: absolute; font-size: 140px; opacity: 0.04;
+            top: 8%; left: 8%; animation: floatBall 12s ease-in-out infinite;
+        }
+        #start-screen::after {
+            content: '⚽'; position: absolute; font-size: 100px; opacity: 0.03;
+            bottom: 12%; right: 10%; animation: floatBall 15s ease-in-out 3s infinite;
+        }
+        @keyframes floatBall { 
+            0%, 100% { transform: translate(0,0) rotate(0deg); }
+            25% { transform: translate(30px,-25px) rotate(90deg); }
+            50% { transform: translate(-15px,-45px) rotate(200deg); }
+            75% { transform: translate(-25px,-10px) rotate(300deg); }
+        }
+        /* Spotlight behind title */
+        .title-spotlight {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            width: 600px; height: 600px; pointer-events: none;
+            background: radial-gradient(ellipse at center, rgba(255,215,0,0.06) 0%, transparent 70%);
+            animation: spotPulse 3s ease-in-out infinite;
+        }
+        @keyframes spotPulse {
+            0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: 0.7; }
+            50% { transform: translate(-50%,-50%) scale(1.25); opacity: 1; }
+        }
+        /* Decorative bottom line */
+        .decor-line {
+            width: clamp(80px, 15vw, 200px); height: 3px;
+            background: linear-gradient(90deg, transparent, #ffd700, transparent);
+            margin: clamp(10px, 2vw, 20px) 0; opacity: 0.6;
+            border-radius: 2px;
+        }
+        .hidden-start { display: none !important; }
+        #start-screen h1 { 
+            font-size: clamp(32px, 6vw, 76px); color: #ffd700; 
+            text-shadow: 0 0 40px rgba(255,215,0,0.7), 0 0 80px rgba(255,215,0,0.3), 0 4px 10px rgba(0,0,0,0.7); 
+            margin-bottom: 8px; animation: titlePulse 2.5s ease-in-out infinite; 
+            text-align: center; padding: 0 20px; letter-spacing: 4px;
+            position: relative; z-index: 1;
+        }
+        @keyframes titlePulse { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.04); filter: brightness(1.2); } }
+        #start-screen .subtitle { 
+            color: #ccc; font-size: clamp(14px, 2vw, 20px); 
+            margin-bottom: clamp(8px, 1.5vw, 16px); 
+            letter-spacing: 6px; text-transform: uppercase; 
+            position: relative; z-index: 1;
+            text-shadow: 0 0 15px rgba(255,255,255,0.15);
+        }
+        .section-label {
+            color: rgba(255,255,255,0.55); font-size: clamp(11px, 1.3vw, 14px);
+            letter-spacing: 5px; text-transform: uppercase;
+            margin: 0 0 10px 0; position: relative; z-index: 1;
+            display: flex; align-items: center; gap: 14px;
+        }
+        .section-label::before, .section-label::after {
+            content: ''; width: clamp(30px, 5vw, 60px); height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+        }
+        .section-label::after { background: linear-gradient(90deg, rgba(255,255,255,0.3), transparent); }
+        #start-btn { 
+            padding: clamp(18px, 3vw, 28px) clamp(48px, 6vw, 75px); 
+            font-size: clamp(18px, 2.5vw, 30px); font-weight: 900; color: #fff; 
+            background: linear-gradient(135deg, #00e676 0%, #00c853 30%, #1b5e20 100%); 
+            border: 2px solid rgba(255,255,255,0.3); border-radius: 60px; 
+            cursor: pointer; transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            box-shadow: 0 10px 35px rgba(0,200,83,0.5), 0 0 60px rgba(0,200,83,0.15), inset 0 1px 0 rgba(255,255,255,0.25); 
+            user-select: none; -webkit-user-select: none; letter-spacing: 3px; 
+            position: relative; overflow: hidden; z-index: 1; margin-top: 6px;
+        }
+        #start-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; }
+        #start-btn:hover::before { left: 100%; }
+        #start-btn:hover { transform: translateY(-5px) scale(1.06); box-shadow: 0 18px 45px rgba(0,200,83,0.7), 0 0 80px rgba(0,200,83,0.25), inset 0 1px 0 rgba(255,255,255,0.35); }
+        #start-btn:active { transform: translateY(-1px) scale(0.98); }
+        /* Pulsing ring around start button */
+        #start-btn::after {
+            content: ''; position: absolute; inset: -6px; border-radius: 66px;
+            border: 2px solid rgba(0,230,118,0.3);
+            animation: btnRing 2s ease-out infinite;
+            pointer-events: none;
+        }
+        @keyframes btnRing {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(1.15); opacity: 0; }
+        }
+        .difficulty-selector { 
+            display: flex; gap: 12px; margin-bottom: clamp(28px, 4vw, 42px); 
+            flex-wrap: wrap; justify-content: center; position: relative; z-index: 1;
+        }
+        .diff-btn { 
+            padding: 11px 28px; font-size: clamp(14px, 1.6vw, 17px); font-weight: 700; 
+            color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.04); 
+            border: 2px solid rgba(255,255,255,0.1); border-radius: 30px; 
+            cursor: pointer; transition: all 0.35s ease; 
+            user-select: none; -webkit-user-select: none;
+            backdrop-filter: blur(4px);
+        }
+        .diff-btn:hover { background: rgba(255,215,0,0.1); border-color: rgba(255,255,255,0.3); color: #fff; }
+        .diff-btn.active { 
+            background: rgba(255,215,0,0.18); border-color: #ffd700; color: #ffd700; 
+            box-shadow: 0 0 20px rgba(255,215,0,0.25), 0 0 40px rgba(255,215,0,0.08); 
+            transform: scale(1.05);
+        }
+        /* Character selector */
+        .player-selector { 
+            display: flex; gap: clamp(14px, 2.5vw, 24px); 
+            margin-bottom: clamp(24px, 3.5vw, 38px); 
+            flex-wrap: wrap; justify-content: center; 
+            position: relative; z-index: 1;
+        }
+        .player-card { 
+            width: clamp(130px, 18vw, 175px); padding: clamp(16px, 2.5vw, 22px) clamp(12px, 2vw, 18px);
+            background: rgba(255,255,255,0.03); 
+            border: 2px solid rgba(255,255,255,0.08); border-radius: 18px; 
+            cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            text-align: center; user-select: none; -webkit-user-select: none;
+            backdrop-filter: blur(6px); position: relative; overflow: hidden;
+        }
+        .player-card::before {
+            content: ''; position: absolute; inset: 0;
+            border-radius: 16px; opacity: 0; transition: opacity 0.4s ease;
+        }
+        .player-card:hover { 
+            background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2);
+            transform: translateY(-4px);
+        }
+        .player-card:hover::before { opacity: 0.5; }
+        .player-card.active {
+            border-color: #ffd700;
+            transform: translateY(-2px) scale(1.03);
+        }
+        .player-card.active::before { opacity: 0.7; }
+        .player-card[data-player="ronaldo"]::before {
+            background: radial-gradient(ellipse at 50% 120%, rgba(192,57,43,0.3) 0%, transparent 60%);
+        }
+        .player-card[data-player="ronaldo"].active {
+            box-shadow: 0 0 30px rgba(192,57,43,0.35), 0 0 60px rgba(192,57,43,0.1);
+            background: rgba(192,57,43,0.08);
+        }
+        .player-card[data-player="messi"]::before {
+            background: radial-gradient(ellipse at 50% 120%, rgba(26,110,181,0.3) 0%, transparent 60%);
+        }
+        .player-card[data-player="messi"].active {
+            box-shadow: 0 0 30px rgba(26,110,181,0.35), 0 0 60px rgba(26,110,181,0.1);
+            background: rgba(26,110,181,0.08);
+        }
+        .player-avatar { 
+            width: clamp(80px, 10vw, 110px); height: clamp(80px, 10vw, 110px);
+            border-radius: 50%; object-fit: cover; display: block;
+            margin: 0 auto clamp(8px, 1.2vw, 14px);
+            border: 3px solid rgba(255,255,255,0.15);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            transition: all 0.4s ease;
+        }
+        .player-card.active .player-avatar {
+            border-color: rgba(255,255,255,0.4);
+            box-shadow: 0 0 25px rgba(255,215,0,0.3);
+        }
+        .player-name { 
+            font-size: clamp(15px, 1.8vw, 19px); font-weight: 800;
+            color: #fff; margin-bottom: 3px; letter-spacing: 1px;
+        }
+        .player-number { 
+            font-size: clamp(12px, 1.3vw, 14px); color: rgba(255,255,255,0.5);
+            letter-spacing: 2px;
+        }
+        .player-card.active .player-number { color: rgba(255,255,255,0.7); }
+        .player-flag { 
+            font-size: clamp(10px, 1.1vw, 12px); color: rgba(255,255,255,0.35);
+            margin-top: 4px; letter-spacing: 1px;
+        }
+        /* Instruction cards on start screen */
+        .start-instructions {
+            margin-top: clamp(26px, 4vw, 40px); display: flex; flex-direction: column; gap: 12px;
+            position: relative; z-index: 1;
+        }
+        .instr-item {
+            display: flex; align-items: center; gap: 14px;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px; padding: 12px 22px;
+            backdrop-filter: blur(6px);
+            transition: all 0.3s ease;
+        }
+        .instr-item:hover {
+            background: rgba(255,255,255,0.08); border-color: rgba(255,215,0,0.2);
+            transform: translateX(4px);
+        }
+        .instr-icon { font-size: clamp(20px, 2.5vw, 28px); flex-shrink: 0; }
+        .instr-text { color: rgba(255,255,255,0.65); font-size: clamp(12px, 1.4vw, 15px); letter-spacing: 0.5px; }
+        .instr-text strong { color: #ffd700; font-weight: 700; }
+        /* Decorative corner accents */
+        .corner-accent {
+            position: absolute; width: 80px; height: 80px; pointer-events: none;
+            border: 2px solid rgba(255,215,0,0.1); border-radius: 2px;
+        }
+        .corner-accent.tl { top: 24px; left: 24px; border-right: none; border-bottom: none; }
+        .corner-accent.tr { top: 24px; right: 24px; border-left: none; border-bottom: none; }
+        .corner-accent.bl { bottom: 24px; left: 24px; border-right: none; border-top: none; }
+        .corner-accent.br { bottom: 24px; right: 24px; border-left: none; border-top: none; }
+        #ui-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+        #scoreboard { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); background: linear-gradient(180deg, rgba(15,15,25,0.95) 0%, rgba(25,25,45,0.95) 100%); padding: 10px 40px; border-radius: 16px; border: 2px solid rgba(255,215,0,0.5); color: white; text-align: center; font-size: clamp(16px, 2vw, 24px); font-weight: bold; box-shadow: 0 6px 25px rgba(0,0,0,0.5), 0 0 20px rgba(255,215,0,0.15), inset 0 1px 0 rgba(255,255,255,0.08); display: flex; gap: clamp(20px, 4vw, 45px); align-items: center; }
+        .team-score { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .team-name { font-size: clamp(10px, 1.1vw, 13px); opacity: 0.6; letter-spacing: 2px; text-transform: uppercase; }
+        .score-value { font-size: clamp(28px, 4vw, 40px); color: #ffd700; text-shadow: 0 0 15px rgba(255,215,0,0.7), 0 2px 4px rgba(0,0,0,0.5); transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .score-value.pop { transform: scale(1.4); }
+        .score-divider { font-size: clamp(26px, 3.5vw, 38px); color: #444; }
+        #shot-indicator { position: absolute; top: 90px; left: 50%; transform: translateX(-50%); background: rgba(10,10,20,0.9); padding: 7px 24px; border-radius: 20px; color: #ccc; font-size: clamp(13px, 1.4vw, 16px); font-weight: 600; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 3px 12px rgba(0,0,0,0.4); letter-spacing: 1px; }
+        #power-bar-container { position: absolute; bottom: clamp(90px, 14vh, 140px); left: 50%; transform: translateX(-50%); width: min(80vw, 340px); height: 28px; background: rgba(5,5,15,0.88); border-radius: 14px; border: 2px solid rgba(255,255,255,0.25); overflow: hidden; pointer-events: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.5), inset 0 2px 8px rgba(0,0,0,0.6); }
+        #power-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #00e676 0%, #aeea00 20%, #ffea00 40%, #ff9100 65%, #ff1744 100%); border-radius: 12px; transition: width 0.033s linear; box-shadow: 0 0 12px rgba(255,255,0,0.5), inset 0 0 8px rgba(255,255,255,0.2); position: relative; }
+        #power-bar::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: #fff; border-radius: 2px; box-shadow: 0 0 8px #fff; }
+        #aim-crosshair { position: fixed; width: clamp(48px, 5vw, 68px); height: clamp(48px, 5vw, 68px); border: 3px solid rgba(255,255,255,0.9); border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 101; box-shadow: 0 0 15px rgba(0,0,0,0.6), inset 0 0 10px rgba(255,255,255,0.1); }
+        #aim-crosshair::before, #aim-crosshair::after { content: ''; position: absolute; background: rgba(255,255,255,0.95); }
+        #aim-crosshair::before { width: 2px; height: 20px; top: -24px; left: 50%; transform: translateX(-50%); }
+        #aim-crosshair::after { width: 20px; height: 2px; left: -24px; top: 50%; transform: translateY(-50%); }
+        #aim-crosshair .dot { position: absolute; width: 6px; height: 6px; background: #ff1744; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 8px #ff1744; }
+        #instructions { position: absolute; bottom: clamp(150px, 21vh, 200px); left: 50%; transform: translateX(-50%); background: rgba(8,8,18,0.92); padding: 12px 30px; border-radius: 14px; color: #ccc; text-align: center; font-size: clamp(12px, 1.3vw, 15px); white-space: nowrap; border: 1px solid rgba(255,215,0,0.2); max-width: 95vw; box-shadow: 0 6px 25px rgba(0,0,0,0.5); }
+        #message-display { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: radial-gradient(ellipse at center, rgba(15,15,30,0.98) 0%, rgba(5,5,15,0.98) 100%); padding: clamp(28px, 5vw, 50px) clamp(38px, 6vw, 65px); border-radius: 24px; color: white; text-align: center; font-size: clamp(32px, 5.5vw, 56px); font-weight: 900; border: 3px solid; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 102; box-shadow: 0 15px 60px rgba(0,0,0,0.8), 0 0 40px var(--msg-glow, rgba(255,215,0,0.2)); white-space: pre-line; letter-spacing: 2px; }
+        #message-display.show { transform: translate(-50%, -50%) scale(1); }
+        .goal-text { color: #00e676; --msg-glow: rgba(0,230,118,0.4); text-shadow: 0 0 30px #00e676, 0 0 60px rgba(0,230,118,0.3); }
+        .save-text { color: #ff5252; --msg-glow: rgba(255,82,82,0.4); text-shadow: 0 0 30px #ff5252, 0 0 60px rgba(255,82,82,0.3); }
+        .miss-text { color: #888; --msg-glow: transparent; text-shadow: 0 0 20px rgba(136,136,136,0.3); }
+        #combo-counter { position: absolute; top: 150px; left: 50%; transform: translateX(-50%); font-size: clamp(17px, 2vw, 23px); font-weight: 900; color: #ff6d00; text-shadow: 0 0 15px rgba(255,109,0,0.7), 0 2px 4px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.3s ease; display: flex; align-items: center; gap: 5px; letter-spacing: 1px; }
+        #streak-fire { font-size: clamp(24px, 3vw, 36px); }
+        #round-info { position: absolute; right: 14px; top: 14px; background: rgba(8,8,18,0.88); padding: 10px 18px; border-radius: 10px; color: #999; font-size: clamp(13px, 1.4vw, 17px); font-weight: 600; border: 1px solid rgba(255,255,255,0.1); letter-spacing: 1px; }
+        #vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.45) 100%); pointer-events: none; }
+        .hidden-ui { display: none !important; }
+        @keyframes goalFlash { 0% { background: rgba(0,230,118,0.35); } 100% { background: transparent; } }
+        .goal-flash-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 98; pointer-events: none; }
+        .goal-line-glow { position: fixed; bottom: 28vh; left: 50%; transform: translateX(-50%); width: 35vw; height: 3px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent); border-radius: 2px; opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 97; }
+        .goal-line-glow.active { opacity: 1; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="start-screen">
+        <div class="title-spotlight"></div>
+        <div class="corner-accent tl"></div>
+        <div class="corner-accent tr"></div>
+        <div class="corner-accent bl"></div>
+        <div class="corner-accent br"></div>
+        <h1>⚽ PENALTY SHOWDOWN</h1>
+        <div class="decor-line"></div>
+        <p class="subtitle">The Ultimate 3D Experience</p>
+        <p class="section-label">SELECT DIFFICULTY</p>
+        <div class="difficulty-selector">
+            <button class="diff-btn active" data-diff="easy">🟢 Easy</button>
+            <button class="diff-btn" data-diff="medium">🟡 Medium</button>
+            <button class="diff-btn" data-diff="hard">🔴 Hard</button>
+        </div>
+        <p class="section-label">CHOOSE YOUR PLAYER</p>
+        <div class="player-selector">
+            <div class="player-card active" data-player="ronaldo">
+                <img class="player-avatar" id="portrait-ronaldo" src="" alt="Ronaldo">
+                <div class="player-name">CRISTIANO RONALDO</div>
+                <div class="player-number">#7 · FORWARD</div>
+                <div class="player-flag">🇵🇹 Portugal</div>
+            </div>
+            <div class="player-card" data-player="messi">
+                <img class="player-avatar" id="portrait-messi" src="" alt="Messi">
+                <div class="player-name">LIONEL MESSI</div>
+                <div class="player-number">#10 · FORWARD</div>
+                <div class="player-flag">🇦🇷 Argentina</div>
+            </div>
+        </div>
+        <button id="start-btn">▶ KICK OFF!</button>
+        <div class="start-instructions">
+            <div class="instr-item"><span class="instr-icon">🎯</span><span class="instr-text">Move mouse to <strong>aim</strong> at the goal</span></div>
+            <div class="instr-item"><span class="instr-icon">⚡</span><span class="instr-text">Hold <strong>LEFT CLICK</strong> to charge power</span></div>
+            <div class="instr-item"><span class="instr-icon">🚀</span><span class="instr-text">Release to <strong>shoot</strong> the ball!</span></div>
+        </div>
+    </div>
+    <div id="ui-overlay">
+        <div id="vignette"></div>
+        <div class="goal-flash-overlay" id="goal-flash"></div>
+        <div class="goal-line-glow" id="goal-line-glow"></div>
+        <div id="scoreboard" class="hidden-ui"><div class="team-score"><span class="team-name">YOU</span><span class="score-value" id="player-score">0</span></div><div class="score-divider">&minus;</div><div class="team-score"><span class="team-name">KEEPER</span><span class="score-value" id="goalie-score">0</span></div></div>
+        <div id="shot-indicator" class="hidden-ui">Shot 1 of 5</div>
+        <div id="combo-counter" class="hidden-ui"><span id="streak-fire">🔥</span> <span id="streak-count">0</span>x STREAK</div>
+        <div id="round-info" class="hidden-ui">Round 1/5</div>
+        <div id="instructions" class="hidden-ui">🎯 Move mouse to aim &nbsp;|&nbsp; ⚡ Hold click to charge &nbsp;|&nbsp; 🚀 Release to shoot!</div>
+        <div id="power-bar-container" class="hidden-ui"><div id="power-bar"></div></div>
+        <div id="aim-crosshair" class="hidden-ui"><div class="dot"></div></div>
+        <div id="message-display"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+    // ============================================================
+    // CONFIG
+    // ============================================================
+    const CONFIG = {
+        difficulty: 'medium',
+        selectedPlayer: 'ronaldo',
+        settings: {
+            easy:   { goalieSpeed: 0.085, reactionTime: 320, predictionAccuracy: 0.55, diveReach: 1.35, saveChance: 0.48 },
+            medium: { goalieSpeed: 0.110, reactionTime: 200, predictionAccuracy: 0.72, diveReach: 1.55, saveChance: 0.62 },
+            hard:   { goalieSpeed: 0.145, reactionTime: 90,  predictionAccuracy: 0.92, diveReach: 1.75, saveChance: 0.75 }
+        },
+        totalShots: 5, goalWidth: 9.0, goalHeight: 3.0,
+        penaltySpotZ: 11.5, ballRadius: 0.35,
+        maxPower: 1.0, gravity: -9.81, postRadius: 0.10
+    };
+
+    // ============================================================
+    // STATE
+    // ============================================================
+    const state = {
+        playing: false, charging: false, canShoot: true,
+        shotInProgress: false, playerScore: 0, goalieScore: 0,
+        currentShot: 1, streak: 0, bestStreak: 0, totalGoals: 0,
+        aimPosition: new THREE.Vector3(0, CONFIG.goalHeight * 0.58, 0),
+        currentPower: 0, powerDir: 1, phase: 'idle',
+        shotStartTime: 0, goalieReacted: false,
+        // Player animation
+        playerAnimPhase: 'idle',  // 'idle' | 'approach' | 'kick' | 'follow_through' | 'celebrate' | 'returning'
+        playerAnimTime: 0,
+        playerApproachZ: 0,       // normalized 0-1 approach progress
+        playerKickPower: 0,
+        ballLaunchPending: false, // true after kick animation completes, ball launches
+        // Goalkeeper animation
+        keeperPhase: 'ready',     // 'ready' | 'anticipate' | 'dive' | 'saved' | 'landing' | 'recovering'
+        keeperAnimTime: 0,
+        keeperDiveType: 'none',   // 'none' | 'low_left' | 'low_right' | 'mid_left' | 'mid_right' | 'high_left' | 'high_right' | 'standing'
+        keeperDiveDir: 0,         // -1 left, 0 center, 1 right
+        keeperDiveAmt: 0,         // 0-1 dive intensity
+        keeperHasSaved: false,    // true when save registered
+        keeperJumpVel: new THREE.Vector3(), // physics-based jump velocity
+        keeperBaseY: 0,          // base Y before jump
+        keeperBaseX: 0,          // base X before jump
+        saveDeflectionDir: new THREE.Vector3(), // direction to deflect ball on save
+        // Drone intro
+        droneActive: false, droneStartTime: 0,
+    };
+
+    // Drone flyover keyframes: [{pos, lookAt, time}]
+    const droneWaypoints = [
+        { pos: new THREE.Vector3(0, 22, 2),   lookAt: new THREE.Vector3(0, 0, 8),    t: 0 },
+        { pos: new THREE.Vector3(0, 14, -10),  lookAt: new THREE.Vector3(0, 0, 11.5), t: 1.8 },
+        { pos: new THREE.Vector3(16, 7, 5),    lookAt: new THREE.Vector3(0, 1, 9),    t: 3.6 },
+        { pos: new THREE.Vector3(-10, 6, 13),  lookAt: new THREE.Vector3(0, 1, 9),    t: 5.2 },
+        { pos: new THREE.Vector3(0, 3.8, 14.5), lookAt: new THREE.Vector3(0, 1.0, 8), t: 7.0 },
+    ];
+
+    // Globals
+    let scene = null, camera = null, renderer = null, clock = null;
+    let ball = null, ballTrailGroup = null, ballDirectionArrow = null;
+    let aimLine = null, ballLight = null;
+    let goalkeeper = null, goalKeeperTargetPos = new THREE.Vector3();
+    let playerGroup = null;
+    let confettiParticles = [];
+    let cameraShake = 0;
+    let mouseDown = false;
+    const keysPressed = new Set();
+    let fansGroup = null;
+
+    const camTargetPos = new THREE.Vector3(0, 3.8, 14.5);
+    const camLookAt = new THREE.Vector3(0, 1.0, 8);
+
+    // Physics
+    let ballVel = new THREE.Vector3();
+    let ballSpin = new THREE.Vector3();
+    let postCollisionDone = false;
+    let groundBounceCount = 0;
+    let outcomeHandled = false;
+
+    // Net ripple system
+    let netRippleNodes = [];
+    let netRippleDeforms = []; // array of {node, basePos, vel, energy}
+
+    // ============================================================
+    // GENERATE PLAYER PORTRAITS (canvas-based)
+    // ============================================================
+    function generatePlayerPortraits() {
+        const size = 200;
+        function drawPortrait(player) {
+            const c = document.createElement('canvas');
+            c.width = c.height = size;
+            const ctx = c.getContext('2d');
+
+            // Background gradient
+            const bg = ctx.createRadialGradient(size/2, size/2, size*0.05, size/2, size/2, size*0.7);
+            if (player === 'ronaldo') {
+                bg.addColorStop(0, '#4a1515'); bg.addColorStop(0.6, '#2d0a0a'); bg.addColorStop(1, '#1a0505');
+            } else {
+                bg.addColorStop(0, '#0a1a3a'); bg.addColorStop(0.6, '#060e1f'); bg.addColorStop(1, '#030810');
+            }
+            ctx.fillStyle = bg; ctx.fillRect(0, 0, size, size);
+
+            const cx = size/2, cy = size/2;
+            const skin = player === 'ronaldo' ? '#f0c8a0' : '#d4a574';
+
+            // Neck
+            ctx.fillStyle = skin;
+            ctx.fillRect(cx-15, cy+20, 30, 30);
+
+            // Head shape
+            ctx.beginPath();
+            ctx.ellipse(cx, cy-8, 38, 44, 0, 0, Math.PI*2);
+            ctx.fillStyle = skin; ctx.fill();
+
+            // Hair
+            ctx.fillStyle = player === 'ronaldo' ? '#1a1a1a' : '#2a1a0a';
+            ctx.beginPath();
+            if (player === 'ronaldo') {
+                // Gelled/spiked back style
+                ctx.ellipse(cx, cy-50, 36, 28, 0, Math.PI, 0);
+                ctx.fill();
+                // Side fade
+                ctx.fillStyle = '#111';
+                ctx.beginPath(); ctx.ellipse(cx-30, cy-20, 14, 22, -0.3, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(cx+30, cy-20, 14, 22, 0.3, 0, Math.PI*2); ctx.fill();
+                // Top texture lines
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1.5;
+                for (let i = 0; i < 6; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(cx-25+i*3, cy-65+i*2); ctx.quadraticCurveTo(cx, cy-55+i*1.5, cx+25-i*3, cy-65+i*2);
+                    ctx.stroke();
+                }
+            } else {
+                // Messi - fuller hair swept to the side
+                ctx.ellipse(cx+3, cy-52, 40, 28, 0, Math.PI, 0);
+                ctx.fill();
+                ctx.beginPath(); ctx.ellipse(cx-28, cy-18, 16, 26, -0.2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(cx+28, cy-18, 16, 26, 0.2, 0, Math.PI*2); ctx.fill();
+                // Sweep texture
+                ctx.strokeStyle = '#3a2a1a';
+                ctx.lineWidth = 1.5;
+                for (let i = 0; i < 5; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(cx-20-i*2, cy-58+i); ctx.quadraticCurveTo(cx+10, cy-50+i, cx+30, cy-55+i);
+                    ctx.stroke();
+                }
+            }
+
+            // Eyebrows
+            ctx.strokeStyle = player === 'ronaldo' ? '#3a2010' : '#2a1808';
+            ctx.lineWidth = 3; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(cx-18, cy-22); ctx.quadraticCurveTo(cx-10, cy-28, cx-2, cy-22); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx+2, cy-22); ctx.quadraticCurveTo(cx+10, cy-28, cx+18, cy-22); ctx.stroke();
+
+            // Eyes
+            const eyeY = cy-12;
+            [[cx-13, eyeY], [cx+13, eyeY]].forEach(([ex, ey]) => {
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.ellipse(ex, ey, 9, 6.5, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = player === 'ronaldo' ? '#4a2a0a' : '#2a1508';
+                ctx.beginPath(); ctx.ellipse(ex, ey, 5, 5, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(ex, ey, 3, 0, Math.PI*2); ctx.fill();
+                // Eye shine
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(ex+2, ey-2, 1.5, 0, Math.PI*2); ctx.fill();
+            });
+
+            // Nose
+            ctx.strokeStyle = player === 'ronaldo' ? '#d4a878' : '#b88a5a';
+            ctx.lineWidth = 2; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(cx, cy-5); ctx.quadraticCurveTo(cx+3, cy+5, cx+2, cy+8); ctx.stroke();
+            // Nostrils
+            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            ctx.beginPath(); ctx.ellipse(cx-4, cy+8, 3, 2.5, 0.1, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(cx+6, cy+8, 3, 2.5, -0.1, 0, Math.PI*2); ctx.fill();
+
+            // Mouth (confident smirk)
+            ctx.strokeStyle = '#8a5a4a'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(cx-8, cy+18);
+            ctx.quadraticCurveTo(cx, cy+23, cx+9, cy+17);
+            ctx.stroke();
+            // Slight smile uptick
+            ctx.beginPath(); ctx.moveTo(cx+6, cy+18); ctx.quadraticCurveTo(cx+9, cy+19, cx+9, cy+17); ctx.stroke();
+
+            // Beard stubble (Ronaldo)
+            if (player === 'ronaldo') {
+                ctx.fillStyle = 'rgba(60,30,15,0.08)';
+                ctx.beginPath(); ctx.ellipse(cx, cy+12, 22, 10, 0, 0, Math.PI*2); ctx.fill();
+            }
+
+            // Ears
+            ctx.fillStyle = skin;
+            ctx.beginPath(); ctx.ellipse(cx-36, cy-6, 7, 14, -0.15, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(cx+36, cy-6, 7, 14, 0.15, 0, Math.PI*2); ctx.fill();
+
+            // Jersey collar visible at bottom
+            const jerseyColor = player === 'ronaldo' ? '#c0392b' : '#1a6eb5';
+            ctx.fillStyle = jerseyColor;
+            ctx.fillRect(cx-30, cy+48, 60, 25);
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.fillRect(cx-30, cy+48, 60, 2);
+
+            return c.toDataURL();
+        }
+
+        const ronaldoImg = document.getElementById('portrait-ronaldo');
+        const messiImg = document.getElementById('portrait-messi');
+        if (ronaldoImg) ronaldoImg.src = drawPortrait('ronaldo');
+        if (messiImg) messiImg.src = drawPortrait('messi');
+    }
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    function init() {
+        // Generate player portraits
+        generatePlayerPortraits();
+
+        try {
+            document.querySelectorAll('.diff-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    CONFIG.difficulty = btn.dataset.diff;
+                });
+            });
+            document.querySelectorAll('.player-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.player-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    CONFIG.selectedPlayer = card.dataset.player;
+                    // Rebuild player model
+                    if (playerGroup) { scene.remove(playerGroup); playerGroup = null; }
+                    createPlayer(CONFIG.selectedPlayer);
+                });
+            });
+            document.getElementById('start-btn').addEventListener('click', startGame);
+        } catch(e) { console.error('UI binding error:', e); }
+
+        try { initThreeJS(); createSkyAndEnvironment(); createLighting(); createStadium(); createField(); createGoal(); createBall(); createPlayer(CONFIG.selectedPlayer); createGoalkeeper(); }
+        catch(e) { console.error('3D init failed:', e); }
+
+        window.addEventListener('mousemove', onMouseMove, { passive: true });
+        window.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mouseup', onMouseUp);
+        window.addEventListener('resize', onResize);
+        animate();
+    }
+
+    function initThreeJS() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 500);
+        camera.position.set(0, 3.8, 14.5); camera.lookAt(0, 1.0, 8);
+        const canvasEl = document.getElementById('gameCanvas');
+        renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: false, powerPreference: 'high-performance' });
+        renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15; renderer.outputEncoding = THREE.sRGBEncoding;
+        clock = new THREE.Clock();
+    }
+
+    // ---- Sky ----
+    function createSkyAndEnvironment() {
+        const skyGeo = new THREE.SphereGeometry(200, 32, 32);
+        const skyMat = new THREE.ShaderMaterial({
+            uniforms: { topColor: { value: new THREE.Color(0x4a90d9) }, bottomColor: { value: new THREE.Color(0x87ceeb) }, offset: { value: 20 }, exponent: { value: 0.5 } },
+            vertexShader: 'varying vec3 vWorldPosition; void main() { vec4 worldPos = modelMatrix * vec4(position, 1.0); vWorldPosition = worldPos.xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+            fragmentShader: 'uniform vec3 topColor; uniform vec3 bottomColor; uniform float offset; uniform float exponent; varying vec3 vWorldPosition; void main() { float h = normalize(vWorldPosition + offset).y; gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0); }',
+            side: THREE.BackSide
+        });
+        scene.add(new THREE.Mesh(skyGeo, skyMat));
+        scene.fog = new THREE.FogExp2(0x87ceeb, 0.008);
+    }
+
+    // ---- Lighting ----
+    function createLighting() {
+        scene.add(new THREE.AmbientLight(0x6688bb, 0.55));
+        const sun = new THREE.DirectionalLight(0xfffaf0, 1.2); sun.position.set(15, 25, 10); sun.castShadow = true;
+        sun.shadow.mapSize.set(2048, 2048); sun.shadow.camera.near = 0.5; sun.shadow.camera.far = 80;
+        sun.shadow.camera.left = -25; sun.shadow.camera.right = 25; sun.shadow.camera.top = 25; sun.shadow.camera.bottom = -25;
+        sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.02; scene.add(sun);
+        const fill = new THREE.DirectionalLight(0xaabbff, 0.25); fill.position.set(-10, 12, -5); scene.add(fill);
+        scene.add(new THREE.HemisphereLight(0x87ceeb, 0x3d6b3d, 0.35));
+        [[-28, 22, -18], [28, 22, -18], [-28, 22, 18], [28, 22, 18]].forEach(pos => {
+            const fl = new THREE.SpotLight(0xffeedd, 1.8, 65, Math.PI/5, 0.4, 1.5); fl.position.set(...pos);
+            fl.target.position.set(0, 0, 5); scene.add(fl); scene.add(fl.target);
+            const housing = new THREE.Group();
+            const body = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 0.6), new THREE.MeshStandardMaterial({color: 0x333333, metalness: 0.7, roughness: 0.3}));
+            const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), new THREE.MeshBasicMaterial({color: 0xffffee}));
+            bulb.position.y = -0.2; housing.add(body); housing.add(bulb); housing.position.copy(fl.position); scene.add(housing);
+        });
+    }
+
+    // ---- Stadium ----
+    function createStadium() {
+        const stadiumGroup = new THREE.Group();
+        fansGroup = new THREE.Group();
+
+        // Seat colors
+        const seatColors = [0xcc3333, 0x3366cc, 0xdddddd, 0xcc3333, 0x3366cc, 0xcc3333, 0xdddddd, 0x3366cc];
+        const concreteMat = new THREE.MeshStandardMaterial({ color: 0x9e9e9e, roughness: 0.65, metalness: 0.08 });
+        const concreteDarkM = new THREE.MeshStandardMaterial({ color: 0x7a7a7a, roughness: 0.7, metalness: 0.1 });
+        const roofMat = new THREE.MeshStandardMaterial({ color: 0x2c2c38, roughness: 0.25, metalness: 0.65, side: THREE.DoubleSide });
+        const roofUndersideM = new THREE.MeshStandardMaterial({ color: 0x3a3a46, roughness: 0.5, metalness: 0.3, side: THREE.DoubleSide });
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0x7a7a88, roughness: 0.45, metalness: 0.15 });
+        const steelMat = new THREE.MeshStandardMaterial({ color: 0x5a5a6a, roughness: 0.3, metalness: 0.8 });
+        const adBoardMat = new THREE.MeshStandardMaterial({ color: 0x111122, roughness: 0.2, metalness: 0.3, emissive: 0x002244, emissiveIntensity: 0.3 });
+        const adTextMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, emissive: 0xffffff, emissiveIntensity: 0.15 });
+
+        // -- Fan figurine factory --
+        const skinTones = [0xf5d0b0, 0xe8c39e, 0xd4a574, 0xc9956b, 0xf0d5b8, 0xdaa06d, 0xc68642, 0xecd5bb];
+        const fanShirtColors = [0xe53935, 0x3366cc, 0xeeeeee, 0xfdd835, 0x43a047, 0xff6f00, 0x8e24aa, 0x00acc1];
+        const sharedBodyGeo = new THREE.CylinderGeometry(0.09, 0.11, 0.35, 8);
+        const sharedHeadGeo = new THREE.SphereGeometry(0.09, 8, 6);
+
+        function makeFanFigure(shirtColor) {
+            const fg = new THREE.Group();
+            const body = new THREE.Mesh(sharedBodyGeo, new THREE.MeshStandardMaterial({ color: shirtColor, roughness: 0.65 }));
+            body.position.y = 0.32;
+            fg.add(body);
+            const head = new THREE.Mesh(sharedHeadGeo, new THREE.MeshStandardMaterial({
+                color: skinTones[Math.floor(Math.random() * skinTones.length)], roughness: 0.7
+            }));
+            head.position.y = 0.54;
+            fg.add(head);
+            fg.castShadow = true;
+            return fg;
+        }
+
+        // Build a stand (tiered seating with backrests) — populates fans
+        function buildStand(startX, startZ, rows, cols, dirX, dirZ, riseStart, riseStep) {
+            const standGroup = new THREE.Group();
+            const seatGeo = new THREE.BoxGeometry(0.55, 0.12, 0.50);
+            const backrestGeo = new THREE.BoxGeometry(0.55, 0.28, 0.06);
+            for (let row = 0; row < rows; row++) {
+                const rowY = riseStart + row * riseStep;
+                for (let col = 0; col < cols; col++) {
+                    const color = seatColors[(row * cols + col) % seatColors.length];
+                    const variedColor = new THREE.Color(color).multiplyScalar(0.85 + Math.random() * 0.3);
+                    const seatMat = new THREE.MeshStandardMaterial({ color: variedColor, roughness: 0.55, metalness: 0.05 });
+                    // Seat base
+                    const seat = new THREE.Mesh(seatGeo, seatMat);
+                    seat.position.set(startX + col * dirX * 0.6, rowY, startZ + row * dirZ * 0.75);
+                    seat.castShadow = true; seat.receiveShadow = true;
+                    standGroup.add(seat);
+                    // Backrest
+                    const backrest = new THREE.Mesh(backrestGeo, seatMat.clone());
+                    backrest.position.set(startX + col * dirX * 0.6, rowY + 0.18, startZ + row * dirZ * 0.75 - dirZ * 0.28);
+                    backrest.castShadow = true;
+                    standGroup.add(backrest);
+
+                    // Place a fan on ~35% of seats
+                    if ((row + col * 3) % 5 !== 0 && Math.random() < 0.35) {
+                        const fan = makeFanFigure(fanShirtColors[(row * cols + col) % fanShirtColors.length]);
+                        fan.position.set(
+                            startX + col * dirX * 0.6 + (Math.random() - 0.5) * 0.18,
+                            rowY + 0.16,
+                            startZ + row * dirZ * 0.75 + (Math.random() - 0.5) * 0.18
+                        );
+                        if (Math.abs(dirX) > 0.5) {
+                            fan.rotation.y = dirX > 0 ? -Math.PI / 2 : Math.PI / 2;
+                        } else {
+                            fan.rotation.y = dirZ < 0 ? Math.PI : 0;
+                        }
+                        fan.rotation.y += (Math.random() - 0.5) * 0.3;
+                        fan.userData = { baseY: fan.position.y, ph: Math.random() * Math.PI * 2, spd: 1.5 + Math.random() * 2.5, ci: 0.3 + Math.random() * 0.7 };
+                        standGroup.add(fan);
+                        if (fansGroup) fansGroup.add(fan);
+                    }
+                }
+            }
+            // Concrete base under the stand (stepped)
+            const baseW = cols * 0.6 + 1.2;
+            const baseD = rows * 0.75 + 1.2;
+            const baseH = Math.max(0.15, riseStart - 0.1);
+            const base = new THREE.Mesh(new THREE.BoxGeometry(baseW, baseH, baseD), concreteDarkM);
+            base.position.set(startX + cols * dirX * 0.3, baseH / 2, startZ + rows * dirZ * 0.375);
+            base.receiveShadow = true; base.castShadow = true;
+            standGroup.add(base);
+            return standGroup;
+        }
+
+        // === NORTH STAND (behind the goal, z < 0) ===
+        const northStand = buildStand(-19, -9, 11, 64, 1, -1, 0.8, 0.42);
+        stadiumGroup.add(northStand);
+
+        // North stand roof + truss supports
+        const northRoof = new THREE.Mesh(new THREE.PlaneGeometry(40, 11), roofMat);
+        northRoof.position.set(0, 5.8, -12.5);
+        northRoof.rotation.x = -Math.PI / 3.5;
+        northRoof.receiveShadow = true; northRoof.castShadow = true;
+        stadiumGroup.add(northRoof);
+        // Roof underside (lighter)
+        const northRoofUnder = new THREE.Mesh(new THREE.PlaneGeometry(38, 11), roofUndersideM);
+        northRoofUnder.position.set(0, 5.75, -12.3); northRoofUnder.rotation.x = -Math.PI / 3.5 + Math.PI;
+        stadiumGroup.add(northRoofUnder);
+        // Truss supports for north roof
+        for (let i = -8; i <= 8; i++) {
+            const truss = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 4.5, 6), steelMat);
+            truss.position.set(i * 2.2, 3.8, -10.5);
+            truss.rotation.x = 0.4; truss.castShadow = true;
+            stadiumGroup.add(truss);
+            // Cross brace
+            const cross = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.2, 6), steelMat);
+            cross.position.set(i * 2.2 + 0.5, 5.2, -11.2);
+            cross.rotation.z = Math.PI/2; cross.rotation.x = 0.3;
+            stadiumGroup.add(cross);
+        }
+
+        // === SOUTH STAND (behind the penalty spot, z > 15) ===
+        const southStand = buildStand(-19, 18.5, 8, 64, 1, 1, 0.8, 0.42);
+        stadiumGroup.add(southStand);
+
+        // South stand roof
+        const southRoof = new THREE.Mesh(new THREE.PlaneGeometry(40, 9), roofMat);
+        southRoof.position.set(0, 4.6, 21.5);
+        southRoof.rotation.x = Math.PI / 3.5;
+        southRoof.receiveShadow = true; southRoof.castShadow = true;
+        stadiumGroup.add(southRoof);
+        // South roof truss
+        for (let i = -8; i <= 8; i++) {
+            const truss = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 3.5, 6), steelMat);
+            truss.position.set(i * 2.2, 3.2, 19.5);
+            truss.rotation.x = -0.4; truss.castShadow = true;
+            stadiumGroup.add(truss);
+        }
+
+        // === EAST STAND (right side, x > 17) ===
+        const eastStand = buildStand(18, -6, 7, 42, 1, 1, 0.6, 0.44);
+        stadiumGroup.add(eastStand);
+
+        // East stand roof
+        const eastRoof = new THREE.Mesh(new THREE.PlaneGeometry(28, 8), roofMat);
+        eastRoof.position.set(22.5, 4.0, 8);
+        eastRoof.rotation.z = -Math.PI / 3.5;
+        eastRoof.rotation.y = Math.PI / 2;
+        eastRoof.receiveShadow = true; eastRoof.castShadow = true;
+        stadiumGroup.add(eastRoof);
+        // East roof truss
+        for (let i = -5; i <= 8; i++) {
+            const truss = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 3.0, 6), steelMat);
+            truss.position.set(20.5, 3.0, i * 2.0);
+            truss.rotation.z = -0.5; truss.castShadow = true;
+            stadiumGroup.add(truss);
+        }
+
+        // === WEST STAND (left side, x < -17) ===
+        const westStand = buildStand(-43, -6, 7, 42, 1, 1, 0.6, 0.44);
+        stadiumGroup.add(westStand);
+
+        // West stand roof
+        const westRoof = new THREE.Mesh(new THREE.PlaneGeometry(28, 8), roofMat);
+        westRoof.position.set(-22.5, 4.0, 8);
+        westRoof.rotation.z = Math.PI / 3.5;
+        westRoof.rotation.y = -Math.PI / 2;
+        westRoof.receiveShadow = true; westRoof.castShadow = true;
+        stadiumGroup.add(westRoof);
+        // West roof truss
+        for (let i = -5; i <= 8; i++) {
+            const truss = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 3.0, 6), steelMat);
+            truss.position.set(-20.5, 3.0, i * 2.0);
+            truss.rotation.z = 0.5; truss.castShadow = true;
+            stadiumGroup.add(truss);
+        }
+
+        // === STADIUM BIG SCREEN (south end, visible from pitch) ===
+        const screenGroup = new THREE.Group();
+        // Screen frame
+        const screenFrame = new THREE.Mesh(new THREE.BoxGeometry(14, 5, 0.4), steelMat);
+        screenFrame.position.set(0, 10.5, 20.5);
+        screenFrame.castShadow = true;
+        screenGroup.add(screenFrame);
+        // Screen panel (glowing)
+        const screenPanelM = new THREE.MeshStandardMaterial({ color: 0x112233, roughness: 0.1, metalness: 0.1, emissive: 0x113355, emissiveIntensity: 0.6 });
+        const screenPanel = new THREE.Mesh(new THREE.PlaneGeometry(13, 4.5), screenPanelM);
+        screenPanel.position.set(0, 10.5, 20.8);
+        screenGroup.add(screenPanel);
+        // Support pillars
+        for (let sx = -5; sx <= 5; sx += 5) {
+            const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.3, 8, 10), steelMat);
+            pillar.position.set(sx, 6.5, 20.5);
+            pillar.castShadow = true;
+            screenGroup.add(pillar);
+        }
+        stadiumGroup.add(screenGroup);
+
+        // === PERIMETER WALLS ===
+        function addWall(x, z, w, d, h) {
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
+            wall.position.set(x, h / 2, z);
+            wall.receiveShadow = true; wall.castShadow = true;
+            stadiumGroup.add(wall);
+        }
+
+        addWall(0, -5.5, 42, 0.3, 1.2);
+        addWall(0, 16.5, 42, 0.3, 1.2);
+        addWall(-17.5, 5, 0.3, 22, 1.2);
+        addWall(17.5, 5, 0.3, 22, 1.2);
+
+        // === ADVERTISING BOARDS (LED-style around pitch, above walls) ===
+        function addAdBoard(x, z, w, d, rotY) {
+            const ag = new THREE.Group();
+            const boardBody = new THREE.Mesh(new THREE.BoxGeometry(w, 0.6, d), adBoardMat);
+            boardBody.position.y = 1.5; ag.add(boardBody);
+            // Top border
+            const topBorder = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, 0.06, d + 0.06), steelMat);
+            topBorder.position.y = 1.82; ag.add(topBorder);
+            // Bottom border
+            const botBorder = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, 0.06, d + 0.06), steelMat);
+            botBorder.position.y = 1.18; ag.add(botBorder);
+            ag.position.set(x, 0, z);
+            if (rotY) ag.rotation.y = rotY;
+            stadiumGroup.add(ag);
+        }
+        // North end (behind goal)
+        for (let i = 0; i < 6; i++) {
+            addAdBoard(-15 + i * 6, -5.35, 5.5, 0.15, 0);
+        }
+        // South end
+        for (let i = 0; i < 6; i++) {
+            addAdBoard(-15 + i * 6, 16.35, 5.5, 0.15, 0);
+        }
+        // East side
+        for (let i = 0; i < 5; i++) {
+            addAdBoard(17.35, -4 + i * 5, 4.5, 0.15, Math.PI/2);
+        }
+        // West side
+        for (let i = 0; i < 5; i++) {
+            addAdBoard(-17.35, -4 + i * 5, 4.5, 0.15, Math.PI/2);
+        }
+
+        // === DUGOUTS (team benches on each side near midfield) ===
+        function buildDugout(x, z, rotY) {
+            const dg = new THREE.Group();
+            // Bench seat
+            const bench = new THREE.Mesh(new THREE.BoxGeometry(4, 0.2, 0.6), new THREE.MeshStandardMaterial({ color: 0x3366cc, roughness: 0.5 }));
+            bench.position.y = 0.5; dg.add(bench);
+            // Back wall
+            const backWall = new THREE.Mesh(new THREE.BoxGeometry(4, 1.2, 0.15), concreteMat);
+            backWall.position.set(0, 0.8, -0.35); dg.add(backWall);
+            // Dugout roof/canopy
+            const canopy = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 1.8), roofUndersideM);
+            canopy.position.set(0, 1.45, 0.1); canopy.rotation.x = -0.15;
+            canopy.receiveShadow = true; dg.add(canopy);
+            // Side walls
+            const lWall = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.2, 1.2), concreteMat);
+            lWall.position.set(-2.1, 0.7, 0.1); dg.add(lWall);
+            const rWall = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.2, 1.2), concreteMat);
+            rWall.position.set(2.1, 0.7, 0.1); dg.add(rWall);
+            // Small bench figures (coaching staff)
+            for (let b = 0; b < 3; b++) {
+                const coach = makeFanFigure(0x224488);
+                coach.position.set(-1.2 + b * 1.2, 0.62, -0.15);
+                coach.scale.set(0.8, 0.8, 0.8);
+                dg.add(coach);
+            }
+            dg.position.set(x, 0, z);
+            if (rotY) dg.rotation.y = rotY;
+            stadiumGroup.add(dg);
+        }
+        buildDugout(-15, 6, -Math.PI/2);
+        buildDugout(15, 6, Math.PI/2);
+
+        // === CORNER FLAGS ===
+        function addCornerFlag(x, z, rotY) {
+            const cg = new THREE.Group();
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.5, 8), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }));
+            pole.position.y = 0.75; cg.add(pole);
+            const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.25), new THREE.MeshStandardMaterial({ color: 0xff0000, roughness: 0.6, side: THREE.DoubleSide, emissive: 0x220000, emissiveIntensity: 0.2 }));
+            flag.position.set(-0.15, 1.45, 0); flag.rotation.y = 0.2; cg.add(flag);
+            cg.position.set(x, 0, z);
+            if (rotY) cg.rotation.y = rotY;
+            stadiumGroup.add(cg);
+        }
+        // Pitch corners
+        addCornerFlag(-17, -5.2, 0);
+        addCornerFlag(17, -5.2, Math.PI/2);
+        addCornerFlag(-17, 16.2, -Math.PI/2);
+        addCornerFlag(17, 16.2, Math.PI);
+
+        // === FLOODLIGHT TOWERS (4 corners, enhanced) ===
+        function addTower(x, z) {
+            const towerGroup = new THREE.Group();
+            // Main pole — tapered
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.38, 16, 16), new THREE.MeshStandardMaterial({ color: 0x4a4a5a, roughness: 0.35, metalness: 0.75 }));
+            pole.position.y = 8; pole.castShadow = true;
+            towerGroup.add(pole);
+            // Access ladder rungs
+            for (let r = 0; r < 20; r++) {
+                const rung = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.25, 4), steelMat);
+                rung.position.set(0, 2 + r * 0.7, 0.22);
+                rung.rotation.z = Math.PI/2;
+                towerGroup.add(rung);
+            }
+
+            // Cross beams at top
+            const beamMat = new THREE.MeshStandardMaterial({ color: 0x3a3a4a, roughness: 0.25, metalness: 0.85 });
+            for (let a = 0; a < 4; a++) {
+                const angle = a * Math.PI / 4;
+                const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3.0, 8), beamMat);
+                beam.rotation.z = Math.PI / 2;
+                beam.position.set(Math.cos(angle) * 1.2, 15.8, Math.sin(angle) * 1.2);
+                beam.rotation.y = angle;
+                towerGroup.add(beam);
+            }
+
+            // Light housings (8 directional lights)
+            for (let a = 0; a < 8; a++) {
+                const angle = a * Math.PI / 4;
+                const housing = new THREE.Group();
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.35, 0.5), new THREE.MeshStandardMaterial({ color: 0x2a2a2a, metalness: 0.7, roughness: 0.3 }));
+                const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffffee }));
+                housing.add(body); housing.add(bulb);
+                housing.position.set(Math.cos(angle) * 2.0, 15.8, Math.sin(angle) * 2.0);
+                towerGroup.add(housing);
+
+                const ptLight = new THREE.PointLight(0xffffdd, 0.7, 28, 1.5);
+                ptLight.position.copy(housing.position);
+                towerGroup.add(ptLight);
+            }
+
+            towerGroup.position.set(x, 0, z);
+            stadiumGroup.add(towerGroup);
+        }
+
+        addTower(-20, -7);
+        addTower(20, -7);
+        addTower(-20, 18);
+        addTower(20, 18);
+
+        // === ENHANCED TUNNEL (player entrance behind penalty spot, with details) ===
+        const tunnelGroup = new THREE.Group();
+        // Tunnel floor with ramp
+        const tunnelFloor = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.15, 6), new THREE.MeshStandardMaterial({ color: 0x4a4a4a, roughness: 0.55 }));
+        tunnelFloor.position.set(0, 0.08, 19.5);
+        tunnelGroup.add(tunnelFloor);
+        // Side walls with detailing
+        const tunnelWallGeo = new THREE.BoxGeometry(0.35, 2.0, 6);
+        const tunnelLeft = new THREE.Mesh(tunnelWallGeo, concreteDarkM);
+        tunnelLeft.position.set(-1.6, 1.0, 19.5); tunnelGroup.add(tunnelLeft);
+        const tunnelRight = new THREE.Mesh(tunnelWallGeo, concreteDarkM);
+        tunnelRight.position.set(1.6, 1.0, 19.5); tunnelGroup.add(tunnelRight);
+        // Tunnel roof (arched - using box approximation)
+        const tunnelTop = new THREE.Mesh(new THREE.BoxGeometry(3.7, 0.25, 6), roofMat);
+        tunnelTop.position.set(0, 2.05, 19.5); tunnelGroup.add(tunnelTop);
+        // Interior light strips
+        for (let lz = -2.5; lz <= 2.5; lz += 1.25) {
+            const lPanel = new THREE.Mesh(new THREE.PlaneGeometry(0.05, 0.5), new THREE.MeshBasicMaterial({ color: 0xffffcc }));
+            lPanel.position.set(-1.65, 1.5, 19.5 + lz);
+            lPanel.rotation.y = Math.PI/2;
+            tunnelGroup.add(lPanel);
+            const rPanel = new THREE.Mesh(new THREE.PlaneGeometry(0.05, 0.5), new THREE.MeshBasicMaterial({ color: 0xffffcc }));
+            rPanel.position.set(1.65, 1.5, 19.5 + lz);
+            rPanel.rotation.y = -Math.PI/2;
+            tunnelGroup.add(rPanel);
+        }
+        // Tunnel entrance arch
+        const arch = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.08, 8, 12, Math.PI), steelMat);
+        arch.position.set(0, 2.05, 16.5); arch.rotation.y = Math.PI/2; arch.rotation.z = Math.PI;
+        tunnelGroup.add(arch);
+        stadiumGroup.add(tunnelGroup);
+
+        scene.add(stadiumGroup);
+    }
+
+    // ---- Fans animation (subtle seated bob + wave) ----
+    function animateFans(dt, excite) {
+        if (!fansGroup) return;
+        const t = Date.now() * 0.001;
+        fansGroup.children.forEach(f => {
+            if (f.userData && f.userData.ph !== undefined) {
+                const bob = Math.sin(t * f.userData.spd + f.userData.ph) * 0.025 * f.userData.ci * (excite || 0.5);
+                f.position.y = f.userData.baseY + bob;
+                if ((excite || 0) > 1.1) {
+                    f.position.y += Math.abs(Math.sin(t * 7 + f.userData.ph)) * 0.04 * (excite - 1);
+                }
+            }
+        });
+    }
+
+    // ---- Field ----
+    function createField() {
+        const g = new THREE.Group();
+
+        // Canvas-generated grass texture with mowing stripes
+        const grassCanvas = document.createElement('canvas');
+        grassCanvas.width = 512; grassCanvas.height = 512;
+        const gctx = grassCanvas.getContext('2d');
+        for (let y = 0; y < 512; y++) {
+            const stripe = Math.floor(y / 32) % 2;
+            const baseR = stripe ? 34 : 46;
+            const baseG = stripe ? 139 : 160;
+            const baseB = stripe ? 34 : 46;
+            for (let x = 0; x < 512; x++) {
+                const noise = Math.floor(Math.random() * 15 - 7);
+                gctx.fillStyle = `rgb(${Math.max(0,Math.min(255,baseR+noise))},${Math.max(0,Math.min(255,baseG+noise))},${Math.max(0,Math.min(255,baseB+noise))})`;
+                gctx.fillRect(x, y, 1, 1);
+            }
+        }
+        const grassTex = new THREE.CanvasTexture(grassCanvas);
+        grassTex.wrapS = THREE.RepeatWrapping; grassTex.wrapT = THREE.RepeatWrapping;
+        grassTex.repeat.set(4, 4);
+
+        const grass = new THREE.Mesh(new THREE.PlaneGeometry(90, 65), new THREE.MeshStandardMaterial({ map: grassTex, roughness: 0.8, metalness: 0.02 }));
+        grass.rotation.x = -Math.PI/2; grass.receiveShadow = true; g.add(grass);
+
+        // Running track around the pitch
+        const trackMat = new THREE.MeshStandardMaterial({ color: 0xc44b3b, roughness: 0.9, metalness: 0.05 });
+        // Top track strip
+        const trackN = new THREE.Mesh(new THREE.PlaneGeometry(94, 3), trackMat);
+        trackN.rotation.x = -Math.PI/2; trackN.position.set(0, 0.005, -34); g.add(trackN);
+        // Bottom track strip
+        const trackS = new THREE.Mesh(new THREE.PlaneGeometry(94, 3), trackMat);
+        trackS.rotation.x = -Math.PI/2; trackS.position.set(0, 0.005, 34); g.add(trackS);
+        // Left track strip
+        const trackW = new THREE.Mesh(new THREE.PlaneGeometry(3, 68), trackMat);
+        trackW.rotation.x = -Math.PI/2; trackW.position.set(-46, 0.005, 0); g.add(trackW);
+        // Right track strip
+        const trackE = new THREE.Mesh(new THREE.PlaneGeometry(3, 68), trackMat);
+        trackE.rotation.x = -Math.PI/2; trackE.position.set(46, 0.005, 0); g.add(trackE);
+        const lineMat = new THREE.MeshBasicMaterial({color: 0xffffff}), lw = 0.09;
+        function addLine(x, y, z, len, axis) {
+            const geom = axis === 'x' ? new THREE.BoxGeometry(len, 0.015, lw) : new THREE.BoxGeometry(lw, 0.015, len);
+            const m = new THREE.Mesh(geom, lineMat); m.position.set(x, 0.012, z); g.add(m);
+        }
+        const paWidth = CONFIG.goalWidth + 10, paDepth = 16.5, gwHalf = CONFIG.goalWidth / 2;
+        addLine(0, 0.01, 0, 55, 'z');
+        addLine(-gwHalf-5.5, 0.01, paDepth, paDepth*2, 'z'); addLine(gwHalf+5.5, 0.01, paDepth, paDepth*2, 'z');
+        addLine(0, 0.01, paDepth, paWidth, 'x');
+        const gaWidth = CONFIG.goalWidth + 4, gaDepth = 5.5;
+        addLine(0, 0.01, gaDepth, gaWidth, 'x');
+        addLine(-gwHalf-2, 0.01, gaDepth, gaDepth*2, 'z'); addLine(gwHalf+2, 0.01, gaDepth, gaDepth*2, 'z');
+        const spot = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.025, 24), lineMat);
+        spot.position.set(0, 0.012, CONFIG.penaltySpotZ); g.add(spot);
+        const arcPts = [];
+        for (let i = 0; i <= Math.PI; i += 0.04) arcPts.push(new THREE.Vector3(Math.cos(i)*4.5, 0.012, CONFIG.penaltySpotZ - Math.sin(i)*4.5));
+        g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(arcPts), lineMat));
+        const centerSpot = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.025, 20), lineMat);
+        centerSpot.position.set(0, 0.012, 30); g.add(centerSpot);
+        scene.add(g);
+    }
+
+    // ============================================================
+    // GOAL with animated net physics
+    // ============================================================
+    function createGoal() {
+        const gg = new THREE.Group();
+        const pm = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.12, metalness: 0.96, envMapIntensity: 1.0 });
+        const r = CONFIG.postRadius;
+
+        // Posts
+        [-1, 1].forEach(side => {
+            const post = new THREE.Mesh(new THREE.CylinderGeometry(r, r, CONFIG.goalHeight, 32), pm);
+            post.position.set(side * CONFIG.goalWidth/2, CONFIG.goalHeight/2, 0); post.castShadow = true; gg.add(post);
+            const cap = new THREE.Mesh(new THREE.SphereGeometry(r*1.3, 20, 20), pm);
+            cap.position.set(side * CONFIG.goalWidth/2, CONFIG.goalHeight, 0); gg.add(cap);
+            const base = new THREE.Mesh(new THREE.CylinderGeometry(r*1.9, r*2.1, 0.08, 16), new THREE.MeshStandardMaterial({color: 0xd0d0d0, roughness: 0.5}));
+            base.position.set(side * CONFIG.goalWidth/2, 0.04, 0); gg.add(base);
+        });
+        // Crossbar
+        const cb = new THREE.Mesh(new THREE.CylinderGeometry(r, r, CONFIG.goalWidth, 32), pm);
+        cb.rotation.z = Math.PI/2; cb.position.set(0, CONFIG.goalHeight, 0); cb.castShadow = true; gg.add(cb);
+        [-1, 1].forEach(side => {
+            const ecap = new THREE.Mesh(new THREE.SphereGeometry(r*1.4, 20, 20), pm);
+            ecap.position.set(side * CONFIG.goalWidth/2, CONFIG.goalHeight, 0); gg.add(ecap);
+        });
+
+        // === ANIMATED NET MESH ===
+        const netDepth = 1.8, netSegsX = 18, netSegsY = 12;
+        const netGeo = new THREE.BufferGeometry();
+        const verts = [], uvs = [], indices = [];
+        netRippleNodes = [];
+
+        for (let j = 0; j <= netSegsY; j++) {
+            const vy = (j / netSegsY) * CONFIG.goalHeight;
+            for (let i = 0; i <= netSegsX; i++) {
+                const vx = (i / netSegsX - 0.5) * CONFIG.goalWidth;
+                // Rest Z with natural sag
+                const sag = 0.08 + Math.abs(vx) / (CONFIG.goalWidth/2) * 0.42 + Math.abs(vy - CONFIG.goalHeight/2) / CONFIG.goalHeight * 0.18;
+                const vz = -0.15 - sag;
+                verts.push(vx, vy, vz);
+                uvs.push(i / netSegsX, j / netSegsY);
+                // Store for ripple animation
+                netRippleNodes.push({ base: new THREE.Vector3(vx, vy, vz), offset: new THREE.Vector3(0, 0, 0), vel: new THREE.Vector3(0, 0, 0) });
+            }
+        }
+        for (let j = 0; j < netSegsY; j++) {
+            for (let i = 0; i < netSegsX; i++) {
+                const a = j * (netSegsX + 1) + i, b = a + 1, c = a + netSegsX + 1 + 1, d = a + netSegsX + 1;
+                indices.push(a, b, c, a, c, d);
+            }
+        }
+        netGeo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+        netGeo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        netGeo.setIndex(indices);
+        netGeo.computeVertexNormals();
+        const netMesh = new THREE.Mesh(netGeo, new THREE.MeshStandardMaterial({
+            color: 0xf8f8f8, transparent: true, opacity: 0.38, side: THREE.DoubleSide, depthWrite: false, roughness: 0.7
+        }));
+        netMesh.userData = { isNet: true, positions: netGeo.attributes.position };
+        gg.add(netMesh);
+
+        // Back net frame ropes
+        const ropeM = new THREE.MeshBasicMaterial({color: 0xcccccc, transparent:true, opacity:0.7});
+        [-CONFIG.goalWidth/2, CONFIG.goalWidth/2].forEach(x => {
+            const vr = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, CONFIG.goalHeight, 8), ropeM);
+            vr.position.set(x, CONFIG.goalHeight/2, -0.05); gg.add(vr);
+        });
+        const hr = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, CONFIG.goalWidth, 8), ropeM);
+        hr.rotation.z = Math.PI/2; hr.position.set(0, CONFIG.goalHeight, -0.05); gg.add(hr);
+
+        // Side + top nets
+        [-CONFIG.goalWidth/2, CONFIG.goalWidth/2].forEach(x => {
+            const sn = new THREE.Mesh(new THREE.PlaneGeometry(netDepth, CONFIG.goalHeight), new THREE.MeshStandardMaterial({color: 0xeef0f2, transparent: true, opacity: 0.28, side: THREE.DoubleSide, depthWrite: false}));
+            sn.position.set(x, CONFIG.goalHeight/2, -netDepth/2); sn.rotation.y = Math.PI/2; gg.add(sn);
+        });
+        const tn = new THREE.Mesh(new THREE.PlaneGeometry(CONFIG.goalWidth, netDepth), new THREE.MeshStandardMaterial({color: 0xeef0f2, transparent: true, opacity: 0.28, side: THREE.DoubleSide, depthWrite: false}));
+        tn.position.set(0, CONFIG.goalHeight, -netDepth/2); tn.rotation.x = Math.PI/2; gg.add(tn);
+
+        // Ground net anchors at the back
+        const anchorM = new THREE.MeshStandardMaterial({color: 0x888888, roughness: 0.4, metalness: 0.8});
+        [-CONFIG.goalWidth/2, CONFIG.goalWidth/2].forEach(x => {
+            const anchor = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.2, 12), anchorM);
+            anchor.position.set(x, 0.08, -netDepth - 0.05); gg.add(anchor);
+        });
+
+        scene.add(gg);
+    }
+
+    function triggerNetRipple(hitPos, strength) {
+        if (!netRippleNodes.length) return;
+        const hit = hitPos.clone();
+        for (let i = 0; i < netRippleNodes.length; i++) {
+            const node = netRippleNodes[i];
+            const dist = new THREE.Vector3(node.base.x, node.base.y, node.base.z).distanceTo(hit);
+            if (dist < 0.9) {
+                const force = (1 - dist / 0.9) * strength;
+                const dir = new THREE.Vector3(0, 0, -1);
+                node.vel.addScaledVector(dir, force);
+            }
+        }
+    }
+
+    function updateNetRipple(dt) {
+        const damping = 0.88;
+        const springK = 8.5;
+        const dt2 = Math.min(dt, 0.05);
+
+        for (let i = 0; i < netRippleNodes.length; i++) {
+            const node = netRippleNodes[i];
+            // Spring force toward base position
+            node.vel.x += (node.base.x - (node.base.x + node.offset.x)) * springK * dt2;
+            node.vel.y += (node.base.y - (node.base.y + node.offset.y)) * springK * dt2;
+            node.vel.z += (node.base.z - (node.base.z + node.offset.z)) * springK * dt2 * 1.5;
+            // Damping
+            node.vel.multiplyScalar(damping);
+            // Apply velocity
+            node.offset.addScaledVector(node.vel, dt2);
+            // Neighbor influence for wave propagation
+            if (i > 0) {
+                const prev = netRippleNodes[i - 1];
+                const diff = prev.offset.z - node.offset.z;
+                node.vel.z += diff * 1.5 * dt2;
+            }
+        }
+
+        // Update mesh geometry
+        const goalGroups = scene.children.filter(c => c.type === 'Group');
+        for (const g of goalGroups) {
+            for (const child of g.children) {
+                if (child.userData && child.userData.isNet && child.geometry.attributes.position) {
+                    const posAttr = child.geometry.attributes.position;
+                    for (let i = 0; i < netRippleNodes.length && i < posAttr.count; i++) {
+                        const node = netRippleNodes[i];
+                        posAttr.setXYZ(i, node.base.x + node.offset.x, node.base.y + node.offset.y, node.base.z + node.offset.z);
+                    }
+                    posAttr.needsUpdate = true;
+                    child.geometry.computeVertexNormals();
+                }
+            }
+        }
+    }
+
+    // ============================================================
+    // BALL with canvas-generated realistic football texture
+    // ============================================================
+    function createFootballTexture() {
+        const size = 512;
+        const cv = document.createElement('canvas'); cv.width = cv.height = size;
+        const ctx = cv.getContext('2d');
+
+        // Base white
+        ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, size, size);
+
+        const cx = size/2, cy = size/2, R = size/2 - 8;
+
+        // Draw hexagons and pentagons in a simplified equirectangular projection
+        // Classic Telstar pattern: 20 white hexagons, 12 black pentagons
+        // We'll draw them as approximate positions on the sphere
+
+        ctx.fillStyle = '#1a1a1a';
+        // Draw pentagons (black patches) at approximate positions
+        const patches = [
+            { x: 0.5, y: 0.2 },   { x: 0.5, y: 0.8 },
+            { x: 0.15, y: 0.35 },  { x: 0.85, y: 0.35 },
+            { x: 0.15, y: 0.65 },  { x: 0.85, y: 0.65 },
+            { x: 0.3, y: 0.12 },   { x: 0.7, y: 0.12 },
+            { x: 0.3, y: 0.88 },   { x: 0.7, y: 0.88 },
+            { x: 0.0, y: 0.5 },    { x: 1.0, y: 0.5 },
+        ];
+
+        patches.forEach(p => {
+            const px = p.x * size, py = p.y * size;
+            const patchSize = size * 0.075;
+            // Draw pentagon
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i / 5) * Math.PI * 2 - Math.PI / 2;
+                const x = px + Math.cos(angle) * patchSize;
+                const y = py + Math.sin(angle) * patchSize * 0.9;
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.closePath(); ctx.fill();
+        });
+
+        // Add subtle seam lines
+        ctx.strokeStyle = '#cccccc'; ctx.lineWidth = 0.8;
+        for (let i = 0; i < patches.length; i++) {
+            for (let j = i + 1; j < patches.length; j++) {
+                const dx = (patches[i].x - patches[j].x) * size;
+                const dy = (patches[i].y - patches[j].y) * size;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < size * 0.45) {
+                    ctx.beginPath();
+                    ctx.moveTo(patches[i].x * size, patches[i].y * size);
+                    ctx.lineTo(patches[j].x * size, patches[j].y * size);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Add subtle shading for 3D appearance
+        const grad = ctx.createRadialGradient(cx - size*0.15, cy - size*0.2, size*0.1, cx, cy, size*0.55);
+        grad.addColorStop(0, 'rgba(255,255,255,0.12)');
+        grad.addColorStop(0.6, 'rgba(0,0,0,0.0)');
+        grad.addColorStop(1, 'rgba(0,0,0,0.25)');
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, size, size);
+
+        return new THREE.CanvasTexture(cv);
+    }
+
+    function createBall() {
+        ball = new THREE.Group();
+        const texture = createFootballTexture();
+        texture.wrapS = THREE.RepeatWrapping; texture.wrapU = THREE.RepeatWrapping;
+
+        const sphere = new THREE.Mesh(
+            new THREE.SphereGeometry(CONFIG.ballRadius, 48, 48),
+            new THREE.MeshStandardMaterial({
+                map: texture, roughness: 0.22, metalness: 0.04,
+                bumpScale: 0.003, emissive: 0x222222, emissiveIntensity: 0.12
+            })
+        );
+        sphere.castShadow = true; ball.add(sphere);
+
+        // Subtle glow
+        const glowMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.09, side: THREE.BackSide });
+        ball.add(new THREE.Mesh(new THREE.SphereGeometry(CONFIG.ballRadius * 1.16, 24, 24), glowMat));
+
+        // Trail group
+        ballTrailGroup = new THREE.Group();
+        for (let i = 0; i < 6; i++) {
+            const alpha = 0.14 - i * 0.018;
+            const t = new THREE.Mesh(
+                new THREE.SphereGeometry(CONFIG.ballRadius * (0.88 - i * 0.07), 12, 12),
+                new THREE.MeshBasicMaterial({ color: 0xdddddd, transparent: true, opacity: alpha })
+            );
+            t.visible = false; ballTrailGroup.add(t);
+        }
+        scene.add(ballTrailGroup);
+
+        // Direction arrow
+        const arrowGroup = new THREE.Group();
+        const arrowShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.2, 8), new THREE.MeshBasicMaterial({ color: 0xffcc00, transparent: true, opacity: 0.85 }));
+        arrowShaft.position.z = -0.6; arrowGroup.add(arrowShaft);
+        const head = new THREE.Mesh(new THREE.ConeGeometry(0.10, 0.35, 8), new THREE.MeshBasicMaterial({ color: 0xff9900 }));
+        head.position.z = -1.35; head.rotation.x = Math.PI / 2; arrowGroup.add(head);
+        arrowGroup.visible = false; ballDirectionArrow = arrowGroup; scene.add(arrowGroup);
+
+        // Aim line
+        const aimLineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]);
+        aimLine = new THREE.Line(aimLineGeo, new THREE.LineDashedMaterial({ color: 0x00ff88, dashSize: 0.3, gapSize: 0.15, transparent: true, opacity: 0.55, linewidth: 2 }));
+        aimLine.computeLineDistances(); aimLine.visible = false; scene.add(aimLine);
+
+        ballLight = new THREE.PointLight(0xffffee, 0.6, 4, 1.5); ball.add(ballLight);
+        ball.position.set(0, CONFIG.ballRadius, CONFIG.penaltySpotZ); scene.add(ball);
+    }
+
+    function resetBall() {
+        if(!ball) return;
+        ball.position.set(0, CONFIG.ballRadius, CONFIG.penaltySpotZ);
+        ball.rotation.set(0, 0, 0);
+        if(ballDirectionArrow) ballDirectionArrow.visible = false;
+        if(aimLine) aimLine.visible = false;
+        if(ballLight) ballLight.intensity = 0.6;
+        ballTrailGroup.children.forEach(t => t.visible = false);
+        ballTrailGroup.visible = false;
+        ballVel.set(0,0,0); ballSpin.set(0,0,0);
+        outcomeHandled = false; postCollisionDone = false; groundBounceCount = 0;
+        state.shotStartTime = 0; state.goalieReacted = false;
+    }
+
+    // ============================================================
+    // ANIMATED PLAYER with run-up and kick
+    // ============================================================
+    function createPlayer(playerType) {
+        playerType = playerType || 'ronaldo';
+        const isRonaldo = playerType === 'ronaldo';
+
+        if (playerGroup) { scene.remove(playerGroup); playerGroup = null; }
+        playerGroup = new THREE.Group();
+
+        // Character-specific appearance
+        const jerseyColor = isRonaldo ? 0xc0392b : 0x1a6eb5;        // Red vs Blue
+        const shortsColor = isRonaldo ? 0x111111 : 0x0d1b3e;         // Black vs Dark blue
+        const sockColor = isRonaldo ? 0xc0392b : 0xffffff;           // Red vs White
+        const skinColor = isRonaldo ? 0xfad0a8 : 0xe8c39e;           // Lighter vs medium-tan
+        const hairColor = isRonaldo ? 0x2d1810 : 0x1a0f0a;          // Dark brown vs very dark
+        const playerNumber = isRonaldo ? '7' : '10';
+        const playerScale = isRonaldo ? 1.0 : 0.92;                  // Ronaldo 187cm, Messi 170cm
+
+        const jerseyM = new THREE.MeshStandardMaterial({color: jerseyColor, roughness: 0.6});
+        const skinM = new THREE.MeshStandardMaterial({color: skinColor, roughness: 0.7});
+        const shortsM = new THREE.MeshStandardMaterial({color: shortsColor, roughness: 0.6});
+        const sockM = new THREE.MeshStandardMaterial({color: sockColor, roughness: 0.7});
+        const bootM = new THREE.MeshStandardMaterial({color: 0x111111, roughness: 0.4, metalness: 0.2});
+        const hairM = new THREE.MeshStandardMaterial({color: hairColor, roughness: 0.85});
+
+        // Torso (scaled by playerScale)
+        const torsoGroup = new THREE.Group(); torsoGroup.name = 'torsoGroup';
+        const torsoCyl = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.72, 18), jerseyM);
+        torsoCyl.position.y = 0; torsoGroup.add(torsoCyl);
+        const torsoTop = new THREE.Mesh(new THREE.SphereGeometry(0.3, 18, 14, 0, Math.PI*2, 0, Math.PI/2), jerseyM);
+        torsoTop.position.y = 0.36; torsoGroup.add(torsoTop);
+        const torsoBot = new THREE.Mesh(new THREE.SphereGeometry(0.3, 18, 14, 0, Math.PI*2, Math.PI/2, Math.PI/2), jerseyM);
+        torsoBot.position.y = -0.36; torsoGroup.add(torsoBot);
+        torsoGroup.children.forEach(c => { c.castShadow = true; });
+        const torso = torsoGroup; torso.name = 'torso'; torso.position.y = 1.12 * playerScale; playerGroup.add(torso);
+
+        // Head
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.195, 18, 18), skinM);
+        head.position.y = 1.78 * playerScale; head.castShadow = true; head.name = 'head'; playerGroup.add(head);
+
+        // Hair - different styles
+        let hairRef;
+        if (isRonaldo) {
+            // Ronaldo: gelled-up hair (cone on top of sphere base)
+            const hairBase = new THREE.Mesh(new THREE.SphereGeometry(0.205, 16, 16, 0, Math.PI*2, 0, Math.PI*2*0.5), hairM);
+            hairBase.position.y = 1.84 * playerScale; hairBase.name = 'hair'; playerGroup.add(hairBase);
+            // Gelled spike on top
+            const spikeGeo = new THREE.ConeGeometry(0.12, 0.28, 12);
+            const spike = new THREE.Mesh(spikeGeo, hairM);
+            spike.position.y = 1.91 * playerScale; spike.position.z = -0.03;
+            spike.rotation.x = -0.15; spike.name = 'hairSpike'; playerGroup.add(spike);
+            hairRef = hairBase;
+        } else {
+            // Messi: fuller, slightly longer hair
+            const hair = new THREE.Mesh(new THREE.SphereGeometry(0.21, 16, 16, 0, Math.PI*2, 0, Math.PI*2*0.62), hairM);
+            hair.position.y = 1.83 * playerScale; hair.name = 'hair'; playerGroup.add(hair);
+            hairRef = hair;
+        }
+
+        // Shorts
+        const shorts = new THREE.Mesh(new THREE.CylinderGeometry(0.31, 0.29, 0.3, 16), shortsM);
+        shorts.position.y = 0.58 * playerScale; shorts.name = 'shorts'; playerGroup.add(shorts);
+
+        // --- LEGS ---
+        const upperLegGeo = new THREE.CylinderGeometry(0.09, 0.09, 0.53 * playerScale, 10);
+        const leftUpperLeg = new THREE.Mesh(upperLegGeo, sockM);
+        leftUpperLeg.position.set(-0.15, 0.42 * playerScale, 0); leftUpperLeg.name = 'leftUpperLeg'; playerGroup.add(leftUpperLeg);
+        const leftLowerPivot = new THREE.Group(); leftLowerPivot.name = 'leftLowerPivot';
+        leftLowerPivot.position.set(-0.15, 0.16 * playerScale, 0); playerGroup.add(leftLowerPivot);
+        const leftLowerLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.48 * playerScale, 10), sockM);
+        leftLowerLeg.position.y = -0.18 * playerScale; leftLowerLeg.name = 'leftLowerLeg'; leftLowerPivot.add(leftLowerLeg);
+        const leftFoot = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.1, 0.22), bootM);
+        leftFoot.position.y = -0.36 * playerScale; leftFoot.position.z = 0.06; leftFoot.name = 'leftFoot'; leftLowerPivot.add(leftFoot);
+
+        const rightUpperLeg = new THREE.Mesh(upperLegGeo, sockM);
+        rightUpperLeg.position.set(0.15, 0.42 * playerScale, 0); rightUpperLeg.name = 'rightUpperLeg'; playerGroup.add(rightUpperLeg);
+        const rightLowerPivot = new THREE.Group(); rightLowerPivot.name = 'rightLowerPivot';
+        rightLowerPivot.position.set(0.15, 0.16 * playerScale, 0); playerGroup.add(rightLowerPivot);
+        const rightLowerLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.48 * playerScale, 10), sockM);
+        rightLowerLeg.position.y = -0.18 * playerScale; rightLowerLeg.name = 'rightLowerLeg'; rightLowerPivot.add(rightLowerLeg);
+        const rightFoot = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.1, 0.22), bootM);
+        rightFoot.position.y = -0.36 * playerScale; rightFoot.position.z = 0.06; rightFoot.name = 'rightFoot'; rightLowerPivot.add(rightFoot);
+
+        // Arms
+        const armGeo = new THREE.CylinderGeometry(0.075, 0.075, 0.5, 10);
+        const armPosY = 1.3 * playerScale;
+        const leftArm = new THREE.Mesh(armGeo, jerseyM);
+        leftArm.position.set(-0.39, armPosY, 0); leftArm.rotation.z = 0.25; leftArm.name = 'leftArm'; playerGroup.add(leftArm);
+        const rightArm = new THREE.Mesh(armGeo, jerseyM);
+        rightArm.position.set(0.39, armPosY, 0); rightArm.rotation.z = -0.25; rightArm.name = 'rightArm'; playerGroup.add(rightArm);
+
+        // Hands
+        const handGeo = new THREE.SphereGeometry(0.06, 10, 10);
+        const handPosY = 1.08 * playerScale;
+        const leftHand = new THREE.Mesh(handGeo, skinM); leftHand.position.set(-0.52, handPosY, 0.05); leftHand.name = 'leftHand'; playerGroup.add(leftHand);
+        const rightHand = new THREE.Mesh(handGeo, skinM); rightHand.position.set(0.52, handPosY, 0.05); rightHand.name = 'rightHand'; playerGroup.add(rightHand);
+
+        // Jersey number
+        const cv = document.createElement('canvas'); cv.width=cv.height=128;
+        const cx = cv.getContext('2d');
+        cx.fillStyle = '#' + jerseyColor.toString(16).padStart(6, '0'); cx.fillRect(0,0,128,128);
+        cx.fillStyle='#fff'; cx.font='bold 68px Arial, sans-serif'; cx.textAlign='center'; cx.textBaseline='middle'; cx.fillText(playerNumber,64,64);
+        cx.strokeStyle='#fff'; cx.lineWidth=2; cx.strokeText(playerNumber,64,64);
+        const np = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.44), new THREE.MeshBasicMaterial({map: new THREE.CanvasTexture(cv), transparent: true}));
+        np.position.set(0, 1.15 * playerScale, -0.308); playerGroup.add(np);
+
+        // Store references in playerGroup.userData for animation
+        playerGroup.userData = {
+            torso, head, hair: hairRef,
+            shorts,
+            leftUpperLeg, rightUpperLeg,
+            leftLowerPivot, rightLowerPivot,
+            leftLowerLeg, rightLowerLeg,
+            leftFoot, rightFoot,
+            leftArm, rightArm,
+            leftHand, rightHand,
+            playerScale: playerScale
+        };
+
+        // Starting position: behind the ball
+        playerGroup.position.set(0, 0, CONFIG.penaltySpotZ + 2.5);
+        playerGroup.rotation.set(0, Math.PI, 0);
+        scene.add(playerGroup);
+    }
+
+    function resetPlayerPosition() {
+        if (!playerGroup) return;
+        playerGroup.position.set(0, 0, CONFIG.penaltySpotZ + 2.5);
+        playerGroup.rotation.set(0, Math.PI, 0);
+        // Reset legs
+        const d = playerGroup.userData;
+        const s = d.playerScale || 1.0;
+        if (d.leftLowerPivot) d.leftLowerPivot.rotation.set(0, 0, 0);
+        if (d.rightLowerPivot) d.rightLowerPivot.rotation.set(0, 0, 0);
+        if (d.leftUpperLeg) { d.leftUpperLeg.position.set(-0.15, 0.42 * s, 0); d.leftUpperLeg.rotation.set(0, 0, 0); }
+        if (d.rightUpperLeg) { d.rightUpperLeg.position.set(0.15, 0.42 * s, 0); d.rightUpperLeg.rotation.set(0, 0, 0); }
+        if (d.leftArm) { d.leftArm.position.set(-0.39, 1.3 * s, 0); d.leftArm.rotation.set(0, 0, 0.25); }
+        if (d.rightArm) { d.rightArm.position.set(0.39, 1.3 * s, 0); d.rightArm.rotation.set(0, 0, -0.25); }
+        if (d.leftHand) d.leftHand.position.set(-0.52, 1.08 * s, 0.05);
+        if (d.rightHand) d.rightHand.position.set(0.52, 1.08 * s, 0.05);
+        d.torso.rotation.set(0, 0, 0);
+    }
+
+    function updatePlayerAnimation(dt) {
+        if (!playerGroup) return;
+        const d = playerGroup.userData;
+        if (!d) return;
+        const now = Date.now();
+
+        switch (state.playerAnimPhase) {
+            case 'idle': {
+                // Gentle breathing/sway
+                const t = now * 0.003;
+                d.torso.rotation.z = Math.sin(t * 1.3) * 0.015;
+                d.leftArm.rotation.z = 0.25 + Math.sin(t * 1.1) * 0.04;
+                d.rightArm.rotation.z = -0.25 - Math.sin(t * 1.1) * 0.04;
+                // Look toward ball
+                if (d.head && ball) {
+                    const lookTarget = ball.position.clone();
+                    d.head.lookAt(lookTarget.x, lookTarget.y + 0.1, lookTarget.z);
+                }
+                break;
+            }
+
+            case 'approach': {
+                // Run toward the ball: approach from z+2.5 to z+0.5 (2m run)
+                const approachTime = Math.min((now - (state.playerAnimTime || now)) / 600, 1.0);
+                state.playerApproachZ = approachTime;
+                const startZ = CONFIG.penaltySpotZ + 2.5;
+                const targetZ = CONFIG.penaltySpotZ + 0.6; // Planting foot position
+                const t = approachTime;
+
+                // Smooth easing for approach
+                const easeT = t < 0.6 ? (t / 0.6) * 0.7 : 0.7 + (t - 0.6) / 0.4 * 0.3;
+                playerGroup.position.z = startZ + (targetZ - startZ) * easeT;
+                playerGroup.position.x += (0 - playerGroup.position.x) * 0.05;
+
+                // Running animation: alternate leg swing
+                const runCycle = t * 8;
+                const legSwing = Math.sin(runCycle * Math.PI * 2) * 0.6;
+                // Arms pump
+                d.leftArm.rotation.x = Math.sin(runCycle * Math.PI * 2) * 0.5;
+                d.rightArm.rotation.x = Math.sin(runCycle * Math.PI * 2 + Math.PI) * 0.5;
+                // Legs step
+                d.leftUpperLeg.rotation.x = Math.sin(runCycle * Math.PI * 2) * 0.45;
+                d.rightUpperLeg.rotation.x = Math.sin(runCycle * Math.PI * 2 + Math.PI) * 0.45;
+                d.leftLowerPivot.rotation.x = Math.abs(Math.sin(runCycle * Math.PI * 2)) * 0.35;
+                d.rightLowerPivot.rotation.x = Math.abs(Math.sin(runCycle * Math.PI * 2 + Math.PI)) * 0.35;
+                // Body lean forward
+                d.torso.rotation.x = -0.12;
+
+                if (approachTime >= 1.0) {
+                    // Plant and prepare to kick
+                    playerGroup.position.z = targetZ;
+                    state.playerAnimPhase = 'kick';
+                    state.playerAnimTime = now;
+                    // Plant left foot, prep right leg
+                    d.leftUpperLeg.rotation.x = -0.05;
+                    d.rightUpperLeg.rotation.x = 0.4; // bring right leg back
+                    d.rightLowerPivot.rotation.x = -1.2; // bend knee back
+                }
+                break;
+            }
+
+            case 'kick': {
+                const kickTime = Math.min((now - (state.playerAnimTime || now)) / 280, 1.0);
+                const t = kickTime;
+
+                // Plant left foot steady
+                d.leftUpperLeg.rotation.x += (-0.05 - d.leftUpperLeg.rotation.x) * 0.3;
+                d.leftLowerPivot.rotation.x += (0 - d.leftLowerPivot.rotation.x) * 0.3;
+
+                // Right leg: wind back then swing forward
+                if (t < 0.45) {
+                    // Wind back
+                    const windT = t / 0.45;
+                    d.rightUpperLeg.rotation.x += ((0.7 + windT * 0.4) - d.rightUpperLeg.rotation.x) * 0.25;
+                    d.rightLowerPivot.rotation.x += ((-1.5 + windT * -0.3) - d.rightLowerPivot.rotation.x) * 0.25;
+                    d.torso.rotation.x = -0.15 - windT * 0.08;
+                } else {
+                    // Swing forward - powerful kick!
+                    const swingT = (t - 0.45) / 0.55;
+                    const snap = swingT < 0.3 ? swingT / 0.3 : 1 - (swingT - 0.3) / 0.7;
+                    d.rightUpperLeg.rotation.x = 1.1 * snap - 0.3 * (1 - Math.min(1, (t - 0.45) / 0.3));
+                    d.rightLowerPivot.rotation.x = -0.3 + snap * 0.5;
+                    d.torso.rotation.x = -0.25 + (1 - Math.abs(snap - 0.5) * 2) * 0.1;
+                    // Arms swing for balance
+                    d.leftArm.rotation.x = -0.5 + snap * 0.4;
+                    d.rightArm.rotation.x = 0.5 - snap * 0.4;
+                }
+
+                if (kickTime >= 1.0 && state.ballLaunchPending) {
+                    // Launch the ball now!
+                    launchBallPhysics();
+                    state.ballLaunchPending = false;
+                    state.playerAnimPhase = 'follow_through';
+                    state.playerAnimTime = now;
+                }
+                break;
+            }
+
+            case 'follow_through': {
+                const ftTime = (now - (state.playerAnimTime || now)) / 400;
+                // Follow through: right leg continues forward, body straightens
+                d.rightUpperLeg.rotation.x += (-0.4 - d.rightUpperLeg.rotation.x) * 0.1;
+                d.rightLowerPivot.rotation.x += (0.2 - d.rightLowerPivot.rotation.x) * 0.1;
+                d.torso.rotation.x += (-0.05 - d.torso.rotation.x) * 0.08;
+                d.leftArm.rotation.x += (0 - d.leftArm.rotation.x) * 0.1;
+                d.rightArm.rotation.x += (0 - d.rightArm.rotation.x) * 0.1;
+                d.leftUpperLeg.rotation.x += (0 - d.leftUpperLeg.rotation.x) * 0.1;
+                d.rightUpperLeg.rotation.x += (0 - d.rightUpperLeg.rotation.x) * 0.1;
+                d.leftLowerPivot.rotation.x *= 0.85;
+                d.rightLowerPivot.rotation.x *= 0.85;
+
+                if (ftTime > 1.2) {
+                    state.playerAnimPhase = 'returning';
+                    state.playerAnimTime = now;
+                }
+                break;
+            }
+
+            case 'celebrate': {
+                // Jump with arms up
+                const ct = (now - (state.playerAnimTime || now)) * 0.001;
+                playerGroup.position.y = Math.abs(Math.sin(ct * 4)) * 0.35;
+                d.leftArm.rotation.z = -1.2 + Math.sin(ct * 8) * 0.3;
+                d.rightArm.rotation.z = 1.2 + Math.sin(ct * 8 + Math.PI) * 0.3;
+                d.torso.rotation.z = Math.sin(ct * 3) * 0.08;
+                if (ct > 1.5) {
+                    state.playerAnimPhase = 'returning';
+                    state.playerAnimTime = now;
+                    playerGroup.position.y = 0;
+                }
+                break;
+            }
+
+            case 'returning': {
+                // Smoothly walk back and reset
+                const retTime = (now - (state.playerAnimTime || now)) / 1000;
+                const targetZ = CONFIG.penaltySpotZ + 2.5;
+                playerGroup.position.z += (targetZ - playerGroup.position.z) * 0.04;
+                playerGroup.position.y += (0 - playerGroup.position.y) * 0.1;
+                // Reset upper body
+                d.torso.rotation.x *= 0.85; d.torso.rotation.z *= 0.85;
+                d.leftArm.rotation.z += (0.25 - d.leftArm.rotation.z) * 0.1;
+                d.rightArm.rotation.z += (-0.25 - d.rightArm.rotation.z) * 0.1;
+                d.leftArm.rotation.x *= 0.85; d.rightArm.rotation.x *= 0.85;
+                d.leftUpperLeg.rotation.x *= 0.85; d.rightUpperLeg.rotation.x *= 0.85;
+                d.leftLowerPivot.rotation.x *= 0.85; d.rightLowerPivot.rotation.x *= 0.85;
+
+                if (Math.abs(playerGroup.position.z - targetZ) < 0.05 && retTime > 0.5) {
+                    resetPlayerPosition();
+                    state.playerAnimPhase = 'idle';
+                }
+                break;
+            }
+        }
+    }
+
+    function launchBallPhysics() {
+        state.shotInProgress = true;
+        state.phase = 'shooting';
+        state.shotStartTime = Date.now();
+        outcomeHandled = false;
+
+        // Keeper dives at the EXACT same instant the ball launches
+        if (goalkeeper && goalkeeper.userData) {
+            state.keeperPhase = 'dive';
+            state.keeperAnimTime = Date.now();
+            const cfg = CONFIG.settings[CONFIG.difficulty];
+            const accuracy = cfg.predictionAccuracy;
+            goalKeeperTargetPos.x = state.aimPosition.x * accuracy + (Math.random() - 0.5) * (1 - accuracy) * CONFIG.goalWidth * 0.8;
+            goalKeeperTargetPos.y = Math.max(0, Math.min(CONFIG.goalHeight * 0.75, state.aimPosition.y - 0.9));
+        }
+
+        document.getElementById('aim-crosshair').classList.add('hidden-ui');
+        if(aimLine) aimLine.visible = false;
+
+        const pwr = Math.max(0.1, state.playerKickPower || state.currentPower);
+        const aim = state.aimPosition.clone();
+        const speed = 12 + pwr * 12;
+
+        // Solve projectile motion: compute exact velocity so ball hits the aim point
+        const displacement = new THREE.Vector3().subVectors(aim, ball.position);
+        const hDist = Math.sqrt(displacement.x * displacement.x + displacement.z * displacement.z);
+        const timeOfFlight = hDist / speed;
+        const g = CONFIG.gravity; // -9.81
+
+        ballVel.set(
+            displacement.x / timeOfFlight,
+            (displacement.y - 0.5 * g * timeOfFlight * timeOfFlight) / timeOfFlight,
+            displacement.z / timeOfFlight
+        );
+
+        ballSpin.set(0, 0, 0);
+
+        if(ballDirectionArrow) {
+            ballDirectionArrow.visible = true;
+            ballDirectionArrow.position.copy(ball.position);
+            const velDir = ballVel.clone().normalize();
+            ballDirectionArrow.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), velDir);
+            ballDirectionArrow.scale.setScalar(0.8 + pwr * 1.2);
+        }
+        if(ballLight) ballLight.intensity = 2.0;
+
+        document.getElementById('power-bar-container').classList.add('hidden-ui');
+        ballTrailGroup.children.forEach(t => t.visible = false);
+        ballTrailGroup.visible = true;
+    }
+
+    // ============================================================
+    // REALISTIC GOALKEEPER — articulated dive animations
+    // ============================================================
+    function createGoalkeeper() {
+        goalkeeper = new THREE.Group();
+        const kitM = new THREE.MeshStandardMaterial({color: 0xff6d00, roughness: 0.45, metalness: 0.05});
+        const kitDarkM = new THREE.MeshStandardMaterial({color: 0xe05500, roughness: 0.45, metalness: 0.05});
+        const shortM = new THREE.MeshStandardMaterial({color: 0x181818, roughness: 0.55, metalness: 0.05});
+        const skinM = new THREE.MeshStandardMaterial({color: 0xf5c8a3, roughness: 0.55});
+        const skinDarkM = new THREE.MeshStandardMaterial({color: 0xdaa06d, roughness: 0.55});
+        const gloveM = new THREE.MeshStandardMaterial({color: 0xffeb3b, roughness: 0.3, metalness: 0.12});
+        const gloveStripM = new THREE.MeshStandardMaterial({color: 0x111111, roughness: 0.3, metalness: 0.15});
+        const bootM2 = new THREE.MeshStandardMaterial({color: 0x1a1a1a, roughness: 0.3, metalness: 0.2});
+        const bootSoleM = new THREE.MeshStandardMaterial({color: 0x444444, roughness: 0.5, metalness: 0.1});
+        const hairM2 = new THREE.MeshStandardMaterial({color: 0x2d1b0e, roughness: 0.85});
+        const hairHighlightM = new THREE.MeshStandardMaterial({color: 0x4a2a18, roughness: 0.85});
+        const padM2 = new THREE.MeshStandardMaterial({color: 0x212121, roughness: 0.4});
+        const eyeWhiteM = new THREE.MeshBasicMaterial({color: 0xfefefe});
+        const pupilM = new THREE.MeshBasicMaterial({color: 0x0a0a0a});
+        const irisM = new THREE.MeshBasicMaterial({color: 0x3a6b35});
+        const browM = new THREE.MeshBasicMaterial({color: 0x1a0e05});
+        const capM = new THREE.MeshStandardMaterial({color: 0xff6d00, roughness: 0.35, metalness: 0.08});
+        const capBillM = new THREE.MeshStandardMaterial({color: 0x111111, roughness: 0.3, metalness: 0.1});
+        const stripeM = new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.5, metalness: 0.05});
+
+        // --- Torso (athletic V-shape, wider shoulders tapering to waist) ---
+        const kTorsoGroup = new THREE.Group(); kTorsoGroup.name = 'kTorsoGroup';
+        // Main chest — wider at top
+        const kChest = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.40, 0.44, 24), kitM);
+        kChest.position.y = 0.14; kTorsoGroup.add(kChest);
+        // Lower torso — narrower waist
+        const kWaist = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.36, 0.32, 24), kitM);
+        kWaist.position.y = -0.22; kTorsoGroup.add(kWaist);
+        // Shoulder caps (rounded)
+        const kShoulderL = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 10, 0, Math.PI*2, 0, Math.PI/2), kitDarkM);
+        kShoulderL.position.set(-0.38, 0.34, 0.02); kTorsoGroup.add(kShoulderL);
+        const kShoulderR = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 10, 0, Math.PI*2, 0, Math.PI/2), kitDarkM);
+        kShoulderR.position.set(0.38, 0.34, 0.02); kTorsoGroup.add(kShoulderR);
+        // Chest stripe (vertical center line detail)
+        const kChestStripe = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 0.42), stripeM);
+        kChestStripe.position.y = 0.04; kTorsoGroup.add(kChestStripe);
+        // Top cap
+        const kTorsoTop = new THREE.Mesh(new THREE.SphereGeometry(0.39, 24, 14, 0, Math.PI*2, 0, Math.PI/2), kitM);
+        kTorsoTop.position.y = 0.36; kTorsoGroup.add(kTorsoTop);
+        // Bottom cap
+        const kTorsoBot = new THREE.Mesh(new THREE.SphereGeometry(0.36, 24, 14, 0, Math.PI*2, Math.PI/2, Math.PI/2), kitM);
+        kTorsoBot.position.y = -0.38; kTorsoGroup.add(kTorsoBot);
+        kTorsoGroup.children.forEach(c => { c.castShadow = true; });
+        const kTorso = kTorsoGroup; kTorso.name = 'kTorso'; kTorso.position.y = 1.14; goalkeeper.add(kTorso);
+
+        // --- Neck ---
+        const kNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.12, 0.22, 16), skinM);
+        kNeck.position.y = 1.68; kNeck.castShadow = true; kNeck.name = 'kNeck'; goalkeeper.add(kNeck);
+
+        // --- Head (slightly more oval, with face canvas) ---
+        const headCanvas = document.createElement('canvas'); headCanvas.width = 256; headCanvas.height = 256;
+        const hctx = headCanvas.getContext('2d');
+        // Skin base
+        hctx.fillStyle = '#f5c8a3'; hctx.beginPath(); hctx.arc(128, 128, 124, 0, Math.PI*2); hctx.fill();
+        // Slight cheek/jaw shadow
+        const cheekGrad = hctx.createRadialGradient(128,128,60,128,128,130);
+        cheekGrad.addColorStop(0,'rgba(0,0,0,0)'); cheekGrad.addColorStop(0.7,'rgba(180,120,80,0.15)'); cheekGrad.addColorStop(1,'rgba(140,90,60,0.35)');
+        hctx.fillStyle = cheekGrad; hctx.fillRect(0,0,256,256);
+        // Mouth
+        hctx.fillStyle = '#8b5e4c'; hctx.beginPath(); hctx.ellipse(128,168,16,8,0,0,Math.PI*2); hctx.fill();
+        hctx.strokeStyle = '#6b3e2c'; hctx.lineWidth = 2; hctx.beginPath(); hctx.ellipse(128,168,16,8,0,0,Math.PI*2); hctx.stroke();
+        // Nostrils
+        hctx.fillStyle = '#8b5e4c'; hctx.beginPath(); hctx.ellipse(118,142,5,6,0.1,0,Math.PI*2); hctx.fill();
+        hctx.beginPath(); hctx.ellipse(138,142,5,6,-0.1,0,Math.PI*2); hctx.fill();
+        const faceTex = new THREE.CanvasTexture(headCanvas); faceTex.colorSpace = THREE.SRGBColorSpace;
+        const kHead = new THREE.Mesh(new THREE.SphereGeometry(0.23, 32, 28), new THREE.MeshStandardMaterial({map: faceTex, roughness: 0.65, color: 0xffffff}));
+        kHead.position.y = 1.88; kHead.castShadow = true; kHead.name = 'kHead'; goalkeeper.add(kHead);
+
+        // --- Nose ---
+        const kNose = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.1, 8, 8), skinDarkM);
+        kNose.position.set(0, 1.84, 0.22); kNose.rotation.x = Math.PI/2; kNose.name = 'kNose'; goalkeeper.add(kNose);
+
+        // --- Eyes ---
+        const kLEye = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 10), eyeWhiteM);
+        kLEye.position.set(-0.08, 1.91, 0.20); kLEye.name = 'kLEye'; goalkeeper.add(kLEye);
+        const kREye = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 10), eyeWhiteM);
+        kREye.position.set(0.08, 1.91, 0.20); kREye.name = 'kREye'; goalkeeper.add(kREye);
+        // Iris
+        const kLIris = new THREE.Mesh(new THREE.SphereGeometry(0.02, 8, 8), irisM);
+        kLIris.position.set(-0.08, 1.91, 0.23); kLIris.name = 'kLIris'; goalkeeper.add(kLIris);
+        const kRIris = new THREE.Mesh(new THREE.SphereGeometry(0.02, 8, 8), irisM);
+        kRIris.position.set(0.08, 1.91, 0.23); kRIris.name = 'kRIris'; goalkeeper.add(kRIris);
+        // Pupils
+        const kLPupil = new THREE.Mesh(new THREE.SphereGeometry(0.012, 6, 6), pupilM);
+        kLPupil.position.set(-0.08, 1.91, 0.24); kLPupil.name = 'kLPupil'; goalkeeper.add(kLPupil);
+        const kRPupil = new THREE.Mesh(new THREE.SphereGeometry(0.012, 6, 6), pupilM);
+        kRPupil.position.set(0.08, 1.91, 0.24); kRPupil.name = 'kRPupil'; goalkeeper.add(kRPupil);
+
+        // --- Eyebrows ---
+        const kLBrow = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.015, 0.025), browM);
+        kLBrow.position.set(-0.08, 1.96, 0.19); kLBrow.rotation.z = 0.08; kLBrow.name = 'kLBrow'; goalkeeper.add(kLBrow);
+        const kRBrow = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.015, 0.025), browM);
+        kRBrow.position.set(0.08, 1.96, 0.19); kRBrow.rotation.z = -0.08; kRBrow.name = 'kRBrow'; goalkeeper.add(kRBrow);
+
+        // --- Hair (multi-sphere for natural shape) ---
+        const hairGroup = new THREE.Group(); hairGroup.name = 'kHairGroup';
+        const hairMain = new THREE.Mesh(new THREE.SphereGeometry(0.24, 20, 16, 0, Math.PI*2, 0, Math.PI*0.55), hairM2);
+        hairMain.position.y = 0; hairGroup.add(hairMain);
+        const hairTop = new THREE.Mesh(new THREE.SphereGeometry(0.20, 16, 12, 0, Math.PI*2, 0, Math.PI*0.4), hairHighlightM);
+        hairTop.position.set(0.02, 0.06, -0.04); hairGroup.add(hairTop);
+        const hairSideL = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 8, 0, Math.PI*2, 0, Math.PI*0.35), hairM2);
+        hairSideL.position.set(-0.18, -0.04, 0); hairGroup.add(hairSideL);
+        const hairSideR = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 8, 0, Math.PI*2, 0, Math.PI*0.35), hairM2);
+        hairSideR.position.set(0.18, -0.04, 0); hairGroup.add(hairSideR);
+        const hairBack = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10, 0, Math.PI*2, 0, Math.PI*0.4), hairM2);
+        hairBack.position.set(0, -0.06, -0.16); hairGroup.add(hairBack);
+        hairGroup.children.forEach(c => { c.castShadow = true; });
+        const kHair2 = hairGroup; kHair2.position.y = 1.98; kHair2.name = 'kHair'; goalkeeper.add(kHair2);
+
+        // --- Goalkeeper Cap ---
+        const capGroup = new THREE.Group();
+        const capDome = new THREE.Mesh(new THREE.SphereGeometry(0.25, 24, 16, 0, Math.PI*2, 0, Math.PI*0.42), capM);
+        capGroup.add(capDome);
+        const capBill = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.04, 0.18), capBillM);
+        capBill.position.set(0, 0.02, 0.18); capBill.rotation.x = -0.35; capGroup.add(capBill);
+        capGroup.position.y = 2.04; capGroup.name = 'kCap'; goalkeeper.add(capGroup);
+
+        // --- Shorts (padded goalkeeping shorts) ---
+        const kShortsHip = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.42, 0.18, 18), padM2);
+        kShortsHip.position.y = 0.60; kShortsHip.name = 'kShortsPad'; goalkeeper.add(kShortsHip);
+        const kShorts2 = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.32, 0.28, 18), shortM);
+        kShorts2.position.y = 0.50; kShorts2.name = 'kShorts'; goalkeeper.add(kShorts2);
+
+        // --- Legs with thigh definition ---
+        const sockM3 = new THREE.MeshStandardMaterial({color: 0xff6d00, roughness: 0.6});
+        const kThighGeo = new THREE.CylinderGeometry(0.14, 0.15, 0.36, 14);
+        const kLLeg = new THREE.Mesh(kThighGeo, sockM3);
+        kLLeg.position.set(-0.19, 0.30, 0); kLLeg.name = 'kLLeg'; goalkeeper.add(kLLeg);
+        const kRLeg = new THREE.Mesh(kThighGeo, sockM3);
+        kRLeg.position.set(0.19, 0.30, 0); kRLeg.name = 'kRLeg'; goalkeeper.add(kRLeg);
+        // Shin guards visible through socks
+        const shinGeo = new THREE.BoxGeometry(0.10, 0.28, 0.09);
+        const kLShin = new THREE.Mesh(shinGeo, padM2);
+        kLShin.position.set(-0.19, 0.28, 0.06); goalkeeper.add(kLShin);
+        const kRShin = new THREE.Mesh(shinGeo, padM2);
+        kRShin.position.set(0.19, 0.28, 0.06); goalkeeper.add(kRShin);
+
+        // --- Knees (pads with more detail) ---
+        const kneeGeo2 = new THREE.SphereGeometry(0.12, 12, 8);
+        const kLKnee = new THREE.Mesh(kneeGeo2, padM2); kLKnee.position.set(-0.19, 0.02, 0.05); kLKnee.scale.set(1, 0.7, 1.15); kLKnee.name = 'kLKnee'; goalkeeper.add(kLKnee);
+        const kRKnee = new THREE.Mesh(kneeGeo2, padM2); kRKnee.position.set(0.19, 0.02, 0.05); kRKnee.scale.set(1, 0.7, 1.15); kRKnee.name = 'kRKnee'; goalkeeper.add(kRKnee);
+
+        // --- Boots (cleat shape) ---
+        function makeBoot(x) {
+            const bg = new THREE.Group();
+            // Boot body
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.10, 0.30), bootM2);
+            body.position.y = 0; bg.add(body);
+            // Sole
+            const sole = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.03, 0.32), bootSoleM);
+            sole.position.y = -0.06; bg.add(sole);
+            // Heel
+            const heel = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.05, 0.08), bootSoleM);
+            heel.position.set(0, -0.04, -0.14); bg.add(heel);
+            // Cleats (4 small studs under sole)
+            const studGeo = new THREE.CylinderGeometry(0.015, 0.02, 0.035, 6);
+            const positions = [[-0.04,-0.08,-0.10],[0.04,-0.08,-0.10],[-0.04,-0.08,0.06],[0.04,-0.08,0.06]];
+            positions.forEach(([sx,sy,sz]) => {
+                const stud = new THREE.Mesh(studGeo, bootSoleM);
+                stud.position.set(sx, sy, sz); bg.add(stud);
+            });
+            bg.position.set(x, 0.018, 0.06);
+            bg.castShadow = true;
+            return bg;
+        }
+        const kLBoot = makeBoot(-0.19); kLBoot.name = 'kLBoot'; goalkeeper.add(kLBoot);
+        const kRBoot = makeBoot(0.19); kRBoot.name = 'kRBoot'; goalkeeper.add(kRBoot);
+
+        // --- Upper arms (long-sleeve kit, wider at shoulder) ---
+        const kShoulderGeo = new THREE.CylinderGeometry(0.12, 0.10, 0.24, 16);
+        const kLShoulder = new THREE.Mesh(kShoulderGeo, kitDarkM);
+        kLShoulder.position.set(-0.48, 1.48, 0); kLShoulder.rotation.z = 0.28; goalkeeper.add(kLShoulder);
+        const kRShoulder = new THREE.Mesh(kShoulderGeo, kitDarkM);
+        kRShoulder.position.set(0.48, 1.48, 0); kRShoulder.rotation.z = -0.28; goalkeeper.add(kRShoulder);
+        const kArmGeo = new THREE.CylinderGeometry(0.095, 0.10, 0.42, 16);
+        const kLUpperArm = new THREE.Mesh(kArmGeo, kitM); kLUpperArm.position.set(-0.50, 1.26, 0); kLUpperArm.rotation.z = 0.35; kLUpperArm.name = 'kLUpperArm'; goalkeeper.add(kLUpperArm);
+        const kRUpperArm = new THREE.Mesh(kArmGeo, kitM); kRUpperArm.position.set(0.50, 1.26, 0); kRUpperArm.rotation.z = -0.35; kRUpperArm.name = 'kRUpperArm'; goalkeeper.add(kRUpperArm);
+
+        // --- Elbows (padded, slightly larger) ---
+        const elbowGeo = new THREE.SphereGeometry(0.09, 10, 10);
+        const kLElbow = new THREE.Mesh(elbowGeo, padM2);
+        kLElbow.position.set(-0.56, 1.08, 0.06); kLElbow.name = 'kLElbow'; goalkeeper.add(kLElbow);
+        const kRElbow = new THREE.Mesh(elbowGeo, padM2);
+        kRElbow.position.set(0.56, 1.08, 0.06); kRElbow.name = 'kRElbow'; goalkeeper.add(kRElbow);
+
+        // --- Forearms (long sleeves extending down) ---
+        const kFArmGeo = new THREE.CylinderGeometry(0.075, 0.082, 0.24, 12);
+        const kLForearm = new THREE.Mesh(kFArmGeo, kitM);
+        kLForearm.position.set(-0.59, 1.07, 0.10); kLForearm.rotation.z = 0.45; kLForearm.name = 'kLForearm'; goalkeeper.add(kLForearm);
+        const kRForearm = new THREE.Mesh(kFArmGeo, kitM);
+        kRForearm.position.set(0.59, 1.07, 0.10); kRForearm.rotation.z = -0.45; kRForearm.name = 'kRForearm'; goalkeeper.add(kRForearm);
+        // Wrist wraps (tape/brand detail)
+        const wristGeo = new THREE.CylinderGeometry(0.078, 0.078, 0.06, 12);
+        const kLWrist = new THREE.Mesh(wristGeo, new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.4}));
+        kLWrist.position.set(-0.63, 0.95, 0.12); kLWrist.rotation.z = 0.45; goalkeeper.add(kLWrist);
+        const kRWrist = new THREE.Mesh(wristGeo, new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.4}));
+        kRWrist.position.set(0.63, 0.95, 0.12); kRWrist.rotation.z = -0.45; goalkeeper.add(kRWrist);
+
+        // --- Glove Group with finger bumps ---
+        function makeGlove(x) {
+            const gg = new THREE.Group();
+            // Palm/main body
+            const palm = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.15, 0.30), gloveM);
+            gg.add(palm);
+            // Back hand (darker)
+            const back = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.13, 0.04), gloveStripM);
+            back.position.z = -0.17; gg.add(back);
+            // Finger bumps (4 cylinders simulating curled fingers)
+            const fingerGeo = new THREE.CylinderGeometry(0.028, 0.032, 0.14, 8);
+            const fingerOffsets = [-0.10, -0.035, 0.035, 0.10];
+            fingerOffsets.forEach(fx => {
+                const f = new THREE.Mesh(fingerGeo, gloveM);
+                f.position.set(fx, 0.08, 0.20); f.rotation.x = Math.PI/2; gg.add(f);
+            });
+            // Thumb
+            const thumb = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 0.10, 8), gloveM);
+            thumb.position.set(x > 0 ? -0.14 : 0.14, 0.03, 0.10);
+            thumb.rotation.set(0, x > 0 ? -0.45 : 0.45, 0.3); gg.add(thumb);
+            gg.position.set(x, 0.92, 0.16);
+            return gg;
+        }
+        const kLGlove = makeGlove(-0.68); kLGlove.name = 'kLGlove'; goalkeeper.add(kLGlove);
+        const kRGlove = makeGlove(0.68); kRGlove.name = 'kRGlove'; goalkeeper.add(kRGlove);
+
+        // --- Jersey number on chest ---
+        const kcv = document.createElement('canvas'); kcv.width = kcv.height = 128;
+        const kctx = kcv.getContext('2d');
+        // Transparent background
+        kctx.clearRect(0,0,128,128);
+        // Number with outline
+        kctx.fillStyle = '#ffffff'; kctx.font = 'bold 80px Arial'; kctx.textAlign = 'center'; kctx.textBaseline = 'middle';
+        kctx.fillText('1', 64, 64);
+        const kNum = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.34), new THREE.MeshBasicMaterial({map: new THREE.CanvasTexture(kcv), transparent: true, depthTest: true, depthWrite: false}));
+        kNum.position.set(0, 1.18, -0.39); kNum.name = 'kNum'; goalkeeper.add(kNum);
+
+        // --- Store all named parts ---
+        goalkeeper.userData = {
+            torso: kTorso, head: kHead, hair: kHair2, shorts: kShorts2,
+            lUpperArm: kLUpperArm, rUpperArm: kRUpperArm,
+            lForearm: kLForearm, rForearm: kRForearm,
+            lGlove: kLGlove, rGlove: kRGlove,
+            lElbow: kLElbow, rElbow: kRElbow,
+            lLeg: kLLeg, rLeg: kRLeg,
+            lKnee: kLKnee, rKnee: kRKnee,
+            lBoot: kLBoot, rBoot: kRBoot,
+            lEye: kLEye, rEye: kREye,
+            lPupil: kLPupil, rPupil: kRPupil,
+            num: kNum,
+            neck: kNeck, nose: kNose, lBrow: kLBrow, rBrow: kRBrow,
+            cap: capGroup, lIris: kLIris, rIris: kRIris,
+            lWrist: kLWrist, rWrist: kRWrist
+        };
+
+        goalkeeper.position.set(0, 0, 0.5);
+        goalKeeperTargetPos.copy(goalkeeper.position);
+        scene.add(goalkeeper);
+    }
+
+    function updateGoalkeeper(dt) {
+        if (!goalkeeper || !state.playing) return;
+        if (state.phase === 'idle' || !state.playing) return;
+
+        const cfg = CONFIG.settings[CONFIG.difficulty];
+        const now = Date.now();
+        const d = goalkeeper.userData;
+        if (!d) return;
+
+        // Determine current keeper animation phase
+        if (state.phase === 'aiming' && !state.shotInProgress) {
+            state.keeperPhase = 'ready';
+        } else if (state.charging && !state.shotInProgress) {
+            // Keeper stays ready during charging — no anticipation delay
+            // Target is set in real-time so keeper tracks the shooter, reacts on shot
+            state.keeperPhase = 'ready';
+            // Real-time tracking: keeper subtly shifts toward aim position
+            const accuracy = cfg.predictionAccuracy;
+            goalKeeperTargetPos.x = state.aimPosition.x * accuracy * 0.5;
+            goalKeeperTargetPos.y = Math.max(0, Math.min(CONFIG.goalHeight * 0.5, state.aimPosition.y * 0.3));
+        } else if (state.shotInProgress && !state.shotStartTime) {
+            // Shot triggered but ball hasn't launched yet (kick animation playing)
+            // Keeper stays ready, tracking the ball — dive happens the instant ball launches
+            state.keeperPhase = 'ready';
+        } else if (state.shotStartTime && !outcomeHandled) {
+            // Ball actually launched — keeper JUMPS at the exact same instant!
+            if (state.keeperPhase !== 'dive') {
+                state.keeperPhase = 'dive';
+                state.keeperAnimTime = now;
+                // Save base position for jump physics
+                state.keeperBaseY = goalkeeper.position.y;
+                state.keeperBaseX = goalkeeper.position.x;
+                // Set aggressive dive target
+                const accuracy = cfg.predictionAccuracy;
+                goalKeeperTargetPos.x = state.aimPosition.x * accuracy + (Math.random() - 0.5) * (1 - accuracy) * CONFIG.goalWidth * 0.8;
+                goalKeeperTargetPos.y = Math.max(0, Math.min(CONFIG.goalHeight * 0.75, state.aimPosition.y - 0.9));
+                // Calculate jump physics: explosive burst up + out
+                const dir = goalKeeperTargetPos.x > 0 ? 1 : -1;
+                const targetY = Math.abs(goalKeeperTargetPos.y) || 0;
+                const isHigh = targetY > CONFIG.goalHeight * 0.45;
+                const isMid = targetY > CONFIG.goalHeight * 0.2 && !isHigh;
+                const jumpHeight = isHigh ? 2.8 : isMid ? 1.8 : 1.1;
+                const jumpTime = 0.55; // jump duration in seconds
+                // Physics: v0 = 2*h/t for upward motion under gravity (g=9.81, but scaled for game feel)
+                const grav = 18; // game gravity for snappy jumps
+                const vy = (2 * jumpHeight) / jumpTime;
+                const vx = dir * 8.5 * (cfg.diveReach || 1.0);
+                const vz = -2.0;
+                state.keeperJumpVel.set(vx, vy, vz);
+            }
+        } else if (outcomeHandled) {
+            // Keeper stays in landing for a bit, then recovers
+            if (state.keeperPhase === 'dive') {
+                state.keeperPhase = 'landing';
+                state.keeperAnimTime = now;
+            }
+            if (state.keeperPhase === 'landing') {
+                const lt = (now - (state.keeperAnimTime || now)) / 1000;
+                if (lt > 0.8) { state.keeperPhase = 'recovering'; state.keeperAnimTime = now; }
+            }
+        }
+
+        // Run the appropriate animation
+        switch (state.keeperPhase) {
+            case 'ready':     animateKeeperReady(d, dt, now); break;
+            case 'anticipate': animateKeeperAnticipate(d, dt, now); break;
+            case 'dive':      animateKeeperDive(d, dt, now, cfg); break;
+            case 'landing':   animateKeeperLanding(d, dt, now); break;
+            case 'recovering': animateKeeperRecovering(d, dt, now); break;
+        }
+    }
+
+    function animateKeeperReady(d, dt, now) {
+        const t = now * 0.002;
+        // Gentle side-to-side weight shift
+        goalkeeper.position.x += (Math.sin(t * 1.2) * 0.35 - goalkeeper.position.x) * 0.04;
+        goalkeeper.position.y += (0 - goalkeeper.position.y) * 0.1;
+        goalkeeper.position.z += (0.5 - goalkeeper.position.z) * 0.08;
+        goalkeeper.rotation.set(0, 0, 0);
+
+        // Subtle arm sway
+        d.lUpperArm.rotation.z += (0.35 + Math.sin(t * 1.5) * 0.06 - d.lUpperArm.rotation.z) * 0.12;
+        d.rUpperArm.rotation.z += (-0.35 + Math.sin(t * 1.5) * 0.06 - d.rUpperArm.rotation.z) * 0.12;
+        d.lUpperArm.rotation.x += (Math.sin(t * 1.1) * 0.03 - d.lUpperArm.rotation.x) * 0.08;
+        d.rUpperArm.rotation.x += (Math.sin(t * 1.1 + Math.PI) * 0.03 - d.rUpperArm.rotation.x) * 0.08;
+        d.lForearm.rotation.z += (0.45 - d.lForearm.rotation.z) * 0.1;
+        d.rForearm.rotation.z += (-0.45 - d.rForearm.rotation.z) * 0.1;
+
+        // Slight crouch
+        d.torso.position.y += (1.12 - d.torso.position.y) * 0.08;
+
+        // Track ball with head
+        if (d.head && ball) {
+            const bpos = ball.position.clone();
+            d.head.lookAt(bpos.x, bpos.y + 0.15, bpos.z);
+        }
+
+        // Reset glove positions
+        d.lGlove.position.set(-0.68, 0.92, 0.16);
+        d.rGlove.position.set(0.68, 0.92, 0.16);
+    }
+
+    function animateKeeperAnticipate(d, dt, now) {
+        const t = (now - (state.keeperAnimTime || now)) / 1000;
+        const dir = goalKeeperTargetPos.x > 0 ? 1 : -1;
+
+        // Move toward target position with increasing urgency
+        const urgency = Math.min(t * 3, 1);
+        goalkeeper.position.x += (goalKeeperTargetPos.x - goalkeeper.position.x) * (0.07 + urgency * 0.18);
+        goalkeeper.position.y += (goalKeeperTargetPos.y * 0.4 - goalkeeper.position.y) * (0.06 + urgency * 0.1);
+        goalkeeper.position.z += (0.45 - goalkeeper.position.z) * 0.06;
+
+        // Slight crouch in anticipation
+        d.torso.position.y += (1.04 - d.torso.position.y) * 0.15;
+
+        // Arms start spreading for dive
+        const spreadX = urgency * 0.25;
+        d.lUpperArm.rotation.z += (0.35 + spreadX * (dir < 0 ? 0.8 : 0) - d.lUpperArm.rotation.z) * 0.15;
+        d.rUpperArm.rotation.z += (-0.35 - spreadX * (dir > 0 ? 0.8 : 0) - d.rUpperArm.rotation.z) * 0.15;
+        d.lUpperArm.rotation.x += (spreadX * 0.3 - d.lUpperArm.rotation.x) * 0.12;
+        d.rUpperArm.rotation.x += (spreadX * 0.3 - d.rUpperArm.rotation.x) * 0.12;
+        d.lForearm.rotation.z += (0.45 + spreadX * (dir < 0 ? 0.6 : 0) - d.lForearm.rotation.z) * 0.15;
+        d.rForearm.rotation.z += (-0.45 + spreadX * (dir > 0 ? -0.6 : 0) - d.rForearm.rotation.z) * 0.15;
+
+        // Gloves start reaching
+        d.lGlove.position.y += ((0.92 + urgency * 0.2) - d.lGlove.position.y) * 0.15;
+        d.rGlove.position.y += ((0.92 + urgency * 0.2) - d.rGlove.position.y) * 0.15;
+
+        // Head tracks ball
+        if (d.head && ball) d.head.lookAt(ball.position.x, ball.position.y + 0.1, ball.position.z);
+
+        // Legs spread slightly
+        d.lLeg.position.x += ((-0.19 - urgency * 0.04 - d.lLeg.position.x) * 0.12);
+        d.rLeg.position.x += ((0.19 + urgency * 0.04 - d.rLeg.position.x) * 0.12);
+        d.lBoot.position.x += ((-0.19 - urgency * 0.04 - d.lBoot.position.x) * 0.12);
+        d.rBoot.position.x += ((0.19 + urgency * 0.04 - d.rBoot.position.x) * 0.12);
+    }
+
+    function animateKeeperDive(d, dt, now, cfg) {
+        const t = (now - (state.keeperAnimTime || now)) / 1000;
+        const dir = goalKeeperTargetPos.x > 0 ? 1 : -1;
+        const grav = 18; // game gravity for snappy jumps
+
+        // Phase 1: Crouch (0 - 0.08s) — loading the jump
+        if (t < 0.08) {
+            const crouchT = t / 0.08;
+            // Squat down
+            goalkeeper.position.y += ((state.keeperBaseY - 0.25 * crouchT) - goalkeeper.position.y) * 0.4;
+            goalkeeper.rotation.z += (dir * 0.08 * crouchT - goalkeeper.rotation.z) * 0.2;
+            d.torso.position.y += (0.98 - d.torso.position.y) * 0.3;
+            d.lLeg.rotation.z += (dir * -0.1 * crouchT - d.lLeg.rotation.z) * 0.2;
+            d.rLeg.rotation.z += (dir * -0.1 * crouchT - d.rLeg.rotation.z) * 0.2;
+            return;
+        }
+
+        // Phase 2: Explosive jump (0.08s onward) — velocity-based physics
+        const jumpT = t - 0.08;
+
+        // Apply gravity to velocity
+        state.keeperJumpVel.y -= grav * dt;
+
+        // Update position from velocity
+        goalkeeper.position.x += state.keeperJumpVel.x * dt;
+        goalkeeper.position.y += state.keeperJumpVel.y * dt;
+        goalkeeper.position.z += state.keeperJumpVel.z * dt;
+
+        // Clamp Z — keeper stays forward of goal line
+        goalkeeper.position.z = Math.max(0.15, goalkeeper.position.z);
+
+        // Body rotation — horizontal dive, proportional to speed
+        const rotTarget = dir * 1.3;
+        goalkeeper.rotation.z += (rotTarget - goalkeeper.rotation.z) * 0.3;
+        // Slight forward tilt
+        goalkeeper.rotation.x += (0.15 - goalkeeper.rotation.x) * 0.2;
+
+        // Arms stretched fully toward dive direction
+        const armExt = Math.min(jumpT * 12, 1.0);
+        d.lUpperArm.rotation.z += ((dir < 0 ? -1.5 : 0.55) * armExt - d.lUpperArm.rotation.z) * 0.35;
+        d.rUpperArm.rotation.z += ((dir > 0 ? 1.5 : -0.55) * armExt - d.rUpperArm.rotation.z) * 0.35;
+        d.lUpperArm.rotation.x += (1.0 * armExt - d.lUpperArm.rotation.x) * 0.3;
+        d.rUpperArm.rotation.x += (1.0 * armExt - d.rUpperArm.rotation.x) * 0.3;
+        d.lUpperArm.rotation.y += ((-dir * 0.6 * armExt) - d.lUpperArm.rotation.y) * 0.25;
+        d.rUpperArm.rotation.y += ((-dir * 0.6 * armExt) - d.rUpperArm.rotation.y) * 0.25;
+        d.lForearm.rotation.z += ((dir < 0 ? -1.0 : 0.7) * armExt - d.lForearm.rotation.z) * 0.35;
+        d.rForearm.rotation.z += ((dir > 0 ? 1.0 : -0.7) * armExt - d.rForearm.rotation.z) * 0.35;
+
+        // Gloves reach out
+        const gx = dir * 2.7 * armExt;
+        const gy = Math.max(0, state.keeperJumpVel.y) * 0.06 * armExt;
+        d.lGlove.position.x += ((dir < 0 ? gx : -0.68 + gx * 0.2) - d.lGlove.position.x) * 0.35;
+        d.rGlove.position.x += ((dir > 0 ? gx : 0.68 + gx * 0.2) - d.rGlove.position.x) * 0.35;
+        d.lGlove.position.y += ((0.92 + gy) - d.lGlove.position.y) * 0.35;
+        d.rGlove.position.y += ((0.92 + gy) - d.rGlove.position.y) * 0.35;
+        d.lGlove.position.z += ((0.16 + armExt * 0.4) - d.lGlove.position.z) * 0.3;
+        d.rGlove.position.z += ((0.16 + armExt * 0.4) - d.rGlove.position.z) * 0.3;
+
+        // Legs kick back
+        d.lLeg.rotation.z += (dir * 0.9 * armExt - d.lLeg.rotation.z) * 0.25;
+        d.rLeg.rotation.z += (dir * 0.9 * armExt - d.rLeg.rotation.z) * 0.25;
+        d.lLeg.position.y += (0.18 + armExt * 0.45 - d.lLeg.position.y) * 0.25;
+        d.rLeg.position.y += (0.18 + armExt * 0.45 - d.rLeg.position.y) * 0.25;
+
+        // Torso rotates for dive
+        d.torso.rotation.z += (dir * 1.0 * armExt - d.torso.rotation.z) * 0.25;
+
+        // Head looks at ball
+        if (d.head && ball && state.shotInProgress) {
+            d.head.lookAt(ball.position.x, ball.position.y, ball.position.z);
+        }
+
+        // Check if keeper has landed (Y back at or below base)
+        if (goalkeeper.position.y <= state.keeperBaseY) {
+            goalkeeper.position.y = state.keeperBaseY;
+            state.keeperJumpVel.y = 0;
+        }
+    }
+
+    function animateKeeperLanding(d, dt, now) {
+        const t = (now - (state.keeperAnimTime || now)) / 1000;
+        const ease = Math.min(t * 2.5, 1.0);
+
+        // Settle on ground
+        goalkeeper.position.y += ((0.05 * ease) - goalkeeper.position.y) * 0.18;
+        goalkeeper.position.x += ((goalkeeper.position.x * 0.85) - goalkeeper.position.x) * 0.1;
+        goalkeeper.position.z += ((0.4 + ease * 0.08) - goalkeeper.position.z) * 0.12;
+
+        // Gradually flatten rotation
+        goalkeeper.rotation.z *= 0.85;
+        goalkeeper.rotation.x *= 0.85;
+
+        // Body settles
+        d.torso.rotation.z *= 0.82;
+        d.torso.rotation.x *= 0.82;
+
+        // Arms fall slightly
+        d.lUpperArm.rotation.z *= 0.88;
+        d.rUpperArm.rotation.z *= 0.88;
+        d.lUpperArm.rotation.x *= 0.88;
+        d.rUpperArm.rotation.x *= 0.88;
+        d.lForearm.rotation.z *= 0.88;
+        d.rForearm.rotation.z *= 0.88;
+
+        // Gloves come back in
+        d.lGlove.position.x += (-0.68 - d.lGlove.position.x) * 0.15;
+        d.rGlove.position.x += (0.68 - d.rGlove.position.x) * 0.15;
+        d.lGlove.position.y += (0.92 - d.lGlove.position.y) * 0.15;
+        d.rGlove.position.y += (0.92 - d.rGlove.position.y) * 0.15;
+
+        // Legs settle
+        d.lLeg.rotation.z *= 0.85;
+        d.rLeg.rotation.z *= 0.85;
+        d.lLeg.position.y += (0.18 - d.lLeg.position.y) * 0.12;
+        d.rLeg.position.y += (0.18 - d.rLeg.position.y) * 0.12;
+
+        // Transition to recovering
+        if (t > 0.8) {
+            state.keeperPhase = 'recovering';
+            state.keeperAnimTime = now;
+        }
+    }
+
+    function animateKeeperRecovering(d, dt, now) {
+        const t = (now - (state.keeperAnimTime || now)) / 1000;
+        const ease = Math.min(t * 1.5, 1.0);
+
+        // Get up
+        goalkeeper.position.y += (0 - goalkeeper.position.y) * (0.06 + ease * 0.08);
+        goalkeeper.position.x += (0 - goalkeeper.position.x) * (0.06 + ease * 0.08);
+        goalkeeper.position.z += (0.5 - goalkeeper.position.z) * 0.1;
+        goalkeeper.rotation.set(0, 0, 0);
+
+        // Reset all body parts
+        const spd = 0.08 + ease * 0.12;
+        d.torso.position.y += (1.14 - d.torso.position.y) * spd;
+        d.torso.rotation.set(0, 0, 0);
+
+        d.lUpperArm.rotation.z += (0.35 - d.lUpperArm.rotation.z) * spd;
+        d.rUpperArm.rotation.z += (-0.35 - d.rUpperArm.rotation.z) * spd;
+        d.lUpperArm.rotation.x *= 0.85;
+        d.rUpperArm.rotation.x *= 0.85;
+        d.lUpperArm.rotation.y *= 0.85;
+        d.rUpperArm.rotation.y *= 0.85;
+
+        d.lForearm.rotation.z += (0.45 - d.lForearm.rotation.z) * spd;
+        d.rForearm.rotation.z += (-0.45 - d.rForearm.rotation.z) * spd;
+
+        d.lGlove.position.x += (-0.68 - d.lGlove.position.x) * spd;
+        d.rGlove.position.x += (0.68 - d.rGlove.position.x) * spd;
+        d.lGlove.position.y += (0.92 - d.lGlove.position.y) * spd;
+        d.rGlove.position.y += (0.92 - d.rGlove.position.y) * spd;
+        d.lGlove.position.z += (0.16 - d.lGlove.position.z) * spd;
+        d.rGlove.position.z += (0.16 - d.rGlove.position.z) * spd;
+
+        d.lLeg.rotation.z *= 0.85;
+        d.rLeg.rotation.z *= 0.85;
+        d.lLeg.position.x += (-0.19 - d.lLeg.position.x) * spd;
+        d.rLeg.position.x += (0.19 - d.rLeg.position.x) * spd;
+        d.lLeg.position.y += (0.18 - d.lLeg.position.y) * spd;
+        d.rLeg.position.y += (0.18 - d.rLeg.position.y) * spd;
+        d.lElbow.position.x += (-0.56 - d.lElbow.position.x) * spd;
+        d.rElbow.position.x += (0.56 - d.rElbow.position.x) * spd;
+        d.lKnee.position.x += (-0.19 - d.lKnee.position.x) * spd;
+        d.rKnee.position.x += (0.19 - d.rKnee.position.x) * spd;
+        d.lBoot.position.x += (-0.19 - d.lBoot.position.x) * spd;
+        d.rBoot.position.x += (0.19 - d.rBoot.position.x) * spd;
+        d.lBoot.position.y += (0.022 - d.lBoot.position.y) * spd;
+        d.rBoot.position.y += (0.022 - d.rBoot.position.y) * spd;
+
+        if (t > 1.0 && Math.abs(goalkeeper.position.x) < 0.05) {
+            resetGoalie();
+            state.keeperPhase = 'ready';
+        }
+    }
+
+    // Ball deflection when keeper saves
+    function deflectBallOnSave() {
+        if (!ball || !goalkeeper) return;
+        // Push ball away from where the keeper is, with upward deflection
+        goalkeeper.updateWorldMatrix(true, false);
+        const kp = new THREE.Vector3();
+        goalkeeper.getWorldPosition(kp);
+        const away = new THREE.Vector3().subVectors(ball.position, kp).normalize();
+        away.y = Math.max(away.y, 0.2); // always some upward bounce
+        away.z = Math.max(away.z, 0.2); // always away from goal
+        ballVel.copy(away.multiplyScalar(ballVel.length() * 0.55 + 4));
+        ballSpin.set((Math.random() - 0.5) * 20, (Math.random() - 0.5) * 15, (Math.random() - 0.5) * 12);
+        // Push ball back slightly so it doesn't go in
+        ball.position.z = Math.max(ball.position.z, 1.2);
+        ball.position.y += 0.15;
+    }
+
+    function resetGoalie() {
+        if (!goalkeeper) return;
+        goalkeeper.position.set(0, 0, 0.5);
+        goalkeeper.rotation.set(0, 0, 0);
+        goalKeeperTargetPos.set(0, 0, 0.5);
+        state.goalieReacted = false;
+        state.chargeStartTime = 0;
+        state.keeperPhase = 'ready';
+        state.keeperAnimTime = 0;
+        state.keeperHasSaved = false;
+        state.keeperJumpVel.set(0, 0, 0);
+        state.keeperBaseY = 0;
+        state.keeperBaseX = 0;
+
+        const d = goalkeeper.userData;
+        if (!d) return;
+        // Reset torso
+        if (d.torso) { d.torso.position.y = 1.14; d.torso.rotation.set(0, 0, 0); }
+        // Reset arms
+        if (d.lUpperArm) { d.lUpperArm.rotation.set(0, 0, 0.35); d.lUpperArm.position.set(-0.50, 1.26, 0); }
+        if (d.rUpperArm) { d.rUpperArm.rotation.set(0, 0, -0.35); d.rUpperArm.position.set(0.50, 1.26, 0); }
+        if (d.lForearm) { d.lForearm.rotation.set(0, 0, 0.45); d.lForearm.position.set(-0.59, 1.07, 0.10); }
+        if (d.rForearm) { d.rForearm.rotation.set(0, 0, -0.45); d.rForearm.position.set(0.59, 1.07, 0.10); }
+        if (d.lGlove) { d.lGlove.position.set(-0.68, 0.92, 0.16); d.lGlove.rotation.set(0, 0, 0); }
+        if (d.rGlove) { d.rGlove.position.set(0.68, 0.92, 0.16); d.rGlove.rotation.set(0, 0, 0); }
+        if (d.lElbow) d.lElbow.position.set(-0.56, 1.08, 0.06);
+        if (d.rElbow) d.rElbow.position.set(0.56, 1.08, 0.06);
+        // Reset legs
+        if (d.lLeg) { d.lLeg.rotation.set(0, 0, 0); d.lLeg.position.set(-0.19, 0.18, 0); }
+        if (d.rLeg) { d.rLeg.rotation.set(0, 0, 0); d.rLeg.position.set(0.19, 0.18, 0); }
+        if (d.lKnee) d.lKnee.position.set(-0.19, 0.02, 0.04);
+        if (d.rKnee) d.rKnee.position.set(0.19, 0.02, 0.04);
+        if (d.lBoot) { d.lBoot.position.set(-0.19, 0.022, 0.06); d.lBoot.rotation.set(0, 0, 0); }
+        if (d.rBoot) { d.rBoot.position.set(0.19, 0.022, 0.06); d.rBoot.rotation.set(0, 0, 0); }
+        // Reset head
+        if (d.head) d.head.rotation.set(0, 0, 0);
+    }
+
+
+    // ---- Camera ----
+    function updateCamera() {
+        if(cameraShake > 0.01) { cameraShake *= 0.88; camera.position.x += (Math.random()-0.5)*cameraShake*0.6; camera.position.y += (Math.random()-0.5)*cameraShake*0.6; }
+        else cameraShake = 0;
+        camera.position.lerp(camTargetPos, 0.05);
+        camera.lookAt(camLookAt.clone().lerp(new THREE.Vector3(0,1.2,0), 0.03));
+    }
+
+    function setCam(v) {
+        switch(v) {
+            case 'default': camTargetPos.set(0, 3.8, 14.5); camLookAt.set(0, 1.0, 8); break;
+            case 'behind':  camTargetPos.set(0, 4.5, 16); camLookAt.set(0, 1.5, 5); break;
+            case 'side':    camTargetPos.set(14, 4.2, 6); camLookAt.set(0, 1.2, 4); break;
+            case 'goal':    camTargetPos.set(0, 3.2, -6); camLookAt.set(0, 1.3, 7); break;
+        }
+    }
+
+    // ---- Input ----
+    function onMouseMove(e) {
+        if (!state.playing || !state.canShoot || state.shotInProgress) return;
+        const cross = document.getElementById('aim-crosshair');
+        cross.style.left = e.clientX + 'px'; cross.style.top = e.clientY + 'px';
+        const nx = (e.clientX/window.innerWidth)*2 - 1, ny = -(e.clientY/window.innerHeight)*2 + 1;
+        let gx = nx * (CONFIG.goalWidth/2 - 0.15), gy = (ny*0.5 + 0.5) * CONFIG.goalHeight * 0.86;
+        state.aimPosition.set(Math.max(-CONFIG.goalWidth/2+0.25, Math.min(CONFIG.goalWidth/2-0.25, gx)), Math.max(0.25, Math.min(CONFIG.goalHeight-0.15, gy)), 0);
+        if(aimLine) aimLine.visible = true;
+    }
+
+    function onMouseDown(e) {
+        if (e.button !== 0 || !state.playing || !state.canShoot || state.shotInProgress) return;
+        mouseDown = true; state.charging = true;
+        state.currentPower = 0; state.powerDir = 1; state.phase = 'charging';
+        state.chargeStartTime = Date.now(); state.goalieReacted = false;
+
+        // Start player run-up animation
+        state.playerAnimPhase = 'approach';
+        state.playerAnimTime = Date.now();
+        state.playerApproachZ = 0;
+
+        document.getElementById('instructions').classList.add('hidden-ui');
+        document.getElementById('goal-line-glow').classList.add('active');
+        if(aimLine) aimLine.visible = true;
+    }
+
+    function onMouseUp(e) {
+        if (e.button !== 0 || !mouseDown) return;
+        mouseDown = false; state.charging = false;
+        document.getElementById('goal-line-glow').classList.remove('active');
+
+        if(state.playing && state.canShoot && !state.shotInProgress) {
+            // Store the power for the kick animation
+            state.playerKickPower = state.currentPower;
+            state.shotInProgress = true; // Prevent further input
+            state.canShoot = false;
+
+            // If player is still approaching, let them finish approach then kick
+            // If player has finished approach (or close enough), transition to kick
+            if (state.playerApproachZ > 0.85) {
+                // Already at the ball - transition to kick immediately
+                state.playerAnimPhase = 'kick';
+                state.playerAnimTime = Date.now();
+                state.playerApproachZ = 1.0;
+                if (playerGroup) playerGroup.position.z = CONFIG.penaltySpotZ + 0.6;
+            }
+            // Otherwise, approach animation still running - it will auto-transition to kick
+            state.ballLaunchPending = true;
+
+            document.getElementById('aim-crosshair').classList.add('hidden-ui');
+            if(aimLine) aimLine.visible = false;
+            document.getElementById('power-bar-container').classList.add('hidden-ui');
+        }
+    }
+
+    function onResize() {
+        if(!camera || !renderer) return;
+        camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // ---- Power Bar ----
+    function updatePowerBar() {
+        if(!state.charging) return;
+        state.currentPower += state.powerDir * 0.024;
+        if(state.currentPower >= 1) { state.currentPower = 1; state.powerDir = -1; }
+        else if(state.currentPower <= 0) { state.currentPower = 0; state.powerDir = 1; }
+        const bar = document.getElementById('power-bar');
+        if(bar) bar.style.width = (state.currentPower*100)+'%';
+    }
+
+    // ---- Ball Physics ----
+    function updateBallPhysics(dt) {
+        if(!state.shotInProgress || !ball || outcomeHandled) return;
+        const dt2 = Math.min(dt, 0.033);
+        ballVel.y += CONFIG.gravity * dt2;
+        ball.position.addScaledVector(ballVel, dt2);
+        ballVel.x += ballSpin.y * dt2 * 0.42;
+        ballVel.y -= ballSpin.x * dt2 * 0.26;
+        const rotSpd = 3.0;
+        ball.rotation.x += ballVel.z * dt2 * rotSpd;
+        ball.rotation.z -= ballVel.x * dt2 * rotSpd;
+
+        // Trail
+        if(ballTrailGroup) {
+            for (let i = ballTrailGroup.children.length - 1; i > 0; i--) {
+                ballTrailGroup.children[i].position.copy(ballTrailGroup.children[i-1].position);
+                ballTrailGroup.children[i].visible = ballTrailGroup.children[i-1].visible;
+                ballTrailGroup.children[i].material.opacity = Math.max(0, ballTrailGroup.children[i-1].material.opacity * 0.7);
+            }
+            ballTrailGroup.children[0].position.copy(ball.position);
+            ballTrailGroup.children[0].visible = true;
+            ballTrailGroup.children[0].material.opacity = 0.12 + (state.playerKickPower || state.currentPower) * 0.1;
+            ballTrailGroup.visible = true;
+        }
+
+        // Arrow
+        if(ballDirectionArrow && ballDirectionArrow.visible) {
+            ballDirectionArrow.position.copy(ball.position);
+            if(ballVel.length() > 0.1) {
+                ballDirectionArrow.quaternion.slerp(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, -1), ballVel.clone().normalize()), 0.15);
+            }
+        }
+        checkGoalOrMiss();
+    }
+
+    // ===== Physical touch detection: ball vs keeper body parts =====
+    function doesBallTouchKeeper(bp, d) {
+        const br = CONFIG.ballRadius;
+        const tmp = new THREE.Vector3();
+
+        // Ensure world matrices are current after this frame's animation
+        goalkeeper.updateWorldMatrix(true, false);
+
+        // Helper: distance from ball center to a body part's world center
+        function hit(part, partRad) {
+            if (!part) return false;
+            part.getWorldPosition(tmp);
+            return bp.distanceTo(tmp) < br + partRad;
+        }
+
+        // Check all body parts with their approximate radii
+        return hit(d.lGlove, 0.26)      // gloves (box 0.28x0.16x0.32 → ~0.16 + margin)
+            || hit(d.rGlove, 0.26)
+            || hit(d.head, 0.22)        // head sphere
+            || hit(d.torso, 0.38)       // torso cylinder
+            || hit(d.lUpperArm, 0.10)   // upper arm cylinder
+            || hit(d.rUpperArm, 0.10)
+            || hit(d.lForearm, 0.08)    // forearm cylinder
+            || hit(d.rForearm, 0.08)
+            || hit(d.lElbow, 0.08)      // elbow sphere
+            || hit(d.rElbow, 0.08)
+            || hit(d.lLeg, 0.13)        // leg cylinder
+            || hit(d.rLeg, 0.13)
+            || hit(d.lKnee, 0.11)       // knee pad
+            || hit(d.rKnee, 0.11)
+            || hit(d.lBoot, 0.12)       // boot box
+            || hit(d.rBoot, 0.12);
+    }
+
+    function checkGoalOrMiss() {
+        // Only run when the ball has actually been launched (shotStartTime is set in launchBallPhysics)
+        if(outcomeHandled || !ball || !state.shotStartTime) return;
+        // Ball must be in flight for at least 200ms — prevents false goals from unlaunched ball
+        if((Date.now() - state.shotStartTime) < 200) return;
+        const bp = ball.position, pr = CONFIG.postRadius + 0.03, br = CONFIG.ballRadius;
+
+        // Left post
+        const lp = new THREE.Vector3(-CONFIG.goalWidth/2, CONFIG.goalHeight/2, 0);
+        if(bp.distanceTo(lp) < br + pr && !postCollisionDone) { bounceOffPost(lp, pr); postCollisionDone = true; playSound('post'); cameraShake = 1.2; return; }
+        // Right post
+        const rp = new THREE.Vector3(CONFIG.goalWidth/2, CONFIG.goalHeight/2, 0);
+        if(bp.distanceTo(rp) < br + pr && !postCollisionDone) { bounceOffPost(rp, pr); postCollisionDone = true; playSound('post'); cameraShake = 1.2; return; }
+        // Crossbar
+        if(bp.y >= CONFIG.goalHeight - br - pr && bp.y <= CONFIG.goalHeight + br + 0.5 && Math.abs(bp.x) < CONFIG.goalWidth/2 + br && bp.z > -br && bp.z < br + 0.5 && !postCollisionDone) {
+            ballVel.y *= -0.58; ballVel.x += (Math.random()-0.5)*3.5; ballVel.z *= 0.68;
+            ball.position.y = CONFIG.goalHeight - br - pr - 0.01; postCollisionDone = true; playSound('post'); cameraShake = 1.4; return;
+        }
+
+        // Crosses goal line
+        if(bp.z <= 0.55) {
+            const inGX = Math.abs(bp.x) < CONFIG.goalWidth/2 - br - 0.08;
+            const inGY = bp.y > -br && bp.y < CONFIG.goalHeight + br + 0.08;
+            const inGZ = bp.z > -1.8;
+            if(inGX && inGY && inGZ) {
+                if(goalkeeper && !outcomeHandled) {
+                    // Real physical touch detection: check ball against every body part
+                    const d = goalkeeper.userData;
+                    if (d && doesBallTouchKeeper(bp, d)) {
+                        handleSave(); return;
+                    }
+                }
+                handleGoal();
+            } else { handleMiss(); }
+        }
+
+        if(bp.y < br && bp.z > 1.5 && ballVel.y < -0.8 && groundBounceCount < 3) {
+            ballVel.y *= -0.36; ballVel.x *= 0.65; ballVel.z *= 0.65; bp.y = br + 0.01; groundBounceCount++;
+        }
+        if(bp.z < -6 || bp.y < -3) { handleMiss(); return; }
+        if(Math.abs(bp.x) > CONFIG.goalWidth/2 + 4 && bp.z < 4) { handleMiss(); return; }
+        if(ballVel.length() < 0.3 && state.shotInProgress && (Date.now()-state.shotStartTime)>2500) { handleMiss(); return; }
+    }
+
+    function bounceOffPost(postPos, radius) {
+        if(!ball) return;
+        const normal = new THREE.Vector3().subVectors(ball.position, postPos).normalize();
+        const dot = ballVel.dot(normal);
+        if(isNaN(dot) || dot===0) return;
+        ballVel.sub(normal.clone().multiplyScalar(2 * dot)); ballVel.scaleScalar(0.52);
+        ball.position.addScaledVector(normal, CONFIG.ballRadius + radius + 0.03);
+    }
+
+    // ---- Outcomes ----
+    function handleGoal() {
+        if(outcomeHandled) return; outcomeHandled = true;
+        state.playerScore++; state.streak++; state.totalGoals++;
+        if(state.streak > state.bestStreak) state.bestStreak = state.streak;
+
+        // Stop the ball inside the net — freeze velocity and lock position
+        ballVel.set(0, 0, 0);
+        ballSpin.set(0, 0, 0);
+        ball.position.set(
+            Math.max(-CONFIG.goalWidth/2 + 0.35, Math.min(CONFIG.goalWidth/2 - 0.35, ball.position.x)),
+            Math.max(0.1, Math.min(CONFIG.goalHeight - 0.35, ball.position.y)),
+            -0.65
+        );
+        state.shotInProgress = false;
+
+        // Keeper dove but missed — land and recover
+        if (state.keeperPhase === 'dive') {
+            state.keeperPhase = 'landing'; state.keeperAnimTime = Date.now();
+        }
+
+        // Trigger net ripple at ball hit position
+        triggerNetRipple(ball.position.clone(), 0.55);
+
+        // Player celebrate
+        state.playerAnimPhase = 'celebrate'; state.playerAnimTime = Date.now();
+
+        showMessage('⚽ GOAL!', 'goal-text'); celebrate();
+        cameraShake = 1.8; goalFlashEffect();
+        playSound('goal'); scorePop('player'); updateUI();
+        if (fansGroup) animateFans(null, 2.0);
+        setTimeout(nextShot, 2400);
+    }
+
+    function handleSave() {
+        if(outcomeHandled) return; outcomeHandled = true;
+        state.goalieScore++; state.streak = 0;
+        state.keeperPhase = 'landing'; state.keeperAnimTime = Date.now();
+        deflectBallOnSave();
+        showMessage('💪 SAVED!', 'save-text');
+        cameraShake = 1.0; playSound('save'); scorePop('goalie'); updateUI();
+        if (fansGroup) animateFans(null, 0.7);
+        setTimeout(nextShot, 2500);
+    }
+
+    function handleMiss() {
+        if(outcomeHandled) return; outcomeHandled = true;
+        state.streak = 0;
+        showMessage('❌ MISSED!', 'miss-text');
+        playSound('miss'); updateUI();
+        if (fansGroup) animateFans(null, 0.3);
+        setTimeout(nextShot, 2000);
+    }
+
+    function showMessage(text, cls) {
+        const el = document.getElementById('message-display'); if(!el) return;
+        el.textContent = text; el.className = (cls||'') + ' show';
+        setTimeout(() => el.classList.remove('show'), 1900);
+    }
+
+    function scorePop(which) {
+        const el = document.getElementById(which+'-score'); if(!el) return;
+        el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+    }
+
+    function goalFlashEffect() {
+        const f = document.getElementById('goal-flash'); if(!f) return;
+        f.style.animation = 'none'; void f.offsetHeight; f.style.animation = 'goalFlash 0.7s ease-out forwards';
+    }
+
+    function updateUI() {
+        const ps = document.getElementById('player-score'), gs = document.getElementById('goalie-score');
+        if(ps) ps.textContent = state.playerScore; if(gs) gs.textContent = state.goalieScore;
+        const cc = document.getElementById('combo-counter'); if(!cc) return;
+        if(state.streak >= 2) { cc.classList.remove('hidden-ui'); cc.style.opacity = '1'; document.getElementById('streak-count').textContent = state.streak; document.getElementById('streak-fire').textContent = '🔥'.repeat(Math.min(state.streak, 5)); }
+        else cc.style.opacity = '0';
+    }
+
+    function nextShot() {
+        state.currentShot++;
+        state.shotInProgress = false; state.canShoot = true; state.phase = 'aiming';
+        state.currentPower = 0; state.charging = false; state.goalieReacted = false;
+        outcomeHandled = false; postCollisionDone = false; groundBounceCount = 0;
+        state.ballLaunchPending = false; state.playerApproachZ = 0;
+
+        if(state.currentShot > CONFIG.totalShots) { endGame(); return; }
+        resetBall(); resetGoalie(); resetPlayerPosition();
+        state.playerAnimPhase = 'returning'; state.playerAnimTime = Date.now();
+        // Let returning animation play briefly, then go to idle
+        setTimeout(() => { if (state.playerAnimPhase === 'returning') { resetPlayerPosition(); state.playerAnimPhase = 'idle'; } }, 600);
+
+        ['aim-crosshair','power-bar-container'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('hidden-ui'); });
+        document.getElementById('power-bar').style.width = '0%';
+        document.getElementById('shot-indicator').textContent = `Shot ${state.currentShot} of ${CONFIG.totalShots}`;
+        document.getElementById('round-info').textContent = `Round ${state.currentShot}/${CONFIG.totalShots}`;
+        setCam('default');
+    }
+
+    // ---- Confetti ----
+    function celebrate() {
+        if(!scene) return;
+        const cols = [0xff1744, 0x00e676,0x2979ff, 0xffea00, 0xe040fb, 0x00e5ff, 0xffd600, 0xff6e40];
+        for(let i = 0; i < 150; i++) {
+            const p = new THREE.Mesh(new THREE.BoxGeometry(0.05+Math.random()*0.08, 0.05+Math.random()*0.08, 0.012+Math.random()*0.008), new THREE.MeshBasicMaterial({ color: cols[Math.floor(Math.random()*cols.length)], transparent: true, opacity: 1 }));
+            if(ball) p.position.copy(ball.position); else p.position.set(0,1,5);
+            p.position.y += 1.3;
+            p.userData.vel = new THREE.Vector3((Math.random()-0.5)*12, 7+Math.random()*9, (Math.random()-0.5)*12);
+            p.userData.life = 1.0; scene.add(p); confettiParticles.push(p);
+        }
+    }
+
+    function updateParticles(dt) {
+        for(let i = confettiParticles.length-1; i >= 0; i--) {
+            const p = confettiParticles[i]; p.userData.vel.y -= 14*dt;
+            p.position.addScaledVector(p.userData.vel, dt); p.rotation.x += dt*5; p.rotation.y += dt*7;
+            p.userData.life -= dt*0.45; p.material.opacity = Math.max(0, p.userData.life);
+            if(p.userData.life <= 0) { if(scene && p.parent === scene) scene.remove(p); confettiParticles.splice(i, 1); }
+        }
+    }
+
+    // ---- Audio ----
+    let audioCtx = null;
+    function initAudio() { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { audioCtx=null; } }
+
+    function playSound(type) {
+        if(!audioCtx) return;
+        try {
+            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination); const t = audioCtx.currentTime;
+            switch(type) {
+                case 'goal': osc.type='sawtooth'; osc.frequency.setValueAtTime(260,t); osc.frequency.exponentialRampToValueAtTime(880,t+0.12); osc.frequency.exponentialRampToValueAtTime(400,t+0.3); gain.gain.setValueAtTime(0.3,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.55); osc.start(t); osc.stop(t+0.55); break;
+                case 'save': osc.type='square'; osc.frequency.setValueAtTime(180,t); osc.frequency.exponentialRampToValueAtTime(80,t+0.25); gain.gain.setValueAtTime(0.24,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.35); osc.start(t); osc.stop(t+0.35); break;
+                case 'miss': osc.type='sine'; osc.frequency.setValueAtTime(360,t); osc.frequency.exponentialRampToValueAtTime(70,t+0.4); gain.gain.setValueAtTime(0.18,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.45); osc.start(t); osc.stop(t+0.45); break;
+                case 'post': osc.type='triangle'; osc.frequency.setValueAtTime(650,t); osc.frequency.exponentialRampToValueAtTime(100,t+0.14); gain.gain.setValueAtTime(0.38,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.22); osc.start(t); osc.stop(t+0.22); break;
+                case 'whistle': osc.type='sine'; osc.frequency.setValueAtTime(2100,t); gain.gain.setValueAtTime(0.14,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.5); osc.start(t); osc.stop(t+0.5); break;
+            }
+        } catch(e) {}
+    }
+
+    // ---- Game Flow ----
+    function startGame() {
+        state.playing = false; state.charging = false; state.canShoot = false; state.shotInProgress = false;
+        state.playerScore = 0; state.goalieScore = 0; state.currentShot = 1; state.streak = 0;
+        state.bestStreak = 0; state.totalGoals = 0; state.currentPower = 0; state.phase = 'aiming';
+        state.goalieReacted = false; outcomeHandled = false;
+        state.playerAnimPhase = 'idle'; state.playerAnimTime = 0; state.playerApproachZ = 0;
+        keysPressed.clear();
+
+        document.getElementById('start-screen').classList.add('hidden-start');
+        document.getElementById('gameCanvas').classList.add('active');
+
+        resetBall(); resetGoalie(); resetPlayerPosition();
+        initAudio(); playSound('whistle');
+
+        // Start drone flyover intro
+        state.droneActive = true; state.droneStartTime = performance.now() / 1000;
+        camera.position.copy(droneWaypoints[0].pos);
+        camera.lookAt(droneWaypoints[0].lookAt);
+    }
+
+    function endGame() {
+        state.playing = false; let txt, cls;
+        const WIN_THRESHOLD = 4; // need 4+ goals to win
+        if(state.playerScore >= WIN_THRESHOLD) { cls = 'goal-text'; txt = state.playerScore === CONFIG.totalShots ? `🏆 PERFECT!\n${state.playerScore} − ${state.goalieScore}` : `🎉 YOU WIN!\n${state.playerScore} − ${state.goalieScore}`; }
+        else if(state.playerScore >= 2) { cls = 'miss-text'; txt = `😔 NOT ENOUGH\n${state.playerScore} − ${state.goalieScore}\nNeed ${WIN_THRESHOLD}+ goals to win!`; }
+        else { cls = 'save-text'; txt = `😤 DEFEAT\n${state.playerScore} − ${state.goalieScore}`; }
+        txt += `\n\nBest Streak: ${state.bestStreak}x 🔥\nTotal Goals: ${state.totalGoals}`;
+        showMessage(txt, cls); setTimeout(() => showEndScreen(txt, cls), 4000);
+    }
+
+    function showEndScreen(txt, cls) {
+        const ss = document.getElementById('start-screen'); if(!ss) return;
+        ss.classList.remove('hidden-start'); document.getElementById('gameCanvas').classList.remove('active');
+        const h1 = ss.querySelector('h1');
+        if(h1) { if(txt.includes('WIN') || txt.includes('PERFECT')) h1.textContent = '🏆 CHAMPION!'; else if(txt.includes('DEFEAT')) h1.textContent = '😢 GAME OVER'; else if(txt.includes('DRAW')) h1.textContent = '🤝 FINAL WHISTLE'; else h1.textContent = '😔 SO CLOSE!'; }
+        const btn = ss.querySelector('#start-btn'); if(btn) btn.textContent = '🔄 PLAY AGAIN';
+        const sub = ss.querySelector('.subtitle'); if(sub) sub.innerHTML = `${txt.replace(/\n/g,'<br>')}<br><br><em style="opacity:0.6;">Can you do better?</em>`;
+    }
+
+    // ---- Drone Flyover Intro ----
+    function updateDroneIntro(dt) {
+        if (!state.droneActive) return;
+        const elapsed = (performance.now() / 1000) - state.droneStartTime;
+        const totalDuration = droneWaypoints[droneWaypoints.length - 1].t;
+
+        // Find current segment
+        let w0 = droneWaypoints[0], w1 = droneWaypoints[1];
+        for (let i = droneWaypoints.length - 2; i >= 0; i--) {
+            if (elapsed >= droneWaypoints[i].t) {
+                w0 = droneWaypoints[i]; w1 = droneWaypoints[i + 1]; break;
+            }
+        }
+
+        const segDuration = w1.t - w0.t;
+        const segElapsed = Math.max(0, Math.min(segDuration, elapsed - w0.t));
+        const t = segDuration > 0 ? segElapsed / segDuration : 1;
+        // Smooth easing
+        const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+        // Interpolate position and lookAt
+        const pos = new THREE.Vector3().lerpVectors(w0.pos, w1.pos, ease);
+        const look = new THREE.Vector3().lerpVectors(w0.lookAt, w1.lookAt, ease);
+
+        camera.position.copy(pos);
+        camera.lookAt(look);
+
+        // Add subtle drone hover wobble
+        camera.position.x += Math.sin(elapsed * 3.5) * 0.08;
+        camera.position.y += Math.cos(elapsed * 2.7) * 0.06;
+
+        // End drone intro
+        if (elapsed >= totalDuration + 0.5) {
+            state.droneActive = false;
+            state.playing = true; state.canShoot = true;
+            setCam('default');
+            // Show game UI
+            ['scoreboard','shot-indicator','instructions','power-bar-container','aim-crosshair','round-info'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('hidden-ui'); });
+            document.getElementById('combo-counter').classList.add('hidden-ui');
+            document.getElementById('power-bar').style.width = '0%'; updateUI();
+            document.getElementById('shot-indicator').textContent = `Shot 1 of ${CONFIG.totalShots}`;
+            document.getElementById('round-info').textContent = `Round 1/${CONFIG.totalShots}`;
+        }
+    }
+
+    // ============================================================
+    // MAIN LOOP
+    // ============================================================
+    function animate() {
+        requestAnimationFrame(animate);
+        const dt = clock ? clock.getDelta() : 0.016;
+
+        if(state.droneActive && scene) {
+            updateDroneIntro(dt);
+            animateFans(dt, 0.5);
+        }
+
+        if(state.playing && scene) {
+            updatePlayerAnimation(dt);
+            updateGoalkeeper(dt);
+            updateBallPhysics(dt);
+            updatePowerBar();
+            updateNetRipple(dt);
+            updateCamera();
+            updateParticles(dt);
+            animateFans(dt, state.charging ? 1.3 : 0.4);
+
+            if(state.canShoot && !state.shotInProgress) {
+                const cross = document.getElementById('aim-crosshair');
+                if(cross && cross.style.left !== '') {
+                    const rect = { x: parseFloat(cross.style.left), y: parseFloat(cross.style.top) };
+                    if(!isNaN(rect.x)) {
+                        const nx = (rect.x/window.innerWidth)*2 - 1, ny = -(rect.y/window.innerHeight)*2 + 1;
+                        let gx = nx * (CONFIG.goalWidth/2 - 0.15), gy = (ny*0.5 + 0.5) * CONFIG.goalHeight * 0.86;
+                        state.aimPosition.set(Math.max(-CONFIG.goalWidth/2+0.25, Math.min(CONFIG.goalWidth/2-0.25, gx)), Math.max(0.25, Math.min(CONFIG.goalHeight-0.15, gy)), 0);
+                    }
+                }
+            }
+
+            if(aimLine && !state.shotInProgress && state.canShoot && ball) {
+                aimLine.visible = true;
+                const pos = aimLine.geometry.attributes.position;
+                const bp = ball.position.clone(); bp.y += CONFIG.ballRadius * 0.3;
+                pos.setXYZ(0, bp.x, bp.y, bp.z); pos.setXYZ(1, state.aimPosition.x, state.aimPosition.y, state.aimPosition.z);
+                pos.needsUpdate = true; aimLine.computeLineDistances();
+            }
+            if(ballLight && !state.shotInProgress) ballLight.intensity = Math.sin(Date.now() * 0.004) * 0.25 + 0.6;
+        }
+        if(renderer && scene && camera) renderer.render(scene, camera);
+    }
+
+    // ---- Boot ----
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+    </script>
+</body>
+</html>
