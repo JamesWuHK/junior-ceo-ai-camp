@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="generator" content="html-slides v0.9.4">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+  <meta name="referrer" content="no-referrer">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23ffcf45'/%3E%3Ctext x='32' y='41' text-anchor='middle' font-family='Arial' font-size='26' font-weight='700' fill='%2317140b'%3EAI%3C/text%3E%3C/svg%3E">
+  <title>龙泉社区 AI 公开课</title>
+  <style>
+    :root {
+      --bg: #080a0d;
+      --panel: rgba(20, 24, 31, 0.96);
+      --text: #f7f8fa;
+      --muted: #aeb5c0;
+      --accent: #ffcf45;
+      --danger: #ff7878;
+      --slide-padding: 0;
+      --content-gap: clamp(0.5rem, 2vw, 2rem);
+      --title-size: clamp(1.5rem, 5vw, 4rem);
+      --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+      --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+      --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+      --small-size: clamp(0.65rem, 1vw, 0.875rem);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+    }
+
+    html {
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      background: var(--bg);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-height: 100%;
+      overflow: hidden;
+      padding: var(--slide-padding);
+    }
+
+    .card, .container, .content-box {
+      max-width: min(90vw, 1000px);
+      max-height: min(80vh, 700px);
+    }
+
+    .feature-list, .bullet-list { gap: clamp(0.4rem, 1vh, 1rem); }
+    .feature-list li, .bullet-list li { font-size: var(--body-size); line-height: 1.4; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+      gap: clamp(0.5rem, 1.5vw, 1rem);
+    }
+
+    img, .image-container {
+      max-width: 100%;
+      max-height: min(50vh, 400px);
+      object-fit: contain;
+    }
+
+    @media (max-height: 700px) {
+      :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+      }
+    }
+
+    @media (max-height: 600px) {
+      :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+      }
+      .nav-dots, .keyboard-hint, .decorative { display: none; }
+    }
+
+    @media (max-height: 500px) {
+      :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+      }
+    }
+
+    @media (max-width: 600px) {
+      :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+      }
+      html { scroll-behavior: auto; }
+    }
+
+    .deck { display: none; background: var(--bg); }
+    body.unlocked .deck { display: block; }
+
+    .slide::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: auto;
+      background: transparent;
+    }
+
+    .slide-image {
+      width: 100%;
+      height: 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      opacity: 0.38;
+      transform: scale(0.997);
+      transition: opacity 240ms ease-out, transform 240ms ease-out;
+      pointer-events: none;
+    }
+
+    .slide.active .slide-image { opacity: 1; transform: scale(1); }
+
+    .gate {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 22% 18%, rgba(255, 207, 69, 0.12), transparent 36%),
+        radial-gradient(circle at 82% 84%, rgba(88, 166, 255, 0.1), transparent 38%),
+        #080a0d;
+    }
+
+    body.unlocked .gate { display: none; }
+
+    .gate-card {
+      width: min(92vw, 440px);
+      padding: clamp(26px, 5vw, 42px);
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 24px;
+      background: var(--panel);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+      text-align: center;
+    }
+
+    .gate-mark {
+      display: inline-grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #17140b;
+      font-size: 23px;
+      font-weight: 800;
+    }
+
+    .gate h1 { font-size: clamp(23px, 5vw, 34px); letter-spacing: 0.01em; }
+    .gate p { margin-top: 10px; color: var(--muted); font-size: 15px; line-height: 1.6; }
+
+    .gate-form { margin-top: 28px; display: grid; gap: 12px; }
+    .gate-input {
+      width: 100%;
+      height: 52px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 13px;
+      outline: none;
+      padding: 0 16px;
+      background: rgba(255,255,255,0.07);
+      color: white;
+      font: inherit;
+      text-align: center;
+      letter-spacing: 0.08em;
+    }
+    .gate-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,207,69,0.13); }
+
+    .gate-button {
+      height: 52px;
+      border: 0;
+      border-radius: 13px;
+      background: var(--accent);
+      color: #17140b;
+      font: inherit;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .gate-button:disabled { opacity: 0.55; cursor: wait; }
+    .gate-error { min-height: 22px; margin-top: 11px; color: var(--danger); font-size: 13px; }
+
+    .chrome {
+      position: fixed;
+      z-index: 100;
+      display: none;
+      color: white;
+      opacity: 0.78;
+      transition: opacity 180ms ease;
+    }
+    body.unlocked .chrome { display: flex; }
+    body.chrome-hidden .chrome { opacity: 0; pointer-events: none; }
+
+    .progress-bar {
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(255,207,69,0.5);
+    }
+
+    .slide-counter {
+      right: max(14px, env(safe-area-inset-right));
+      bottom: max(12px, env(safe-area-inset-bottom));
+      align-items: center;
+      min-width: 62px;
+      height: 34px;
+      padding: 0 11px;
+      border-radius: 20px;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(8px);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .toolbar {
+      top: max(12px, env(safe-area-inset-top));
+      right: max(12px, env(safe-area-inset-right));
+      gap: 8px;
+    }
+
+    .tool-button {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 12px;
+      background: rgba(0,0,0,0.55);
+      color: white;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      font-size: 18px;
+    }
+
+    .nav-zone {
+      position: fixed;
+      z-index: 50;
+      top: 14%;
+      bottom: 14%;
+      display: none;
+      width: 18vw;
+      max-width: 260px;
+      border: 0;
+      background: transparent;
+      color: transparent;
+      cursor: pointer;
+    }
+    body.unlocked .nav-zone { display: block; }
+    .nav-zone.prev { left: 0; }
+    .nav-zone.next { right: 0; }
+
+    .help {
+      position: fixed;
+      z-index: 200;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background: rgba(5,7,10,0.8);
+      backdrop-filter: blur(12px);
+    }
+    .help.open { display: grid; }
+    .help-card {
+      width: min(90vw, 520px);
+      padding: 30px;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 20px;
+      background: #161a21;
+      line-height: 1.9;
+    }
+    .help-card h2 { margin-bottom: 12px; font-size: 22px; }
+    .help-card p { color: #c7cbd2; }
+    .help-card kbd {
+      display: inline-block;
+      min-width: 28px;
+      padding: 0 7px;
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      text-align: center;
+      font-family: inherit;
+    }
+
+    @media print {
+      body > * { display: none !important; }
+      body::after {
+        content: "本课件仅供现场演示";
+        display: grid;
+        min-height: 100vh;
+        place-items: center;
+        color: #111;
+        background: white;
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="gate" aria-labelledby="gate-title">
+    <section class="gate-card">
+      <div class="gate-mark" aria-hidden="true">AI</div>
+      <h1 id="gate-title">龙泉社区 AI 公开课</h1>
+      <p>请输入本次演示的独立访问口令</p>
+      <form class="gate-form" id="gateForm">
+        <input class="gate-input" id="passcode" type="password" autocomplete="off" inputmode="text" aria-label="访问口令" autofocus>
+        <button class="gate-button" id="unlockButton" type="submit">进入演示</button>
+      </form>
+      <div class="gate-error" id="gateError" role="alert" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <div class="progress-bar chrome" id="progress"></div>
+  <div class="slide-counter chrome" id="counter">1 / 18</div>
+  <div class="toolbar chrome">
+    <button class="tool-button" id="helpButton" type="button" title="操作说明（?）" aria-label="操作说明">?</button>
+    <button class="tool-button" id="fullscreenButton" type="button" title="全屏（F）" aria-label="进入全屏">⛶</button>
+  </div>
+
+  <button class="nav-zone prev" id="prevZone" type="button" aria-label="上一页">上一页</button>
+  <button class="nav-zone next" id="nextZone" type="button" aria-label="下一页">下一页</button>
+
+  <aside class="help" id="help" aria-hidden="true">
+    <div class="help-card">
+      <h2>演示操作</h2>
+      <p><kbd>→</kbd> / <kbd>Space</kbd> 下一页</p>
+      <p><kbd>←</kbd> 上一页</p>
+      <p><kbd>F</kbd> 进入或退出全屏</p>
+      <p><kbd>Home</kbd> 第一页　<kbd>End</kbd> 最后一页</p>
+      <p><kbd>Esc</kbd> 关闭操作说明</p>
+    </div>
+  </aside>
+
+  <div class="deck" id="deck" aria-label="龙泉社区 AI 公开课演示文稿">
+    <div class="slide active" data-slide="0"><div class="slide-image" data-src="slides/frame-01-9d3f2a94a2b8.png"></div><script type="application/json" class="slide-notes">{"title":"封面","script":"AI 与食品安全主题公开课。","notes":[]}</script></div>
+    <div class="slide" data-slide="1"><div class="slide-image" data-src="slides/frame-02-36ec6f7d00e0.png"></div><script type="application/json" class="slide-notes">{"title":"5 秒规则","script":"从每个人熟悉的生活经验开始。","notes":[]}</script></div>
+    <div class="slide" data-slide="2"><div class="slide-image" data-src="slides/frame-03-009b1f107be2.png"></div><script type="application/json" class="slide-notes">{"title":"OpenMAIC","script":"介绍 OpenMAIC 是什么，并进入现场演示。","notes":[]}</script></div>
+    <div class="slide" data-slide="3"><div class="slide-image" data-src="slides/frame-04-77d9569c0989.png"></div><script type="application/json" class="slide-notes">{"title":"AI 会组织任务","script":"从回答问题走向完成任务。","notes":[]}</script></div>
+    <div class="slide" data-slide="4"><div class="slide-image" data-src="slides/frame-05-3af700e7f4d1.png"></div><script type="application/json" class="slide-notes">{"title":"AI 的三个阶段","script":"理解工具能力的快速变化。","notes":[]}</script></div>
+    <div class="slide" data-slide="5"><div class="slide-image" data-src="slides/frame-06-79f2983cbae7.png"></div><script type="application/json" class="slide-notes">{"title":"Agent 是电脑长出了手脚","script":"解释 Agent 如何观察、思考并行动。","notes":[]}</script></div>
+    <div class="slide" data-slide="6"><div class="slide-image" data-src="slides/frame-07-b87d768f1dd9.png"></div><script type="application/json" class="slide-notes">{"title":"WorkBuddy 工作台","script":"介绍 WorkBuddy 的基本功能。","notes":[]}</script></div>
+    <div class="slide" data-slide="7"><div class="slide-image" data-src="slides/frame-08-8ef26d06eb82.png"></div><script type="application/json" class="slide-notes">{"title":"WorkBuddy 怎么用","script":"展示从描述目标到完成作品的过程。","notes":[]}</script></div>
+    <div class="slide" data-slide="8"><div class="slide-image" data-src="slides/frame-09-a16e9dbc2de3.png"></div><script type="application/json" class="slide-notes">{"title":"孩子可以用 WorkBuddy 做什么","script":"展示孩子们完成的真实作品。","notes":[]}</script></div>
+    <div class="slide" data-slide="9"><div class="slide-image" data-src="slides/frame-10-320f4126ce59.png"></div><script type="application/json" class="slide-notes">{"title":"三个证据问题","script":"建立对 AI 结果的判断意识。","notes":[]}</script></div>
+    <div class="slide" data-slide="10"><div class="slide-image" data-src="slides/frame-11-6eaf2f2f41e4.png"></div><script type="application/json" class="slide-notes">{"title":"人与 AI 的分工","script":"讨论人负责什么、AI 负责什么。","notes":[]}</script></div>
+    <div class="slide" data-slide="11"><div class="slide-image" data-src="slides/frame-12-6662fb4aebc2.png"></div><script type="application/json" class="slide-notes">{"title":"五种核心能力","script":"AI 时代真正值得培养的五种能力。","notes":[]}</script></div>
+    <div class="slide" data-slide="12"><div class="slide-image" data-src="slides/frame-13-3afd480c9a95.png"></div><script type="application/json" class="slide-notes">{"title":"PBL 五步","script":"从真实问题到可展示成果。","notes":[]}</script></div>
+    <div class="slide" data-slide="13"><div class="slide-image" data-src="slides/frame-14-17048b005be1.png"></div><script type="application/json" class="slide-notes">{"title":"过程证据","script":"关注过程中的判断、协作与迭代。","notes":[]}</script></div>
+    <div class="slide" data-slide="14"><div class="slide-image" data-src="slides/frame-15-547cd13d1c44.png"></div><script type="application/json" class="slide-notes">{"title":"社区食品安全志愿服务","script":"把 AI 能力放进真实社区任务。","notes":[]}</script></div>
+    <div class="slide" data-slide="15"><div class="slide-image" data-src="slides/frame-16-98183b81a6e7.png"></div><script type="application/json" class="slide-notes">{"title":"豆包参考图画法","script":"描述画面并上传人物 IP 参考图。","notes":[]}</script></div>
+    <div class="slide" data-slide="16"><div class="slide-image" data-src="slides/frame-17-5c9fa2c3cec9.png"></div><script type="application/json" class="slide-notes">{"title":"家庭连环画任务","script":"现场任务由工作人员发布。","notes":[]}</script></div>
+    <div class="slide" data-slide="17"><div class="slide-image" data-src="slides/frame-18-6542eb3747fd.png"></div><script type="application/json" class="slide-notes">{"title":"谢谢大家","script":"欢迎关注我的微信公众号：武宁说 AI。","notes":[]}</script></div>
+  </div>
+
+  <script>
+    var slides = document.querySelectorAll('.slide');
+    var current = 0;
+    var total = slides.length;
+    var wheelCD = false;
+    var touchStartX = 0;
+    var touchStartY = 0;
+    var chromeTimer = null;
+    var expectedHash = '6815f3d0d4d9983add829e38b2caa9b78c0748870dd4ed4456bbc4bdddd33e1d';
+
+    function updateUI() {
+      document.getElementById('progress').style.width = ((current + 1) / total * 100) + '%';
+      document.getElementById('counter').textContent = (current + 1) + ' / ' + total;
+      history.replaceState(null, '', '#slide-' + (current + 1));
+    }
+
+    function showSpeakerNotes(index) {
+      var notesEl = slides[index].querySelector('script.slide-notes');
+      if (!notesEl) return;
+      try {
+        var notes = JSON.parse(notesEl.textContent);
+        console.clear();
+        console.group('第 ' + (index + 1) + '/' + total + ' 页：' + notes.title);
+        if (notes.script) console.log(notes.script);
+        console.groupEnd();
+      } catch (_) {}
+    }
+
+    function goTo(index) {
+      index = Math.max(0, Math.min(total - 1, index));
+      current = index;
+      slides.forEach(function(slide, i) {
+        slide.classList.toggle('active', i === current);
+      });
+      slides[current].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      updateUI();
+      showSpeakerNotes(current);
+      showChrome();
+    }
+
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    function hex(buffer) {
+      return Array.from(new Uint8Array(buffer)).map(function(byte) {
+        return byte.toString(16).padStart(2, '0');
+      }).join('');
+    }
+
+    async function digest(value) {
+      var bytes = new TextEncoder().encode(value);
+      return hex(await crypto.subtle.digest('SHA-256', bytes));
+    }
+
+    function loadSlides() {
+      document.querySelectorAll('.slide-image').forEach(function(frame) {
+        frame.style.backgroundImage = 'url("' + frame.dataset.src + '")';
+        frame.removeAttribute('data-src');
+      });
+    }
+
+    function unlock() {
+      sessionStorage.setItem('longquan-ai-class-access', 'ok');
+      loadSlides();
+      document.body.classList.add('unlocked');
+      var match = location.hash.match(/^#slide-(\d+)$/);
+      goTo(match ? Number(match[1]) - 1 : 0);
+      setTimeout(function() { document.documentElement.scrollTop = slides[current].offsetTop; }, 50);
+    }
+
+    function showChrome() {
+      document.body.classList.remove('chrome-hidden');
+      clearTimeout(chromeTimer);
+      chromeTimer = setTimeout(function() {
+        if (document.body.classList.contains('unlocked') && !document.getElementById('help').classList.contains('open')) {
+          document.body.classList.add('chrome-hidden');
+        }
+      }, 2600);
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(function() {});
+      } else {
+        document.exitFullscreen().catch(function() {});
+      }
+    }
+
+    function toggleHelp(force) {
+      var help = document.getElementById('help');
+      var open = typeof force === 'boolean' ? force : !help.classList.contains('open');
+      help.classList.toggle('open', open);
+      help.setAttribute('aria-hidden', open ? 'false' : 'true');
+      showChrome();
+    }
+
+    document.getElementById('gateForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      var input = document.getElementById('passcode');
+      var button = document.getElementById('unlockButton');
+      var error = document.getElementById('gateError');
+      button.disabled = true;
+      error.textContent = '';
+      try {
+        if (await digest(input.value.trim()) === expectedHash) {
+          input.value = '';
+          unlock();
+        } else {
+          error.textContent = '口令不正确，请重新输入';
+          input.select();
+        }
+      } catch (_) {
+        error.textContent = '当前浏览器无法完成验证，请更换最新版浏览器';
+      }
+      button.disabled = false;
+    });
+
+    document.addEventListener('keydown', function(event) {
+      var key = event.key.toLowerCase();
+      var blockedSave = (event.ctrlKey || event.metaKey) && ['s', 'u', 'p'].includes(key);
+      if (blockedSave) { event.preventDefault(); return; }
+      if (!document.body.classList.contains('unlocked')) return;
+      if (key === 'escape') { toggleHelp(false); return; }
+      if (key === '?' || key === 'h') { event.preventDefault(); toggleHelp(); return; }
+      if (key === 'f') { event.preventDefault(); toggleFullscreen(); return; }
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === ' ' || event.key === 'PageDown') { event.preventDefault(); next(); }
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp' || event.key === 'PageUp') { event.preventDefault(); prev(); }
+      if (event.key === 'Home') { event.preventDefault(); goTo(0); }
+      if (event.key === 'End') { event.preventDefault(); goTo(total - 1); }
+    });
+
+    document.addEventListener('touchstart', function(event) {
+      touchStartX = event.touches[0].clientX;
+      touchStartY = event.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', function(event) {
+      if (!document.body.classList.contains('unlocked')) return;
+      var diffX = touchStartX - event.changedTouches[0].clientX;
+      var diffY = touchStartY - event.changedTouches[0].clientY;
+      if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) diffX > 0 ? next() : prev();
+    }, { passive: true });
+
+    document.addEventListener('wheel', function(event) {
+      if (!document.body.classList.contains('unlocked') || wheelCD) return;
+      wheelCD = true;
+      setTimeout(function() { wheelCD = false; }, 600);
+      if (event.deltaY > 0 || event.deltaX > 0) next(); else prev();
+    }, { passive: true });
+
+    document.addEventListener('contextmenu', function(event) { event.preventDefault(); });
+    document.addEventListener('dragstart', function(event) { event.preventDefault(); });
+    document.addEventListener('selectstart', function(event) {
+      if (document.body.classList.contains('unlocked')) event.preventDefault();
+    });
+    document.addEventListener('mousemove', showChrome, { passive: true });
+    document.addEventListener('pointerdown', showChrome, { passive: true });
+
+    document.getElementById('prevZone').addEventListener('click', prev);
+    document.getElementById('nextZone').addEventListener('click', next);
+    document.getElementById('fullscreenButton').addEventListener('click', toggleFullscreen);
+    document.getElementById('helpButton').addEventListener('click', function() { toggleHelp(); });
+    document.getElementById('help').addEventListener('click', function(event) {
+      if (event.target === this) toggleHelp(false);
+    });
+    document.addEventListener('dblclick', function(event) {
+      if (document.body.classList.contains('unlocked') && !event.target.closest('button')) toggleFullscreen();
+    });
+
+    window.addEventListener('scroll', function() {
+      if (!document.body.classList.contains('unlocked')) return;
+      var index = Math.round(window.scrollY / Math.max(1, window.innerHeight));
+      if (index !== current && index >= 0 && index < total) {
+        current = index;
+        slides.forEach(function(slide, i) { slide.classList.toggle('active', i === current); });
+        updateUI();
+      }
+    }, { passive: true });
+
+    if (sessionStorage.getItem('longquan-ai-class-access') === 'ok') unlock();
+  </script>
+</body>
+</html>
