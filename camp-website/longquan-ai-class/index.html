@@ -429,11 +429,15 @@
 
     function goTo(index) {
       index = Math.max(0, Math.min(total - 1, index));
+      var previous = current;
       current = index;
       slides.forEach(function(slide, i) {
         slide.classList.toggle('active', i === current);
       });
-      slides[current].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      slides[current].scrollIntoView({
+        behavior: Math.abs(current - previous) === 1 ? 'smooth' : 'auto',
+        block: 'start'
+      });
       updateUI();
       showSpeakerNotes(current);
       showChrome();
@@ -466,7 +470,9 @@
       document.body.classList.add('unlocked');
       var match = location.hash.match(/^#slide-(\d+)$/);
       goTo(match ? Number(match[1]) - 1 : 0);
-      setTimeout(function() { document.documentElement.scrollTop = slides[current].offsetTop; }, 50);
+      setTimeout(function() {
+        if (document.scrollingElement) document.scrollingElement.scrollTop = slides[current].offsetTop;
+      }, 50);
     }
 
     function showChrome() {
@@ -570,7 +576,8 @@
 
     window.addEventListener('scroll', function() {
       if (!document.body.classList.contains('unlocked')) return;
-      var index = Math.round(window.scrollY / Math.max(1, window.innerHeight));
+      var scrollTop = Math.max(window.scrollY, document.documentElement.scrollTop, document.body.scrollTop);
+      var index = Math.round(scrollTop / Math.max(1, window.innerHeight));
       if (index !== current && index >= 0 && index < total) {
         current = index;
         slides.forEach(function(slide, i) { slide.classList.toggle('active', i === current); });
