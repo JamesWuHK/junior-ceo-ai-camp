@@ -465,7 +465,7 @@
     }
 
     function unlock() {
-      sessionStorage.setItem('longquan-ai-class-access', 'ok');
+      sessionStorage.setItem('longquan-ai-class-access', expectedHash);
       loadSlides();
       document.body.classList.add('unlocked');
       var match = location.hash.match(/^#slide-(\d+)$/);
@@ -585,7 +585,7 @@
       }
     }, { passive: true });
 
-    if (sessionStorage.getItem('longquan-ai-class-access') === 'ok') unlock();
+    if (sessionStorage.getItem('longquan-ai-class-access') === expectedHash) unlock();
   </script>
 </body>
 </html>
